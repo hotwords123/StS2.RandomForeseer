@@ -134,7 +134,7 @@ internal static class AstrolabeTransformPreviewPatch
             original,
             AccessTools.Method(typeof(AstrolabeTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(Astrolabe source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(Astrolabe source) =>
         TransformPreviewPredictor.Make(source.Owner.RunState.Rng.Niche, upgradePreview: true);
 }
 
@@ -150,7 +150,7 @@ internal static class NewLeafTransformPreviewPatch
             original,
             AccessTools.Method(typeof(NewLeafTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(NewLeaf source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(NewLeaf source) =>
         TransformPreviewPredictor.Make(source.Owner.RunState.Rng.Niche);
 }
 
@@ -166,7 +166,7 @@ internal static class AromaOfChaosTransformPreviewPatch
             original,
             AccessTools.Method(typeof(AromaOfChaosTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(AromaOfChaos source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(AromaOfChaos source) =>
         TransformPreviewPredictor.Make(source.Rng);
 }
 
@@ -182,7 +182,7 @@ internal static class EndlessConveyorTransformPreviewPatch
             original,
             AccessTools.Method(typeof(EndlessConveyorTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(EndlessConveyor source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(EndlessConveyor source) =>
         TransformPreviewPredictor.Make(source.Rng);
 }
 
@@ -198,7 +198,7 @@ internal static class MorphicGroveTransformPreviewPatch
             original,
             AccessTools.Method(typeof(MorphicGroveTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(MorphicGrove source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(MorphicGrove source) =>
         TransformPreviewPredictor.Make(source.Owner!.RunState.Rng.Niche);
 }
 
@@ -214,7 +214,7 @@ internal static class SymbioteTransformPreviewPatch
             original,
             AccessTools.Method(typeof(SymbioteTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(Symbiote source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(Symbiote source) =>
         TransformPreviewPredictor.Make(source.Rng);
 }
 
@@ -230,7 +230,7 @@ internal static class TrialTransformPreviewPatch
             original,
             AccessTools.Method(typeof(TrialTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(Trial source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(Trial source) =>
         TransformPreviewPredictor.Make(source.Owner!.RunState.Rng.Niche);
 }
 
@@ -246,6 +246,6 @@ internal static class WhisperingHollowTransformPreviewPatch
             original,
             AccessTools.Method(typeof(WhisperingHollowTransformPreviewPatch), nameof(MakePredictor)));
 
-    private static Func<CardModel, CardTransformation> MakePredictor(WhisperingHollow source) =>
+    private static Func<CardModel, CardTransformation>? MakePredictor(WhisperingHollow source) =>
         TransformPreviewPredictor.Make(source.Rng);
 }

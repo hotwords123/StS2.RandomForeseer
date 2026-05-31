@@ -1,0 +1,9 @@
+{
+  "mod.name": "Random Foreseer",
+  "page.title": "Random Foreseer",
+  "page.description": "Configure prediction features for random outcomes.",
+  "section.prediction.title": "Prediction",
+  "section.prediction.description": "Controls which random outcomes are shown before confirmation.",
+  "toggle.enable_transform_prediction.label": "Predict transform results",
+  "toggle.enable_transform_prediction.description": "When enabled, deck transform confirmation previews show the exact card the current RNG will produce."
+}

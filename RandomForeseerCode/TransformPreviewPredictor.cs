@@ -7,8 +7,13 @@ namespace RandomForeseer;
 
 internal static class TransformPreviewPredictor
 {
-    public static Func<CardModel, CardTransformation> Make(Rng realRng, bool upgradePreview = false)
+    public static Func<CardModel, CardTransformation>? Make(Rng realRng, bool upgradePreview = false)
     {
+        if (!RandomForeseerSettings.EnableTransformPrediction)
+        {
+            return null;
+        }
+
         return new TransformPreviewPredictionSession(realRng, upgradePreview).Predict;
     }
 

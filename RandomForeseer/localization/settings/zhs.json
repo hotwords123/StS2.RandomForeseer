@@ -1,0 +1,9 @@
+{
+  "mod.name": "随机数预测",
+  "page.title": "随机数预测",
+  "page.description": "配置随机结果预测功能。",
+  "section.prediction.title": "预测",
+  "section.prediction.description": "控制确认前显示哪些随机结果。",
+  "toggle.enable_transform_prediction.label": "预测变牌结果",
+  "toggle.enable_transform_prediction.description": "启用后，牌组变牌确认预览会显示当前随机数状态将生成的确切卡牌。"
+}
