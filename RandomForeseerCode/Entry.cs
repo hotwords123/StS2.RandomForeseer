@@ -1,4 +1,5 @@
 using System.Reflection;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using STS2RitsuLib;
@@ -32,6 +33,8 @@ public partial class Entry
         // 自动注册扫描会读取当前程序集里的 RegisterCard/RegisterRelic 等 attribute。
         // 新增内容类后，只要 attribute 写对，通常不需要在入口里手动逐个注册。
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
+
+        new Harmony($"{ModId}.Harmony").PatchAll(assembly);
 
         Logger.Info("RandomForeseer initialized.");
     }

@@ -1,0 +1,72 @@
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Factories;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Random;
+
+namespace RandomForeseer;
+
+internal static class TransformPreviewPredictor
+{
+    public static Func<CardModel, CardTransformation> Make(Rng realRng, bool upgradePreview = false)
+    {
+        return new TransformPreviewPredictionSession(realRng, upgradePreview).Predict;
+    }
+
+    private sealed class TransformPreviewPredictionSession : IResettableTransformPreviewPredictor
+    {
+        private readonly Rng _realRng;
+        private readonly bool _upgradePreview;
+
+        private Rng _previewRng;
+
+        public TransformPreviewPredictionSession(Rng realRng, bool upgradePreview)
+        {
+            _realRng = realRng;
+            _upgradePreview = upgradePreview;
+            _previewRng = CloneRng(realRng);
+        }
+
+        public void Reset()
+        {
+            _previewRng = CloneRng(_realRng);
+        }
+
+        public CardTransformation Predict(CardModel original)
+        {
+            var options = CardFactory.GetDefaultTransformationOptions(
+                original,
+                original.CombatState != null);
+
+            var predicted = _previewRng.NextItem(options);
+            if (predicted == null)
+            {
+                return new CardTransformation(original);
+            }
+
+            if (!_upgradePreview)
+            {
+                return new CardTransformation(original, predicted);
+            }
+
+            var previewCard = predicted.ToMutable();
+            previewCard.Owner = original.Owner;
+            if (previewCard.IsUpgradable)
+            {
+                previewCard.UpgradeInternal();
+                previewCard.FinalizeUpgradeInternal();
+            }
+
+            return new CardTransformation(original, previewCard);
+        }
+    }
+
+    private static Rng CloneRng(Rng rng)
+    {
+        return new Rng(rng.Seed, rng.Counter);
+    }
+}
+
+internal interface IResettableTransformPreviewPredictor
+{
+    void Reset();
+}
