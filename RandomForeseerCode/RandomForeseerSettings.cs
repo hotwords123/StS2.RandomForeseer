@@ -11,6 +11,8 @@ internal sealed class RandomForeseerSettingsData
     public bool EnableTransformPrediction { get; set; } = true;
 
     public bool EnablePotionCardPrediction { get; set; } = true;
+
+    public bool EnableFrozenEye { get; set; } = true;
 }
 
 internal static class RandomForeseerSettings
@@ -18,6 +20,7 @@ internal static class RandomForeseerSettings
     private const string DataKey = "settings";
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
+    private const string EnableFrozenEyeKey = "enable_frozen_eye";
 
     private static bool _isDataRegistered;
 
@@ -42,9 +45,18 @@ internal static class RandomForeseerSettings
             settings => settings.EnablePotionCardPrediction,
             (settings, value) => settings.EnablePotionCardPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableFrozenEyeBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableFrozenEye,
+            (settings, value) => settings.EnableFrozenEye = value);
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
+
+    public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
     public static void Register()
     {
@@ -81,6 +93,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_potion_card_prediction.description",
                         "When enabled, random-card potion tooltips show the exact cards the current RNG will produce."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableFrozenEyeKey,
+                    Text("toggle.enable_frozen_eye.label", "Enable Frozen Eye"),
+                    EnableFrozenEyeBinding,
+                    Text(
+                        "toggle.enable_frozen_eye.description",
+                        "When enabled, the combat draw pile view shows cards in draw order."),
                     () => true);
             });
         });

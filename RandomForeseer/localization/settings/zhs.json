@@ -7,5 +7,7 @@
   "toggle.enable_transform_prediction.label": "预测变牌结果",
   "toggle.enable_transform_prediction.description": "启用后，牌组变牌确认预览会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_potion_card_prediction.label": "预测药水随机牌",
-  "toggle.enable_potion_card_prediction.description": "启用后，随机给牌药水的提示会显示当前随机数状态将生成的确切卡牌。"
+  "toggle.enable_potion_card_prediction.description": "启用后，随机给牌药水的提示会显示当前随机数状态将生成的确切卡牌。",
+  "toggle.enable_frozen_eye.label": "启用冻结之眼",
+  "toggle.enable_frozen_eye.description": "启用后，战斗中查看抽牌堆会按实际抽牌顺序显示卡牌。"
 }
