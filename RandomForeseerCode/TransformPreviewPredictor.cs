@@ -28,12 +28,12 @@ internal static class TransformPreviewPredictor
         {
             _realRng = realRng;
             _upgradePreview = upgradePreview;
-            _previewRng = CloneRng(realRng);
+            _previewRng = PredictionUtils.CloneRng(realRng);
         }
 
         public void Reset()
         {
-            _previewRng = CloneRng(_realRng);
+            _previewRng = PredictionUtils.CloneRng(_realRng);
         }
 
         public CardTransformation Predict(CardModel original)
@@ -63,11 +63,6 @@ internal static class TransformPreviewPredictor
 
             return new CardTransformation(original, previewCard);
         }
-    }
-
-    private static Rng CloneRng(Rng rng)
-    {
-        return new Rng(rng.Seed, rng.Counter);
     }
 }
 
