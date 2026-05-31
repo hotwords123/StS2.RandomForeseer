@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- 复制本文件为 local.props 后，把下面两项改成你的本机路径。 -->
+    <Sts2Dir>PATH_TO_STEAM/steamapps/common/Slay the Spire 2</Sts2Dir>
+    <Sts2DataDir>$(Sts2Dir)/data_sts2_windows_x86_64</Sts2DataDir>
+
+    <!-- 只有导出 pck 时才需要 GodotExe；纯 C# 构建可使用 /p:RunPckExport=false。 -->
+    <GodotExe>PATH_TO_GODOT/MegaDot_v4.5.1-stable_mono_win64.exe</GodotExe>
+
+    <!-- 可选：RitsuLib 本机部署目录，默认是 $(Sts2Dir)/mods/STS2-RitsuLib。 -->
+    <!--<RitsuLibDeployDir>$(Sts2Dir)/mods/STS2-RitsuLib</RitsuLibDeployDir>-->
+  </PropertyGroup>
+</Project>
