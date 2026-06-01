@@ -29,9 +29,9 @@ internal static class CombatCardPrediction
         return card switch
         {
             BundleOfJoy => PredictColorlessCards(card, card.DynamicVars.Cards.IntValue, previewRng),
-            Discovery => PredictCharacterCards(card, null, 3, previewRng),
-            Distraction => PredictCharacterCards(card, CardType.Skill, 1, previewRng),
-            InfernalBlade => PredictCharacterCards(card, CardType.Attack, 1, previewRng),
+            Discovery => PredictFreeCharacterCards(card, null, 3, previewRng),
+            Distraction => PredictFreeCharacterCards(card, CardType.Skill, 1, previewRng),
+            InfernalBlade => PredictFreeCharacterCards(card, CardType.Attack, 1, previewRng),
             JackOfAllTrades => PredictJackOfAllTrades(card, previewRng),
             Jackpot => PredictJackpot(card, previewRng),
             MadScience madScience when madScience.TinkerTimeRider == TinkerTime.RiderEffect.Chaos =>
@@ -41,7 +41,7 @@ internal static class CombatCardPrediction
             Quasar => PredictQuasar(card, previewRng),
             Splash => PredictSplash(card, previewRng),
             Stoke => PredictStoke(card, previewRng),
-            WhiteNoise => PredictCharacterCards(card, CardType.Power, 1, previewRng),
+            WhiteNoise => PredictFreeCharacterCards(card, CardType.Power, 1, previewRng),
             _ => []
         };
     }
@@ -53,6 +53,17 @@ internal static class CombatCardPrediction
         Rng previewRng)
     {
         return PredictionUtils.TakeRandomDistinctCharacterCardsForCombat(source.Owner, type, count, previewRng);
+    }
+
+    private static IReadOnlyList<CardModel> PredictFreeCharacterCards(
+        CardModel source,
+        CardType? type,
+        int count,
+        Rng previewRng)
+    {
+        return PredictCharacterCards(source, type, count, previewRng)
+            .Select(PredictionUtils.ToFreeThisTurnPreviewCard)
+            .ToList();
     }
 
     private static IReadOnlyList<CardModel> PredictColorlessCards(CardModel source, int count, Rng previewRng)
