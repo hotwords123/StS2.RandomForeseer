@@ -90,13 +90,17 @@ internal static class PredictionUtils
     public static CardModel ToUpgradedPreviewCard(CardModel card)
     {
         var previewCard = card.ToMutable();
+        UpgradePreviewCardInPlace(previewCard);
+        return previewCard;
+    }
+
+    public static void UpgradePreviewCardInPlace(CardModel previewCard)
+    {
         if (previewCard.IsUpgradable)
         {
             previewCard.UpgradeInternal();
             previewCard.FinalizeUpgradeInternal();
         }
-
-        return previewCard;
     }
 
     public static CardModel ToFreeThisTurnPreviewCard(CardModel card)

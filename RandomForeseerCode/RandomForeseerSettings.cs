@@ -14,6 +14,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableCombatCardPrediction { get; set; } = true;
 
+    public bool EnableDriftwoodRerollPrediction { get; set; } = true;
+
     public bool EnableFrozenEye { get; set; } = true;
 }
 
@@ -23,6 +25,7 @@ internal static class RandomForeseerSettings
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
+    private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
 
     private static bool _isDataRegistered;
@@ -62,11 +65,20 @@ internal static class RandomForeseerSettings
             settings => settings.EnableCombatCardPrediction,
             (settings, value) => settings.EnableCombatCardPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableDriftwoodRerollPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableDriftwoodRerollPrediction,
+            (settings, value) => settings.EnableDriftwoodRerollPrediction = value);
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
 
     public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
+
+    public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
@@ -114,6 +126,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_combat_card_prediction.description",
                         "When enabled, combat card tooltips show the exact random cards the current RNG will generate."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableDriftwoodRerollPredictionKey,
+                    Text("toggle.enable_driftwood_reroll_prediction.label", "Predict Driftwood rerolls"),
+                    EnableDriftwoodRerollPredictionBinding,
+                    Text(
+                        "toggle.enable_driftwood_reroll_prediction.description",
+                        "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."),
                     () => true);
 
                 section.AddToggle(

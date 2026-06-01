@@ -9,6 +9,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform confirmation previews.
 - **Random-card potion prediction**: adds the predicted generated cards to random-card potion hover tips.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
+- **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
 Each feature can be toggled independently from the mod settings page.
@@ -51,6 +52,10 @@ Each feature can be toggled independently from the mod settings page.
 - White Noise
 - Mad Science (Chaos rider only)
 
+### Card Rewards
+
+- Driftwood reroll
+
 ## Installation
 
 1. Install and enable `STS2-RitsuLib`.
@@ -73,6 +78,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict transform results | Controls whether transform confirmation previews show predicted cards |
 | Predict potion card results | Controls whether random-card potions show predicted cards |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
+| Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 
 ## Build From Source

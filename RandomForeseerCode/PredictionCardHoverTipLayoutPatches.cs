@@ -193,3 +193,30 @@ internal static class PredictionCardHoverTipSourceRectPatch
         PredictionCardHoverTipLayoutPatches.RecordSourceRect(container, holder.Hitbox.GetGlobalRect());
     }
 }
+
+[HarmonyPatch(typeof(NHoverTipSet), nameof(NHoverTipSet.SetAlignment))]
+internal static class PredictionCardHoverTipControlSourceRectPatch
+{
+    private static readonly AccessTools.FieldRef<NHoverTipSet, NHoverTipCardContainer> CardContainerField =
+        AccessTools.FieldRefAccess<NHoverTipSet, NHoverTipCardContainer>("_cardHoverTipContainer");
+
+    private static void Prefix(NHoverTipSet __instance, Control node)
+    {
+        var container = CardContainerField(__instance);
+        if (container == null)
+        {
+            return;
+        }
+
+        var hasPredictionCard = container
+            .GetChildren()
+            .OfType<Control>()
+            .Any(tip => tip.HasMeta(PredictionCardHoverTipLayoutPatches.PredictionCardMetaKey));
+        if (!hasPredictionCard)
+        {
+            return;
+        }
+
+        PredictionCardHoverTipLayoutPatches.RecordSourceRect(container, node.GetGlobalRect());
+    }
+}
