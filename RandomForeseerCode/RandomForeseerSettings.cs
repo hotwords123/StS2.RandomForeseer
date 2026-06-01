@@ -216,6 +216,26 @@ internal static class RandomForeseerSettings
                         "When enabled, Ancient event pages show a debug Reroll button that regenerates the current option set."),
                     () => true);
             });
+
+            page.AddSection("out_of_combat_relic_debug", section =>
+            {
+                section.WithTitle(Text("section.out_of_combat_relic_debug.title", "Out-of-combat relic prediction"));
+                section.WithDescription(Text(
+                    "section.out_of_combat_relic_debug.description",
+                    "Debug tools for out-of-combat relic prediction."));
+
+                section.AddButton(
+                    "offer_predicted_non_ancient_relics",
+                    Text("button.offer_predicted_non_ancient_relics.label", "Offer predicted non-Ancient relics"),
+                    Text(
+                        "button.offer_predicted_non_ancient_relics.text",
+                        "Offer"),
+                    OutOfCombatRelicDebugRewards.OfferPredictedNonAncientRelics,
+                    ModSettingsButtonTone.Danger,
+                    Text(
+                        "button.offer_predicted_non_ancient_relics.description",
+                        "Only works during a run. Opens a reward screen with the non-Ancient relics covered by pickup prediction. This can change game content."));
+            });
         }, "debug");
     }
 

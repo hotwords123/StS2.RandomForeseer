@@ -88,7 +88,6 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict out-of-combat relic results | Controls whether Ancient relic options, relic rewards, and merchant relics show immediate random results |
-| Enable Ancient event debug reroll | Controls whether Ancient event pages show a debug Reroll button; off by default |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 
 ## Build From Source
