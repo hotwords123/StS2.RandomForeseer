@@ -159,4 +159,7 @@ internal static class CombatCardPrediction
     }
 }
 
-internal class PredictionCardHoverTip(CardModel card) : CardHoverTip(card);
+internal class PredictionCardHoverTip(CardModel card) : CardHoverTip(card), IHoverTip
+{
+    bool IHoverTip.IsInstanced => true;
+}
