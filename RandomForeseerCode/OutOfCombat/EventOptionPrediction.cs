@@ -3,7 +3,6 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes.Events;
 
 namespace RandomForeseer;
@@ -14,7 +13,7 @@ internal static class EventOptionPredictionRegistry
 
     static EventOptionPredictionRegistry()
     {
-        Register(GetAncientRelicHoverTips);
+        Register(GetRelicHoverTips);
     }
 
     public static void Register(Func<EventModel, EventOption, IReadOnlyList<IHoverTip>> provider)
@@ -33,14 +32,14 @@ internal static class EventOptionPredictionRegistry
         return tips;
     }
 
-    private static IReadOnlyList<IHoverTip> GetAncientRelicHoverTips(EventModel eventModel, EventOption option)
+    private static IReadOnlyList<IHoverTip> GetRelicHoverTips(EventModel eventModel, EventOption option)
     {
-        if (eventModel is not AncientEventModel ancient || ancient.Owner == null || option.Relic == null)
+        if (eventModel.Owner == null || option.Relic == null)
         {
             return [];
         }
 
-        return OutOfCombatRelicPrediction.GetHoverTips(ancient.Owner, option.Relic);
+        return OutOfCombatRelicPrediction.GetHoverTips(eventModel.Owner, option.Relic);
     }
 }
 
