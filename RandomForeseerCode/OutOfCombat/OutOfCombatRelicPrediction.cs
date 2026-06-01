@@ -1,6 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Hooks;
@@ -17,21 +16,13 @@ using MegaCrit.Sts2.Core.TestSupport;
 
 namespace RandomForeseer;
 
-internal static class NeowRelicPrediction
+internal static class OutOfCombatRelicPrediction
 {
-    public static IEventOptionPredictionProvider Provider { get; } = new NeowRelicPredictionProvider();
-
     private static readonly HashSet<Type> WarnedRelicTypes = [];
 
-    public static IReadOnlyList<IHoverTip> GetHoverTips(Neow neow, RelicModel relic)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, RelicModel relic)
     {
-        if (!RandomForeseerSettings.EnableNeowRelicPrediction)
-        {
-            return [];
-        }
-
-        var player = neow.Owner;
-        if (player == null)
+        if (!RandomForeseerSettings.EnableOutOfCombatRelicPrediction)
         {
             return [];
         }
@@ -62,7 +53,7 @@ internal static class NeowRelicPrediction
         }
         catch (Exception ex)
         {
-            WarnOnce(relic.GetType(), $"Could not predict Neow relic result for {relic.Id}: {ex}");
+            WarnOnce(relic.GetType(), $"Could not predict out-of-combat relic result for {relic.Id}: {ex}");
             return [];
         }
     }
@@ -335,19 +326,6 @@ internal static class NeowRelicPrediction
         if (WarnedRelicTypes.Add(relicType))
         {
             Entry.Logger.Warn(message);
-        }
-    }
-
-    private sealed class NeowRelicPredictionProvider : IEventOptionPredictionProvider
-    {
-        public IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option)
-        {
-            if (eventModel is not Neow neow || option.Relic == null)
-            {
-                return [];
-            }
-
-            return NeowRelicPrediction.GetHoverTips(neow, option.Relic);
         }
     }
 }

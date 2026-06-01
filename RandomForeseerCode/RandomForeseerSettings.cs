@@ -16,7 +16,7 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableDriftwoodRerollPrediction { get; set; } = true;
 
-    public bool EnableNeowRelicPrediction { get; set; } = true;
+    public bool EnableOutOfCombatRelicPrediction { get; set; } = true;
 
     public bool EnableFrozenEye { get; set; } = true;
 }
@@ -28,7 +28,7 @@ internal static class RandomForeseerSettings
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
-    private const string EnableNeowRelicPredictionKey = "enable_neow_relic_prediction";
+    private const string EnableOutOfCombatRelicPredictionKey = "enable_out_of_combat_relic_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
 
     private static bool _isDataRegistered;
@@ -75,12 +75,12 @@ internal static class RandomForeseerSettings
             settings => settings.EnableDriftwoodRerollPrediction,
             (settings, value) => settings.EnableDriftwoodRerollPrediction = value);
 
-    private static readonly IModSettingsValueBinding<bool> EnableNeowRelicPredictionBinding =
+    private static readonly IModSettingsValueBinding<bool> EnableOutOfCombatRelicPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
-            settings => settings.EnableNeowRelicPrediction,
-            (settings, value) => settings.EnableNeowRelicPrediction = value);
+            settings => settings.EnableOutOfCombatRelicPrediction,
+            (settings, value) => settings.EnableOutOfCombatRelicPrediction = value);
 
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
@@ -90,7 +90,7 @@ internal static class RandomForeseerSettings
 
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
-    public static bool EnableNeowRelicPrediction => EnableNeowRelicPredictionBinding.Read();
+    public static bool EnableOutOfCombatRelicPrediction => EnableOutOfCombatRelicPredictionBinding.Read();
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
@@ -104,14 +104,14 @@ internal static class RandomForeseerSettings
             page.WithTitle(Text("page.title", "Random Foreseer"));
             page.WithDescription(Text(
                 "page.description",
-                "Configure prediction features for random outcomes."));
+                "Configure prediction features for random outcomes. Some settings may require Save & Load to take effect."));
 
-            page.AddSection("prediction", section =>
+            page.AddSection("out_of_combat_prediction", section =>
             {
-                section.WithTitle(Text("section.prediction.title", "Prediction"));
+                section.WithTitle(Text("section.out_of_combat_prediction.title", "Out-of-combat prediction"));
                 section.WithDescription(Text(
-                    "section.prediction.description",
-                    "Controls which random outcomes are shown before confirmation."));
+                    "section.out_of_combat_prediction.description",
+                    "Controls random outcomes shown outside combat."));
 
                 section.AddToggle(
                     EnableTransformPredictionKey,
@@ -121,6 +121,32 @@ internal static class RandomForeseerSettings
                         "toggle.enable_transform_prediction.description",
                         "When enabled, deck transform confirmation previews show the exact card the current RNG will produce."),
                     () => true);
+
+                section.AddToggle(
+                    EnableDriftwoodRerollPredictionKey,
+                    Text("toggle.enable_driftwood_reroll_prediction.label", "Predict Driftwood rerolls"),
+                    EnableDriftwoodRerollPredictionBinding,
+                    Text(
+                        "toggle.enable_driftwood_reroll_prediction.description",
+                        "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableOutOfCombatRelicPredictionKey,
+                    Text("toggle.enable_out_of_combat_relic_prediction.label", "Predict out-of-combat relic results"),
+                    EnableOutOfCombatRelicPredictionBinding,
+                    Text(
+                        "toggle.enable_out_of_combat_relic_prediction.description",
+                        "When enabled, out-of-combat relic tooltips show immediate random results such as cards, relics, potions, curses, and transforms."),
+                    () => true);
+            });
+
+            page.AddSection("in_combat_prediction", section =>
+            {
+                section.WithTitle(Text("section.in_combat_prediction.title", "In-combat prediction"));
+                section.WithDescription(Text(
+                    "section.in_combat_prediction.description",
+                    "Controls random outcomes shown during combat."));
 
                 section.AddToggle(
                     EnablePotionCardPredictionKey,
@@ -138,24 +164,6 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_combat_card_prediction.description",
                         "When enabled, combat card tooltips show the exact random cards the current RNG will generate."),
-                    () => true);
-
-                section.AddToggle(
-                    EnableDriftwoodRerollPredictionKey,
-                    Text("toggle.enable_driftwood_reroll_prediction.label", "Predict Driftwood rerolls"),
-                    EnableDriftwoodRerollPredictionBinding,
-                    Text(
-                        "toggle.enable_driftwood_reroll_prediction.description",
-                        "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."),
-                    () => true);
-
-                section.AddToggle(
-                    EnableNeowRelicPredictionKey,
-                    Text("toggle.enable_neow_relic_prediction.label", "Predict Neow relic results"),
-                    EnableNeowRelicPredictionBinding,
-                    Text(
-                        "toggle.enable_neow_relic_prediction.description",
-                        "When enabled, Neow relic option tooltips show immediate random results such as cards, relics, potions, curses, and transforms."),
                     () => true);
 
                 section.AddToggle(

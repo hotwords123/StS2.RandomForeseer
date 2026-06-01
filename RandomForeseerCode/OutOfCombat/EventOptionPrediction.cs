@@ -3,25 +3,21 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes.Events;
 
 namespace RandomForeseer;
 
-internal interface IEventOptionPredictionProvider
-{
-    IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option);
-}
-
 internal static class EventOptionPredictionRegistry
 {
-    private static readonly List<IEventOptionPredictionProvider> Providers = [];
+    private static readonly List<Func<EventModel, EventOption, IReadOnlyList<IHoverTip>>> Providers = [];
 
     static EventOptionPredictionRegistry()
     {
-        Register(NeowRelicPrediction.Provider);
+        Register(GetNeowRelicHoverTips);
     }
 
-    public static void Register(IEventOptionPredictionProvider provider)
+    public static void Register(Func<EventModel, EventOption, IReadOnlyList<IHoverTip>> provider)
     {
         Providers.Add(provider);
     }
@@ -31,10 +27,20 @@ internal static class EventOptionPredictionRegistry
         var tips = new List<IHoverTip>();
         foreach (var provider in Providers)
         {
-            tips.AddRange(provider.GetHoverTips(eventModel, option));
+            tips.AddRange(provider(eventModel, option));
         }
 
         return tips;
+    }
+
+    private static IReadOnlyList<IHoverTip> GetNeowRelicHoverTips(EventModel eventModel, EventOption option)
+    {
+        if (eventModel is not Neow neow || neow.Owner == null || option.Relic == null)
+        {
+            return [];
+        }
+
+        return OutOfCombatRelicPrediction.GetHoverTips(neow.Owner, option.Relic);
     }
 }
 

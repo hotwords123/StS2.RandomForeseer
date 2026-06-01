@@ -10,7 +10,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 - **Random-card potion prediction**: adds the predicted generated cards to random-card potion hover tips.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
-- **Neow relic result prediction**: shows immediate random results when hovering Neow's relic options.
+- **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow relic options, relic rewards, and merchant relics.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
 Each feature can be toggled independently from the mod settings page.
@@ -57,9 +57,11 @@ Each feature can be toggled independently from the mod settings page.
 
 - Driftwood reroll
 
-### Ancients
+### Out-of-Combat Relics
 
 - Immediate random results from Neow relic options
+- Immediate random results from relic rewards
+- Immediate random results from merchant relics
 
 ## Installation
 
@@ -84,7 +86,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict potion card results | Controls whether random-card potions show predicted cards |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
-| Predict Neow relic results | Controls whether Neow relic options show immediate random results |
+| Predict out-of-combat relic results | Controls whether Neow relic options, relic rewards, and merchant relics show immediate random results |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 
 ## Build From Source

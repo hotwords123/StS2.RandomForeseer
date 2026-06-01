@@ -1,9 +1,11 @@
 {
   "mod.name": "Random Foreseer",
   "page.title": "Random Foreseer",
-  "page.description": "Configure prediction features for random outcomes.",
-  "section.prediction.title": "Prediction",
-  "section.prediction.description": "Controls which random outcomes are shown before confirmation.",
+  "page.description": "Configure prediction features for random outcomes. Some settings may require Save & Load to take effect.",
+  "section.out_of_combat_prediction.title": "Out-of-combat prediction",
+  "section.out_of_combat_prediction.description": "Controls random outcomes shown outside combat.",
+  "section.in_combat_prediction.title": "In-combat prediction",
+  "section.in_combat_prediction.description": "Controls random outcomes shown during combat.",
   "toggle.enable_transform_prediction.label": "Predict transform results",
   "toggle.enable_transform_prediction.description": "When enabled, deck transform confirmation previews show the exact card the current RNG will produce.",
   "toggle.enable_potion_card_prediction.label": "Predict potion card results",
@@ -12,8 +14,8 @@
   "toggle.enable_combat_card_prediction.description": "When enabled, combat card tooltips show the exact random cards the current RNG will generate.",
   "toggle.enable_driftwood_reroll_prediction.label": "Predict Driftwood rerolls",
   "toggle.enable_driftwood_reroll_prediction.description": "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer.",
-  "toggle.enable_neow_relic_prediction.label": "Predict Neow relic results",
-  "toggle.enable_neow_relic_prediction.description": "When enabled, Neow relic option tooltips show immediate random results such as cards, relics, potions, curses, and transforms.",
+  "toggle.enable_out_of_combat_relic_prediction.label": "Predict out-of-combat relic results",
+  "toggle.enable_out_of_combat_relic_prediction.description": "When enabled, out-of-combat relic tooltips show immediate random results such as cards, relics, potions, curses, and transforms.",
   "toggle.enable_frozen_eye.label": "Enable Frozen Eye",
   "toggle.enable_frozen_eye.description": "When enabled, the combat draw pile view shows cards in draw order."
 }
