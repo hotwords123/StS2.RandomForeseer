@@ -8,6 +8,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform confirmation previews.
 - **Random-card potion prediction**: adds the predicted generated cards to random-card potion hover tips.
+- **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
 Each feature can be toggled independently from the mod settings page.
@@ -34,6 +35,22 @@ Each feature can be toggled independently from the mod settings page.
 - Cosmic Concoction
 - Orobic Acid
 
+### Combat Card Generation
+
+- Bundle of Joy
+- Discovery
+- Distraction
+- Infernal Blade
+- Jack of All Trades
+- Jackpot
+- Manifest Authority
+- Metamorphosis
+- Quasar
+- Splash
+- Stoke
+- White Noise
+- Mad Science (Chaos rider only)
+
 ## Installation
 
 1. Install and enable `STS2-RitsuLib`.
@@ -55,6 +72,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 |---|---|
 | Predict transform results | Controls whether transform confirmation previews show predicted cards |
 | Predict potion card results | Controls whether random-card potions show predicted cards |
+| Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 
 ## Build From Source

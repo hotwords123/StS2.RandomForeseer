@@ -12,6 +12,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnablePotionCardPrediction { get; set; } = true;
 
+    public bool EnableCombatCardPrediction { get; set; } = true;
+
     public bool EnableFrozenEye { get; set; } = true;
 }
 
@@ -20,6 +22,7 @@ internal static class RandomForeseerSettings
     private const string DataKey = "settings";
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
+    private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
 
     private static bool _isDataRegistered;
@@ -52,9 +55,18 @@ internal static class RandomForeseerSettings
             settings => settings.EnableFrozenEye,
             (settings, value) => settings.EnableFrozenEye = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableCombatCardPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableCombatCardPrediction,
+            (settings, value) => settings.EnableCombatCardPrediction = value);
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
+
+    public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
@@ -93,6 +105,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_potion_card_prediction.description",
                         "When enabled, random-card potion tooltips show the exact cards the current RNG will produce."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableCombatCardPredictionKey,
+                    Text("toggle.enable_combat_card_prediction.label", "Predict combat card generation"),
+                    EnableCombatCardPredictionBinding,
+                    Text(
+                        "toggle.enable_combat_card_prediction.description",
+                        "When enabled, combat card tooltips show the exact random cards the current RNG will generate."),
                     () => true);
 
                 section.AddToggle(

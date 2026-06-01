@@ -32,14 +32,14 @@ internal static class PotionCardPredictionHoverTipsPatch
 [HarmonyPatch(typeof(NHoverTipCardContainer))]
 internal static class PotionPredictionCardHoverTipLayoutPatch
 {
-    private static readonly StringName PredictionCardMetaKey = "RandomForeseerPotionPredictionCard";
+    private static readonly StringName PredictionCardMetaKey = $"{Entry.ModId}_PredictionCard";
     private const float Padding = 4f;
 
     [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
     [HarmonyPostfix]
     private static void MarkPredictionCardTip(NHoverTipCardContainer __instance, CardHoverTip cardTip)
     {
-        if (cardTip is not PotionPredictionCardHoverTip)
+        if (cardTip is not PredictionCardHoverTip)
         {
             return;
         }

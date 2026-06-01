@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Random;
 
@@ -36,7 +35,7 @@ internal static class PotionCardPrediction
             PowerPotion => PredictCharacterCards(potion, CardType.Power, 3, previewRng),
             ColorlessPotion => PredictColorlessCards(potion, 3, previewRng),
             CosmicConcoction => PredictColorlessCards(potion, potion.DynamicVars.Cards.IntValue, previewRng)
-                .Select(ToUpgradedPreviewCard)
+                .Select(PredictionUtils.ToUpgradedPreviewCard)
                 .ToList(),
             OrobicAcid => PredictOrobicAcid(potion, previewRng),
             _ => []
@@ -58,34 +57,13 @@ internal static class PotionCardPrediction
         int count,
         Rng previewRng)
     {
-        var owner = potion.Owner;
-        var candidates = owner.Character.CardPool
-            .GetUnlockedCards(owner.UnlockState, owner.RunState.CardMultiplayerConstraint)
-            .Where(card => card.Type == type);
-
-        return PredictionUtils.TakeRandomDistinctForCombat(owner, candidates, count, previewRng);
+        return PredictionUtils.TakeRandomDistinctCharacterCardsForCombat(potion.Owner, type, count, previewRng);
     }
 
     private static IReadOnlyList<CardModel> PredictColorlessCards(PotionModel potion, int count, Rng previewRng)
     {
-        var owner = potion.Owner;
-        var candidates = ModelDb.CardPool<ColorlessCardPool>()
-            .GetUnlockedCards(owner.UnlockState, owner.RunState.CardMultiplayerConstraint);
-
-        return PredictionUtils.TakeRandomDistinctForCombat(owner, candidates, count, previewRng);
-    }
-
-    private static CardModel ToUpgradedPreviewCard(CardModel card)
-    {
-        var previewCard = card.ToMutable();
-        if (previewCard.IsUpgradable)
-        {
-            previewCard.UpgradeInternal();
-            previewCard.FinalizeUpgradeInternal();
-        }
-
-        return previewCard;
+        return PredictionUtils.TakeRandomDistinctColorlessCardsForCombat(potion.Owner, count, previewRng);
     }
 }
 
-internal sealed class PotionPredictionCardHoverTip(CardModel card) : CardHoverTip(card);
+internal sealed class PotionPredictionCardHoverTip(CardModel card) : PredictionCardHoverTip(card);
