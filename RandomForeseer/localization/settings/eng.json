@@ -12,6 +12,8 @@
   "toggle.enable_combat_card_prediction.description": "When enabled, combat card tooltips show the exact random cards the current RNG will generate.",
   "toggle.enable_driftwood_reroll_prediction.label": "Predict Driftwood rerolls",
   "toggle.enable_driftwood_reroll_prediction.description": "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer.",
+  "toggle.enable_neow_relic_prediction.label": "Predict Neow relic results",
+  "toggle.enable_neow_relic_prediction.description": "When enabled, Neow relic option tooltips show immediate random results such as cards, relics, potions, curses, and transforms.",
   "toggle.enable_frozen_eye.label": "Enable Frozen Eye",
   "toggle.enable_frozen_eye.description": "When enabled, the combat draw pile view shows cards in draw order."
 }

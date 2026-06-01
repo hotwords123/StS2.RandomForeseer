@@ -23,7 +23,7 @@ internal static class PotionCardPrediction
 
         var previewRng = PredictionUtils.CloneRng(owner.RunState.Rng.CombatCardGeneration);
         var cards = PredictCards(potion, previewRng);
-        return cards.Select(card => (IHoverTip)new PotionPredictionCardHoverTip(card)).ToList();
+        return PredictionHoverTips.Cards(cards);
     }
 
     private static IReadOnlyList<CardModel> PredictCards(PotionModel potion, Rng previewRng)
@@ -78,5 +78,3 @@ internal static class PotionCardPrediction
         return PredictionUtils.TakeRandomDistinctColorlessCardsForCombat(potion.Owner, count, previewRng);
     }
 }
-
-internal sealed class PotionPredictionCardHoverTip(CardModel card) : PredictionCardHoverTip(card);

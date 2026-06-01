@@ -21,7 +21,7 @@ internal static class CombatCardPrediction
 
         var previewRng = PredictionUtils.CloneRng(card.Owner.RunState.Rng.CombatCardGeneration);
         var cards = PredictCards(card, previewRng);
-        return cards.Select(predictedCard => (IHoverTip)new PredictionCardHoverTip(predictedCard)).ToList();
+        return PredictionHoverTips.Cards(cards);
     }
 
     private static IReadOnlyList<CardModel> PredictCards(CardModel card, Rng previewRng)
@@ -168,9 +168,4 @@ internal static class CombatCardPrediction
         previewCard.SetToFreeThisCombat();
         return previewCard;
     }
-}
-
-internal class PredictionCardHoverTip(CardModel card) : CardHoverTip(card), IHoverTip
-{
-    bool IHoverTip.IsInstanced => true;
 }

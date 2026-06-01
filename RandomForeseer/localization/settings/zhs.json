@@ -12,6 +12,8 @@
   "toggle.enable_combat_card_prediction.description": "启用后，战斗中随机印牌的卡牌提示会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_driftwood_reroll_prediction.label": "预测浮木重掷奖励",
   "toggle.enable_driftwood_reroll_prediction.description": "启用后，浮木的卡牌奖励重掷按钮会显示重掷后将出现的确切卡牌。",
+  "toggle.enable_neow_relic_prediction.label": "预测涅奥遗物结果",
+  "toggle.enable_neow_relic_prediction.description": "启用后，涅奥遗物选项提示会显示选择后立即发生的随机卡牌、遗物、药水、诅咒和变牌结果。",
   "toggle.enable_frozen_eye.label": "启用冻结之眼",
   "toggle.enable_frozen_eye.description": "启用后，战斗中查看抽牌堆会按实际抽牌顺序显示卡牌。"
 }

@@ -16,6 +16,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableDriftwoodRerollPrediction { get; set; } = true;
 
+    public bool EnableNeowRelicPrediction { get; set; } = true;
+
     public bool EnableFrozenEye { get; set; } = true;
 }
 
@@ -26,6 +28,7 @@ internal static class RandomForeseerSettings
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
+    private const string EnableNeowRelicPredictionKey = "enable_neow_relic_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
 
     private static bool _isDataRegistered;
@@ -72,6 +75,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableDriftwoodRerollPrediction,
             (settings, value) => settings.EnableDriftwoodRerollPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableNeowRelicPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableNeowRelicPrediction,
+            (settings, value) => settings.EnableNeowRelicPrediction = value);
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
@@ -79,6 +89,8 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
 
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
+
+    public static bool EnableNeowRelicPrediction => EnableNeowRelicPredictionBinding.Read();
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
@@ -135,6 +147,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_driftwood_reroll_prediction.description",
                         "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableNeowRelicPredictionKey,
+                    Text("toggle.enable_neow_relic_prediction.label", "Predict Neow relic results"),
+                    EnableNeowRelicPredictionBinding,
+                    Text(
+                        "toggle.enable_neow_relic_prediction.description",
+                        "When enabled, Neow relic option tooltips show immediate random results such as cards, relics, potions, curses, and transforms."),
                     () => true);
 
                 section.AddToggle(
