@@ -164,7 +164,7 @@ internal static class CombatCardPrediction
 
     private static CardModel ToFreeThisCombatPreviewCard(CardModel card)
     {
-        var previewCard = card.ToMutable();
+        var previewCard = (CardModel)card.MutableClone();
         previewCard.SetToFreeThisCombat();
         return previewCard;
     }

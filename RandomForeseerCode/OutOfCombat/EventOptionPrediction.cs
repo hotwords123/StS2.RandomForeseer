@@ -14,7 +14,7 @@ internal static class EventOptionPredictionRegistry
 
     static EventOptionPredictionRegistry()
     {
-        Register(GetNeowRelicHoverTips);
+        Register(GetAncientRelicHoverTips);
     }
 
     public static void Register(Func<EventModel, EventOption, IReadOnlyList<IHoverTip>> provider)
@@ -33,14 +33,14 @@ internal static class EventOptionPredictionRegistry
         return tips;
     }
 
-    private static IReadOnlyList<IHoverTip> GetNeowRelicHoverTips(EventModel eventModel, EventOption option)
+    private static IReadOnlyList<IHoverTip> GetAncientRelicHoverTips(EventModel eventModel, EventOption option)
     {
-        if (eventModel is not Neow neow || neow.Owner == null || option.Relic == null)
+        if (eventModel is not AncientEventModel ancient || ancient.Owner == null || option.Relic == null)
         {
             return [];
         }
 
-        return OutOfCombatRelicPrediction.GetHoverTips(neow.Owner, option.Relic);
+        return OutOfCombatRelicPrediction.GetHoverTips(ancient.Owner, option.Relic);
     }
 }
 

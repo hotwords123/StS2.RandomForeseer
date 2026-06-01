@@ -1,10 +1,16 @@
 using System.Runtime.CompilerServices;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Assets;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using MegaCrit.Sts2.Core.Saves;
 
 namespace RandomForeseer;
 
@@ -15,7 +21,26 @@ internal static class PredictionCardHoverTipLayoutPatches
     private const float Padding = 4f;
     private const float ViewportMargin = 12f;
     private const float TopGap = 12f;
+    private const float MinScale = 0.55f;
+    private const float BundleCardScale = 1f;
+    private const float BundleCardSeparation = 45f;
     private static readonly ConditionalWeakTable<NHoverTipCardContainer, SourceRect> SourceRects = [];
+
+    [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
+    [HarmonyPrefix]
+    private static bool AddPredictionCardBundleTip(NHoverTipCardContainer __instance, CardHoverTip cardTip)
+    {
+        if (cardTip is not PredictionCardBundleHoverTip bundleTip)
+        {
+            return true;
+        }
+
+        var control = CreateBundleTip(bundleTip.Bundles);
+        control.SetMeta(PredictionCardMetaKey, Variant.From(true));
+        __instance.AddChildSafely(control);
+        RefreshBundleCards(control);
+        return false;
+    }
 
     [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
     [HarmonyPostfix]
@@ -56,7 +81,8 @@ internal static class PredictionCardHoverTipLayoutPatches
         }
 
         var viewportSize = game.GetViewportRect().Size;
-        var naturalSize = ApplyHorizontalLayout(tips, scale: 1f);
+        var availableWidth = viewportSize.X - ViewportMargin * 2f;
+        var naturalSize = ApplyWrappedLayout(tips, scale: 1f, rows: 1);
         var sidePosition = GetSidePosition(globalStartLocation, alignment, naturalSize);
 
         // Preserve the vanilla side placement when it fits; small prediction sets should behave exactly like before.
@@ -69,8 +95,8 @@ internal static class PredictionCardHoverTipLayoutPatches
 
         if (!SourceRects.TryGetValue(__instance, out var sourceRect))
         {
-            var sideScale = Mathf.Min(1f, (viewportSize.X - ViewportMargin * 2f) / naturalSize.X);
-            var scaledSideSize = ApplyHorizontalLayout(tips, sideScale);
+            var sideLayout = GetBestWrappedLayout(tips, availableWidth);
+            var scaledSideSize = ApplyWrappedLayout(tips, sideLayout.Scale, sideLayout.Rows);
             __instance.Size = scaledSideSize;
             __instance.GlobalPosition = ClampToViewport(
                 GetSidePosition(globalStartLocation, alignment, scaledSideSize),
@@ -80,8 +106,8 @@ internal static class PredictionCardHoverTipLayoutPatches
         }
 
         // Large in-hand prediction sets are more readable above the source card than heavily shrunk on the side.
-        var scale = Mathf.Min(1f, (viewportSize.X - ViewportMargin * 2f) / naturalSize.X);
-        var scaledSize = ApplyHorizontalLayout(tips, scale);
+        var layout = GetBestWrappedLayout(tips, availableWidth);
+        var scaledSize = ApplyWrappedLayout(tips, layout.Scale, layout.Rows);
         __instance.Size = scaledSize;
         __instance.GlobalPosition = GetTopPosition(
             sourceRect.Rect,
@@ -91,25 +117,217 @@ internal static class PredictionCardHoverTipLayoutPatches
         return false;
     }
 
-    private static Vector2 ApplyHorizontalLayout(IReadOnlyList<Control> tips, float scale)
+    private static WrappedLayout GetBestWrappedLayout(IReadOnlyList<Control> tips, float availableWidth)
     {
+        var naturalWidth = GetWrappedLayoutSize(tips, scale: 1f, rows: 1).X;
+        if (naturalWidth <= availableWidth)
+        {
+            return new WrappedLayout(1, 1f);
+        }
+
+        if (tips.Count == 1)
+        {
+            return new WrappedLayout(1, availableWidth / naturalWidth);
+        }
+
+        if (naturalWidth * MinScale <= availableWidth)
+        {
+            return new WrappedLayout(1, availableWidth / naturalWidth);
+        }
+
+        for (var rows = 2; rows <= tips.Count; rows++)
+        {
+            var rowNaturalWidth = GetWrappedLayoutSize(tips, scale: 1f, rows).X;
+            if (rowNaturalWidth * MinScale <= availableWidth)
+            {
+                return new WrappedLayout(rows, Mathf.Min(1f, availableWidth / rowNaturalWidth));
+            }
+        }
+
+        return new WrappedLayout(tips.Count, MinScale);
+    }
+
+    private static Vector2 ApplyWrappedLayout(IReadOnlyList<Control> tips, float scale, int rows)
+    {
+        var rowCount = Mathf.Max(1, rows);
+        var perRow = Mathf.CeilToInt(tips.Count / (float)rowCount);
         var size = Vector2.Zero;
-        var nextPosition = Vector2.Zero;
         var scaledPadding = Padding * scale;
 
-        foreach (var tip in tips)
+        for (var i = 0; i < tips.Count; i++)
         {
+            var tip = tips[i];
+            var row = i / perRow;
+            var col = i % perRow;
+            var rowStart = row * perRow;
+            var rowHeight = tips
+                .Skip(rowStart)
+                .Take(perRow)
+                .Select(item => item.Size.Y * scale)
+                .DefaultIfEmpty(0f)
+                .Max();
+            var x = tips
+                .Skip(rowStart)
+                .Take(col)
+                .Sum(item => item.Size.X * scale + scaledPadding);
+            var y = 0f;
+            for (var previousRow = 0; previousRow < row; previousRow++)
+            {
+                var previousRowStart = previousRow * perRow;
+                y += tips
+                    .Skip(previousRowStart)
+                    .Take(perRow)
+                    .Select(item => item.Size.Y * scale)
+                    .DefaultIfEmpty(0f)
+                    .Max() + scaledPadding;
+            }
+
             tip.Scale = Vector2.One * scale;
-            tip.Position = nextPosition;
+            tip.Position = new Vector2(x, y);
 
             var scaledSize = tip.Size * scale;
             size = new Vector2(
-                Mathf.Max(nextPosition.X + scaledSize.X, size.X),
-                Mathf.Max(scaledSize.Y, size.Y));
-            nextPosition += Vector2.Right * (scaledSize.X + scaledPadding);
+                Mathf.Max(x + scaledSize.X, size.X),
+                Mathf.Max(y + Mathf.Max(scaledSize.Y, rowHeight), size.Y));
         }
 
         return size;
+    }
+
+    private static Vector2 GetWrappedLayoutSize(IReadOnlyList<Control> tips, float scale, int rows)
+    {
+        var rowCount = Mathf.Max(1, rows);
+        var perRow = Mathf.CeilToInt(tips.Count / (float)rowCount);
+        var scaledPadding = Padding * scale;
+        var width = 0f;
+        var height = 0f;
+
+        for (var row = 0; row < rowCount; row++)
+        {
+            var rowTips = tips
+                .Skip(row * perRow)
+                .Take(perRow)
+                .ToList();
+            if (rowTips.Count == 0)
+            {
+                continue;
+            }
+
+            width = Mathf.Max(
+                width,
+                rowTips.Sum(tip => tip.Size.X * scale) + scaledPadding * (rowTips.Count - 1));
+            height += rowTips.Max(tip => tip.Size.Y * scale);
+            if (row < rowCount - 1)
+            {
+                height += scaledPadding;
+            }
+        }
+
+        return new Vector2(width, height);
+    }
+
+    private static Control CreateBundleTip(IReadOnlyList<IReadOnlyList<CardModel>> bundles)
+    {
+        var root = new Control
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
+        var nextX = 0f;
+        var stacks = bundles.Select(CreateStack).ToList();
+        var height = stacks
+            .Select(stack => stack.Size.Y)
+            .DefaultIfEmpty(0f)
+            .Max();
+
+        foreach (var stack in stacks)
+        {
+            stack.Position = new Vector2(nextX, height - stack.Size.Y);
+            root.AddChildSafely(stack);
+            nextX += stack.Size.X + Padding;
+        }
+
+        root.Size = new Vector2(Mathf.Max(0f, nextX - Padding), height);
+        return root;
+    }
+
+    private static Control CreateStack(IReadOnlyList<CardModel> cards)
+    {
+        var stack = new Control
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
+        var size = Vector2.Zero;
+
+        for (var i = 0; i < cards.Count; i++)
+        {
+            var cardNode = CreateCardTipControl(cards[i]);
+            var offset = new Vector2(-1f, 1f) * BundleCardSeparation * (i - cards.Count / 2f) * BundleCardScale;
+            cardNode.Scale = Vector2.One * BundleCardScale;
+            cardNode.Position = offset;
+
+            var brightness = cards.Count <= 1
+                ? 1f
+                : 0.5f + i / (float)(cards.Count - 1) * 0.5f;
+            cardNode.Modulate = new Color(brightness, brightness, brightness);
+
+            stack.AddChildSafely(cardNode);
+            size = new Vector2(
+                Mathf.Max(size.X, offset.X + cardNode.Size.X * BundleCardScale),
+                Mathf.Max(size.Y, offset.Y + cardNode.Size.Y * BundleCardScale));
+        }
+
+        var children = stack.GetChildren().OfType<Control>().ToList();
+        var minX = children
+            .OfType<Control>()
+            .Select(child => child.Position.X)
+            .DefaultIfEmpty(0f)
+            .Min();
+        var minY = children
+            .Select(child => child.Position.Y)
+            .DefaultIfEmpty(0f)
+            .Min();
+        if (minX < 0f || minY < 0f)
+        {
+            var adjustment = new Vector2(
+                minX < 0f ? -minX : 0f,
+                minY < 0f ? -minY : 0f);
+            foreach (var child in children)
+            {
+                child.Position += adjustment;
+            }
+
+            size += adjustment;
+        }
+
+        stack.Size = size;
+        return stack;
+    }
+
+    private static Control CreateCardTipControl(CardModel card)
+    {
+#pragma warning disable RITSU013
+        var scenePath = "res://scenes/ui/" + "card_hover_tip.tscn";
+        var control = PreloadManager.Cache.GetScene(scenePath)
+            .Instantiate<Control>(PackedScene.GenEditState.Disabled);
+#pragma warning restore RITSU013
+        var node = control.GetNode<NCard>("%Card");
+        node.Model = card;
+        node.UpdateVisuals(PileType.Deck, CardPreviewMode.Normal);
+        SaveManager.Instance.MarkCardAsSeen(card);
+        return control;
+    }
+
+    private static void RefreshBundleCards(Node root)
+    {
+        foreach (var child in root.GetChildren())
+        {
+            if (child is NCard card)
+            {
+                card.UpdateVisuals(PileType.Deck, CardPreviewMode.Normal);
+            }
+
+            RefreshBundleCards(child);
+        }
     }
 
     private static Vector2 GetSidePosition(
@@ -163,6 +381,8 @@ internal static class PredictionCardHoverTipLayoutPatches
     {
         public Rect2 Rect { get; } = rect;
     }
+
+    private readonly record struct WrappedLayout(int Rows, float Scale);
 }
 
 [HarmonyPatch(typeof(NHoverTipSet), nameof(NHoverTipSet.SetAlignmentForCardHolder))]

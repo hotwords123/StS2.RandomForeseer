@@ -53,7 +53,7 @@ internal static class TransformPreviewPredictor
                 return new CardTransformation(original, predicted);
             }
 
-            var previewCard = predicted.ToMutable();
+            var previewCard = (CardModel)predicted.MutableClone();
             previewCard.Owner = original.Owner;
             if (previewCard.IsUpgradable)
             {

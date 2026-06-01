@@ -89,7 +89,7 @@ internal static class PredictionUtils
 
     public static CardModel ToUpgradedPreviewCard(CardModel card)
     {
-        var previewCard = card.ToMutable();
+        var previewCard = (CardModel)card.MutableClone();
         UpgradePreviewCardInPlace(previewCard);
         return previewCard;
     }
@@ -105,7 +105,7 @@ internal static class PredictionUtils
 
     public static CardModel ToFreeThisTurnPreviewCard(CardModel card)
     {
-        var previewCard = card.ToMutable();
+        var previewCard = (CardModel)card.MutableClone();
         previewCard.SetToFreeThisTurn();
         return previewCard;
     }
