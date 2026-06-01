@@ -99,6 +99,13 @@ internal static class PredictionUtils
         return previewCard;
     }
 
+    public static CardModel ToFreeThisTurnPreviewCard(CardModel card)
+    {
+        var previewCard = card.ToMutable();
+        previewCard.SetToFreeThisTurn();
+        return previewCard;
+    }
+
     private static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)
     {
         return player.RunState.Players.Count > 1

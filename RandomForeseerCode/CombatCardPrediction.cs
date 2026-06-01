@@ -35,7 +35,7 @@ internal static class CombatCardPrediction
             JackOfAllTrades => PredictJackOfAllTrades(card, previewRng),
             Jackpot => PredictJackpot(card, previewRng),
             MadScience madScience when madScience.TinkerTimeRider == TinkerTime.RiderEffect.Chaos =>
-                PredictCharacterCards(card, null, 1, previewRng).Select(ToFreeThisTurnPreviewCard).ToList(),
+                PredictCharacterCards(card, null, 1, previewRng).Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList(),
             ManifestAuthority => PredictManifestAuthority(card, previewRng),
             Metamorphosis => PredictMetamorphosis(card, previewRng),
             Quasar => PredictQuasar(card, previewRng),
@@ -124,7 +124,7 @@ internal static class CombatCardPrediction
 
         return source.IsUpgraded
             ? cards.Select(ToUpgradedAndFreeThisTurnPreviewCard).ToList()
-            : cards.Select(ToFreeThisTurnPreviewCard).ToList();
+            : cards.Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList();
     }
 
     private static IReadOnlyList<CardModel> PredictStoke(CardModel source, Rng previewRng)
@@ -147,13 +147,6 @@ internal static class CombatCardPrediction
     private static CardModel ToUpgradedAndFreeThisTurnPreviewCard(CardModel card)
     {
         var previewCard = PredictionUtils.ToUpgradedPreviewCard(card);
-        previewCard.SetToFreeThisTurn();
-        return previewCard;
-    }
-
-    private static CardModel ToFreeThisTurnPreviewCard(CardModel card)
-    {
-        var previewCard = card.ToMutable();
         previewCard.SetToFreeThisTurn();
         return previewCard;
     }

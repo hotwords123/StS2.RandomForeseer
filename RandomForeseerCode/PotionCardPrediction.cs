@@ -30,10 +30,12 @@ internal static class PotionCardPrediction
     {
         return potion switch
         {
-            AttackPotion => PredictCharacterCards(potion, CardType.Attack, 3, previewRng),
-            SkillPotion => PredictCharacterCards(potion, CardType.Skill, 3, previewRng),
-            PowerPotion => PredictCharacterCards(potion, CardType.Power, 3, previewRng),
-            ColorlessPotion => PredictColorlessCards(potion, 3, previewRng),
+            AttackPotion => PredictFreeCharacterCards(potion, CardType.Attack, 3, previewRng),
+            SkillPotion => PredictFreeCharacterCards(potion, CardType.Skill, 3, previewRng),
+            PowerPotion => PredictFreeCharacterCards(potion, CardType.Power, 3, previewRng),
+            ColorlessPotion => PredictColorlessCards(potion, 3, previewRng)
+                .Select(PredictionUtils.ToFreeThisTurnPreviewCard)
+                .ToList(),
             CosmicConcoction => PredictColorlessCards(potion, potion.DynamicVars.Cards.IntValue, previewRng)
                 .Select(PredictionUtils.ToUpgradedPreviewCard)
                 .ToList(),
@@ -48,7 +50,18 @@ internal static class PotionCardPrediction
         cards.AddRange(PredictCharacterCards(potion, CardType.Attack, 1, previewRng));
         cards.AddRange(PredictCharacterCards(potion, CardType.Skill, 1, previewRng));
         cards.AddRange(PredictCharacterCards(potion, CardType.Power, 1, previewRng));
-        return cards;
+        return cards.Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList();
+    }
+
+    private static IReadOnlyList<CardModel> PredictFreeCharacterCards(
+        PotionModel potion,
+        CardType type,
+        int count,
+        Rng previewRng)
+    {
+        return PredictCharacterCards(potion, type, count, previewRng)
+            .Select(PredictionUtils.ToFreeThisTurnPreviewCard)
+            .ToList();
     }
 
     private static IReadOnlyList<CardModel> PredictCharacterCards(
