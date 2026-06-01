@@ -36,24 +36,23 @@ internal static class OutOfCombatRelicPrediction
                 ArcaneScroll => PredictionHoverTips.Cards(PredictRareCharacterCards(player, 1)),
                 HeftyTablet => PredictionHoverTips.Cards(PredictRareCharacterCards(player, 3)),
                 Kaleidoscope => PredictionHoverTips.CardBundles(PredictKaleidoscopeBundles(player)),
-                LargeCapsule => PredictionHoverTips.Relics(PredictRelicRewards(player, relic.DynamicVars["Relics"].IntValue)),
+                LargeCapsule => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, relic.DynamicVars["Relics"].IntValue)),
                 LeadPaperweight => PredictionHoverTips.Cards(PredictColorlessCards(player, 2)),
                 LeafyPoultice => PredictionHoverTips.Cards(PredictLeafyPoultice(player)),
                 LostCoffer => PredictLostCofferTips(player),
                 MassiveScroll => PredictionHoverTips.Cards(PredictMultiplayerCards(player, 3)),
                 NeowsBones => PredictNeowsBonesTips(player, relic),
                 NewLeaf => PredictionHoverTips.Cards(PredictNewLeaf(player)),
-                PhialHolster => PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
+                PhialHolster => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
-                        PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))
-                    .Select(potion => potion.ToMutable())),
+                        player.RunState.Rng.CombatPotionGeneration)),
                 ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player)),
-                SmallCapsule => PredictionHoverTips.Relics(PredictRelicRewards(player, 1)),
+                SmallCapsule => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
 
                 // Darv
                 Astrolabe => PredictionHoverTips.CardBundles(PredictAstrolabeBundles(player)),
-                CallingBell => PredictionHoverTips.Relics(PredictRelicRewards(player, [
+                CallingBell => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, [
                     RelicRarity.Common,
                     RelicRarity.Uncommon,
                     RelicRarity.Rare
@@ -61,11 +60,10 @@ internal static class OutOfCombatRelicPrediction
                 PandorasBox => PredictionHoverTips.Cards(PredictPandorasBox(player)),
 
                 // Orobas
-                AlchemicalCoffer => PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
+                AlchemicalCoffer => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
                         player,
                         relic.DynamicVars["PotionSlots"].IntValue,
-                        PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))
-                    .Select(potion => potion.ToMutable())),
+                        player.RunState.Rng.CombatPotionGeneration)),
                 GlassEye => PredictionHoverTips.CardBundles(PredictGlassEyeBundles(player)),
                 SandCastle => PredictionHoverTips.Cards(PredictSandCastle(player, relic.DynamicVars.Cards.IntValue)),
                 SeaGlass seaGlass => PredictionHoverTips.CardBundles(PredictSeaGlassBundles(player, seaGlass)),
@@ -77,6 +75,27 @@ internal static class OutOfCombatRelicPrediction
                 SereTalon => PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
 
                 // Non-Ancient relics
+                Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
+                    player,
+                    relic.DynamicVars["Potions"].IntValue,
+                    player.PlayerRng.Rewards)),
+                FragrantMushroom => PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
+                    player,
+                    relic.DynamicVars.Cards.IntValue,
+                    card => card.IsUpgradable)),
+                Orrery => PredictionHoverTips.CardBundles(OutOfCombatPredictionUtils.PredictCardRewardBundles(
+                    player,
+                    relic.DynamicVars.Cards.IntValue,
+                    3,
+                    OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player))),
+                WarPaint => PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
+                    player,
+                    relic.DynamicVars.Cards.IntValue,
+                    card => card.Type == CardType.Skill && card.IsUpgradable)),
+                Whetstone => PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
+                    player,
+                    relic.DynamicVars.Cards.IntValue,
+                    card => card.Type == CardType.Attack && card.IsUpgradable)),
                 _ => []
             };
         }
@@ -234,11 +253,7 @@ internal static class OutOfCombatRelicPrediction
     {
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        var options = new CardCreationOptions(
-                [player.Character.CardPool],
-                CardCreationSource.Other,
-                CardRarityOddsType.RegularEncounter)
-            .WithFlags(CardCreationFlags.IsCardReward);
+        var options = OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player);
         var tips = PredictionHoverTips.Cards(PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
 
         var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng).ToMutable();
@@ -311,14 +326,7 @@ internal static class OutOfCombatRelicPrediction
 
     private static IReadOnlyList<CardModel> PredictSandCastle(Player player, int count)
     {
-        var rng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        return PileType.Deck.GetPile(player).Cards
-            .Where(card => card.IsUpgradable)
-            .ToList()
-            .StableShuffle(rng)
-            .Take(count)
-            .Select(PredictionUtils.ToUpgradedPreviewCard)
-            .ToList();
+        return OutOfCombatPredictionUtils.PredictUpgradedDeckCards(player, count, card => card.IsUpgradable);
     }
 
     private static IReadOnlyList<CardModel> PredictSereTalon(Player player, RelicModel relic)
@@ -420,32 +428,9 @@ internal static class OutOfCombatRelicPrediction
         return character.CardPool;
     }
 
-    private static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count)
-    {
-        var rng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
-        var relics = new List<RelicModel>();
-
-        for (var i = 0; i < count; i++)
-        {
-            var rarity = RelicFactory.RollRarity(rng);
-            relics.Add((grabBag.PullFromFront(rarity, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable());
-        }
-
-        return relics;
-    }
-
-    private static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, IEnumerable<RelicRarity> rarities)
-    {
-        var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
-        return rarities
-            .Select(rarity => (grabBag.PullFromFront(rarity, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable())
-            .ToList();
-    }
-
     private static IReadOnlyList<RelicModel> PredictToyBoxRelics(Player player, int count)
     {
-        var relics = PredictRelicRewards(player, count);
+        var relics = OutOfCombatPredictionUtils.PredictRelicRewards(player, count);
         foreach (var relic in relics)
         {
             relic.IsWax = true;
@@ -459,12 +444,7 @@ internal static class OutOfCombatRelicPrediction
         int count,
         CardCreationOptions options)
     {
-        return PredictCards(
-            player,
-            count,
-            options,
-            PredictionUtils.CloneRng(player.PlayerRng.Rewards),
-            PredictionUtils.CloneRng(player.RunState.Rng.Niche));
+        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<CardModel> PredictCards(
@@ -474,7 +454,7 @@ internal static class OutOfCombatRelicPrediction
         Rng rewardRng,
         Rng nicheRng)
     {
-        return CardRewardPrediction.PredictCards(player, count, options, rewardRng, nicheRng);
+        return OutOfCombatPredictionUtils.PredictCards(player, count, options, rewardRng, nicheRng);
     }
 
     private static void CardCmdUpgradePreview(CardModel card)
