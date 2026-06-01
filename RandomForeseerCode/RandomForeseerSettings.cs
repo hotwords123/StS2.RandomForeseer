@@ -19,6 +19,8 @@ internal sealed class RandomForeseerSettingsData
     public bool EnableOutOfCombatRelicPrediction { get; set; } = true;
 
     public bool EnableFrozenEye { get; set; } = true;
+
+    public bool EnableAncientEventDebugReroll { get; set; }
 }
 
 internal static class RandomForeseerSettings
@@ -30,6 +32,7 @@ internal static class RandomForeseerSettings
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
     private const string EnableOutOfCombatRelicPredictionKey = "enable_out_of_combat_relic_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
+    private const string EnableAncientEventDebugRerollKey = "enable_ancient_event_debug_reroll";
 
     private static bool _isDataRegistered;
 
@@ -82,6 +85,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableOutOfCombatRelicPrediction,
             (settings, value) => settings.EnableOutOfCombatRelicPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableAncientEventDebugRerollBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableAncientEventDebugReroll,
+            (settings, value) => settings.EnableAncientEventDebugReroll = value);
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
@@ -94,6 +104,8 @@ internal static class RandomForeseerSettings
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
+    public static bool EnableAncientEventDebugReroll => EnableAncientEventDebugRerollBinding.Read();
+
     public static void Register()
     {
         RegisterData();
@@ -102,6 +114,7 @@ internal static class RandomForeseerSettings
         {
             page.WithModDisplayName(Text("mod.name", "Random Foreseer"));
             page.WithTitle(Text("page.title", "Random Foreseer"));
+            page.WithSortOrder(0);
             page.WithDescription(Text(
                 "page.description",
                 "Configure prediction features for random outcomes. Some settings may require Save & Load to take effect."));
@@ -175,7 +188,35 @@ internal static class RandomForeseerSettings
                         "When enabled, the combat draw pile view shows cards in draw order."),
                     () => true);
             });
+
         });
+
+        RitsuLibFramework.RegisterModSettings(Entry.ModId, page =>
+        {
+            page.WithModDisplayName(Text("mod.name", "Random Foreseer"));
+            page.WithTitle(Text("page.debug.title", "Debug"));
+            page.WithSortOrder(1);
+            page.WithDescription(Text(
+                "page.debug.description",
+                "Controls tools intended for development and verification."));
+
+            page.AddSection("ancient_event_debug", section =>
+            {
+                section.WithTitle(Text("section.ancient_event_debug.title", "Ancient events"));
+                section.WithDescription(Text(
+                    "section.ancient_event_debug.description",
+                    "Debug tools for Ancient event pages."));
+
+                section.AddToggle(
+                    EnableAncientEventDebugRerollKey,
+                    Text("toggle.enable_ancient_event_debug_reroll.label", "Enable Ancient event debug reroll"),
+                    EnableAncientEventDebugRerollBinding,
+                    Text(
+                        "toggle.enable_ancient_event_debug_reroll.description",
+                        "When enabled, Ancient event pages show a debug Reroll button that regenerates the current option set."),
+                    () => true);
+            });
+        }, "debug");
     }
 
     private static void RegisterData()
