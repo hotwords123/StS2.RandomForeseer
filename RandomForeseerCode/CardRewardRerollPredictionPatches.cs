@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Godot;
 using HarmonyLib;
@@ -15,7 +16,7 @@ internal static class CardRewardAlternativeRerollSourcePatch
 {
     private static readonly ConditionalWeakTable<CardRewardAlternative, CardRewardBox> RerollSources = [];
 
-    public static bool TryGetRerollSource(CardRewardAlternative alternative, out CardReward reward)
+    public static bool TryGetRerollSource(CardRewardAlternative alternative, [NotNullWhen(true)] out CardReward? reward)
     {
         if (RerollSources.TryGetValue(alternative, out var box))
         {
@@ -23,7 +24,7 @@ internal static class CardRewardAlternativeRerollSourcePatch
             return true;
         }
 
-        reward = null!;
+        reward = null;
         return false;
     }
 
