@@ -44,13 +44,16 @@ internal static class EventOptionPredictionRegistry
     }
 }
 
-[HarmonyPatch(typeof(NEventOptionButton), nameof(NEventOptionButton.Create))]
+[HarmonyPatch]
 internal static class EventOptionPredictionPatch
 {
     private static readonly ConditionalWeakTable<EventOption, OriginalHoverTipsBox> OriginalHoverTips = [];
 
-    private static void Prefix(EventModel eventModel, EventOption option)
+    [HarmonyPatch(typeof(NEventOptionButton), "OnFocus")]
+    [HarmonyPrefix]
+    private static void OnFocusPrefix(NEventOptionButton __instance)
     {
+        var option = __instance.Option;
         if (!OriginalHoverTips.TryGetValue(option, out var box))
         {
             box = new OriginalHoverTipsBox(option.HoverTips.ToList());
@@ -58,10 +61,21 @@ internal static class EventOptionPredictionPatch
         }
 
         var originalTips = box.Tips;
-        var predictionTips = EventOptionPredictionRegistry.GetHoverTips(eventModel, option);
+        var predictionTips = EventOptionPredictionRegistry.GetHoverTips(__instance.Event, option);
         option.HoverTips = predictionTips.Count > 0
             ? originalTips.Concat(predictionTips).ToList()
             : originalTips;
+    }
+
+    [HarmonyPatch(typeof(NEventOptionButton), "OnUnfocus")]
+    [HarmonyPostfix]
+    private static void OnUnfocusPostfix(NEventOptionButton __instance)
+    {
+        var option = __instance.Option;
+        if (OriginalHoverTips.TryGetValue(option, out var box))
+        {
+            option.HoverTips = box.Tips;
+        }
     }
 
     private sealed class OriginalHoverTipsBox(IReadOnlyList<IHoverTip> tips)
