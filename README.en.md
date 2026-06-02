@@ -4,6 +4,8 @@ Languages: [中文](README.md) | English
 
 A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG results without advancing the real game RNG, so you can see what will happen before confirming an action.
 
+Changelog: [CHANGELOG.md](CHANGELOG.md)
+
 ## Features
 
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform confirmation previews.
@@ -92,8 +94,9 @@ Current manifest targets:
 
 | Item | Value |
 |---|---|
+| Current version | `0.2.0` |
 | Minimum game version | `0.106.0` |
-| RitsuLib dependency | `0.3.8` |
+| RitsuLib dependency | `0.4.4` |
 
 ## Settings
 
