@@ -1,5 +1,8 @@
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
@@ -27,11 +30,19 @@ internal static class TrialPrediction
                     3,
                     CardCreationOptions.ForNonCombatWithDefaultOdds([player.Character.CardPool]))),
             "TRIAL.pages.NONDESCRIPT.options.INNOCENT" =>
-                PredictionHoverTips.CardBundles(OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
-                    player,
-                    player.RunState.Rng.Niche,
-                    transformCount: 2)),
+                PredictionHoverTips.CardBundles(PredictNondescriptInnocent(player)),
             _ => []
         };
+    }
+
+    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictNondescriptInnocent(Player player)
+    {
+        // The real event adds Doubt to the deck before opening the transform selector.
+        var addedCurse = PredictionUtils.CreatePreviewCard(ModelDb.Card<Doubt>(), player);
+        return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
+            player,
+            player.RunState.Rng.Niche,
+            transformCount: 2,
+            extraTransformableCards: [addedCurse]);
     }
 }

@@ -43,9 +43,11 @@ internal static class OutOfCombatPredictionUtils
         Player player,
         Rng realRng,
         Action<CardModel>? afterGenerated = null,
-        int rngCounterOffset = 0)
+        int rngCounterOffset = 0,
+        IEnumerable<CardModel>? extraTransformableCards = null)
     {
         return PileType.Deck.GetPile(player).Cards
+            .Concat(extraTransformableCards ?? [])
             .Where(card => card.Type != CardType.Quest && card.IsTransformable)
             .Select(card =>
             {
@@ -74,14 +76,16 @@ internal static class OutOfCombatPredictionUtils
         Player player,
         Rng realRng,
         int transformCount,
-        Action<CardModel>? afterGenerated = null)
+        Action<CardModel>? afterGenerated = null,
+        IEnumerable<CardModel>? extraTransformableCards = null)
     {
         return Enumerable.Range(0, transformCount)
             .Select(slot => (IReadOnlyList<CardModel>)PredictDistinctDeckTransformResults(
                 player,
                 realRng,
                 afterGenerated,
-                rngCounterOffset: slot))
+                rngCounterOffset: slot,
+                extraTransformableCards))
             .ToList();
     }
 

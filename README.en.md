@@ -11,7 +11,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
-- **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
+- **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options; Trial's innocent option includes the newly added Doubt in transform predictions.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
 Each feature can be toggled independently from the mod settings page, and predictions can also be disabled globally for singleplayer or multiplayer. Fair mode is enabled by default and limits predictions to information obtainable through Save & Load.
