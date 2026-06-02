@@ -19,6 +19,7 @@ internal static class PredictionCardHoverTipLayoutPatches
 {
     internal static readonly StringName PredictionCardMetaKey = $"{Entry.ModId}_PredictionCard";
     private const float Padding = 4f;
+    private const float SideGap = 10f;
     private const float ViewportMargin = 12f;
     private const float TopGap = 12f;
     private const float MinScale = 0.55f;
@@ -337,8 +338,8 @@ internal static class PredictionCardHoverTipLayoutPatches
     {
         return alignment switch
         {
-            HoverTipAlignment.Left => globalStartLocation + Vector2.Left * size.X,
-            _ => globalStartLocation
+            HoverTipAlignment.Left => globalStartLocation + Vector2.Left * (size.X + SideGap),
+            _ => globalStartLocation + Vector2.Right * SideGap
         };
     }
 
