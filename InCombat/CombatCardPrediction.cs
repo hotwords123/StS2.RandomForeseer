@@ -1,7 +1,10 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
@@ -35,6 +38,7 @@ internal static class CombatCardPrediction
             InfernalBlade => PredictFreeCharacterCards(card, CardType.Attack, 1, previewRng),
             JackOfAllTrades => PredictJackOfAllTrades(card, previewRng),
             Jackpot => PredictJackpot(card, previewRng),
+            Largesse => PredictLargesseCards(card, previewRng),
             MadScience madScience when madScience.TinkerTimeRider == TinkerTime.RiderEffect.Chaos =>
                 PredictCharacterCards(card, null, 1, previewRng).Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList(),
             ManifestAuthority => PredictManifestAuthority(card, previewRng),
@@ -154,5 +158,55 @@ internal static class CombatCardPrediction
         return source.IsUpgraded
             ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
             : cards;
+    }
+
+    private static IReadOnlyList<CardModel> PredictLargesseCards(CardModel source, Rng previewRng)
+    {
+        if (source.CombatState == null)
+        {
+            return [];
+        }
+
+        return GetLargesseTargets(source)
+            .Select(target => PredictLargesseCard(source, target.Player!, previewRng))
+            .OfType<CardModel>()
+            .DistinctBy(card => card.Id)
+            .ToList();
+    }
+
+    private static IEnumerable<Creature> GetLargesseTargets(CardModel source)
+    {
+        return source.CombatState?.PlayerCreatures
+            .Where(creature => IsValidLargesseTarget(source, creature)) ?? [];
+    }
+
+    private static bool IsValidLargesseTarget(CardModel source, Creature? target)
+    {
+        return target is { IsHittable: true, IsPlayer: true } &&
+            target != source.Owner.Creature &&
+            source.IsValidTarget(target);
+    }
+
+    private static CardModel? PredictLargesseCard(CardModel source, Player target, Rng sourceRng)
+    {
+        var card = PredictionUtils.TakeRandomDistinctForCombat(
+                target,
+                ModelDb.CardPool<ColorlessCardPool>()
+                    .GetUnlockedCards(target.UnlockState, target.RunState.CardMultiplayerConstraint),
+                1,
+                PredictionUtils.CloneRng(sourceRng))
+            .FirstOrDefault();
+        if (card == null)
+        {
+            return null;
+        }
+
+        var preview = PredictionUtils.CreatePreviewCard(card, target);
+        if (source.IsUpgraded)
+        {
+            PredictionUtils.UpgradePreviewCardInPlace(preview);
+        }
+
+        return preview;
     }
 }

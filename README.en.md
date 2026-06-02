@@ -8,7 +8,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform confirmation previews.
 - **Random-card potion prediction**: adds the predicted generated cards to random-card potion hover tips.
-- **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
+- **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat; Largesse shows the possible results for choosing other teammates.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options; Trial's innocent option includes the newly added Doubt in transform predictions.
@@ -46,6 +46,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Infernal Blade
 - Jack of All Trades
 - Jackpot
+- Largesse
 - Manifest Authority
 - Metamorphosis
 - Quasar
