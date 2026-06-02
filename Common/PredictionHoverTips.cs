@@ -5,6 +5,8 @@ namespace RandomForeseer.Common;
 
 internal static class PredictionHoverTips
 {
+    private const string PredictionTextHoverTipIdPrefix = $"{Entry.ModId}:PredictionText";
+
     public static IReadOnlyList<IHoverTip> Cards(IEnumerable<CardModel> cards)
     {
         return cards.Select(card => (IHoverTip)new PredictionCardHoverTip(card)).ToList();
@@ -30,14 +32,26 @@ internal static class PredictionHoverTips
     // create mutable relic instances at their source.
     public static IReadOnlyList<IHoverTip> Relics(IEnumerable<RelicModel> relics)
     {
-        return relics.Select(relic => (IHoverTip)relic.HoverTip).ToList();
+        return relics.Select(relic => (IHoverTip)CreatePredictionTextHoverTip(relic.HoverTip)).ToList();
     }
 
     // Potions passed here must already be mutable previews; PotionFactory returns canonical models,
     // so callers should mirror real obtain/reward paths and convert with ToMutable() before calling.
     public static IReadOnlyList<IHoverTip> Potions(IEnumerable<PotionModel> potions)
     {
-        return potions.Select(potion => (IHoverTip)potion.HoverTip).ToList();
+        return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();
+    }
+
+    public static bool IsPredictionTextHoverTip(IHoverTip tip)
+    {
+        return tip.Id.StartsWith(PredictionTextHoverTipIdPrefix, StringComparison.Ordinal);
+    }
+
+    private static HoverTip CreatePredictionTextHoverTip(HoverTip tip)
+    {
+        tip.Id = $"{PredictionTextHoverTipIdPrefix}:{tip.Id}";
+        tip.IsInstanced = true;
+        return tip;
     }
 }
 
