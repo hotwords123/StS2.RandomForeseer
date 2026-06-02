@@ -48,7 +48,8 @@ internal static class OutOfCombatRelicPrediction
                 NeowsBones => PredictNeowsBonesTips(player, relic),
                 NewLeaf when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictNewLeaf(player)),
-                PhialHolster => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
+                PhialHolster when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
