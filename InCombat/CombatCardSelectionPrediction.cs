@@ -25,21 +25,28 @@ internal static class CombatCardSelectionPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        return PredictionHoverTips.Cards(GetPrediction(card).HoverTipCards);
+        var prediction = GetPrediction(card);
+        var tips = PredictionHoverTips.Cards(prediction.HoverTipCards).ToList();
+        if (prediction.HasDriftRisk && RandomForeseerSettings.EnableCombatCardSelectionDriftWarnings)
+        {
+            tips.Add(PredictionHoverTips.CardSelectionDriftWarning());
+        }
+
+        return tips;
     }
 
     private static CombatCardSelectionPredictionResult Predict(CardModel card, MegaCrit.Sts2.Core.Random.Rng previewRng)
     {
         return card switch
         {
-            TrueGrit when !card.IsUpgraded => HighlightHandCard(PredictHandCard(card, c => true, previewRng)),
-            Cinder => HighlightHandCard(PredictHandCard(card, c => true, previewRng)),
-            Thrash => HighlightHandCard(PredictHandCard(card, c => c.Type == CardType.Attack, previewRng)),
+            TrueGrit when !card.IsUpgraded => WithDriftRisk(HighlightHandCard(PredictHandCard(card, c => true, previewRng))),
+            Cinder => WithDriftRisk(HighlightHandCard(PredictHandCard(card, c => true, previewRng))),
+            Thrash => WithDriftRisk(HighlightHandCard(PredictHandCard(card, c => c.Type == CardType.Attack, previewRng))),
             HiddenGem => HoverTipCards(PredictHiddenGem(card, previewRng)),
-            DrainPower => HoverTipCards(PredictDrainPower(card, previewRng)),
+            DrainPower => WithDriftRisk(HoverTipCards(PredictDrainPower(card, previewRng))),
             Anointed => HoverTipCards(PredictAnointed(card, previewRng)),
-            SeekerStrike => HoverTipCards(PredictSeekerStrike(card, previewRng)),
-            Uproar => HoverTipCards(PredictUproar(card)),
+            SeekerStrike => WithDriftRisk(HoverTipCards(PredictSeekerStrike(card, previewRng))),
+            Uproar => WithDriftRisk(HoverTipCards(PredictUproar(card))),
             _ => CombatCardSelectionPredictionResult.Empty
         };
     }
@@ -166,11 +173,19 @@ internal static class CombatCardSelectionPrediction
             ? CombatCardSelectionPredictionResult.Empty
             : new CombatCardSelectionPredictionResult(cards, new HashSet<CardModel>());
     }
+
+    private static CombatCardSelectionPredictionResult WithDriftRisk(CombatCardSelectionPredictionResult result)
+    {
+        return result == CombatCardSelectionPredictionResult.Empty
+            ? result
+            : result with { HasDriftRisk = true };
+    }
 }
 
 internal sealed record CombatCardSelectionPredictionResult(
     IReadOnlyList<CardModel> HoverTipCards,
-    IReadOnlySet<CardModel> HandCardsToHighlight)
+    IReadOnlySet<CardModel> HandCardsToHighlight,
+    bool HasDriftRisk = false)
 {
     public static CombatCardSelectionPredictionResult Empty { get; } = new([], new HashSet<CardModel>());
 }

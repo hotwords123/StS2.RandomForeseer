@@ -7,7 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.HoverTips;
 namespace RandomForeseer.Common;
 
 [HarmonyPatch(typeof(NHoverTipSet), "Init")]
-internal static class PredictionTextHoverTipBackgroundPatch
+internal static class PredictionHoverTipBackgroundPatch
 {
     private static readonly ConditionalWeakTable<NHoverTipSet, PredictionTextTipMaskBox> PredictionTextTipMasks = [];
 
@@ -20,7 +20,7 @@ internal static class PredictionTextHoverTipBackgroundPatch
 
         var predictionTextTipMask = IHoverTip.RemoveDupes(materializedTips)
             .Where(tip => tip is HoverTip)
-            .Select(PredictionHoverTips.IsPredictionTextHoverTip)
+            .Select(PredictionHoverTips.IsPredictionHoverTip)
             .ToList();
 
         if (!predictionTextTipMask.Any(isPrediction => isPrediction))

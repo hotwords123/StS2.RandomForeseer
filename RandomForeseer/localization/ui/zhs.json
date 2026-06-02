@@ -1,0 +1,4 @@
+{
+  "card_selection_drift_warning.title": "提示",
+  "card_selection_drift_warning.description": "这张牌的效果可能改变目标牌堆或推进随机数，因此这里的预测不一定准确。\n你可以在设置界面关闭这个提示。"
+}

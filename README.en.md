@@ -9,6 +9,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform confirmation previews.
 - **Random-card potion prediction**: adds the predicted generated cards to random-card potion hover tips.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat; Largesse shows the possible results for choosing other teammates.
+- **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options; Trial's innocent option includes the newly added Doubt in transform predictions.
@@ -55,6 +56,17 @@ Each feature can be toggled independently from the mod settings page, and predic
 - White Noise
 - Mad Science (Chaos rider only)
 
+### Combat Card Selection
+
+- True Grit (unupgraded)
+- Cinder
+- Thrash
+- Hidden Gem
+- Drain Power
+- Anointed
+- Seeker Strike (random candidates)
+- Uproar
+
 ### Card Rewards
 
 - Driftwood reroll
@@ -95,6 +107,8 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict transform results | Controls whether transform confirmation previews show predicted cards |
 | Predict potion card results | Controls whether random-card potions show predicted cards |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
+| Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
+| Show selection prediction warnings | Controls whether side-effect-sensitive selection predictions show a warning, default on |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict out-of-combat relic results | Controls whether Ancient relic options, relic rewards, and merchant relics show immediate random results |
 | Predict event option results | Controls whether non-Ancient event options show immediate random results |

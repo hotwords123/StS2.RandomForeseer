@@ -6,6 +6,7 @@ namespace RandomForeseer.Common;
 internal static class PredictionHoverTips
 {
     private const string PredictionTextHoverTipIdPrefix = $"{Entry.ModId}:PredictionText";
+    private const string PredictionWarningHoverTipIdPrefix = $"{Entry.ModId}:PredictionWarning";
 
     public static IReadOnlyList<IHoverTip> Cards(IEnumerable<CardModel> cards)
     {
@@ -42,9 +43,31 @@ internal static class PredictionHoverTips
         return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();
     }
 
+    public static IHoverTip CardSelectionDriftWarning()
+    {
+        var tip = new HoverTip(
+            PredictionLocalization.Text("card_selection_drift_warning.title"),
+            PredictionLocalization.Text("card_selection_drift_warning.description"))
+        {
+            Id = $"{PredictionWarningHoverTipIdPrefix}:CardSelectionDrift",
+            IsInstanced = true
+        };
+        return tip;
+    }
+
     public static bool IsPredictionTextHoverTip(IHoverTip tip)
     {
         return tip.Id.StartsWith(PredictionTextHoverTipIdPrefix, StringComparison.Ordinal);
+    }
+
+    public static bool IsPredictionWarningHoverTip(IHoverTip tip)
+    {
+        return tip.Id.StartsWith(PredictionWarningHoverTipIdPrefix, StringComparison.Ordinal);
+    }
+
+    public static bool IsPredictionHoverTip(IHoverTip tip)
+    {
+        return IsPredictionTextHoverTip(tip) || IsPredictionWarningHoverTip(tip);
     }
 
     private static HoverTip CreatePredictionTextHoverTip(HoverTip tip)

@@ -24,6 +24,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableCombatCardSelectionPrediction { get; set; } = true;
 
+    public bool EnableCombatCardSelectionDriftWarnings { get; set; } = true;
+
     public bool EnableDriftwoodRerollPrediction { get; set; } = true;
 
     public bool EnableOutOfCombatRelicPrediction { get; set; } = true;
@@ -47,6 +49,7 @@ internal static class RandomForeseerSettings
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
+    private const string EnableCombatCardSelectionDriftWarningsKey = "enable_combat_card_selection_drift_warnings";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
     private const string EnableOutOfCombatRelicPredictionKey = "enable_out_of_combat_relic_prediction";
     private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
@@ -119,6 +122,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableCombatCardSelectionPrediction,
             (settings, value) => settings.EnableCombatCardSelectionPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableCombatCardSelectionDriftWarningsBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableCombatCardSelectionDriftWarnings,
+            (settings, value) => settings.EnableCombatCardSelectionDriftWarnings = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableDriftwoodRerollPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -167,6 +177,8 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
 
     public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
+
+    public static bool EnableCombatCardSelectionDriftWarnings => EnableCombatCardSelectionDriftWarningsBinding.Read();
 
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
@@ -347,6 +359,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_combat_card_selection_prediction.description",
                         "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableCombatCardSelectionDriftWarningsKey,
+                    Text("toggle.enable_combat_card_selection_drift_warnings.label", "Show selection prediction warnings"),
+                    EnableCombatCardSelectionDriftWarningsBinding,
+                    Text(
+                        "toggle.enable_combat_card_selection_drift_warnings.description",
+                        "When enabled, card selection predictions that may be shifted by damage, block, draw, death, or autoplay side effects show a warning tooltip."),
                     () => true);
 
                 section.AddToggle(
