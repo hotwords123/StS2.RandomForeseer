@@ -47,7 +47,7 @@ internal static class OutOfCombatRelicPrediction
                         player,
                         relic.DynamicVars["Potions"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
-                ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player)),
+                ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player), isVanillaCardBundle: true),
                 SmallCapsule => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
 
                 // Darv
@@ -75,7 +75,7 @@ internal static class OutOfCombatRelicPrediction
                 SereTalon => PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
 
                 // Non-Ancient relics
-                Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
+                Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
                     player,
                     relic.DynamicVars["Potions"].IntValue,
                     player.PlayerRng.Rewards)),
@@ -165,7 +165,7 @@ internal static class OutOfCombatRelicPrediction
                 bundle.AddRange(PredictCards(player, 1, options, rewardRng, nicheRng));
             }
 
-            bundles.Add(ReverseForRewardDisplayStack(bundle));
+            bundles.Add(bundle);
         }
 
         return bundles;
@@ -173,30 +173,15 @@ internal static class OutOfCombatRelicPrediction
 
     private static IReadOnlyList<IReadOnlyList<CardModel>> PredictAstrolabeBundles(Player player)
     {
-        var candidates = PileType.Deck.GetPile(player).Cards
-            .Where(card => card.Type != CardType.Quest && card.IsTransformable)
-            .ToList();
         var bundles = new List<IReadOnlyList<CardModel>>();
 
         for (var slot = 0; slot < 3; slot++)
         {
-            var bundle = new List<CardModel>();
-            var seenCardIds = new HashSet<ModelId>();
-            foreach (var candidate in candidates)
-            {
-                var rng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-                rng.FastForwardCounter(rng.Counter + slot);
-                var card = CardFactory.CreateRandomCardForTransform(candidate, isInCombat: false, rng);
-                if (!seenCardIds.Add(card.Id))
-                {
-                    continue;
-                }
-
-                CardCmdUpgradePreview(card);
-                bundle.Add(card);
-            }
-
-            bundles.Add(bundle);
+            bundles.Add(OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(
+                player,
+                player.RunState.Rng.Niche,
+                PredictionUtils.UpgradePreviewCardInPlace,
+                rngCounterOffset: slot));
         }
 
         return bundles;
@@ -221,7 +206,7 @@ internal static class OutOfCombatRelicPrediction
                 var options = CardCreationOptions
                     .ForNonCombatWithUniformOdds([player.Character.CardPool], card => card.Rarity == rarity)
                     .WithFlags(CardCreationFlags.NoRarityModification);
-                return ReverseForRewardDisplayStack(PredictCards(player, 3, options, rewardRng, nicheRng));
+                return PredictCards(player, 3, options, rewardRng, nicheRng);
             })
             .ToList();
     }
@@ -244,7 +229,7 @@ internal static class OutOfCombatRelicPrediction
                 var options = CardCreationOptions
                     .ForNonCombatWithUniformOdds([character.CardPool], card => card.Rarity == rarity)
                     .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications);
-                return ReverseForRewardDisplayStack(PredictCards(player, cardCount, options, rewardRng, nicheRng));
+                return PredictCards(player, cardCount, options, rewardRng, nicheRng);
             })
             .ToList();
     }
@@ -294,7 +279,7 @@ internal static class OutOfCombatRelicPrediction
             }
 
             availableCurses.Remove(card);
-            curses.Add(player.RunState.CreateCard(card, player));
+            curses.Add(PredictionUtils.CreatePreviewCard(card, player));
         }
 
         return curses;
@@ -302,17 +287,7 @@ internal static class OutOfCombatRelicPrediction
 
     private static IReadOnlyList<CardModel> PredictNewLeaf(Player player)
     {
-        var candidates = PileType.Deck.GetPile(player).Cards
-            .Where(card => card.Type != CardType.Quest && card.IsTransformable)
-            .ToList();
-
-        return candidates
-            .Select(candidate => CardFactory.CreateRandomCardForTransform(
-                candidate,
-                isInCombat: false,
-                PredictionUtils.CloneRng(player.RunState.Rng.Niche)))
-            .DistinctBy(card => card.Id)
-            .ToList();
+        return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(player, player.RunState.Rng.Niche);
     }
 
     private static IReadOnlyList<CardModel> PredictPandorasBox(Player player)
@@ -320,7 +295,7 @@ internal static class OutOfCombatRelicPrediction
         var rng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         return PileType.Deck.GetPile(player).Cards
             .Where(card => card.IsBasicStrikeOrDefend && card.IsRemovable)
-            .Select(card => CardFactory.CreateRandomCardForTransform(card, isInCombat: false, rng))
+            .Select(card => OutOfCombatPredictionUtils.PredictTransformResult(card, rng))
             .ToList();
     }
 
@@ -345,13 +320,13 @@ internal static class OutOfCombatRelicPrediction
         var strike = source.FirstOrDefault(card => card.Tags.Contains(CardTag.Strike));
         if (strike != null)
         {
-            cards.Add(CardFactory.CreateRandomCardForTransform(strike, isInCombat: false, rng));
+            cards.Add(OutOfCombatPredictionUtils.PredictTransformResult(strike, rng));
         }
 
         var defend = source.FirstOrDefault(card => card.Tags.Contains(CardTag.Defend));
         if (defend != null)
         {
-            cards.Add(CardFactory.CreateRandomCardForTransform(defend, isInCombat: false, rng));
+            cards.Add(OutOfCombatPredictionUtils.PredictTransformResult(defend, rng));
         }
 
         return cards;
@@ -382,9 +357,9 @@ internal static class OutOfCombatRelicPrediction
             {
                 var claw = ModelDb.Card<Claw>();
                 bundles.Add([
-                    player.RunState.CreateCard(claw, player),
-                    player.RunState.CreateCard(claw, player),
-                    player.RunState.CreateCard(claw, player)
+                    PredictionUtils.CreatePreviewCard(claw, player),
+                    PredictionUtils.CreatePreviewCard(claw, player),
+                    PredictionUtils.CreatePreviewCard(claw, player)
                 ]);
                 continue;
             }
@@ -399,7 +374,7 @@ internal static class OutOfCombatRelicPrediction
                     break;
                 }
 
-                bundle.Add(player.RunState.CreateCard(card, player));
+                bundle.Add(PredictionUtils.CreatePreviewCard(card, player));
                 usedCardIds.Add(card.Id);
                 availableCommon.Remove(card);
             }
@@ -408,7 +383,7 @@ internal static class OutOfCombatRelicPrediction
             var uncommon = rewards.NextItem(availableUncommon);
             if (uncommon != null)
             {
-                bundle.Add(player.RunState.CreateCard(uncommon, player));
+                bundle.Add(PredictionUtils.CreatePreviewCard(uncommon, player));
                 usedCardIds.Add(uncommon.Id);
             }
 
@@ -455,19 +430,6 @@ internal static class OutOfCombatRelicPrediction
         Rng nicheRng)
     {
         return OutOfCombatPredictionUtils.PredictCards(player, count, options, rewardRng, nicheRng);
-    }
-
-    private static void CardCmdUpgradePreview(CardModel card)
-    {
-        if (card.IsUpgradable)
-        {
-            PredictionUtils.UpgradePreviewCardInPlace(card);
-        }
-    }
-
-    private static IReadOnlyList<CardModel> ReverseForRewardDisplayStack(IReadOnlyList<CardModel> cards)
-    {
-        return cards.Reverse().ToList();
     }
 
     private static void WarnOnce(Type relicType, string message)

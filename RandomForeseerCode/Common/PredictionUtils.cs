@@ -87,11 +87,12 @@ internal static class PredictionUtils
             .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
     }
 
-    public static CardModel ToUpgradedPreviewCard(CardModel card)
+    public static CardModel CreatePreviewCard(CardModel canonical, Player player)
     {
-        var previewCard = (CardModel)card.MutableClone();
-        UpgradePreviewCardInPlace(previewCard);
-        return previewCard;
+        var preview = canonical.CanonicalInstance.ToMutable();
+        preview.Owner = player;
+        preview.AfterCreated();
+        return preview;
     }
 
     public static void UpgradePreviewCardInPlace(CardModel previewCard)
@@ -103,9 +104,30 @@ internal static class PredictionUtils
         }
     }
 
+    public static CardModel ToUpgradedPreviewCard(CardModel card)
+    {
+        var previewCard = (CardModel)card.MutableClone();
+        UpgradePreviewCardInPlace(previewCard);
+        return previewCard;
+    }
+
     public static CardModel ToFreeThisTurnPreviewCard(CardModel card)
     {
         var previewCard = (CardModel)card.MutableClone();
+        previewCard.SetToFreeThisTurn();
+        return previewCard;
+    }
+
+    public static CardModel ToFreeThisCombatPreviewCard(CardModel card)
+    {
+        var previewCard = (CardModel)card.MutableClone();
+        previewCard.SetToFreeThisCombat();
+        return previewCard;
+    }
+
+    public static CardModel ToUpgradedAndFreeThisTurnPreviewCard(CardModel card)
+    {
+        var previewCard = ToUpgradedPreviewCard(card);
         previewCard.SetToFreeThisTurn();
         return previewCard;
     }

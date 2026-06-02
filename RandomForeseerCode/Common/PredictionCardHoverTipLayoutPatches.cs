@@ -182,10 +182,10 @@ internal static class PredictionCardHoverTipLayoutPatches
                     .Max() + scaledPadding;
             }
 
-            tip.Scale = Vector2.One * scale;
-            tip.Position = new Vector2(x, y);
-
             var scaledSize = tip.Size * scale;
+            tip.Scale = Vector2.One * scale;
+            tip.Position = new Vector2(x, y + rowHeight - scaledSize.Y);
+
             size = new Vector2(
                 Mathf.Max(x + scaledSize.X, size.X),
                 Mathf.Max(y + Mathf.Max(scaledSize.Y, rowHeight), size.Y));

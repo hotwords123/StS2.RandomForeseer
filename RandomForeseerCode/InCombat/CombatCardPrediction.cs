@@ -107,7 +107,7 @@ internal static class CombatCardPrediction
             .Where(card => card.Type == CardType.Attack);
 
         return PredictionUtils.TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng)
-            .Select(ToFreeThisCombatPreviewCard)
+            .Select(PredictionUtils.ToFreeThisCombatPreviewCard)
             .ToList();
     }
 
@@ -134,7 +134,7 @@ internal static class CombatCardPrediction
         var cards = PredictionUtils.TakeRandomDistinctForCombat(owner, candidates, 3, previewRng);
 
         return source.IsUpgraded
-            ? cards.Select(ToUpgradedAndFreeThisTurnPreviewCard).ToList()
+            ? cards.Select(PredictionUtils.ToUpgradedAndFreeThisTurnPreviewCard).ToList()
             : cards.Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList();
     }
 
@@ -153,19 +153,5 @@ internal static class CombatCardPrediction
         return source.IsUpgraded
             ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
             : cards;
-    }
-
-    private static CardModel ToUpgradedAndFreeThisTurnPreviewCard(CardModel card)
-    {
-        var previewCard = PredictionUtils.ToUpgradedPreviewCard(card);
-        previewCard.SetToFreeThisTurn();
-        return previewCard;
-    }
-
-    private static CardModel ToFreeThisCombatPreviewCard(CardModel card)
-    {
-        var previewCard = (CardModel)card.MutableClone();
-        previewCard.SetToFreeThisCombat();
-        return previewCard;
     }
 }

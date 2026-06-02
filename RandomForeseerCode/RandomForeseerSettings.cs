@@ -18,6 +18,10 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableOutOfCombatRelicPrediction { get; set; } = true;
 
+    public bool EnableEventOptionPrediction { get; set; } = true;
+
+    public int SlipperyBridgeRerollPreviewCount { get; set; } = 5;
+
     public bool EnableFrozenEye { get; set; } = true;
 
     public bool EnableAncientEventDebugReroll { get; set; }
@@ -31,6 +35,8 @@ internal static class RandomForeseerSettings
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
     private const string EnableOutOfCombatRelicPredictionKey = "enable_out_of_combat_relic_prediction";
+    private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
+    private const string SlipperyBridgeRerollPreviewCountKey = "slippery_bridge_reroll_preview_count";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
     private const string EnableAncientEventDebugRerollKey = "enable_ancient_event_debug_reroll";
 
@@ -85,6 +91,20 @@ internal static class RandomForeseerSettings
             settings => settings.EnableOutOfCombatRelicPrediction,
             (settings, value) => settings.EnableOutOfCombatRelicPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableEventOptionPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableEventOptionPrediction,
+            (settings, value) => settings.EnableEventOptionPrediction = value);
+
+    private static readonly IModSettingsValueBinding<int> SlipperyBridgeRerollPreviewCountBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, int>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.SlipperyBridgeRerollPreviewCount,
+            (settings, value) => settings.SlipperyBridgeRerollPreviewCount = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAncientEventDebugRerollBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -101,6 +121,10 @@ internal static class RandomForeseerSettings
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
     public static bool EnableOutOfCombatRelicPrediction => EnableOutOfCombatRelicPredictionBinding.Read();
+
+    public static bool EnableEventOptionPrediction => EnableEventOptionPredictionBinding.Read();
+
+    public static int SlipperyBridgeRerollPreviewCount => Math.Clamp(SlipperyBridgeRerollPreviewCountBinding.Read(), 1, 10);
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
@@ -152,6 +176,27 @@ internal static class RandomForeseerSettings
                         "toggle.enable_out_of_combat_relic_prediction.description",
                         "When enabled, out-of-combat relic tooltips show immediate random results such as cards, relics, potions, curses, and transforms."),
                     () => true);
+
+                section.AddToggle(
+                    EnableEventOptionPredictionKey,
+                    Text("toggle.enable_event_option_prediction.label", "Predict event option results"),
+                    EnableEventOptionPredictionBinding,
+                    Text(
+                        "toggle.enable_event_option_prediction.description",
+                        "When enabled, non-Ancient event option tooltips show immediate random results such as rewards, upgrades, and offered follow-up choices."),
+                    () => true);
+
+                section.AddIntSlider(
+                    SlipperyBridgeRerollPreviewCountKey,
+                    Text("slider.slippery_bridge_reroll_preview_count.label", "Slippery Bridge reroll previews"),
+                    SlipperyBridgeRerollPreviewCountBinding,
+                    1,
+                    10,
+                    1,
+                    value => value.ToString(),
+                    Text(
+                        "slider.slippery_bridge_reroll_preview_count.description",
+                        "How many future Hold On rerolls to preview for Slippery Bridge."));
             });
 
             page.AddSection("in_combat_prediction", section =>

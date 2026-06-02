@@ -48,20 +48,11 @@ internal static class TransformPreviewPredictor
                 return new CardTransformation(original);
             }
 
-            if (!_upgradePreview)
-            {
-                return new CardTransformation(original, predicted);
-            }
-
-            var previewCard = (CardModel)predicted.MutableClone();
-            previewCard.Owner = original.Owner;
-            if (previewCard.IsUpgradable)
-            {
-                previewCard.UpgradeInternal();
-                previewCard.FinalizeUpgradeInternal();
-            }
-
-            return new CardTransformation(original, previewCard);
+            return new CardTransformation(
+                original,
+                _upgradePreview
+                    ? PredictionUtils.ToUpgradedPreviewCard(predicted)
+                    : predicted);
         }
     }
 }

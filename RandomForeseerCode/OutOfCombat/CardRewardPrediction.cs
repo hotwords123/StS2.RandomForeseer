@@ -123,7 +123,7 @@ internal static class CardRewardPrediction
                 $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
         }
 
-        return CreatePreviewCard(canonical, player);
+        return PredictionUtils.CreatePreviewCard(canonical, player);
     }
 
     private static CardRarity RollForRarity(
@@ -456,14 +456,6 @@ internal static class CardRewardPrediction
     private static CardModel ClonePreviewCard(CardModel card)
     {
         return (CardModel)card.ClonePreservingMutability();
-    }
-
-    private static CardModel CreatePreviewCard(CardModel canonical, Player player)
-    {
-        var preview = canonical.CanonicalInstance.ToMutable();
-        preview.Owner = player;
-        preview.AfterCreated();
-        return preview;
     }
 
     private static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)

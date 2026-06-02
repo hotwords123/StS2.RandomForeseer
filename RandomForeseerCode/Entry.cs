@@ -35,6 +35,7 @@ public partial class Entry
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, assembly);
 
         RandomForeseerSettings.Register();
+        EventOptionRandomPrediction.Register();
 
         new Harmony($"{ModId}.Harmony").PatchAll(assembly);
 

@@ -21,6 +21,31 @@ internal static class EventOptionPredictionRegistry
         Providers.Add(provider);
     }
 
+    public static void Register<TEvent>(Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> provider)
+        where TEvent : EventModel
+    {
+        Register((eventModel, option) =>
+        {
+            if (!RandomForeseerSettings.EnableEventOptionPrediction ||
+                eventModel.Owner == null ||
+                option.IsLocked ||
+                eventModel is not TEvent typedEvent)
+            {
+                return [];
+            }
+
+            try
+            {
+                return provider(typedEvent, option);
+            }
+            catch (Exception ex)
+            {
+                Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
+                return [];
+            }
+        });
+    }
+
     public static IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option)
     {
         var tips = new List<IHoverTip>();

@@ -10,11 +10,15 @@ internal static class PredictionHoverTips
         return cards.Select(card => (IHoverTip)new PredictionCardHoverTip(card)).ToList();
     }
 
-    public static IReadOnlyList<IHoverTip> CardBundles(IEnumerable<IReadOnlyList<CardModel>> bundles)
+    public static IReadOnlyList<IHoverTip> CardBundles(
+        IEnumerable<IReadOnlyList<CardModel>> bundles,
+        bool isVanillaCardBundle = false)
     {
         var bundleList = bundles
             .Where(bundle => bundle.Count > 0)
-            .Select(bundle => (IReadOnlyList<CardModel>)bundle.ToList())
+            .Select(bundle => (IReadOnlyList<CardModel>)(isVanillaCardBundle
+                ? bundle.ToList()
+                : bundle.Reverse().ToList()))
             .ToList();
 
         return bundleList.Count == 0

@@ -11,6 +11,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
+- **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
 Each feature can be toggled independently from the mod settings page.
@@ -57,6 +58,10 @@ Each feature can be toggled independently from the mod settings page.
 
 - Driftwood reroll
 
+### Non-Ancient Events
+
+- Immediate random results for event options in Battleworn Dummy, Brain Leech, Doll Room, Doors of Light and Dark, Endless Conveyor, Infested Automaton, Luminous Choir, Potion Courier, Punch Off, Ranwid the Elder, Reflections, Room Full of Cheese, Round Tea Party, Slippery Bridge, Tablet of Truth, The Future of Potions, The Legends Were True, This or That, Tinker Time, Trash Heap, Trial, Unrest Site, War Historian Repy, Welcome to Wongos, Wellspring, Whispering Hollow, and similar events.
+
 ### Out-of-Combat Relics
 
 - Immediate random results from Neow and other Ancient relic options
@@ -88,6 +93,8 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict out-of-combat relic results | Controls whether Ancient relic options, relic rewards, and merchant relics show immediate random results |
+| Predict event option results | Controls whether non-Ancient event options show immediate random results |
+| Slippery Bridge reroll previews | Controls how many future Hold On rerolls are previewed for Slippery Bridge, default 5 |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 
 ## Build From Source
