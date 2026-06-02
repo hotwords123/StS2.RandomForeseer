@@ -50,7 +50,7 @@
         <EmbeddedResource Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**"/>
         <None Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**"/>
 
-        <AdditionalFiles Include="RandomForeseer/localization/**/*.json"/>
+        <!-- <AdditionalFiles Include="RandomForeseer/localization/**/*.json"/> -->
 
         <Compile Remove="RandomForeseer/**"/>
         <EmbeddedResource Remove="RandomForeseer/**"/>
