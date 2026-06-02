@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using MegaCrit.Sts2.addons.mega_text;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
 
@@ -48,11 +49,7 @@ internal static class FrozenEyeCardPileScreenPatch
     {
         var originalInfo = new LocString("gameplay_ui", "DRAW_PILE_INFO").GetFormattedText();
         var firstLine = originalInfo.Split('\n', 2)[0];
-        var orderInfo = LocManager.Instance.Language switch
-        {
-            "zhs" => "[gold]（点击查看时卡牌会按实际抽牌顺序显示）[/gold]",
-            _ => "[gold](Cards shown are in draw order)[/gold]"
-        };
+        var orderInfo = PredictionLocalization.Text("frozen_eye.draw_pile_info_order").GetFormattedText();
 
         return $"{firstLine}\n{orderInfo}";
     }
@@ -91,11 +88,7 @@ internal static class FrozenEyeDrawPileHoverTipPatch
     {
         var originalDescription = new LocString("static_hover_tips", "DRAW_PILE.description").GetFormattedText();
         var mainDescription = originalDescription.Split("\n\n", 2)[0];
-        var viewDescription = LocManager.Instance.Language switch
-        {
-            "zhs" => "点击这里查看你抽牌堆中的卡牌（按实际抽牌顺序）。",
-            _ => "Click to view the cards in your draw pile (in draw order)."
-        };
+        var viewDescription = PredictionLocalization.Text("frozen_eye.draw_pile_hover_view").GetFormattedText();
 
         return $"{mainDescription}\n\n{viewDescription}";
     }
