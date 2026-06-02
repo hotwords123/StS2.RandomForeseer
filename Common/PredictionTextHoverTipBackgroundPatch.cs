@@ -9,9 +9,6 @@ namespace RandomForeseer.Common;
 [HarmonyPatch(typeof(NHoverTipSet), "Init")]
 internal static class PredictionTextHoverTipBackgroundPatch
 {
-    private static readonly AccessTools.FieldRef<NHoverTipSet, VFlowContainer> TextHoverTipContainerField =
-        AccessTools.FieldRefAccess<NHoverTipSet, VFlowContainer>("_textHoverTipContainer");
-
     private static readonly ConditionalWeakTable<NHoverTipSet, PredictionTextTipMaskBox> PredictionTextTipMasks = [];
 
     private static readonly Lazy<ShaderMaterial> PredictionBackgroundMaterial = new(CreatePredictionBackgroundMaterial);
@@ -44,7 +41,7 @@ internal static class PredictionTextHoverTipBackgroundPatch
 
         PredictionTextTipMasks.Remove(__instance);
 
-        var textTips = TextHoverTipContainerField(__instance)
+        var textTips = __instance._textHoverTipContainer
             .GetChildren()
             .OfType<Control>()
             .ToList();

@@ -13,9 +13,6 @@ internal static class AncientEventDebugRerollPatch
 {
     private const string ButtonName = Entry.ModId + "_AncientEventDebugReroll";
 
-    private static readonly AccessTools.FieldRef<NEventLayout, EventModel> EventField =
-        AccessTools.FieldRefAccess<NEventLayout, EventModel>("_event");
-
     private static readonly System.Reflection.MethodInfo GenerateInitialOptionsMethod =
         AccessTools.Method(typeof(AncientEventModel), "GenerateInitialOptionsWrapper");
 
@@ -25,7 +22,7 @@ internal static class AncientEventDebugRerollPatch
     private static void Postfix(NEventLayout __instance)
     {
         if (!RandomForeseerSettings.EnableAncientEventDebugReroll ||
-            EventField(__instance) is not AncientEventModel ancient ||
+            __instance._event is not AncientEventModel ancient ||
             ancient.IsFinished ||
             __instance.GetNodeOrNull<Button>(ButtonName) != null)
         {

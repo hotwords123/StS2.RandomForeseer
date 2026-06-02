@@ -103,13 +103,9 @@ internal static class TransformPreviewPatchShared
 [HarmonyPatch(typeof(NDeckTransformSelectScreen), "OpenPreviewScreen")]
 internal static class DeckTransformSelectScreenResetPredictionPatch
 {
-    private static readonly FieldInfo CardToTransformationField =
-        AccessTools.Field(typeof(NDeckTransformSelectScreen), "_cardToTransformation")
-        ?? throw new MissingFieldException(nameof(NDeckTransformSelectScreen), "_cardToTransformation");
-
     private static void Prefix(NDeckTransformSelectScreen __instance)
     {
-        if (CardToTransformationField.GetValue(__instance) is not Func<CardModel, CardTransformation> predictor)
+        if (__instance._cardToTransformation is not Func<CardModel, CardTransformation> predictor)
         {
             return;
         }

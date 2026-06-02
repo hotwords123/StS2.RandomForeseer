@@ -14,9 +14,6 @@ namespace RandomForeseer.OutOfCombat;
     [typeof(Control), typeof(IEnumerable<IHoverTip>), typeof(HoverTipAlignment)])]
 internal static class MerchantRelicPredictionPatch
 {
-    private static readonly AccessTools.FieldRef<MerchantEntry, Player> GetEntryPlayer =
-        AccessTools.FieldRefAccess<MerchantEntry, Player>("_player");
-
     private static void Prefix(Control owner, ref IEnumerable<IHoverTip> hoverTips)
     {
         if (owner is not NMerchantRelic { Entry: MerchantRelicEntry { Model: { } relic } entry })
@@ -25,7 +22,7 @@ internal static class MerchantRelicPredictionPatch
         }
 
         // MerchantRelicEntry.Model is mutable: FillSlot and predetermined slot setup both assert/set mutable models.
-        var predictionTips = OutOfCombatRelicPrediction.GetHoverTips(GetEntryPlayer(entry), relic);
+        var predictionTips = OutOfCombatRelicPrediction.GetHoverTips(entry._player, relic);
         if (predictionTips.Count > 0)
         {
             hoverTips = hoverTips.Concat(predictionTips).ToList();

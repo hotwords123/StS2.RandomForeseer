@@ -8,12 +8,6 @@ namespace RandomForeseer.OutOfCombat;
 
 internal static class CardRewardRerollPrediction
 {
-    private static readonly AccessTools.FieldRef<CardReward, int> OptionCountField =
-        AccessTools.FieldRefAccess<CardReward, int>("<OptionCount>k__BackingField");
-
-    private static readonly AccessTools.FieldRef<CardReward, CardCreationOptions> RerollOptionsField =
-        AccessTools.FieldRefAccess<CardReward, CardCreationOptions>("<RerollOptions>k__BackingField");
-
     private static readonly AccessTools.FieldRef<CardReward, Action?> AfterGeneratedField =
         AccessTools.FieldRefAccess<CardReward, Action?>("AfterGenerated");
 
@@ -28,8 +22,8 @@ internal static class CardRewardRerollPrediction
         var player = reward.Player;
         var cards = CardRewardPrediction.PredictCards(
             player,
-            OptionCountField(reward),
-            RerollOptionsField(reward),
+            reward.OptionCount,
+            reward.RerollOptions,
             PredictionUtils.CloneRng(player.PlayerRng.Rewards),
             PredictionUtils.CloneRng(player.RunState.Rng.Niche),
             AfterGeneratedField(reward));

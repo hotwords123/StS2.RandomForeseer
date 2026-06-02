@@ -388,12 +388,9 @@ internal static class PredictionCardHoverTipLayoutPatches
 [HarmonyPatch(typeof(NHoverTipSet), nameof(NHoverTipSet.SetAlignmentForCardHolder))]
 internal static class PredictionCardHoverTipSourceRectPatch
 {
-    private static readonly AccessTools.FieldRef<NHoverTipSet, NHoverTipCardContainer> CardContainerField =
-        AccessTools.FieldRefAccess<NHoverTipSet, NHoverTipCardContainer>("_cardHoverTipContainer");
-
     private static void Prefix(NHoverTipSet __instance, NCardHolder holder)
     {
-        var container = CardContainerField(__instance);
+        var container = __instance._cardHoverTipContainer;
         if (container == null)
         {
             return;
@@ -417,12 +414,9 @@ internal static class PredictionCardHoverTipSourceRectPatch
 [HarmonyPatch(typeof(NHoverTipSet), nameof(NHoverTipSet.SetAlignment))]
 internal static class PredictionCardHoverTipControlSourceRectPatch
 {
-    private static readonly AccessTools.FieldRef<NHoverTipSet, NHoverTipCardContainer> CardContainerField =
-        AccessTools.FieldRefAccess<NHoverTipSet, NHoverTipCardContainer>("_cardHoverTipContainer");
-
     private static void Prefix(NHoverTipSet __instance, Control node)
     {
-        var container = CardContainerField(__instance);
+        var container = __instance._cardHoverTipContainer;
         if (container == null)
         {
             return;

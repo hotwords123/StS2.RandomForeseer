@@ -1,4 +1,3 @@
-using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -14,14 +13,6 @@ namespace RandomForeseer.InCombat;
 [HarmonyPatch(typeof(NCardPileScreen), "OnPileContentsChanged")]
 internal static class FrozenEyeCardPileScreenPatch
 {
-    private static readonly FieldInfo GridField =
-        AccessTools.Field(typeof(NCardPileScreen), "_grid")
-        ?? throw new MissingFieldException(nameof(NCardPileScreen), "_grid");
-
-    private static readonly FieldInfo BottomLabelField =
-        AccessTools.Field(typeof(NCardPileScreen), "_bottomLabel")
-        ?? throw new MissingFieldException(nameof(NCardPileScreen), "_bottomLabel");
-
     private static void Postfix(NCardPileScreen __instance)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
@@ -30,7 +21,7 @@ internal static class FrozenEyeCardPileScreenPatch
             return;
         }
 
-        if (BottomLabelField.GetValue(__instance) is MegaRichTextLabel bottomLabel)
+        if (__instance._bottomLabel is MegaRichTextLabel bottomLabel)
         {
             bottomLabel.Text = "[center]" + GetFrozenEyeDrawPileInfoText();
         }
@@ -44,7 +35,7 @@ internal static class FrozenEyeCardPileScreenPatch
             return true;
         }
 
-        if (GridField.GetValue(__instance) is not NCardGrid grid)
+        if (__instance._grid is not NCardGrid grid)
         {
             return true;
         }
@@ -70,10 +61,6 @@ internal static class FrozenEyeCardPileScreenPatch
 [HarmonyPatch(typeof(NCombatCardPile), "OnFocus")]
 internal static class FrozenEyeDrawPileHoverTipPatch
 {
-    private static readonly FieldInfo HoverTipField =
-        AccessTools.Field(typeof(NCombatCardPile), "_hoverTip")
-        ?? throw new MissingFieldException(nameof(NCombatCardPile), "_hoverTip");
-
     private static void Prefix(NCombatCardPile __instance)
     {
         if (__instance is not NDrawPileButton)
@@ -81,11 +68,9 @@ internal static class FrozenEyeDrawPileHoverTipPatch
             return;
         }
 
-        HoverTipField.SetValue(
-            __instance,
-            RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye)
-                ? CreateFrozenEyeDrawPileHoverTip()
-                : CreateVanillaDrawPileHoverTip());
+        __instance._hoverTip = RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye)
+            ? CreateFrozenEyeDrawPileHoverTip()
+            : CreateVanillaDrawPileHoverTip();
     }
 
     private static HoverTip CreateVanillaDrawPileHoverTip()
