@@ -5,6 +5,8 @@ param(
 
     [string]$Configuration = "Release",
 
+    [string]$NotesPath = "CHANGELOG.md",
+
     [switch]$Draft,
     [switch]$Prerelease,
     [switch]$SkipBuild,
@@ -20,6 +22,7 @@ $projectPath = Join-Path $root "RandomForeseer.csproj"
 $manifestPath = Join-Path $root "RandomForeseer.json"
 $artifactsDir = Join-Path $root "artifacts"
 $packageRoot = Join-Path $artifactsDir "package"
+$releaseNotesPath = Join-Path $root $NotesPath
 
 function Invoke-Checked {
     param(
@@ -40,6 +43,30 @@ function Test-CommandAvailable {
     return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Get-ChangelogSection {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Tag
+    )
+
+    $content = Get-Content $Path -Raw
+    $escapedTag = [regex]::Escape($Tag)
+    $match = [regex]::Match($content, "(?ms)^##\s+$escapedTag\s*\r?\n(?<body>.*?)(?=^##\s+|\z)")
+    if (!$match.Success) {
+        throw "Release notes for $Tag were not found in $Path. Add a '## $Tag' section."
+    }
+
+    $body = $match.Groups["body"].Value.Trim()
+    if ([string]::IsNullOrWhiteSpace($body)) {
+        throw "Release notes for $Tag in $Path are empty."
+    }
+
+    return $body
+}
+
 if (!(Test-CommandAvailable "git")) {
     throw "git is required."
 }
@@ -50,6 +77,10 @@ if (!(Test-CommandAvailable "dotnet")) {
 
 if (!$SkipReleaseCreate -and !(Test-CommandAvailable "gh")) {
     throw "GitHub CLI is required for release creation. Install gh or pass -SkipReleaseCreate."
+}
+
+if (!$SkipReleaseCreate -and !(Test-Path $releaseNotesPath)) {
+    throw "Release notes file not found: $releaseNotesPath"
 }
 
 $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
@@ -144,6 +175,10 @@ try {
     }
 
     if (!$SkipReleaseCreate) {
+        $releaseNotesContent = Get-ChangelogSection $releaseNotesPath $tag
+        $generatedReleaseNotesPath = Join-Path $artifactsDir "$modId-$tag-notes.md"
+        Set-Content -Path $generatedReleaseNotesPath -Value $releaseNotesContent -Encoding utf8
+
         $releaseArgs = @(
             "release",
             "create",
@@ -152,7 +187,8 @@ try {
             $hashPath,
             "--title",
             $tag,
-            "--generate-notes"
+            "--notes-file",
+            $generatedReleaseNotesPath
         )
 
         if ($Draft) {
