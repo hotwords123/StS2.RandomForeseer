@@ -26,8 +26,7 @@ function Invoke-Checked {
         [Parameter(Mandatory = $true)]
         [string]$FilePath,
 
-        [Parameter(ValueFromRemainingArguments = $true)]
-        [string[]]$Arguments
+        [string[]]$Arguments = @()
     )
 
     & $FilePath @Arguments
@@ -68,22 +67,22 @@ if ($manifestVersion -ne $Version) {
 
 Push-Location $root
 try {
-    $status = Invoke-Checked git status --porcelain
+    $status = Invoke-Checked git @("status", "--porcelain")
     if ($status) {
         throw "Working tree is not clean. Commit or stash changes before releasing."
     }
 
-    $headCommit = Invoke-Checked git rev-parse HEAD
-    $existingLocalTag = Invoke-Checked git tag --list $tag
+    $headCommit = Invoke-Checked git @("rev-parse", "HEAD")
+    $existingLocalTag = Invoke-Checked git @("tag", "--list", $tag)
     $localTagExists = [bool]$existingLocalTag
     if ($localTagExists) {
-        $localTagCommit = Invoke-Checked git rev-list -n 1 $tag
+        $localTagCommit = Invoke-Checked git @("rev-list", "-n", "1", $tag)
         if ($localTagCommit -ne $headCommit) {
             throw "Local tag $tag already exists but does not point at HEAD."
         }
     }
 
-    $remoteTag = Invoke-Checked git ls-remote --tags origin "refs/tags/$tag"
+    $remoteTag = Invoke-Checked git @("ls-remote", "--tags", "origin", "refs/tags/$tag")
     $remoteTagExists = [bool]$remoteTag
 
     if (Test-Path $artifactsDir) {
@@ -95,11 +94,15 @@ try {
 
     if (!$SkipBuild) {
         $modOutputDir = "$packageDir$([System.IO.Path]::DirectorySeparatorChar)"
-        Invoke-Checked dotnet build $projectPath `
-            -c $Configuration `
-            "/p:ModOutputDir=$modOutputDir" `
-            "/p:CopyModOnBuild=true" `
+        Invoke-Checked dotnet @(
+            "build",
+            $projectPath,
+            "-c",
+            $Configuration,
+            "/p:ModOutputDir=$modOutputDir",
+            "/p:CopyModOnBuild=true",
             "/p:RunPckExport=true"
+        )
     }
 
     $requiredFiles = @(
@@ -120,7 +123,7 @@ try {
         }
     }
 
-    $postBuildStatus = Invoke-Checked git status --porcelain
+    $postBuildStatus = Invoke-Checked git @("status", "--porcelain")
     if ($postBuildStatus) {
         throw "Build changed tracked files. Review and commit those changes, then rerun the release script."
     }
@@ -133,11 +136,11 @@ try {
     "{0}  {1}" -f $hash.Hash.ToLowerInvariant(), (Split-Path $zipPath -Leaf) | Set-Content -Path $hashPath -Encoding ascii
 
     if (!$localTagExists) {
-        Invoke-Checked git tag -a $tag -m "$modId $tag"
+        Invoke-Checked git @("tag", "-a", $tag, "-m", "$modId $tag")
     }
 
     if (!$SkipTagPush -and !$remoteTagExists) {
-        Invoke-Checked git push origin $tag
+        Invoke-Checked git @("push", "origin", $tag)
     }
 
     if (!$SkipReleaseCreate) {
@@ -160,7 +163,7 @@ try {
             $releaseArgs += "--prerelease"
         }
 
-        Invoke-Checked gh @releaseArgs
+        Invoke-Checked gh $releaseArgs
     }
 
     Write-Host "Release package created: $zipPath"
