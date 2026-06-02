@@ -11,7 +11,7 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
 
-internal static class CombatCardPrediction
+internal static class CombatCardGenerationPrediction
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {

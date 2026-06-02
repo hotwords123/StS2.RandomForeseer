@@ -26,6 +26,8 @@
   "toggle.enable_potion_card_prediction.description": "启用后，随机给牌药水的提示会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_combat_card_prediction.label": "预测战斗随机印牌",
   "toggle.enable_combat_card_prediction.description": "启用后，战斗中随机印牌的卡牌提示会显示当前随机数状态将生成的确切卡牌。",
+  "toggle.enable_combat_card_selection_prediction.label": "预测战斗随机选牌",
+  "toggle.enable_combat_card_selection_prediction.description": "启用后，战斗卡牌提示和手牌高亮会显示当前随机数状态将选中的已有卡牌。",
   "toggle.enable_driftwood_reroll_prediction.label": "预测浮木重掷奖励",
   "toggle.enable_driftwood_reroll_prediction.description": "启用后，浮木的卡牌奖励重掷按钮会显示重掷后将出现的确切卡牌。",
   "toggle.enable_out_of_combat_relic_prediction.label": "预测局外遗物结果",

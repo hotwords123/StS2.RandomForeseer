@@ -9,20 +9,36 @@ internal static class CombatCardPredictionHoverTipsPatch
 {
     private static void Postfix(CardModel __instance, ref IEnumerable<IHoverTip> __result)
     {
-        IReadOnlyList<IHoverTip> predictionTips;
+        IReadOnlyList<IHoverTip> generatedCardPredictionTips;
         try
         {
-            predictionTips = CombatCardPrediction.GetHoverTips(__instance);
+            generatedCardPredictionTips = CombatCardGenerationPrediction.GetHoverTips(__instance);
         }
         catch (Exception ex)
         {
-            Entry.Logger.Warn($"Combat card prediction failed for {__instance.Id}: {ex}");
+            Entry.Logger.Warn($"Combat card generation prediction failed for {__instance.Id}: {ex}");
             return;
         }
 
-        if (predictionTips.Count > 0)
+        if (generatedCardPredictionTips.Count > 0)
         {
-            __result = __result.Concat(predictionTips);
+            __result = __result.Concat(generatedCardPredictionTips);
+        }
+
+        IReadOnlyList<IHoverTip> selectionPredictionTips;
+        try
+        {
+            selectionPredictionTips = CombatCardSelectionPrediction.GetHoverTips(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat card selection prediction failed for {__instance.Id}: {ex}");
+            return;
+        }
+
+        if (selectionPredictionTips.Count > 0)
+        {
+            __result = __result.Concat(selectionPredictionTips);
         }
     }
 }
