@@ -135,7 +135,10 @@ internal static class AstrolabeTransformPreviewPatch
             AccessTools.Method(typeof(AstrolabeTransformPreviewPatch), nameof(MakePredictor)));
 
     private static Func<CardModel, CardTransformation>? MakePredictor(Astrolabe source) =>
-        TransformPreviewPredictor.Make(source.Owner.RunState.Rng.Niche, upgradePreview: true);
+        TransformPreviewPredictor.Make(
+            source.Owner.RunState.Rng.Niche,
+            upgradePreview: true,
+            PredictionFairness.UnfairInSingleplayer);
 }
 
 [HarmonyPatch]
@@ -151,7 +154,9 @@ internal static class NewLeafTransformPreviewPatch
             AccessTools.Method(typeof(NewLeafTransformPreviewPatch), nameof(MakePredictor)));
 
     private static Func<CardModel, CardTransformation>? MakePredictor(NewLeaf source) =>
-        TransformPreviewPredictor.Make(source.Owner.RunState.Rng.Niche);
+        TransformPreviewPredictor.Make(
+            source.Owner.RunState.Rng.Niche,
+            fairness: PredictionFairness.UnfairInSingleplayer);
 }
 
 [HarmonyPatch]

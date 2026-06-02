@@ -14,7 +14,7 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
-Each feature can be toggled independently from the mod settings page.
+Each feature can be toggled independently from the mod settings page, and predictions can also be disabled globally for singleplayer or multiplayer. Fair mode is enabled by default and limits predictions to information obtainable through Save & Load.
 
 ## Currently Supported Predictions
 
@@ -88,6 +88,9 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 
 | Setting | Effect |
 |---|---|
+| Enable singleplayer prediction | Controls whether any prediction results are shown in singleplayer, default on |
+| Enable multiplayer prediction | Controls whether any prediction results are shown in multiplayer, default on |
+| Enable fair mode | Limits predictions to information obtainable through Save & Load, default on |
 | Predict transform results | Controls whether transform confirmation previews show predicted cards |
 | Predict potion card results | Controls whether random-card potions show predicted cards |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |

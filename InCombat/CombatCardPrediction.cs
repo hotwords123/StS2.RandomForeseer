@@ -12,7 +12,7 @@ internal static class CombatCardPrediction
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.EnableCombatCardPrediction ||
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardPrediction) ||
             !card.IsMutable ||
             card.Pile?.Type != PileType.Hand ||
             card.Owner.Creature.CombatState == null)

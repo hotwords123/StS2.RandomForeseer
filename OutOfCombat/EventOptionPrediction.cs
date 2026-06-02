@@ -21,12 +21,15 @@ internal static class EventOptionPredictionRegistry
         Providers.Add(provider);
     }
 
-    public static void Register<TEvent>(Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> provider)
+    public static void Register<TEvent>(
+        Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> provider,
+        PredictionFairness fairness = PredictionFairness.Fair)
         where TEvent : EventModel
     {
         Register((eventModel, option) =>
         {
-            if (!RandomForeseerSettings.EnableEventOptionPrediction ||
+            if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEventOptionPrediction) ||
+                !RandomForeseerSettings.IsFairPredictionAllowed(fairness) ||
                 eventModel.Owner == null ||
                 option.IsLocked ||
                 eventModel is not TEvent typedEvent)

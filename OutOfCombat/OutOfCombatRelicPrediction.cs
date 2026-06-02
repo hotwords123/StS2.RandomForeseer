@@ -24,7 +24,7 @@ internal static class OutOfCombatRelicPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, RelicModel relic)
     {
-        if (!RandomForeseerSettings.EnableOutOfCombatRelicPrediction)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOutOfCombatRelicPrediction))
         {
             return [];
         }
@@ -34,46 +34,56 @@ internal static class OutOfCombatRelicPrediction
             return relic switch
             {
                 // Neow
-                ArcaneScroll => PredictionHoverTips.Cards(PredictRareCharacterCards(player, 1)),
+                ArcaneScroll when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictRareCharacterCards(player, 1)),
                 HeftyTablet => PredictionHoverTips.Cards(PredictRareCharacterCards(player, 3)),
                 Kaleidoscope => PredictionHoverTips.CardBundles(PredictKaleidoscopeBundles(player)),
-                LargeCapsule => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, relic.DynamicVars["Relics"].IntValue)),
+                LargeCapsule when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, relic.DynamicVars["Relics"].IntValue)),
                 LeadPaperweight => PredictionHoverTips.Cards(PredictColorlessCards(player, 2)),
-                LeafyPoultice => PredictionHoverTips.Cards(PredictLeafyPoultice(player)),
+                LeafyPoultice when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictLeafyPoultice(player)),
                 LostCoffer => PredictLostCofferTips(player),
                 MassiveScroll => PredictionHoverTips.Cards(PredictMultiplayerCards(player, 3)),
                 NeowsBones => PredictNeowsBonesTips(player, relic),
-                NewLeaf => PredictionHoverTips.Cards(PredictNewLeaf(player)),
+                NewLeaf when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictNewLeaf(player)),
                 PhialHolster => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
                 ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player), isVanillaCardBundle: true),
-                SmallCapsule => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
+                SmallCapsule when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
 
                 // Darv
-                Astrolabe => PredictionHoverTips.CardBundles(PredictAstrolabeBundles(player)),
+                Astrolabe when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.CardBundles(PredictAstrolabeBundles(player)),
                 CallingBell => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, [
                     RelicRarity.Common,
                     RelicRarity.Uncommon,
                     RelicRarity.Rare
                 ])),
-                PandorasBox => PredictionHoverTips.Cards(PredictPandorasBox(player)),
+                PandorasBox when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictPandorasBox(player)),
 
                 // Orobas
-                AlchemicalCoffer => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
+                AlchemicalCoffer when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
                         player,
                         relic.DynamicVars["PotionSlots"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
                 GlassEye => PredictionHoverTips.CardBundles(PredictGlassEyeBundles(player)),
-                SandCastle => PredictionHoverTips.Cards(PredictSandCastle(player, relic.DynamicVars.Cards.IntValue)),
+                SandCastle when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictSandCastle(player, relic.DynamicVars.Cards.IntValue)),
                 SeaGlass seaGlass => PredictionHoverTips.CardBundles(PredictSeaGlassBundles(player, seaGlass)),
 
                 // Tezcatara
                 ToyBox => PredictionHoverTips.Relics(PredictToyBoxRelics(player, relic.DynamicVars["Relics"].IntValue)),
 
                 // Vakuu
-                SereTalon => PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
+                SereTalon when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
 
                 // Non-Ancient relics
                 Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
@@ -257,7 +267,11 @@ internal static class OutOfCombatRelicPrediction
         rewardRng.Shuffle(validRelics);
 
         var tips = PredictionHoverTips.Relics(validRelics.Take(relic.DynamicVars["Relics"].IntValue)).ToList();
-        tips.AddRange(PredictionHoverTips.Cards(PredictNeowsBonesCurses(player, relic.DynamicVars["Curses"].IntValue)));
+        if (IsSingleplayerUnfairPredictionAllowed())
+        {
+            tips.AddRange(PredictionHoverTips.Cards(PredictNeowsBonesCurses(player, relic.DynamicVars["Curses"].IntValue)));
+        }
+
         return tips;
     }
 
@@ -439,5 +453,10 @@ internal static class OutOfCombatRelicPrediction
         {
             Entry.Logger.Warn(message);
         }
+    }
+
+    private static bool IsSingleplayerUnfairPredictionAllowed()
+    {
+        return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInSingleplayer);
     }
 }

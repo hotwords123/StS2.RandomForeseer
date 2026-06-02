@@ -8,9 +8,13 @@ namespace RandomForeseer.OutOfCombat;
 
 internal static class TransformPreviewPredictor
 {
-    public static Func<CardModel, CardTransformation>? Make(Rng realRng, bool upgradePreview = false)
+    public static Func<CardModel, CardTransformation>? Make(
+        Rng realRng,
+        bool upgradePreview = false,
+        PredictionFairness fairness = PredictionFairness.Fair)
     {
-        if (!RandomForeseerSettings.EnableTransformPrediction)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableTransformPrediction) ||
+            !RandomForeseerSettings.IsFairPredictionAllowed(fairness))
         {
             return null;
         }

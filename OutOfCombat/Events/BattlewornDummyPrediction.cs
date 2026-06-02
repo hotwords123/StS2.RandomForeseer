@@ -15,7 +15,9 @@ internal static class BattlewornDummyPrediction
 {
     public static void Register()
     {
-        EventOptionPredictionRegistry.Register<BattlewornDummy>(GetHoverTips);
+        EventOptionPredictionRegistry.Register<BattlewornDummy>(
+            GetHoverTips,
+            PredictionFairness.UnfairInAllModes);
     }
 
     private static IReadOnlyList<IHoverTip> GetHoverTips(BattlewornDummy battlewornDummy, EventOption option)

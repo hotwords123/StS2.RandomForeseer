@@ -24,7 +24,8 @@ internal static class FrozenEyeCardPileScreenPatch
 
     private static void Postfix(NCardPileScreen __instance)
     {
-        if (!RandomForeseerSettings.EnableFrozenEye || __instance.Pile.Type != PileType.Draw)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
+            __instance.Pile.Type != PileType.Draw)
         {
             return;
         }
@@ -37,7 +38,8 @@ internal static class FrozenEyeCardPileScreenPatch
 
     private static bool Prefix(NCardPileScreen __instance)
     {
-        if (!RandomForeseerSettings.EnableFrozenEye || __instance.Pile.Type != PileType.Draw)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
+            __instance.Pile.Type != PileType.Draw)
         {
             return true;
         }
@@ -81,7 +83,7 @@ internal static class FrozenEyeDrawPileHoverTipPatch
 
         HoverTipField.SetValue(
             __instance,
-            RandomForeseerSettings.EnableFrozenEye
+            RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye)
                 ? CreateFrozenEyeDrawPileHoverTip()
                 : CreateVanillaDrawPileHoverTip());
     }

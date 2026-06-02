@@ -19,7 +19,8 @@ internal static class CardRewardRerollPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardReward reward)
     {
-        if (!RandomForeseerSettings.EnableDriftwoodRerollPrediction || !reward.CanReroll)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableDriftwoodRerollPrediction) ||
+            !reward.CanReroll)
         {
             return [];
         }

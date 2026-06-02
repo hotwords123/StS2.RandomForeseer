@@ -48,7 +48,7 @@ internal static class CardRewardRerollButtonHoverTipPatch
 {
     private static void Postfix(IReadOnlyList<CardRewardAlternative> extraOptions, NCardRewardSelectionScreen __instance)
     {
-        if (!RandomForeseerSettings.EnableDriftwoodRerollPrediction)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableDriftwoodRerollPrediction))
         {
             return;
         }

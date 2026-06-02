@@ -11,7 +11,7 @@ internal static class PotionCardPrediction
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(PotionModel potion)
     {
-        if (!RandomForeseerSettings.EnablePotionCardPrediction)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionCardPrediction))
         {
             return [];
         }

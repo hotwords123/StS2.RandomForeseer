@@ -1,4 +1,6 @@
 using System.Reflection;
+using MegaCrit.Sts2.Core.Multiplayer.Game;
+using MegaCrit.Sts2.Core.Runs;
 using STS2RitsuLib;
 using STS2RitsuLib.Settings;
 using STS2RitsuLib.Utils;
@@ -8,6 +10,12 @@ namespace RandomForeseer;
 
 internal sealed class RandomForeseerSettingsData
 {
+    public bool EnableSingleplayerPrediction { get; set; } = true;
+
+    public bool EnableMultiplayerPrediction { get; set; } = true;
+
+    public bool EnableFairMode { get; set; } = true;
+
     public bool EnableTransformPrediction { get; set; } = true;
 
     public bool EnablePotionCardPrediction { get; set; } = true;
@@ -30,6 +38,9 @@ internal sealed class RandomForeseerSettingsData
 internal static class RandomForeseerSettings
 {
     private const string DataKey = "settings";
+    private const string EnableSingleplayerPredictionKey = "enable_singleplayer_prediction";
+    private const string EnableMultiplayerPredictionKey = "enable_multiplayer_prediction";
+    private const string EnableFairModeKey = "enable_fair_mode";
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
@@ -48,6 +59,27 @@ internal static class RandomForeseerSettings
             "settings",
             pckFolders: [$"{Entry.ResPath}/localization/settings"],
             resourceAssembly: Assembly.GetExecutingAssembly());
+
+    private static readonly IModSettingsValueBinding<bool> EnableSingleplayerPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableSingleplayerPrediction,
+            (settings, value) => settings.EnableSingleplayerPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableMultiplayerPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableMultiplayerPrediction,
+            (settings, value) => settings.EnableMultiplayerPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableFairModeBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableFairMode,
+            (settings, value) => settings.EnableFairMode = value);
 
     private static readonly IModSettingsValueBinding<bool> EnableTransformPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
@@ -112,6 +144,12 @@ internal static class RandomForeseerSettings
             settings => settings.EnableAncientEventDebugReroll,
             (settings, value) => settings.EnableAncientEventDebugReroll = value);
 
+    public static bool EnableSingleplayerPrediction => EnableSingleplayerPredictionBinding.Read();
+
+    public static bool EnableMultiplayerPrediction => EnableMultiplayerPredictionBinding.Read();
+
+    public static bool EnableFairMode => EnableFairModeBinding.Read();
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
@@ -130,6 +168,37 @@ internal static class RandomForeseerSettings
 
     public static bool EnableAncientEventDebugReroll => EnableAncientEventDebugRerollBinding.Read();
 
+    public static bool IsPredictionFeatureEnabled(bool featureEnabled)
+    {
+        if (!featureEnabled)
+        {
+            return false;
+        }
+
+        return GetCurrentNetGameType() switch
+        {
+            NetGameType.Singleplayer => EnableSingleplayerPrediction,
+            NetGameType.Host or NetGameType.Client => EnableMultiplayerPrediction,
+            _ => true
+        };
+    }
+
+    public static bool IsFairPredictionAllowed(PredictionFairness fairness)
+    {
+        if (!EnableFairMode)
+        {
+            return true;
+        }
+
+        return fairness switch
+        {
+            PredictionFairness.Fair => true,
+            PredictionFairness.UnfairInSingleplayer => GetCurrentNetGameType() != NetGameType.Singleplayer,
+            PredictionFairness.UnfairInAllModes => false,
+            _ => true
+        };
+    }
+
     public static void Register()
     {
         RegisterData();
@@ -142,6 +211,41 @@ internal static class RandomForeseerSettings
             page.WithDescription(Text(
                 "page.description",
                 "Configure prediction features for random outcomes. Some settings may require Save & Load to take effect."));
+
+            page.AddSection("general_prediction", section =>
+            {
+                section.WithTitle(Text("section.general_prediction.title", "General settings"));
+                section.WithDescription(Text(
+                    "section.general_prediction.description",
+                    "Controls prediction availability across game modes."));
+
+                section.AddToggle(
+                    EnableSingleplayerPredictionKey,
+                    Text("toggle.enable_singleplayer_prediction.label", "Enable singleplayer prediction"),
+                    EnableSingleplayerPredictionBinding,
+                    Text(
+                        "toggle.enable_singleplayer_prediction.description",
+                        "When disabled, prediction features do not take effect in singleplayer even if their individual settings are enabled."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableMultiplayerPredictionKey,
+                    Text("toggle.enable_multiplayer_prediction.label", "Enable multiplayer prediction"),
+                    EnableMultiplayerPredictionBinding,
+                    Text(
+                        "toggle.enable_multiplayer_prediction.description",
+                        "When disabled, prediction features do not take effect in multiplayer even if their individual settings are enabled."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableFairModeKey,
+                    Text("toggle.enable_fair_mode.label", "Enable fair mode"),
+                    EnableFairModeBinding,
+                    Text(
+                        "toggle.enable_fair_mode.description",
+                        "When enabled, prediction is limited to information that can be obtained through Save & Load."),
+                    () => true);
+            });
 
             page.AddSection("out_of_combat_prediction", section =>
             {
@@ -310,4 +414,18 @@ internal static class RandomForeseerSettings
     {
         return ModSettingsText.I18N(SettingsLocalization, key, fallback);
     }
+
+    private static NetGameType GetCurrentNetGameType()
+    {
+        return RunManager.Instance.IsInProgress
+            ? RunManager.Instance.NetService.Type
+            : NetGameType.None;
+    }
+}
+
+internal enum PredictionFairness
+{
+    Fair,
+    UnfairInSingleplayer,
+    UnfairInAllModes
 }
