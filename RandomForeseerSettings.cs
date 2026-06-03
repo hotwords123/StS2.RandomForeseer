@@ -447,6 +447,18 @@ internal static class RandomForeseerSettings
                     Text(
                         "button.offer_predicted_non_ancient_relics.description",
                         "Only works during a run. Opens a reward screen with the non-Ancient relics covered by pickup prediction. This can change game content."));
+
+                section.AddButton(
+                    "open_predicted_treasure_room",
+                    Text("button.open_predicted_treasure_room.label", "Open predicted treasure room"),
+                    Text(
+                        "button.open_predicted_treasure_room.text",
+                        "Open"),
+                    Debug.OutOfCombatRelicDebugRewards.OpenPredictedTreasureRoom,
+                    ModSettingsButtonTone.Danger,
+                    Text(
+                        "button.open_predicted_treasure_room.description",
+                        "Only works during a run. Opens a treasure room whose relic target is randomly chosen from War Paint and Whetstone. This can change game content."));
             });
         }, "debug");
     }

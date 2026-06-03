@@ -45,6 +45,9 @@
   "button.offer_predicted_non_ancient_relics.label": "Offer predicted non-Ancient relics",
   "button.offer_predicted_non_ancient_relics.text": "Offer",
   "button.offer_predicted_non_ancient_relics.description": "Only works during a run. Opens a reward screen containing the non-Ancient relics covered by pickup prediction.",
+  "button.open_predicted_treasure_room.label": "Open predicted treasure room",
+  "button.open_predicted_treasure_room.text": "Open",
+  "button.open_predicted_treasure_room.description": "Only works during a run. Opens a treasure room whose relic target is randomly chosen from War Paint and Whetstone.",
   "toggle.enable_frozen_eye.label": "Enable Frozen Eye",
   "toggle.enable_frozen_eye.description": "When enabled, the combat draw pile view shows cards in draw order."
 }
