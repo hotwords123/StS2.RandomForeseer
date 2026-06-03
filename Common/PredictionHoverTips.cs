@@ -24,9 +24,12 @@ internal static class PredictionHoverTips
                 : bundle.Reverse().ToList()))
             .ToList();
 
-        return bundleList.Count == 0
-            ? []
-            : [(IHoverTip)new PredictionCardBundleHoverTip(bundleList)];
+        return bundleList.Count switch
+        {
+            0 => [],
+            1 => Cards(bundleList[0]),
+            _ => [(IHoverTip)new PredictionCardBundleHoverTip(bundleList)]
+        };
     }
 
     // Relics passed here must already be mutable previews; event options and predicted relic rewards
