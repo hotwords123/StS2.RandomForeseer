@@ -26,6 +26,7 @@ internal static class PredictionCardHoverTipLayoutPatches
     private const float BundleCardScale = 1f;
     private const float BundleCardSeparation = 45f;
     private static readonly ConditionalWeakTable<NHoverTipCardContainer, SourceRect> SourceRects = [];
+    private static readonly ConditionalWeakTable<NHoverTipCardContainer, VerticalFallbackBox> VerticalFallbacks = [];
 
     [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
     [HarmonyPrefix]
@@ -106,14 +107,12 @@ internal static class PredictionCardHoverTipLayoutPatches
             return false;
         }
 
-        // Large in-hand prediction sets are more readable above the source card than heavily shrunk on the side.
+        // Large prediction sets are more readable near the source than heavily shrunk on the side.
         var layout = GetBestWrappedLayout(tips, availableWidth);
         var scaledSize = ApplyWrappedLayout(tips, layout.Scale, layout.Rows);
         __instance.Size = scaledSize;
-        __instance.GlobalPosition = GetTopPosition(
-            sourceRect.Rect,
-            scaledSize,
-            viewportSize);
+        __instance.GlobalPosition = GetVerticalFallbackPosition(sourceRect.Rect, scaledSize, viewportSize);
+        MarkVerticalFallback(__instance, sourceRect.Rect);
 
         return false;
     }
@@ -343,17 +342,24 @@ internal static class PredictionCardHoverTipLayoutPatches
         };
     }
 
-    private static Vector2 GetTopPosition(
+    private static Vector2 GetVerticalFallbackPosition(
         Rect2 sourceRect,
         Vector2 size,
         Vector2 viewportSize)
     {
         var anchorX = sourceRect.Position.X + sourceRect.Size.X / 2f;
-        var topY = sourceRect.Position.Y - size.Y - TopGap;
+        var x = anchorX - size.X / 2f;
 
-        return new Vector2(
-            Clamp(anchorX - size.X / 2f, ViewportMargin, viewportSize.X - ViewportMargin - size.X),
-            Clamp(topY, ViewportMargin, viewportSize.Y - ViewportMargin - size.Y));
+        // Top fallback: center above the source when there is enough vertical room.
+        var topY = sourceRect.Position.Y - size.Y - TopGap;
+        if (topY >= ViewportMargin)
+        {
+            return ClampToViewport(new Vector2(x, topY), size, viewportSize);
+        }
+
+        // Bottom fallback: keep the same horizontal anchor, but place below the source.
+        var bottomY = sourceRect.End.Y + TopGap;
+        return ClampToViewport(new Vector2(x, bottomY), size, viewportSize);
     }
 
     private static Vector2 ClampToViewport(Vector2 position, Vector2 size, Vector2 viewportSize)
@@ -378,9 +384,63 @@ internal static class PredictionCardHoverTipLayoutPatches
             : Mathf.Clamp(value, min, max);
     }
 
+    private static void MarkVerticalFallback(NHoverTipCardContainer container, Rect2 sourceRect)
+    {
+        VerticalFallbacks.Remove(container);
+        VerticalFallbacks.Add(container, new VerticalFallbackBox(sourceRect));
+    }
+
+    public static void ResolveVerticalFallbackTextOverlap(NHoverTipSet tipSet)
+    {
+        var cardContainer = tipSet._cardHoverTipContainer;
+        if (!VerticalFallbacks.TryGetValue(cardContainer, out var fallback))
+        {
+            return;
+        }
+
+        VerticalFallbacks.Remove(cardContainer);
+
+        var textContainer = tipSet._textHoverTipContainer;
+        if (!textContainer.GetChildren().OfType<Control>().Any())
+        {
+            return;
+        }
+
+        var cardRect = cardContainer.GetGlobalRect();
+        var textRect = textContainer.GetGlobalRect();
+        if (!cardRect.Intersects(textRect))
+        {
+            return;
+        }
+
+        var game = NGame.Instance;
+        if (game == null)
+        {
+            return;
+        }
+
+        var viewportSize = game.GetViewportRect().Size;
+        var aboveY = textRect.Position.Y - cardRect.Size.Y - TopGap;
+        var belowY = textRect.End.Y + TopGap;
+        var sourceCenterY = fallback.SourceRect.Position.Y + fallback.SourceRect.Size.Y / 2f;
+        var y = sourceCenterY < textRect.Position.Y && aboveY >= ViewportMargin
+            ? aboveY
+            : belowY;
+
+        cardContainer.GlobalPosition = ClampToViewport(
+            new Vector2(cardContainer.GlobalPosition.X, y),
+            cardRect.Size,
+            viewportSize);
+    }
+
     private sealed class SourceRect(Rect2 rect)
     {
         public Rect2 Rect { get; } = rect;
+    }
+
+    private sealed class VerticalFallbackBox(Rect2 sourceRect)
+    {
+        public Rect2 SourceRect { get; } = sourceRect;
     }
 
     private readonly record struct WrappedLayout(int Rows, float Scale);
@@ -410,6 +470,11 @@ internal static class PredictionCardHoverTipSourceRectPatch
         // placement can center above the card instead of guessing from the left/right edge.
         PredictionCardHoverTipLayoutPatches.RecordSourceRect(container, holder.Hitbox.GetGlobalRect());
     }
+
+    private static void Postfix(NHoverTipSet __instance)
+    {
+        PredictionCardHoverTipLayoutPatches.ResolveVerticalFallbackTextOverlap(__instance);
+    }
 }
 
 [HarmonyPatch(typeof(NHoverTipSet), nameof(NHoverTipSet.SetAlignment))]
@@ -433,5 +498,10 @@ internal static class PredictionCardHoverTipControlSourceRectPatch
         }
 
         PredictionCardHoverTipLayoutPatches.RecordSourceRect(container, node.GetGlobalRect());
+    }
+
+    private static void Postfix(NHoverTipSet __instance)
+    {
+        PredictionCardHoverTipLayoutPatches.ResolveVerticalFallbackTextOverlap(__instance);
     }
 }
