@@ -14,7 +14,7 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
-- **Shovel dig relic prediction**: shows the relic that Shovel's rest-site Dig option will obtain when hovered.
+- **Rest-site result prediction**: shows random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel when hovering rest-site options.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened.
 
@@ -84,7 +84,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Upon-pickup results for Cauldron, Orrery, Fragrant Mushroom, War Paint, Whetstone, and similar relics
 - Immediate random results from relic rewards
 - Immediate random results from merchant relics
-- Relics that Shovel's rest-site Dig option will obtain
+- Card rewards from Dream Catcher, potions from Tiny Mailbox, and relics that Shovel's rest-site Dig option will obtain
 
 ## Installation
 
@@ -116,7 +116,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Show selection prediction warnings | Controls whether side-effect-sensitive selection predictions show a warning, default on |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict out-of-combat relic results | Controls whether Ancient relic options, relic rewards, and merchant relics show immediate random results |
-| Predict Shovel dig relics | Controls whether Shovel's rest-site Dig option shows the relic it will obtain |
+| Predict rest-site results | Controls whether rest-site options show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel |
 | Predict event option results | Controls whether non-Ancient event options show immediate random results |
 | Slippery Bridge reroll previews | Controls how many future Hold On rerolls are previewed for Slippery Bridge, default 5 |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
