@@ -81,7 +81,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 ### Out-of-Combat Relics
 
 - Immediate random results from Neow and other Ancient relic options
-- Upon-pickup results for Astrolabe, Alchemical Coffer, Calling Bell, Glass Eye, Pandora's Box, Sand Castle, Scroll Boxes, Sea Glass, Sere Talon, Toy Box, Cauldron, Orrery, Fragrant Mushroom, War Paint, Whetstone, and similar relics
+- Upon-pickup results for Cauldron, Orrery, Fragrant Mushroom, War Paint, Whetstone, and similar relics
 - Immediate random results from relic rewards
 - Immediate random results from merchant relics
 - Relics that Shovel's rest-site Dig option will obtain
