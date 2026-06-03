@@ -30,6 +30,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableOutOfCombatRelicPrediction { get; set; } = true;
 
+    public bool EnableRestSiteDigPrediction { get; set; } = true;
+
     public bool EnableEventOptionPrediction { get; set; } = true;
 
     public int SlipperyBridgeRerollPreviewCount { get; set; } = 5;
@@ -52,6 +54,7 @@ internal static class RandomForeseerSettings
     private const string EnableCombatCardSelectionDriftWarningsKey = "enable_combat_card_selection_drift_warnings";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
     private const string EnableOutOfCombatRelicPredictionKey = "enable_out_of_combat_relic_prediction";
+    private const string EnableRestSiteDigPredictionKey = "enable_rest_site_dig_prediction";
     private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
     private const string SlipperyBridgeRerollPreviewCountKey = "slippery_bridge_reroll_preview_count";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
@@ -143,6 +146,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableOutOfCombatRelicPrediction,
             (settings, value) => settings.EnableOutOfCombatRelicPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableRestSiteDigPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableRestSiteDigPrediction,
+            (settings, value) => settings.EnableRestSiteDigPrediction = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableEventOptionPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -183,6 +193,8 @@ internal static class RandomForeseerSettings
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
     public static bool EnableOutOfCombatRelicPrediction => EnableOutOfCombatRelicPredictionBinding.Read();
+
+    public static bool EnableRestSiteDigPrediction => EnableRestSiteDigPredictionBinding.Read();
 
     public static bool EnableEventOptionPrediction => EnableEventOptionPredictionBinding.Read();
 
@@ -303,6 +315,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_out_of_combat_relic_prediction.description",
                         "When enabled, out-of-combat relic tooltips show immediate random results such as cards, relics, potions, curses, and transforms."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableRestSiteDigPredictionKey,
+                    Text("toggle.enable_rest_site_dig_prediction.label", "Predict Shovel dig relics"),
+                    EnableRestSiteDigPredictionBinding,
+                    Text(
+                        "toggle.enable_rest_site_dig_prediction.description",
+                        "When enabled, hovering Shovel's Dig option at a rest site shows the relic that will be dug up."),
                     () => true);
 
                 section.AddToggle(

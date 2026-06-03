@@ -34,6 +34,8 @@
   "toggle.enable_driftwood_reroll_prediction.description": "启用后，浮木的卡牌奖励重掷按钮会显示重掷后将出现的确切卡牌。",
   "toggle.enable_out_of_combat_relic_prediction.label": "预测局外遗物结果",
   "toggle.enable_out_of_combat_relic_prediction.description": "启用后，局外遗物提示会显示获得后立即发生的随机卡牌、遗物、药水、诅咒和变牌结果。",
+  "toggle.enable_rest_site_dig_prediction.label": "预测铲子挖掘遗物",
+  "toggle.enable_rest_site_dig_prediction.description": "启用后，在休息处悬停铲子的挖掘选项时会显示将挖出的遗物。",
   "toggle.enable_event_option_prediction.label": "预测事件选项结果",
   "toggle.enable_event_option_prediction.description": "启用后，非先古之民事件选项提示会显示即时随机奖励、升级和后续选项结果。",
   "slider.slippery_bridge_reroll_preview_count.label": "滑脚木桥重掷预览次数",
