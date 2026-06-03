@@ -12,6 +12,8 @@ using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Random;
+using MegaCrit.Sts2.Core.Rewards;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
 using RandomForeseer.Common;
@@ -54,6 +56,8 @@ internal static class OutOfCombatRelicPrediction
                         relic.DynamicVars["Potions"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
                 ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player), isVanillaCardBundle: true),
+                SilkenTress silkenTress when IsAllModesUnfairPredictionAllowed() =>
+                    PredictSilkenTressRewardTips(player, silkenTress),
                 SmallCapsule when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
 
@@ -301,6 +305,40 @@ internal static class OutOfCombatRelicPrediction
         return curses;
     }
 
+    private static IReadOnlyList<IHoverTip> PredictSilkenTressRewardTips(Player player, SilkenTress relic)
+    {
+        var previewRelic = (SilkenTress)relic.MutableClone();
+        previewRelic.Owner = player;
+
+        var options = CardCreationOptions
+            .ForRoom(player, RoomType.Monster)
+            .WithFlags(CardCreationFlags.IsCardReward);
+        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
+        FastForwardBeforeFirstMonsterCardReward(player, rewardRng);
+        var cards = OutOfCombatPredictionUtils.PredictCards(
+            player,
+            3,
+            options,
+            rewardRng,
+            PredictionUtils.CloneRng(player.RunState.Rng.Niche),
+            extraResultModifiers: [previewRelic]);
+
+        return PredictionHoverTips.Cards(cards);
+    }
+
+    private static void FastForwardBeforeFirstMonsterCardReward(Player player, Rng rewardRng)
+    {
+        var forcePotionReward = Hook.ShouldForcePotionReward(player.RunState, player, RoomType.Monster);
+        var potionRewardRoll = rewardRng.NextFloat();
+        var shouldAddPotionReward = forcePotionReward || potionRewardRoll < player.PlayerOdds.PotionReward.CurrentValue;
+
+        rewardRng.NextInt(GoldReward.defaultMinGoldAmount, GoldReward.defaultMaxGoldAmount + 1);
+        if (shouldAddPotionReward)
+        {
+            PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
+        }
+    }
+
     private static IReadOnlyList<CardModel> PredictNewLeaf(Player player)
     {
         return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(player, player.RunState.Rng.Niche);
@@ -459,5 +497,10 @@ internal static class OutOfCombatRelicPrediction
     private static bool IsSingleplayerUnfairPredictionAllowed()
     {
         return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInSingleplayer);
+    }
+
+    private static bool IsAllModesUnfairPredictionAllowed()
+    {
+        return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInAllModes);
     }
 }

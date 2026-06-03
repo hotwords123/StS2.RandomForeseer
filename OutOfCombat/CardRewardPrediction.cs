@@ -26,16 +26,18 @@ internal static class CardRewardPrediction
         CardCreationOptions options,
         Rng rewardRng,
         Rng nicheRng,
-        Action? afterGenerated = null)
+        Action? afterGenerated = null,
+        IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
         var rarityOdds = new CardRarityOdds(player.PlayerOdds.CardRarity.CurrentValue, rewardRng);
         options = CloneOptions(options);
+        var resultModifiers = extraResultModifiers?.ToList() ?? [];
 
         var results = CreateBaseRewards(player, cardCount, options, rewardRng, rarityOdds).ToList();
-        ApplyEarlyKnownModifiers(player, results, options, rewardRng, rarityOdds);
-        WarnAboutUnsupportedModifiers(player, early: true);
-        ApplyLateKnownModifiers(player, results, options, nicheRng);
-        WarnAboutUnsupportedModifiers(player, early: false);
+        ApplyEarlyKnownModifiers(player, results, options, rewardRng, rarityOdds, resultModifiers);
+        WarnAboutUnsupportedModifiers(player, early: true, resultModifiers);
+        ApplyLateKnownModifiers(player, results, options, nicheRng, resultModifiers);
+        WarnAboutUnsupportedModifiers(player, early: false, resultModifiers);
         ApplyKnownAfterGeneratedModifiers(afterGenerated, results);
 
         return results.Select(result => result.Card).ToList();
@@ -187,9 +189,10 @@ internal static class CardRewardPrediction
         List<CardCreationResult> results,
         CardCreationOptions options,
         Rng rewardRng,
-        CardRarityOdds rarityOdds)
+        CardRarityOdds rarityOdds,
+        IReadOnlyList<AbstractModel> extraResultModifiers)
     {
-        foreach (var modifier in player.RunState.IterateHookListeners(null))
+        foreach (var modifier in IterateResultModifiers(player, extraResultModifiers))
         {
             if (modifier is LastingCandy lastingCandy)
             {
@@ -202,9 +205,10 @@ internal static class CardRewardPrediction
         Player player,
         List<CardCreationResult> results,
         CardCreationOptions options,
-        Rng nicheRng)
+        Rng nicheRng,
+        IReadOnlyList<AbstractModel> extraResultModifiers)
     {
-        foreach (var modifier in player.RunState.IterateHookListeners(null))
+        foreach (var modifier in IterateResultModifiers(player, extraResultModifiers))
         {
             switch (modifier)
             {
@@ -466,7 +470,17 @@ internal static class CardRewardPrediction
             : cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.MultiplayerOnly);
     }
 
-    private static void WarnAboutUnsupportedModifiers(Player player, bool early)
+    private static IEnumerable<AbstractModel> IterateResultModifiers(
+        Player player,
+        IReadOnlyList<AbstractModel> extraResultModifiers)
+    {
+        return player.RunState.IterateHookListeners(null).Concat(extraResultModifiers);
+    }
+
+    private static void WarnAboutUnsupportedModifiers(
+        Player player,
+        bool early,
+        IReadOnlyList<AbstractModel> extraResultModifiers)
     {
         var methodName = early
             ? nameof(AbstractModel.TryModifyCardRewardOptions)
@@ -478,7 +492,7 @@ internal static class CardRewardPrediction
             typeof(CardCreationOptions)
         };
 
-        foreach (var modifier in player.RunState.IterateHookListeners(null))
+        foreach (var modifier in IterateResultModifiers(player, extraResultModifiers))
         {
             var type = modifier.GetType();
             if (IsKnownRewardOptionModifier(modifier) ||

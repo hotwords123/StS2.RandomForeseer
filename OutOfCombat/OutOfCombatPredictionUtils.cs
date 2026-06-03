@@ -34,9 +34,17 @@ internal static class OutOfCombatPredictionUtils
         CardCreationOptions options,
         Rng rewardRng,
         Rng nicheRng,
-        Action? afterGenerated = null)
+        Action? afterGenerated = null,
+        IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
-        return CardRewardPrediction.PredictCards(player, count, options, rewardRng, nicheRng, afterGenerated);
+        return CardRewardPrediction.PredictCards(
+            player,
+            count,
+            options,
+            rewardRng,
+            nicheRng,
+            afterGenerated,
+            extraResultModifiers);
     }
 
     public static IReadOnlyList<CardModel> PredictDistinctDeckTransformResults(
