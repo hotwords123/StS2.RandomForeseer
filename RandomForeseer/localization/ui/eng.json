@@ -2,5 +2,11 @@
   "card_selection_drift_warning.title": "Notice",
   "card_selection_drift_warning.description": "This card's effect may change the target pile or advance RNG, so this prediction may not be accurate.\nYou can turn off this notice in settings.",
   "frozen_eye.draw_pile_info_order": "[gold](Cards shown are in draw order)[/gold]",
-  "frozen_eye.draw_pile_hover_view": "Click to view the cards in your draw pile (in draw order)."
+  "frozen_eye.draw_pile_hover_view": "Click to view the cards in your draw pile (in draw order).",
+  "transform_bundle_explanation.title": "Prediction",
+  "transform_bundle_explanation.description": "Each pack follows the order cards are chosen, showing all possible results when a deck card is transformed in that position.",
+  "transform_selection_selected.title": "Prediction",
+  "transform_selection_selected.description": "This card will transform into [gold]{TransformedCard}[/gold].",
+  "transform_selection_unselected.title": "Prediction",
+  "transform_selection_unselected.description": "If you choose this card now, it will transform into [gold]{TransformedCard}[/gold]."
 }

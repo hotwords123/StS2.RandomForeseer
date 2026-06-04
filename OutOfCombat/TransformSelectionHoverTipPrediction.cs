@@ -22,9 +22,21 @@ internal static class TransformSelectionHoverTipPrediction
         }
 
         var replacement = PredictReplacement(screen, hoveredCard);
-        return replacement == null
-            ? []
-            : PredictionHoverTips.Cards([replacement]);
+        if (replacement == null)
+        {
+            return [];
+        }
+
+        var tipKey = screen._selectedCards.Contains(hoveredCard)
+            ? "transform_selection_selected"
+            : "transform_selection_unselected";
+        var textTips = PredictionHoverTips.Text(
+            tipKey,
+            description => description.Add("TransformedCard", replacement.Title));
+
+        return textTips
+            .Concat(PredictionHoverTips.Cards([replacement]))
+            .ToList();
     }
 
     private static CardModel? PredictReplacement(NDeckTransformSelectScreen screen, CardModel hoveredCard)

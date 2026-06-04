@@ -16,7 +16,7 @@ internal static class MorphicGrovePrediction
     private static IReadOnlyList<IHoverTip> GetHoverTips(MorphicGrove morphicGrove, EventOption option)
     {
         return option.TextKey == "MORPHIC_GROVE.pages.INITIAL.options.GROUP"
-            ? PredictionHoverTips.CardBundles(PredictGroup(morphicGrove))
+            ? PredictionHoverTips.CardBundles(PredictGroup(morphicGrove), isTransform: true)
             : [];
     }
 

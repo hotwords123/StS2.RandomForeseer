@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 
 namespace RandomForeseer.Common;
@@ -15,7 +16,8 @@ internal static class PredictionHoverTips
 
     public static IReadOnlyList<IHoverTip> CardBundles(
         IEnumerable<IReadOnlyList<CardModel>> bundles,
-        bool isVanillaCardBundle = false)
+        bool isVanillaCardBundle = false,
+        bool isTransform = false)
     {
         var bundleList = bundles
             .Where(bundle => bundle.Count > 0)
@@ -24,12 +26,32 @@ internal static class PredictionHoverTips
                 : bundle.Reverse().ToList()))
             .ToList();
 
-        return bundleList.Count switch
+        var tips = bundleList.Count switch
         {
             0 => [],
             1 => Cards(bundleList[0]),
             _ => [(IHoverTip)new PredictionCardBundleHoverTip(bundleList)]
         };
+
+        return isTransform && bundleList.Count > 1
+            ? Text("transform_bundle_explanation").Concat(tips).ToList()
+            : tips;
+    }
+
+    public static IReadOnlyList<IHoverTip> Text(
+        string keyPrefix,
+        Action<LocString>? configureDescription = null)
+    {
+        var title = PredictionLocalization.Text($"{keyPrefix}.title");
+        var description = PredictionLocalization.Text($"{keyPrefix}.description");
+        configureDescription?.Invoke(description);
+
+        var tip = new HoverTip(title, description)
+        {
+            Id = $"{PredictionTextHoverTipIdPrefix}:{keyPrefix}",
+            IsInstanced = true
+        };
+        return [tip];
     }
 
     // Relics passed here must already be mutable previews; event options and predicted relic rewards

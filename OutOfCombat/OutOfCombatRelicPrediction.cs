@@ -63,7 +63,7 @@ internal static class OutOfCombatRelicPrediction
 
                 // Darv
                 Astrolabe when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.CardBundles(PredictAstrolabeBundles(player)),
+                    PredictionHoverTips.CardBundles(PredictAstrolabeBundles(player), isTransform: true),
                 CallingBell => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, [
                     RelicRarity.Common,
                     RelicRarity.Uncommon,
