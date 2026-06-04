@@ -155,9 +155,16 @@ A full build deploys the DLL, manifest, and PCK to `$(Sts2Dir)/mods/RandomForese
 ## Project Layout
 
 ```text
-RandomForeseerCode/                 C# source
-RandomForeseer/localization/        Settings localization
+Common/                             Shared prediction HoverTip, RNG, and localization utilities
+InCombat/                           In-combat card, potion, and Frozen Eye predictions
+OutOfCombat/                        Out-of-combat event, reward, merchant, rest-site, and transform predictions
+OutOfCombat/Events/                 Non-Ancient event option predictions
+Debug/                              Debug entry points and test reward screens
+RandomForeseer/localization/        Mod settings and UI localization resources
+Entry.cs                            Mod entry point and Harmony patch registration
+RandomForeseerSettings.cs           Setting definitions, persistence, and feature gates
 RandomForeseer.csproj               C# project and build configuration
 RandomForeseer.json                 Mod manifest
 project.godot                       Godot project used for PCK export
+scripts/release.ps1                 Local build, packaging, and release script
 ```
