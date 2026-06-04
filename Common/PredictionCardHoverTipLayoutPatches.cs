@@ -95,8 +95,13 @@ internal static class PredictionCardHoverTipLayoutPatches
             return false;
         }
 
-        if (!SourceRects.TryGetValue(__instance, out var sourceRect))
+        // Vanilla positions card tips here, then NHoverTipSet.SetAlignment*/CorrectHorizontalOverflow decides
+        // whether card and text tips should stay on opposite sides or move to the same side. Keep this prefix
+        // limited to prediction-card sizing/wrapping so the vanilla horizontal fallback still gets the first try.
+        if (!SourceRects.TryGetValue(__instance, out _))
         {
+            // Without a source rect we cannot place a vertical fallback around the hovered object reliably, so keep
+            // the old conservative behavior: fit the prediction cards to the side and clamp them into the viewport.
             var sideLayout = GetBestWrappedLayout(tips, availableWidth);
             var scaledSideSize = ApplyWrappedLayout(tips, sideLayout.Scale, sideLayout.Rows);
             __instance.Size = scaledSideSize;
@@ -107,12 +112,12 @@ internal static class PredictionCardHoverTipLayoutPatches
             return false;
         }
 
-        // Large prediction sets are more readable near the source than heavily shrunk on the side.
         var layout = GetBestWrappedLayout(tips, availableWidth);
         var scaledSize = ApplyWrappedLayout(tips, layout.Scale, layout.Rows);
         __instance.Size = scaledSize;
-        __instance.GlobalPosition = GetVerticalFallbackPosition(sourceRect.Rect, scaledSize, viewportSize);
-        MarkVerticalFallback(__instance, sourceRect.Rect);
+        // Do not choose the mod's top/bottom fallback yet. The NHoverTipSet postfix below runs after vanilla's
+        // CorrectHorizontalOverflow, so vertical fallback is reserved for cases vanilla still cannot keep visible.
+        __instance.GlobalPosition = GetSidePosition(globalStartLocation, alignment, scaledSize);
 
         return false;
     }
@@ -390,6 +395,51 @@ internal static class PredictionCardHoverTipLayoutPatches
         VerticalFallbacks.Add(container, new VerticalFallbackBox(sourceRect));
     }
 
+    public static void ApplyVerticalFallbackIfStillOverflowing(NHoverTipSet tipSet)
+    {
+        var cardContainer = tipSet._cardHoverTipContainer;
+        if (!SourceRects.TryGetValue(cardContainer, out var sourceRect))
+        {
+            return;
+        }
+
+        var hasPredictionCard = cardContainer
+            .GetChildren()
+            .OfType<Control>()
+            .Any(tip => tip.HasMeta(PredictionCardMetaKey));
+        if (!hasPredictionCard)
+        {
+            return;
+        }
+
+        var game = NGame.Instance;
+        if (game == null)
+        {
+            return;
+        }
+
+        var viewportSize = game.GetViewportRect().Size;
+        var cardRect = cardContainer.GetGlobalRect();
+        var textContainer = tipSet._textHoverTipContainer;
+        var hasTextTips = textContainer.GetChildren().OfType<Control>().Any();
+        var combinedRect = hasTextTips
+            ? cardRect.Merge(textContainer.GetGlobalRect())
+            : cardRect;
+
+        // This is called from SetAlignment*/SetAlignmentForCardHolder postfixes, after vanilla has already run
+        // CorrectVerticalOverflow and CorrectHorizontalOverflow. At this point a viewport overflow means both the
+        // normal opposite-side placement and vanilla's same-side horizontal fallback were insufficient.
+        if (FitsWithinViewport(cardRect.Position, cardRect.Size, viewportSize) &&
+            FitsWithinViewport(combinedRect.Position, combinedRect.Size, viewportSize))
+        {
+            return;
+        }
+
+        cardContainer.GlobalPosition = GetVerticalFallbackPosition(sourceRect.Rect, cardRect.Size, viewportSize);
+        MarkVerticalFallback(cardContainer, sourceRect.Rect);
+        ResolveVerticalFallbackTextOverlap(tipSet);
+    }
+
     public static void ResolveVerticalFallbackTextOverlap(NHoverTipSet tipSet)
     {
         var cardContainer = tipSet._cardHoverTipContainer;
@@ -473,7 +523,7 @@ internal static class PredictionCardHoverTipSourceRectPatch
 
     private static void Postfix(NHoverTipSet __instance)
     {
-        PredictionCardHoverTipLayoutPatches.ResolveVerticalFallbackTextOverlap(__instance);
+        PredictionCardHoverTipLayoutPatches.ApplyVerticalFallbackIfStillOverflowing(__instance);
     }
 }
 
@@ -502,6 +552,6 @@ internal static class PredictionCardHoverTipControlSourceRectPatch
 
     private static void Postfix(NHoverTipSet __instance)
     {
-        PredictionCardHoverTipLayoutPatches.ResolveVerticalFallbackTextOverlap(__instance);
+        PredictionCardHoverTipLayoutPatches.ApplyVerticalFallbackIfStillOverflowing(__instance);
     }
 }
