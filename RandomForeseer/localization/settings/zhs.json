@@ -24,6 +24,8 @@
   "toggle.enable_transform_prediction.description": "启用后，牌组变牌确认预览会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_potion_card_prediction.label": "预测药水随机牌",
   "toggle.enable_potion_card_prediction.description": "启用后，随机给牌药水的提示会显示当前随机数状态将生成的确切卡牌。",
+  "toggle.enable_potion_generation_prediction.label": "预测随机生成药水",
+  "toggle.enable_potion_generation_prediction.description": "启用后，混沌药水和炼制药水的提示会显示当前随机数状态将生成的确切药水。",
   "toggle.enable_combat_card_prediction.label": "预测战斗随机印牌",
   "toggle.enable_combat_card_prediction.description": "启用后，战斗中随机印牌的卡牌提示会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_combat_card_selection_prediction.label": "预测战斗随机选牌",

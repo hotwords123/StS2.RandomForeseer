@@ -25,6 +25,22 @@ internal static class CombatCardPredictionHoverTipsPatch
             __result = __result.Concat(generatedCardPredictionTips);
         }
 
+        IReadOnlyList<IHoverTip> generatedPotionPredictionTips;
+        try
+        {
+            generatedPotionPredictionTips = PotionGenerationPrediction.GetCardHoverTips(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion generation prediction failed for {__instance.Id}: {ex}");
+            return;
+        }
+
+        if (generatedPotionPredictionTips.Count > 0)
+        {
+            __result = __result.Concat(generatedPotionPredictionTips);
+        }
+
         IReadOnlyList<IHoverTip> selectionPredictionTips;
         try
         {

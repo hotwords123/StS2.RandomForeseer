@@ -10,6 +10,7 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform selection grid hover tips and confirmation previews.
 - **Random-card-generation potion prediction**: adds the predicted generated cards to random-card-generation potion hover tips.
+- **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
@@ -41,6 +42,11 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Colorless Potion
 - Cosmic Concoction
 - Orobic Acid
+
+### Potion Generation
+
+- Entropic Brew (in and out of combat)
+- Alchemize
 
 ### Combat Card Generation
 
@@ -111,6 +117,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Enable fair mode | Limits predictions to information obtainable through Save & Load, default on |
 | Predict transform results | Controls whether transform selection grid hover tips and confirmation previews show predicted cards |
 | Predict potion card results | Controls whether random-card-generation potions show predicted cards |
+| Predict potion generation | Controls whether Entropic Brew and Alchemize show predicted potions |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
 | Show selection prediction warnings | Controls whether side-effect-sensitive selection predictions show a warning, default on |

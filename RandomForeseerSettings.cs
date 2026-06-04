@@ -20,6 +20,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnablePotionCardPrediction { get; set; } = true;
 
+    public bool EnablePotionGenerationPrediction { get; set; } = true;
+
     public bool EnableCombatCardPrediction { get; set; } = true;
 
     public bool EnableCombatCardSelectionPrediction { get; set; } = true;
@@ -49,6 +51,7 @@ internal static class RandomForeseerSettings
     private const string EnableFairModeKey = "enable_fair_mode";
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
+    private const string EnablePotionGenerationPredictionKey = "enable_potion_generation_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
     private const string EnableCombatCardSelectionDriftWarningsKey = "enable_combat_card_selection_drift_warnings";
@@ -103,6 +106,13 @@ internal static class RandomForeseerSettings
             DataKey,
             settings => settings.EnablePotionCardPrediction,
             (settings, value) => settings.EnablePotionCardPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnablePotionGenerationPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnablePotionGenerationPrediction,
+            (settings, value) => settings.EnablePotionGenerationPrediction = value);
 
     private static readonly IModSettingsValueBinding<bool> EnableFrozenEyeBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
@@ -183,6 +193,8 @@ internal static class RandomForeseerSettings
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
 
     public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
+
+    public static bool EnablePotionGenerationPrediction => EnablePotionGenerationPredictionBinding.Read();
 
     public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
 
@@ -362,6 +374,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_potion_card_prediction.description",
                         "When enabled, random-card potion tooltips show the exact cards the current RNG will produce."),
+                    () => true);
+
+                section.AddToggle(
+                    EnablePotionGenerationPredictionKey,
+                    Text("toggle.enable_potion_generation_prediction.label", "Predict potion generation"),
+                    EnablePotionGenerationPredictionBinding,
+                    Text(
+                        "toggle.enable_potion_generation_prediction.description",
+                        "When enabled, Entropic Brew and Alchemize tooltips show the exact potions the current RNG will produce."),
                     () => true);
 
                 section.AddToggle(

@@ -24,6 +24,8 @@
   "toggle.enable_transform_prediction.description": "When enabled, deck transform confirmation previews show the exact card the current RNG will produce.",
   "toggle.enable_potion_card_prediction.label": "Predict potion card results",
   "toggle.enable_potion_card_prediction.description": "When enabled, random-card potion tooltips show the exact cards the current RNG will produce.",
+  "toggle.enable_potion_generation_prediction.label": "Predict potion generation",
+  "toggle.enable_potion_generation_prediction.description": "When enabled, Entropic Brew and Alchemize tooltips show the exact potions the current RNG will produce.",
   "toggle.enable_combat_card_prediction.label": "Predict combat card generation",
   "toggle.enable_combat_card_prediction.description": "When enabled, combat card tooltips show the exact random cards the current RNG will generate.",
   "toggle.enable_combat_card_selection_prediction.label": "Predict combat card selection",

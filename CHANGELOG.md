@@ -16,6 +16,9 @@
 - 新增休息处铲子挖掘遗物和其它休息处随机结果预测。  
   Added Shovel dig relic prediction and other rest-site random result predictions.
 
+- 新增随机生成药水预测，支持混沌药水和炼制药水。  
+  Added potion generation prediction for Entropic Brew and Alchemize.
+
 ### fix
 
 - 修复预测卡牌悬停提示可能重叠或过早换列的问题。  
