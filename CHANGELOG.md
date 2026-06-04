@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.3.0
+
+### feat
+
+- 新增变牌选择网格悬停预测，在选择前显示按当前选择位置计算的变牌结果。  
+  Added transform selection grid hover prediction, showing transform results for the current selection position before confirming.
+
+- 新增宝箱房遗物拾取预测，悬停宝箱中的遗物时显示获得后的即时随机结果。  
+  Added treasure room relic pickup prediction, showing immediate random results when hovering chest relics.
+
+- 新增华美发束卡牌奖励预测。  
+  Added Silken Tress card reward prediction.
+
+- 新增休息处铲子挖掘遗物和其它休息处随机结果预测。  
+  Added Shovel dig relic prediction and other rest-site random result predictions.
+
+### fix
+
+- 修复预测卡牌悬停提示可能重叠或过早换列的问题。  
+  Fixed predicted card hover tips that could overlap or wrap to a side column too early.
+
+- 修复单张卡牌包预测显示为多层分组的问题。  
+  Fixed single-card bundle predictions being displayed as nested groups.
+
 ## v0.2.0
 
 ### feat
