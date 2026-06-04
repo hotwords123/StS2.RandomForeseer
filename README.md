@@ -45,7 +45,7 @@
 
 ### 随机生成药水
 
-- 混沌药水（Entropic Brew，战斗内外）
+- 混沌药水（Entropic Brew，战斗内外，包括商店里）
 - 炼制药水（Alchemize）
 
 ### 战斗随机印牌

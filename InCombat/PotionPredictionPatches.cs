@@ -9,10 +9,16 @@ internal static class PotionPredictionHoverTipsPatch
 {
     private static void Postfix(PotionModel __instance, ref IEnumerable<IHoverTip> __result)
     {
+        var owner = __instance.Owner;
+        if (owner == null)
+        {
+            return;
+        }
+
         IReadOnlyList<IHoverTip> generatedCardPredictionTips;
         try
         {
-            generatedCardPredictionTips = PotionCardPrediction.GetHoverTips(__instance);
+            generatedCardPredictionTips = PotionCardPrediction.GetHoverTips(owner, __instance);
         }
         catch (Exception ex)
         {
@@ -28,7 +34,7 @@ internal static class PotionPredictionHoverTipsPatch
         IReadOnlyList<IHoverTip> generatedPotionPredictionTips;
         try
         {
-            generatedPotionPredictionTips = PotionGenerationPrediction.GetPotionHoverTips(__instance);
+            generatedPotionPredictionTips = PotionGenerationPrediction.GetPotionHoverTips(owner, __instance);
         }
         catch (Exception ex)
         {

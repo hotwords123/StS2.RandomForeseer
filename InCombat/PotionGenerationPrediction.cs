@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -9,14 +10,14 @@ namespace RandomForeseer.InCombat;
 
 internal static class PotionGenerationPrediction
 {
-    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(Player player, PotionModel potion)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionGenerationPrediction))
         {
             return [];
         }
 
-        var potions = PredictPotions(potion);
+        var potions = PredictPotions(player, potion);
         return PredictionHoverTips.Potions(potions);
     }
 
@@ -34,14 +35,14 @@ internal static class PotionGenerationPrediction
         return PredictionHoverTips.Potions(potions);
     }
 
-    private static IReadOnlyList<PotionModel> PredictPotions(PotionModel potion)
+    private static IReadOnlyList<PotionModel> PredictPotions(Player player, PotionModel potion)
     {
         return potion switch
         {
             EntropicBrew => PredictionUtils.PredictOutOfCombatPotionRewards(
-                potion.Owner,
-                potion.Owner.PotionSlots.Count,
-                potion.Owner.RunState.Rng.CombatPotionGeneration),
+                player,
+                player.PotionSlots.Count,
+                player.RunState.Rng.CombatPotionGeneration),
             _ => []
         };
     }

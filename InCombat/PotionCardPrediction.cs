@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Potions;
@@ -9,20 +10,19 @@ namespace RandomForeseer.InCombat;
 
 internal static class PotionCardPrediction
 {
-    public static IReadOnlyList<IHoverTip> GetHoverTips(PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, PotionModel potion)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionCardPrediction))
         {
             return [];
         }
 
-        var owner = potion.Owner;
-        if (owner?.Creature.CombatState == null)
+        if (player.Creature.CombatState == null)
         {
             return [];
         }
 
-        var previewRng = PredictionUtils.CloneRng(owner.RunState.Rng.CombatCardGeneration);
+        var previewRng = PredictionUtils.CloneRng(player.RunState.Rng.CombatCardGeneration);
         var cards = PredictCards(potion, previewRng);
         return PredictionHoverTips.Cards(cards);
     }

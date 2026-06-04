@@ -45,7 +45,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 
 ### Potion Generation
 
-- Entropic Brew (in and out of combat)
+- Entropic Brew (in and out of combat, including merchant stock)
 - Alchemize
 
 ### Combat Card Generation
