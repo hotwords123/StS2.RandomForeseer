@@ -8,7 +8,7 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 ## Features
 
-- **Transform prediction**: shows the exact card that the current RNG state will produce in transform confirmation previews.
+- **Transform prediction**: shows the exact card that the current RNG state will produce in transform selection grid hover tips and confirmation previews.
 - **Random-card-generation potion prediction**: adds the predicted generated cards to random-card-generation potion hover tips.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
@@ -109,7 +109,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Enable singleplayer prediction | Controls whether any prediction results are shown in singleplayer, default on |
 | Enable multiplayer prediction | Controls whether any prediction results are shown in multiplayer, default on |
 | Enable fair mode | Limits predictions to information obtainable through Save & Load, default on |
-| Predict transform results | Controls whether transform confirmation previews show predicted cards |
+| Predict transform results | Controls whether transform selection grid hover tips and confirmation previews show predicted cards |
 | Predict potion card results | Controls whether random-card-generation potions show predicted cards |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
