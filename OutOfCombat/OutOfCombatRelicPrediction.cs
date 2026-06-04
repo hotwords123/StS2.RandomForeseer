@@ -51,7 +51,7 @@ internal static class OutOfCombatRelicPrediction
                 NewLeaf when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictNewLeaf(player)),
                 PhialHolster when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
+                    PredictionHoverTips.Potions(PredictionUtils.PredictOutOfCombatPotions(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
@@ -74,7 +74,7 @@ internal static class OutOfCombatRelicPrediction
 
                 // Orobas
                 AlchemicalCoffer when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotions(
+                    PredictionHoverTips.Potions(PredictionUtils.PredictOutOfCombatPotions(
                         player,
                         relic.DynamicVars["PotionSlots"].IntValue,
                         player.RunState.Rng.CombatPotionGeneration)),
@@ -91,7 +91,7 @@ internal static class OutOfCombatRelicPrediction
                     PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
 
                 // Non-Ancient relics
-                Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
+                Cauldron => PredictionHoverTips.Potions(PredictionUtils.PredictOutOfCombatPotionRewards(
                     player,
                     relic.DynamicVars["Potions"].IntValue,
                     player.PlayerRng.Rewards)),

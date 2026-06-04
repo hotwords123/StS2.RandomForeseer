@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
+using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Random;
@@ -130,6 +131,26 @@ internal static class PredictionUtils
         var previewCard = ToUpgradedPreviewCard(card);
         previewCard.SetToFreeThisTurn();
         return previewCard;
+    }
+
+    public static IReadOnlyList<PotionModel> PredictOutOfCombatPotions(Player player, int count, Rng rng)
+    {
+        return PotionFactory.CreateRandomPotionsOutOfCombat(player, count, CloneRng(rng))
+            .Select(potion => potion.ToMutable())
+            .ToList();
+    }
+
+    public static IReadOnlyList<PotionModel> PredictOutOfCombatPotionRewards(Player player, int count, Rng rng)
+    {
+        var previewRng = CloneRng(rng);
+        return Enumerable.Range(0, count)
+            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, previewRng).ToMutable())
+            .ToList();
+    }
+
+    public static PotionModel PredictInCombatPotion(Player player, Rng rng)
+    {
+        return PotionFactory.CreateRandomPotionInCombat(player, CloneRng(rng)).ToMutable();
     }
 
     private static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)

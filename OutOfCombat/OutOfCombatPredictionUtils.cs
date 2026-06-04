@@ -201,21 +201,6 @@ internal static class OutOfCombatPredictionUtils
         return cards;
     }
 
-    public static IReadOnlyList<PotionModel> PredictPotions(Player player, int count, Rng rng)
-    {
-        return PotionFactory.CreateRandomPotionsOutOfCombat(player, count, PredictionUtils.CloneRng(rng))
-            .Select(potion => potion.ToMutable())
-            .ToList();
-    }
-
-    public static IReadOnlyList<PotionModel> PredictPotionRewards(Player player, int count, Rng rng)
-    {
-        var previewRng = PredictionUtils.CloneRng(rng);
-        return Enumerable.Range(0, count)
-            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, previewRng).ToMutable())
-            .ToList();
-    }
-
     public static IReadOnlyList<PotionModel> PredictUniformPotions(Player player, int count, Rng rng)
     {
         return PredictUniformPotions(player, count, rng, potion => true);

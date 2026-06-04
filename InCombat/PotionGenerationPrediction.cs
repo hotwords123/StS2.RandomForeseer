@@ -1,10 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
-using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
@@ -18,9 +16,7 @@ internal static class PotionGenerationPrediction
             return [];
         }
 
-        var owner = potion.Owner;
-        var previewRng = PredictionUtils.CloneRng(owner.RunState.Rng.CombatPotionGeneration);
-        var potions = PredictPotions(potion, previewRng);
+        var potions = PredictPotions(potion);
         return PredictionHoverTips.Potions(potions);
     }
 
@@ -34,34 +30,28 @@ internal static class PotionGenerationPrediction
             return [];
         }
 
-        var previewRng = PredictionUtils.CloneRng(card.Owner.RunState.Rng.CombatPotionGeneration);
-        var potions = PredictPotions(card, previewRng);
+        var potions = PredictPotions(card);
         return PredictionHoverTips.Potions(potions);
     }
 
-    private static IReadOnlyList<PotionModel> PredictPotions(PotionModel potion, Rng previewRng)
+    private static IReadOnlyList<PotionModel> PredictPotions(PotionModel potion)
     {
         return potion switch
         {
-            EntropicBrew => PredictEntropicBrew(potion, previewRng),
+            EntropicBrew => PredictionUtils.PredictOutOfCombatPotionRewards(
+                potion.Owner,
+                potion.Owner.PotionSlots.Count,
+                potion.Owner.RunState.Rng.CombatPotionGeneration),
             _ => []
         };
     }
 
-    private static IReadOnlyList<PotionModel> PredictPotions(CardModel card, Rng previewRng)
+    private static IReadOnlyList<PotionModel> PredictPotions(CardModel card)
     {
         return card switch
         {
-            Alchemize => [PotionFactory.CreateRandomPotionInCombat(card.Owner, previewRng).ToMutable()],
+            Alchemize => [PredictionUtils.PredictInCombatPotion(card.Owner, card.Owner.RunState.Rng.CombatPotionGeneration)],
             _ => []
         };
-    }
-
-    private static IReadOnlyList<PotionModel> PredictEntropicBrew(PotionModel potion, Rng previewRng)
-    {
-        var owner = potion.Owner;
-        return Enumerable.Range(0, owner.PotionSlots.Count)
-            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(owner, previewRng).ToMutable())
-            .ToList();
     }
 }

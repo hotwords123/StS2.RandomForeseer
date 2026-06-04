@@ -1,7 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.RestSite;
-using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
@@ -92,9 +91,7 @@ internal static class RestSitePredictionFocusPatch
 
     private static IReadOnlyList<PotionModel> PredictPotionRewards(Player player, int count, Rng rewardRng)
     {
-        return Enumerable.Range(0, count)
-            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng).ToMutable())
-            .ToList();
+        return PredictionUtils.PredictOutOfCombatPotionRewards(player, count, rewardRng);
     }
 }
 
