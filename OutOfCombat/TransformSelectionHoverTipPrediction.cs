@@ -67,6 +67,21 @@ internal static class TransformSelectionHoverTipPrediction
 [HarmonyPatch(typeof(NCardHolder), "CreateHoverTips")]
 internal static class TransformSelectionHoverTipPatch
 {
+    public static void RefreshHoverTips(NDeckTransformSelectScreen screen, CardModel card)
+    {
+        var holder = screen._grid.GetCardHolder(card);
+        if (holder is not { _isHovered: true })
+        {
+            return;
+        }
+
+        NHoverTipSet.Remove(holder);
+        if (!screen._previewContainer.Visible)
+        {
+            holder.Call(NCardHolder.MethodName.CreateHoverTips);
+        }
+    }
+
     private static bool Prefix(NCardHolder __instance)
     {
         if (__instance is not NGridCardHolder holder ||
@@ -99,5 +114,14 @@ internal static class TransformSelectionHoverTipPatch
         }
 
         return null;
+    }
+}
+
+[HarmonyPatch(typeof(NDeckTransformSelectScreen), "OnCardClicked")]
+internal static class TransformSelectionHoverTipRefreshPatch
+{
+    private static void Postfix(NDeckTransformSelectScreen __instance, CardModel card)
+    {
+        TransformSelectionHoverTipPatch.RefreshHoverTips(__instance, card);
     }
 }
