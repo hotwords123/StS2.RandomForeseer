@@ -12,7 +12,6 @@ using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Random;
-using MegaCrit.Sts2.Core.Rewards;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
@@ -314,29 +313,19 @@ internal static class OutOfCombatRelicPrediction
             .ForRoom(player, RoomType.Monster)
             .WithFlags(CardCreationFlags.IsCardReward);
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        FastForwardBeforeFirstMonsterCardReward(player, rewardRng);
+        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+
+        OutOfCombatPredictionUtils.FastForwardBeforeFirstMonsterCardReward(player, rewardRng);
+
         var cards = OutOfCombatPredictionUtils.PredictCards(
             player,
             3,
             options,
             rewardRng,
-            PredictionUtils.CloneRng(player.RunState.Rng.Niche),
+            nicheRng,
             extraResultModifiers: [previewRelic]);
 
         return PredictionHoverTips.Cards(cards);
-    }
-
-    private static void FastForwardBeforeFirstMonsterCardReward(Player player, Rng rewardRng)
-    {
-        var forcePotionReward = Hook.ShouldForcePotionReward(player.RunState, player, RoomType.Monster);
-        var potionRewardRoll = rewardRng.NextFloat();
-        var shouldAddPotionReward = forcePotionReward || potionRewardRoll < player.PlayerOdds.PotionReward.CurrentValue;
-
-        rewardRng.NextInt(GoldReward.defaultMinGoldAmount, GoldReward.defaultMaxGoldAmount + 1);
-        if (shouldAddPotionReward)
-        {
-            PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
-        }
     }
 
     private static IReadOnlyList<CardModel> PredictNewLeaf(Player player)

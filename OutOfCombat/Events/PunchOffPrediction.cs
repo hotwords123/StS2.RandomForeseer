@@ -1,7 +1,12 @@
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
+using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Encounters;
 using MegaCrit.Sts2.Core.Models.Events;
+using MegaCrit.Sts2.Core.Random;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat.Events;
 
@@ -30,8 +35,42 @@ internal static class PunchOffPrediction
 
     private static IReadOnlyList<IHoverTip> PredictFightRewards(Player player)
     {
-        return OutOfCombatPredictionUtils.RelicTipsWithPickup(
+        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
+        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+        CombatEndEffectPrediction.FastForwardMonsterRoomCombatEndHooks(player, rewardRng, nicheRng);
+        FastForwardPunchOffMonsterRewardsBeforePlayer(player, nicheRng);
+        FastForwardPunchOffMonsterRewards(player, rewardRng, nicheRng);
+
+        var relic = OutOfCombatPredictionUtils.PredictRelicRewards(player, 1, rewardRng)[0];
+        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng).ToMutable();
+
+        var tips = OutOfCombatPredictionUtils.RelicTipsWithPickup(player, [relic]).ToList();
+        tips.AddRange(PredictionHoverTips.Potions([potion]));
+        return tips;
+    }
+
+    private static void FastForwardPunchOffMonsterRewardsBeforePlayer(Player player, Rng nicheRng)
+    {
+        foreach (var runPlayer in player.RunState.Players)
+        {
+            if (runPlayer == player)
+            {
+                break;
+            }
+
+            var rewardRng = PredictionUtils.CloneRng(runPlayer.PlayerRng.Rewards);
+            FastForwardPunchOffMonsterRewards(runPlayer, rewardRng, nicheRng);
+        }
+    }
+
+    private static void FastForwardPunchOffMonsterRewards(Player player, Rng rewardRng, Rng nicheRng)
+    {
+        var encounter = ModelDb.Encounter<PunchOffEventEncounter>();
+        OutOfCombatPredictionUtils.FastForwardMonsterRoomRewards(
             player,
-            OutOfCombatPredictionUtils.PredictRelicRewards(player, 1));
+            rewardRng,
+            nicheRng,
+            encounter.MinGoldReward,
+            encounter.MaxGoldReward);
     }
 }

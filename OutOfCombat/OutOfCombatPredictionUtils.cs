@@ -4,10 +4,13 @@ using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.PotionPools;
 using MegaCrit.Sts2.Core.Random;
+using MegaCrit.Sts2.Core.Rewards;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 
@@ -236,18 +239,17 @@ internal static class OutOfCombatPredictionUtils
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count)
     {
-        return PredictRelicRewards(player, count, player.PlayerRng.Rewards);
+        return PredictRelicRewards(player, count, PredictionUtils.CloneRng(player.PlayerRng.Rewards));
     }
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count, Rng rng)
     {
         var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
         var relics = new List<RelicModel>();
-        var previewRng = PredictionUtils.CloneRng(rng);
 
         for (var i = 0; i < count; i++)
         {
-            var rarity = RelicFactory.RollRarity(previewRng);
+            var rarity = RelicFactory.RollRarity(rng);
             relics.Add((grabBag.PullFromFront(rarity, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable());
         }
 
@@ -256,39 +258,13 @@ internal static class OutOfCombatPredictionUtils
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(
         Player player,
-        int count,
-        Rng rng,
-        Func<RelicModel, bool> filter)
-    {
-        var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
-        var relics = new List<RelicModel>();
-        var previewRng = PredictionUtils.CloneRng(rng);
-
-        for (var i = 0; i < count; i++)
-        {
-            var rarity = RelicFactory.RollRarity(previewRng);
-            relics.Add((grabBag.PullFromFront(rarity, filter, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable());
-        }
-
-        return relics;
-    }
-
-    public static IReadOnlyList<RelicModel> PredictRelicRewards(
-        Player player,
         IEnumerable<RelicRarity> rarities,
-        Func<RelicModel, bool> filter)
+        Func<RelicModel, bool>? filter = null)
     {
-        var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
-        return rarities
-            .Select(rarity => (grabBag.PullFromFront(rarity, filter, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable())
-            .ToList();
-    }
 
-    public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, IEnumerable<RelicRarity> rarities)
-    {
         var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
         return rarities
-            .Select(rarity => (grabBag.PullFromFront(rarity, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable())
+            .Select(rarity => (grabBag.PullFromFront(rarity, filter ?? (_ => true), player.RunState) ?? RelicFactory.FallbackRelic).ToMutable())
             .ToList();
     }
 
@@ -311,5 +287,48 @@ internal static class OutOfCombatPredictionUtils
         }
 
         return tips;
+    }
+
+    public static void FastForwardBeforeFirstMonsterCardReward(Player player, Rng rewardRng)
+    {
+        FastForwardBeforeMonsterCardReward(
+            player,
+            rewardRng,
+            GoldReward.defaultMinGoldAmount,
+            GoldReward.defaultMaxGoldAmount);
+    }
+
+    public static void FastForwardMonsterRoomRewards(
+        Player player,
+        Rng rewardRng,
+        Rng nicheRng,
+        int minGoldReward,
+        int maxGoldReward)
+    {
+        // Normal monster rewards are generated before event-specific follow-up rewards.
+        FastForwardBeforeMonsterCardReward(player, rewardRng, minGoldReward, maxGoldReward);
+        PredictCards(
+            player,
+            3,
+            CardCreationOptions.ForRoom(player, RoomType.Monster),
+            rewardRng,
+            nicheRng);
+    }
+
+    private static void FastForwardBeforeMonsterCardReward(
+        Player player,
+        Rng rewardRng,
+        int minGoldReward,
+        int maxGoldReward)
+    {
+        var forcePotionReward = Hook.ShouldForcePotionReward(player.RunState, player, RoomType.Monster);
+        var potionRewardRoll = rewardRng.NextFloat();
+        var shouldAddPotionReward = forcePotionReward || potionRewardRoll < player.PlayerOdds.PotionReward.CurrentValue;
+
+        rewardRng.NextInt(minGoldReward, maxGoldReward + 1);
+        if (shouldAddPotionReward)
+        {
+            PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
+        }
     }
 }
