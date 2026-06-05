@@ -68,7 +68,7 @@ internal static class OutOfCombatPredictionUtils
                     rng.FastForwardCounter(rng.Counter + rngCounterOffset);
                 }
 
-                var preview = PredictTransformResult(card, rng);
+                var preview = PredictTransformResult(card, rng).ToMutable();
                 afterGenerated?.Invoke(preview);
                 return preview;
             })
@@ -79,8 +79,8 @@ internal static class OutOfCombatPredictionUtils
     public static CardModel PredictTransformResult(CardModel original, Rng rng, bool isInCombat = false)
     {
         var options = CardFactory.GetDefaultTransformationOptions(original, isInCombat);
-        var canonical = rng.NextItem(options) ?? throw new InvalidOperationException($"Could not predict a transform result for {original.Id}.");
-        return canonical.ToMutable();
+        var result = rng.NextItem(options) ?? throw new InvalidOperationException($"Could not predict a transform result for {original.Id}.");
+        return result;
     }
 
     public static IReadOnlyList<IReadOnlyList<CardModel>> PredictDistinctDeckTransformResultBundles(
@@ -231,7 +231,7 @@ internal static class OutOfCombatPredictionUtils
                 break;
             }
 
-            potions.Add(potion.ToMutable());
+            potions.Add(potion);
         }
 
         return potions;
@@ -250,7 +250,7 @@ internal static class OutOfCombatPredictionUtils
         for (var i = 0; i < count; i++)
         {
             var rarity = RelicFactory.RollRarity(rng);
-            relics.Add((grabBag.PullFromFront(rarity, player.RunState) ?? RelicFactory.FallbackRelic).ToMutable());
+            relics.Add(grabBag.PullFromFront(rarity, player.RunState) ?? RelicFactory.FallbackRelic);
         }
 
         return relics;
@@ -264,7 +264,7 @@ internal static class OutOfCombatPredictionUtils
 
         var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
         return rarities
-            .Select(rarity => (grabBag.PullFromFront(rarity, filter ?? (_ => true), player.RunState) ?? RelicFactory.FallbackRelic).ToMutable())
+            .Select(rarity => grabBag.PullFromFront(rarity, filter ?? (_ => true), player.RunState) ?? RelicFactory.FallbackRelic)
             .ToList();
     }
 

@@ -112,24 +112,29 @@ internal static class PredictionUtils
         return previewCard;
     }
 
+    public static RelicModel CreateRelic(RelicModel canonical, Player player)
+    {
+        var relic = canonical.ToMutable();
+        relic.Owner = player;
+        return relic;
+    }
+
     public static IReadOnlyList<PotionModel> PredictOutOfCombatPotions(Player player, int count, Rng rng)
     {
-        return PotionFactory.CreateRandomPotionsOutOfCombat(player, count, CloneRng(rng))
-            .Select(potion => potion.ToMutable())
-            .ToList();
+        return PotionFactory.CreateRandomPotionsOutOfCombat(player, count, CloneRng(rng));
     }
 
     public static IReadOnlyList<PotionModel> PredictOutOfCombatPotionRewards(Player player, int count, Rng rng)
     {
         var previewRng = CloneRng(rng);
         return Enumerable.Range(0, count)
-            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, previewRng).ToMutable())
+            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, previewRng))
             .ToList();
     }
 
     public static PotionModel PredictInCombatPotion(Player player, Rng rng)
     {
-        return PotionFactory.CreateRandomPotionInCombat(player, CloneRng(rng)).ToMutable();
+        return PotionFactory.CreateRandomPotionInCombat(player, CloneRng(rng));
     }
 
     public static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)

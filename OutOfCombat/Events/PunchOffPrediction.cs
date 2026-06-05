@@ -47,7 +47,7 @@ internal static class PunchOffPrediction
         FastForwardPunchOffMonsterRewards(player, rewardRng, nicheRng);
 
         var relic = OutOfCombatPredictionUtils.PredictRelicRewards(player, 1, rewardRng)[0];
-        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng).ToMutable();
+        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
 
         var tips = OutOfCombatPredictionUtils.RelicTipsWithPickup(player, [relic]).ToList();
         tips.AddRange(PredictionHoverTips.Potions([potion]));

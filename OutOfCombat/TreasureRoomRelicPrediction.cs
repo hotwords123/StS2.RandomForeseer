@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
 using MegaCrit.Sts2.Core.Runs;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
@@ -24,7 +25,8 @@ internal static class TreasureRoomRelicPredictionPatch
     [HarmonyPostfix]
     private static void OnFocusPostfix(NTreasureRoomRelicHolder __instance)
     {
-        if (__instance.Relic?.Model == null ||
+        var relic = __instance.Relic?.Model;
+        if (relic == null ||
             !RunStates.TryGetValue(__instance, out var runStateBox))
         {
             return;
@@ -38,17 +40,16 @@ internal static class TreasureRoomRelicPredictionPatch
                 return;
             }
 
-            // Treasure room relics come from the shared synchronizer list and may be canonical.
-            var previewRelic = __instance.Relic.Model.ToMutable();
+            var previewRelic = PredictionUtils.CreateRelic(relic, player);
             var predictionTips = OutOfCombatRelicPrediction.GetHoverTips(player, previewRelic);
             if (predictionTips.Count == 0)
             {
                 return;
             }
 
-            var tips = __instance.Relic.Model.HoverTips.Concat(predictionTips).ToList();
+            var tips = relic.HoverTips.Concat(predictionTips).ToList();
             NHoverTipSet.Remove(__instance);
-            NHoverTipSet.CreateAndShow(__instance, tips)?.SetAlignmentForRelic(__instance.Relic);
+            NHoverTipSet.CreateAndShow(__instance, tips)?.SetAlignmentForRelic(__instance.Relic!);
         }
         catch (Exception ex)
         {

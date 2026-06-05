@@ -49,7 +49,7 @@ internal static class SlipperyBridgePrediction
                 break;
             }
 
-            cards.Add((CardModel)current.MutableClone());
+            cards.Add(current);
         }
 
         return PredictionHoverTips.Cards(cards);

@@ -17,31 +17,26 @@ internal static class DollRoomPrediction
 
     private static IReadOnlyList<IHoverTip> GetHoverTips(DollRoom dollRoom, EventOption option)
     {
-        return option.TextKey switch
+        var count = option.TextKey switch
         {
-            "DOLL_ROOM.pages.INITIAL.options.RANDOM" => OutOfCombatPredictionUtils.RelicTipsWithPickup(
-                dollRoom.Owner!,
-                [PredictDoll(dollRoom.Rng, 1).First()]),
-            "DOLL_ROOM.pages.INITIAL.options.TAKE_SOME_TIME" => OutOfCombatPredictionUtils.RelicTipsWithPickup(dollRoom.Owner!, PredictDoll(dollRoom.Rng, 2)),
-            "DOLL_ROOM.pages.INITIAL.options.EXAMINE" => OutOfCombatPredictionUtils.RelicTipsWithPickup(dollRoom.Owner!, PredictDoll(dollRoom.Rng, 3)),
-            _ => []
+            "DOLL_ROOM.pages.INITIAL.options.RANDOM" => 1,
+            "DOLL_ROOM.pages.INITIAL.options.TAKE_SOME_TIME" => 2,
+            "DOLL_ROOM.pages.INITIAL.options.EXAMINE" => 3,
+            _ => 0
         };
+
+        return count > 0
+            ? OutOfCombatPredictionUtils.RelicTipsWithPickup(dollRoom.Owner!, PredictDoll(dollRoom.Rng, count))
+            : [];
     }
 
     private static IReadOnlyList<RelicModel> PredictDoll(Rng realRng, int count)
     {
         var rng = PredictionUtils.CloneRng(realRng);
-        var dolls = GetDolls();
+        var dolls = DollRoom._dolls.Select(doll => doll.relic).ToArray();
 
         return count == 1
-            ? [rng.NextItem(dolls)!.ToMutable()]
-            : dolls.ToList().StableShuffle(rng).Take(count).Select(relic => relic.ToMutable()).ToList();
-    }
-
-    private static RelicModel[] GetDolls()
-    {
-        return DollRoom._dolls
-            .Select(doll => doll.relic)
-            .ToArray();
+            ? [rng.NextItem(dolls)!]
+            : dolls.ToList().StableShuffle(rng).Take(count).ToList();
     }
 }

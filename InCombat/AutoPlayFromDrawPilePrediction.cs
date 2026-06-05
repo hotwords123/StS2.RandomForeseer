@@ -56,10 +56,7 @@ internal static class AutoPlayFromDrawPilePrediction
             return [];
         }
 
-        var cards = DrawPilePredictionUtils.PredictTopCardsAfterNecessaryShuffles(player, count)
-            .Select(card => (CardModel)card.MutableClone())
-            .ToList();
-
+        var cards = DrawPilePredictionUtils.PredictTopCardsAfterNecessaryShuffles(player, count);
         return PredictionHoverTips.Cards(cards);
     }
 

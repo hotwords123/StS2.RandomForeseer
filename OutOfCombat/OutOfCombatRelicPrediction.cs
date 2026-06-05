@@ -256,7 +256,7 @@ internal static class OutOfCombatRelicPrediction
         var options = OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player);
         var tips = PredictionHoverTips.Cards(PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
 
-        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng).ToMutable();
+        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
         tips.AddRange(PredictionHoverTips.Potions([potion]));
         return tips;
     }
@@ -306,8 +306,7 @@ internal static class OutOfCombatRelicPrediction
 
     private static IReadOnlyList<IHoverTip> PredictSilkenTressRewardTips(Player player, SilkenTress relic)
     {
-        var previewRelic = (SilkenTress)relic.MutableClone();
-        previewRelic.Owner = player;
+        var previewRelic = PredictionUtils.CreateRelic(relic.CanonicalInstance, player);
 
         var options = CardCreationOptions
             .ForRoom(player, RoomType.Monster)
@@ -444,7 +443,9 @@ internal static class OutOfCombatRelicPrediction
 
     private static IReadOnlyList<RelicModel> PredictToyBoxRelics(Player player, int count)
     {
-        var relics = OutOfCombatPredictionUtils.PredictRelicRewards(player, count);
+        var relics = OutOfCombatPredictionUtils.PredictRelicRewards(player, count)
+            .Select(relic => relic.ToMutable())
+            .ToList();
         foreach (var relic in relics)
         {
             relic.IsWax = true;
