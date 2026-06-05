@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.4.0
+
+### feat
+
+- 新增随机生成药水预测，支持混沌药水和炼制药水，并覆盖商店里的混沌药水。
+  Added potion generation prediction for Entropic Brew and Alchemize, including Entropic Brew in merchant stock.
+
+- 新增战斗随机变牌预测，战斗中“熵”选择手牌变牌时显示即将变化得到的卡牌。
+  Added combat transform prediction, showing the cards that Entropy will transform selected hand cards into during combat.
+
+- 改进变牌选择网格悬停预测，已选中牌按选择顺序显示结果，未选中牌按下一个选择位置显示结果。
+  Improved transform selection grid hover prediction so selected cards show results in selection order and unselected cards show the next-position result.
+
+### fix
+
+- 修复预测卡牌悬停提示的水平重叠和垂直裁剪回退布局问题。
+  Fixed horizontal overlap and vertical clamping fallback issues in predicted card hover tips.
+
+- 修复拖动战斗手牌时预测提示被隐藏的问题。
+  Fixed combat card prediction tips being hidden while dragging cards.
+
+- 适配《杀戮尖塔 2》0.107.0。
+  Adapted predictions for Slay the Spire 2 0.107.0.
+
 ## v0.3.0
 
 ### feat
@@ -15,9 +39,6 @@
 
 - 新增休息处铲子挖掘遗物和其它休息处随机结果预测。  
   Added Shovel dig relic prediction and other rest-site random result predictions.
-
-- 新增随机生成药水预测，支持混沌药水和炼制药水。  
-  Added potion generation prediction for Entropic Brew and Alchemize.
 
 ### fix
 
