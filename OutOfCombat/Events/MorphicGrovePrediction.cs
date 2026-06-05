@@ -24,7 +24,7 @@ internal static class MorphicGrovePrediction
     {
         return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
             morphicGrove.Owner!,
-            morphicGrove.Owner!.RunState.Rng.Niche,
+            morphicGrove.Rng,
             transformCount: 2);
     }
 }

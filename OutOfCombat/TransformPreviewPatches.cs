@@ -200,7 +200,7 @@ internal static class MorphicGroveTransformPreviewPatch
             AccessTools.Method(typeof(MorphicGroveTransformPreviewPatch), nameof(MakePredictor)));
 
     private static Func<CardModel, CardTransformation>? MakePredictor(MorphicGrove source) =>
-        TransformPreviewPredictor.Make(source.Owner!.RunState.Rng.Niche);
+        TransformPreviewPredictor.Make(source.Rng);
 }
 
 [HarmonyPatch]
@@ -232,7 +232,7 @@ internal static class TrialTransformPreviewPatch
             AccessTools.Method(typeof(TrialTransformPreviewPatch), nameof(MakePredictor)));
 
     private static Func<CardModel, CardTransformation>? MakePredictor(Trial source) =>
-        TransformPreviewPredictor.Make(source.Owner!.RunState.Rng.Niche);
+        TransformPreviewPredictor.Make(source.Rng);
 }
 
 [HarmonyPatch]

@@ -1,12 +1,9 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Cards;
-using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
-using MegaCrit.Sts2.addons.mega_text;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
@@ -14,20 +11,6 @@ namespace RandomForeseer.InCombat;
 [HarmonyPatch(typeof(NCardPileScreen), "OnPileContentsChanged")]
 internal static class FrozenEyeCardPileScreenPatch
 {
-    private static void Postfix(NCardPileScreen __instance)
-    {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
-            __instance.Pile.Type != PileType.Draw)
-        {
-            return;
-        }
-
-        if (__instance._bottomLabel is MegaRichTextLabel bottomLabel)
-        {
-            bottomLabel.Text = "[center]" + GetFrozenEyeDrawPileInfoText();
-        }
-    }
-
     private static bool Prefix(NCardPileScreen __instance)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
@@ -44,52 +27,36 @@ internal static class FrozenEyeCardPileScreenPatch
         grid.SetCards(__instance.Pile.Cards.ToList(), PileType.Draw, [SortingOrders.Ascending]);
         return false;
     }
-
-    private static string GetFrozenEyeDrawPileInfoText()
-    {
-        var originalInfo = new LocString("gameplay_ui", "DRAW_PILE_INFO").GetFormattedText();
-        var firstLine = originalInfo.Split('\n', 2)[0];
-        var orderInfo = PredictionLocalization.Text("frozen_eye.draw_pile_info_order").GetFormattedText();
-
-        return $"{firstLine}\n{orderInfo}";
-    }
 }
 
-[HarmonyPatch(typeof(NCombatCardPile), "OnFocus")]
-internal static class FrozenEyeDrawPileHoverTipPatch
+[HarmonyPatch(typeof(LocString), nameof(LocString.GetRawText))]
+internal static class FrozenEyeDrawPileRawTextPatch
 {
-    private static void Prefix(NCombatCardPile __instance)
+    private static void Postfix(LocString __instance, ref string __result)
     {
-        if (__instance is not NDrawPileButton)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye))
         {
             return;
         }
 
-        __instance._hoverTip = RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye)
-            ? CreateFrozenEyeDrawPileHoverTip()
-            : CreateVanillaDrawPileHoverTip();
-    }
+        switch (__instance)
+        {
+            case { LocTable: "static_hover_tips", LocEntryKey: "DRAW_PILE.description" }:
+            {
+                var mainDescription = __result.Split("\n\n", 2)[0];
+                var viewDescription = PredictionLocalization.Text("frozen_eye.draw_pile_hover_view").GetRawText();
 
-    private static HoverTip CreateVanillaDrawPileHoverTip()
-    {
-        return new HoverTip(
-            new LocString("static_hover_tips", "DRAW_PILE.title"),
-            new LocString("static_hover_tips", "DRAW_PILE.description"));
-    }
+                __result = $"{mainDescription}\n\n{viewDescription}";
+                break;
+            }
+            case { LocTable: "gameplay_ui", LocEntryKey: "DRAW_PILE_INFO" }:
+            {
+                var firstLine = __result.Split('\n', 2)[0];
+                var orderInfo = PredictionLocalization.Text("frozen_eye.draw_pile_info_order").GetRawText();
 
-    private static HoverTip CreateFrozenEyeDrawPileHoverTip()
-    {
-        return new HoverTip(
-            new LocString("static_hover_tips", "DRAW_PILE.title"),
-            GetFrozenEyeDrawPileHoverTipDescription());
-    }
-
-    private static string GetFrozenEyeDrawPileHoverTipDescription()
-    {
-        var originalDescription = new LocString("static_hover_tips", "DRAW_PILE.description").GetFormattedText();
-        var mainDescription = originalDescription.Split("\n\n", 2)[0];
-        var viewDescription = PredictionLocalization.Text("frozen_eye.draw_pile_hover_view").GetFormattedText();
-
-        return $"{mainDescription}\n\n{viewDescription}";
+                __result = $"{firstLine}\n{orderInfo}";
+                break;
+            }
+        }
     }
 }

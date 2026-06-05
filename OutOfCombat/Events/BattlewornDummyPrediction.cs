@@ -31,26 +31,28 @@ internal static class BattlewornDummyPrediction
                     1,
                     player.PlayerRng.Rewards)),
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_2" =>
-                PredictionHoverTips.Cards(PredictSetting2(player)),
+                PredictionHoverTips.Cards(PredictSetting2(battlewornDummy)),
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_3" =>
                 OutOfCombatPredictionUtils.RelicTipsWithPickup(player, OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
             _ => []
         };
     }
 
-    private static IReadOnlyList<CardModel> PredictSetting2(Player player)
+    private static IReadOnlyList<CardModel> PredictSetting2(BattlewornDummy battlewornDummy)
     {
-        var rng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+        var player = battlewornDummy.Owner!;
+        var eventRng = PredictionUtils.CloneRng(battlewornDummy.Rng);
+        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         var deckState = PileType.Deck.GetPile(player).Cards
             .Select(card => (CardModel)card.MutableClone())
             .ToList();
 
-        FastForwardBeforeBattlewornDummyRewards(player, rng, deckState);
+        FastForwardBeforeBattlewornDummyRewards(player, nicheRng, eventRng, deckState);
 
         return deckState
             .Where(card => card.IsUpgradable)
             .ToList()
-            .StableShuffle(rng)
+            .StableShuffle(eventRng)
             .Take(2)
             .Select(PredictionUtils.ToUpgradedPreviewCard)
             .ToList();
@@ -58,21 +60,22 @@ internal static class BattlewornDummyPrediction
 
     private static void FastForwardBeforeBattlewornDummyRewards(
         Player player,
-        Rng rng,
+        Rng nicheRng,
+        Rng eventRng,
         IReadOnlyList<CardModel> currentPlayerDeckState)
     {
         // Battleworn Dummy Setting 2 rolls after the event combat ends, not when the option is chosen.
-        // Known vanilla Niche RNG consumers between option hover and BattlewornDummy.Resume:
+        // Known vanilla RNG consumers between option hover and BattlewornDummy.Resume:
         // 1. CombatState.CreateCreature -> Creature.SetUniqueMonsterHpValue consumes one roll even for
-        //    fixed-HP monsters, because the single HP value is still selected with NextItem.
+        //    fixed-HP monsters, because the single HP value is still selected with NextItem from Niche.
         // 2. Fishing Rod's AfterCombatEnd runs before the parent event resumes. If its counter triggers,
-        //    it consumes one Niche roll to pick an upgradable deck card and upgrades that card before
-        //    Battleworn Dummy chooses its two Setting 2 upgrades.
-        rng.NextInt(1);
+        //    it consumes one Niche roll and may upgrade a card before Battleworn Dummy chooses Setting 2.
+        // 3. v0.107.0 moved the final Setting 2 upgrade shuffle to the event-local RNG.
+        nicheRng.NextInt(1);
 
         foreach (var runPlayer in player.RunState.Players)
         {
-            FastForwardFishingRodAfterCombatEnd(runPlayer, rng, runPlayer == player ? currentPlayerDeckState : null);
+            FastForwardFishingRodAfterCombatEnd(runPlayer, nicheRng, runPlayer == player ? currentPlayerDeckState : null);
         }
 
         var slotIndex = player.RunState.GetPlayerSlotIndex(player);
@@ -81,7 +84,7 @@ internal static class BattlewornDummyPrediction
             PileType.Deck.GetPile(player.RunState.Players[i]).Cards
                 .Where(card => card?.IsUpgradable ?? false)
                 .ToList()
-                .StableShuffle(rng);
+                .StableShuffle(eventRng);
         }
     }
 

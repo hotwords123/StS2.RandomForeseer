@@ -30,18 +30,19 @@ internal static class TrialPrediction
                     3,
                     CardCreationOptions.ForNonCombatWithDefaultOdds([player.Character.CardPool]))),
             "TRIAL.pages.NONDESCRIPT.options.INNOCENT" =>
-                PredictionHoverTips.CardBundles(PredictNondescriptInnocent(player), isTransform: true),
+                PredictionHoverTips.CardBundles(PredictNondescriptInnocent(trial), isTransform: true),
             _ => []
         };
     }
 
-    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictNondescriptInnocent(Player player)
+    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictNondescriptInnocent(Trial trial)
     {
+        var player = trial.Owner!;
         // The real event adds Doubt to the deck before opening the transform selector.
         var addedCurse = PredictionUtils.CreatePreviewCard(ModelDb.Card<Doubt>(), player);
         return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
             player,
-            player.RunState.Rng.Niche,
+            trial.Rng,
             transformCount: 2,
             extraTransformableCards: [addedCurse]);
     }
