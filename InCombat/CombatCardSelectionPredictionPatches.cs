@@ -18,23 +18,10 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
         return card != null && _highlightedCards.Contains(card);
     }
 
-    [HarmonyPatch("DoCardHoverEffects")]
-    [HarmonyPostfix]
-    private static void UpdatePredictionHighlightsOnHover(NHandCardHolder __instance, bool isHovered)
+    public static void ApplyHighlightsForSource(CardModel? source)
     {
-        var source = __instance.CardNode?.Model;
         if (source == null)
         {
-            return;
-        }
-
-        if (!isHovered)
-        {
-            if (_sourceCard == source)
-            {
-                SetHighlightedCards(null, new HashSet<CardModel>());
-            }
-
             return;
         }
 
@@ -50,6 +37,29 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
         }
 
         SetHighlightedCards(source, prediction.HandCardsToHighlight);
+    }
+
+    public static void ClearHighlightsForSource(CardModel? source)
+    {
+        if (source != null && _sourceCard == source)
+        {
+            SetHighlightedCards(null, new HashSet<CardModel>());
+        }
+    }
+
+    [HarmonyPatch("DoCardHoverEffects")]
+    [HarmonyPostfix]
+    private static void UpdatePredictionHighlightsOnHover(NHandCardHolder __instance, bool isHovered)
+    {
+        var source = __instance.CardNode?.Model;
+
+        if (!isHovered)
+        {
+            ClearHighlightsForSource(source);
+            return;
+        }
+
+        ApplyHighlightsForSource(source);
     }
 
     [HarmonyPatch(nameof(NHandCardHolder.UpdateCard))]
@@ -94,5 +104,23 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
                 holder.UpdateCard();
             }
         }
+    }
+}
+
+[HarmonyPatch(typeof(NPlayerHand), "StartCardPlay")]
+internal static class CombatCardSelectionPredictionStartCardPlayHighlightPatch
+{
+    private static void Postfix(NHandCardHolder holder)
+    {
+        CombatCardSelectionPredictionHandHighlightPatches.ApplyHighlightsForSource(holder.CardModel);
+    }
+}
+
+[HarmonyPatch(typeof(NCardPlay), "Cleanup")]
+internal static class CombatCardSelectionPredictionCardPlayCleanupHighlightPatch
+{
+    private static void Postfix(NCardPlay __instance)
+    {
+        CombatCardSelectionPredictionHandHighlightPatches.ClearHighlightsForSource(__instance.Holder?.CardModel);
     }
 }
