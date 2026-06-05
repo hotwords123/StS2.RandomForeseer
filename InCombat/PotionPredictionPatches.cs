@@ -9,6 +9,11 @@ internal static class PotionPredictionHoverTipsPatch
 {
     private static void Postfix(PotionModel __instance, ref IEnumerable<IHoverTip> __result)
     {
+        if (!__instance.IsMutable)
+        {
+            return;
+        }
+
         var owner = __instance.Owner;
         if (owner == null)
         {

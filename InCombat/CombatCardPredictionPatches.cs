@@ -61,6 +61,11 @@ internal static class CombatCardPredictionHoverTipsPatch
 
     private static bool ShouldShowPredictionHoverTips(CardModel card)
     {
+        if (!card.IsMutable)
+        {
+            return false;
+        }
+
         var hand = NPlayerHand.Instance;
         return hand?.CurrentMode == NPlayerHand.Mode.Play &&
             card.Owner?.PlayerCombatState?.Phase == PlayerTurnPhase.Play &&

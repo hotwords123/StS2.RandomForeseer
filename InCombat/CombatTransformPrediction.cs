@@ -46,6 +46,11 @@ internal static class CombatTransformPrediction
 
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
     {
+        if (!card.IsMutable)
+        {
+            return [];
+        }
+
         var hand = NPlayerHand.Instance;
         if (hand == null ||
             _session is not { } session ||
