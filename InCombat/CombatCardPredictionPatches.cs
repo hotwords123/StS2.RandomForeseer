@@ -22,13 +22,25 @@ internal static class CombatCardPredictionHoverTipsPatch
 
     public static IReadOnlyList<IHoverTip> GetPredictionHoverTips(CardModel card)
     {
-        if (!ShouldShowPredictionHoverTips(card))
+        if (!card.IsMutable)
         {
             return [];
         }
 
         var predictionTips = new List<IHoverTip>();
 
+        if (ShouldShowCombatPlayPredictionHoverTips(card))
+        {
+            AddCombatPlayPredictionHoverTips(card, predictionTips);
+        }
+
+        AddCombatTransformPredictionHoverTips(card, predictionTips);
+
+        return predictionTips;
+    }
+
+    private static void AddCombatPlayPredictionHoverTips(CardModel card, List<IHoverTip> predictionTips)
+    {
         try
         {
             predictionTips.AddRange(CombatCardGenerationPrediction.GetHoverTips(card));
@@ -55,17 +67,22 @@ internal static class CombatCardPredictionHoverTipsPatch
         {
             Entry.Logger.Warn($"Combat card selection prediction failed for {card.Id}: {ex}");
         }
-
-        return predictionTips;
     }
 
-    private static bool ShouldShowPredictionHoverTips(CardModel card)
+    private static void AddCombatTransformPredictionHoverTips(CardModel card, List<IHoverTip> predictionTips)
     {
-        if (!card.IsMutable)
+        try
         {
-            return false;
+            predictionTips.AddRange(CombatTransformPrediction.GetCardHoverTips(card));
         }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat transform selection prediction failed for {card.Id}: {ex}");
+        }
+    }
 
+    private static bool ShouldShowCombatPlayPredictionHoverTips(CardModel card)
+    {
         var hand = NPlayerHand.Instance;
         return hand?.CurrentMode == NPlayerHand.Mode.Play &&
             card.Owner?.PlayerCombatState?.Phase == PlayerTurnPhase.Play &&

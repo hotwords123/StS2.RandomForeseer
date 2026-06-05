@@ -160,29 +160,6 @@ internal static class CombatTransformPredictionSessionCleanupPatch
     }
 }
 
-[HarmonyPatch(typeof(CardModel), nameof(CardModel.HoverTips), MethodType.Getter)]
-internal static class CombatTransformPredictionCardHoverTipsPatch
-{
-    private static void Postfix(CardModel __instance, ref IEnumerable<IHoverTip> __result)
-    {
-        IReadOnlyList<IHoverTip> predictionTips;
-        try
-        {
-            predictionTips = CombatTransformPrediction.GetCardHoverTips(__instance);
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Combat transform selection prediction failed for {__instance.Id}: {ex}");
-            return;
-        }
-
-        if (predictionTips.Count > 0)
-        {
-            __result = __result.Concat(predictionTips);
-        }
-    }
-}
-
 [HarmonyPatch(typeof(NSelectedHandCardHolder), "CreateHoverTips")]
 internal static class CombatTransformPredictionSelectedHoverTipsPatch
 {
