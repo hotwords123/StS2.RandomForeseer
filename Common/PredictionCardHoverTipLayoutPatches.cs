@@ -494,32 +494,52 @@ internal static class PredictionCardHoverTipLayoutPatches
         Rect2 textRect,
         Vector2 viewportSize)
     {
-        var x = sourceRect.Position.X + sourceRect.Size.X / 2f - cardSize.X / 2f;
+        var sourceCenter = sourceRect.Position + sourceRect.Size / 2f;
+        var textCenter = textRect.Position + textRect.Size / 2f;
+
+        // Keep normal vertical fallback centered on the source.
+        var centeredX = sourceCenter.X - cardSize.X / 2f;
+
+        // If possible, avoid the text by moving horizontally to the side opposite the text.
+        var horizontalAvoidX = textCenter.X <= sourceCenter.X
+            ? textRect.End.X + SideGap
+            : textRect.Position.X - cardSize.X - SideGap;
+
+        // Prefer the same above/below source placement that GetVerticalFallbackPosition would choose.
         var sourceAboveY = sourceRect.Position.Y - cardSize.Y - TopGap;
         var sourceBelowY = sourceRect.End.Y + TopGap;
+        var preferredSourceY = sourceAboveY >= ViewportMargin ? sourceAboveY : sourceBelowY;
+
+        // If horizontal avoidance is not viable, try vertical positions around the text and source.
         var textAboveY = textRect.Position.Y - cardSize.Y - TopGap;
         var textBelowY = textRect.End.Y + TopGap;
-        var sourceCenterY = sourceRect.Position.Y + sourceRect.Size.Y / 2f;
-        var preferAbove = sourceCenterY <= textRect.Position.Y + textRect.Size.Y / 2f;
-        var candidates = preferAbove
+        var preferAbove = sourceCenter.Y <= textCenter.Y;
+        var verticalCandidates = preferAbove
             ? new[] { textAboveY, sourceAboveY, textBelowY, sourceBelowY }
             : [textBelowY, sourceBelowY, textAboveY, sourceAboveY];
 
+        var candidates = verticalCandidates
+            .Select(y => new Vector2(centeredX, y))
+            .Prepend(new Vector2(horizontalAvoidX, preferredSourceY));
+
         var evaluatedCandidates = candidates
-            .Select(y =>
+            .Select(candidate =>
             {
-                var clamped = ClampToViewport(new Vector2(x, y), cardSize, viewportSize);
+                var clamped = ClampToViewport(candidate, cardSize, viewportSize);
                 var rect = new Rect2(clamped, cardSize);
                 return new FallbackCardCandidate(
                     clamped,
                     FitsWithinViewport(clamped, cardSize, viewportSize),
                     !rect.Intersects(textRect),
-                    Mathf.Abs(y + cardSize.Y / 2f - sourceCenterY));
+                    Mathf.IsEqualApprox(candidate.Y, preferredSourceY),
+                    (clamped + cardSize / 2f).DistanceTo(sourceCenter));
             })
             .ToList();
 
         return evaluatedCandidates
-            .OrderBy(candidate => candidate.Priority)
+            .OrderBy(candidate => candidate.DoesNotIntersectText ? 0 : 1)
+            .ThenBy(candidate => candidate.Fits ? 0 : 1)
+            .ThenBy(candidate => candidate.PreservesPreferredY ? 0 : 1)
             .ThenBy(candidate => candidate.DistanceFromSource)
             .First()
             .Position;
@@ -538,16 +558,8 @@ internal static class PredictionCardHoverTipLayoutPatches
         Vector2 Position,
         bool Fits,
         bool DoesNotIntersectText,
-        float DistanceFromSource)
-    {
-        public int Priority => (Fits, DoesNotIntersectText) switch
-        {
-            (true, true) => 0,
-            (false, true) => 1,
-            (true, false) => 2,
-            _ => 3
-        };
-    }
+        bool PreservesPreferredY,
+        float DistanceFromSource);
 
     private readonly record struct WrappedLayout(int Rows, float Scale);
 }
