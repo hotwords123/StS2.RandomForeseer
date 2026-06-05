@@ -84,9 +84,7 @@ internal static class CombatCardPredictionHoverTipsPatch
     private static bool ShouldShowCombatPlayPredictionHoverTips(CardModel card)
     {
         var hand = NPlayerHand.Instance;
-        return hand?.CurrentMode == NPlayerHand.Mode.Play &&
-            card.Owner?.PlayerCombatState?.Phase == PlayerTurnPhase.Play &&
-            hand.GetCardHolder(card) is NHandCardHolder;
+        return hand?.CurrentMode == NPlayerHand.Mode.Play && hand.GetCardHolder(card) is NHandCardHolder;
     }
 }
 
