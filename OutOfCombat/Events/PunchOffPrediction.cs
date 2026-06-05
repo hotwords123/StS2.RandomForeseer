@@ -35,6 +35,11 @@ internal static class PunchOffPrediction
 
     private static IReadOnlyList<IHoverTip> PredictFightRewards(Player player)
     {
+        if (!RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInAllModes))
+        {
+            return [];
+        }
+
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         CombatEndEffectPrediction.FastForwardMonsterRoomCombatEndHooks(player, rewardRng, nicheRng);
