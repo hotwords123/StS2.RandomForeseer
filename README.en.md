@@ -13,6 +13,7 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 - **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
+- **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
 - **Combat transform prediction**: shows the cards that Entropy will transform selected hand cards into during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
@@ -77,6 +78,12 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Seeker Strike (random candidates)
 - Uproar
 
+### Draw-Pile Autoplay
+
+- Havoc
+- Cascade
+- Distilled Chaos
+
 ### Combat Transform
 
 - Entropy
@@ -127,6 +134,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
 | Show selection prediction warnings | Controls whether side-effect-sensitive selection predictions show a warning, default on |
+| Predict draw-pile autoplay | Controls whether Havoc, Cascade, and Distilled Chaos show the cards that will be played from the draw pile |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict out-of-combat relic results | Controls whether Ancient relic options, relic rewards, and merchant relics show immediate random results |
 | Predict rest-site results | Controls whether rest-site options show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel |
