@@ -112,27 +112,6 @@ internal static class PredictionUtils
         return previewCard;
     }
 
-    public static CardModel ToFreeThisTurnPreviewCard(CardModel card)
-    {
-        var previewCard = (CardModel)card.MutableClone();
-        previewCard.SetToFreeThisTurn();
-        return previewCard;
-    }
-
-    public static CardModel ToFreeThisCombatPreviewCard(CardModel card)
-    {
-        var previewCard = (CardModel)card.MutableClone();
-        previewCard.SetToFreeThisCombat();
-        return previewCard;
-    }
-
-    public static CardModel ToUpgradedAndFreeThisTurnPreviewCard(CardModel card)
-    {
-        var previewCard = ToUpgradedPreviewCard(card);
-        previewCard.SetToFreeThisTurn();
-        return previewCard;
-    }
-
     public static IReadOnlyList<PotionModel> PredictOutOfCombatPotions(Player player, int count, Rng rng)
     {
         return PotionFactory.CreateRandomPotionsOutOfCombat(player, count, CloneRng(rng))

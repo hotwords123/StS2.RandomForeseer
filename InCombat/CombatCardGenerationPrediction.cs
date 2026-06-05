@@ -33,20 +33,20 @@ internal static class CombatCardGenerationPrediction
         return card switch
         {
             BundleOfJoy => PredictColorlessCards(card, card.DynamicVars.Cards.IntValue, previewRng),
-            Discovery => PredictFreeCharacterCards(card, null, 3, previewRng),
-            Distraction => PredictFreeCharacterCards(card, CardType.Skill, 1, previewRng),
-            InfernalBlade => PredictFreeCharacterCards(card, CardType.Attack, 1, previewRng),
+            Discovery => PredictCharacterCards(card, null, 3, previewRng),
+            Distraction => PredictCharacterCards(card, CardType.Skill, 1, previewRng),
+            InfernalBlade => PredictCharacterCards(card, CardType.Attack, 1, previewRng),
             JackOfAllTrades => PredictJackOfAllTrades(card, previewRng),
             Jackpot => PredictJackpot(card, previewRng),
             Largesse => PredictLargesseCards(card, previewRng),
             MadScience madScience when madScience.TinkerTimeRider == TinkerTime.RiderEffect.Chaos =>
-                PredictCharacterCards(card, null, 1, previewRng).Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList(),
+                PredictCharacterCards(card, null, 1, previewRng),
             ManifestAuthority => PredictManifestAuthority(card, previewRng),
             Metamorphosis => PredictMetamorphosis(card, previewRng),
             Quasar => PredictQuasar(card, previewRng),
             Splash => PredictSplash(card, previewRng),
             Stoke => PredictStoke(card, previewRng),
-            WhiteNoise => PredictFreeCharacterCards(card, CardType.Power, 1, previewRng),
+            WhiteNoise => PredictCharacterCards(card, CardType.Power, 1, previewRng),
             _ => []
         };
     }
@@ -58,17 +58,6 @@ internal static class CombatCardGenerationPrediction
         Rng previewRng)
     {
         return PredictionUtils.TakeRandomDistinctCharacterCardsForCombat(source.Owner, type, count, previewRng);
-    }
-
-    private static IReadOnlyList<CardModel> PredictFreeCharacterCards(
-        CardModel source,
-        CardType? type,
-        int count,
-        Rng previewRng)
-    {
-        return PredictCharacterCards(source, type, count, previewRng)
-            .Select(PredictionUtils.ToFreeThisTurnPreviewCard)
-            .ToList();
     }
 
     private static IReadOnlyList<CardModel> PredictColorlessCards(CardModel source, int count, Rng previewRng)
@@ -111,9 +100,7 @@ internal static class CombatCardGenerationPrediction
         var candidates = PredictionUtils.GetUnlockedCharacterCards(owner)
             .Where(card => card.Type == CardType.Attack);
 
-        return PredictionUtils.TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng)
-            .Select(PredictionUtils.ToFreeThisCombatPreviewCard)
-            .ToList();
+        return PredictionUtils.TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng);
     }
 
     private static IReadOnlyList<CardModel> PredictQuasar(CardModel source, Rng previewRng)
@@ -139,8 +126,8 @@ internal static class CombatCardGenerationPrediction
         var cards = PredictionUtils.TakeRandomDistinctForCombat(owner, candidates, 3, previewRng);
 
         return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedAndFreeThisTurnPreviewCard).ToList()
-            : cards.Select(PredictionUtils.ToFreeThisTurnPreviewCard).ToList();
+            ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
+            : cards;
     }
 
     private static IReadOnlyList<CardModel> PredictStoke(CardModel source, Rng previewRng)
