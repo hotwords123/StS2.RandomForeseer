@@ -13,6 +13,7 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 - **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
+- **Combat transform prediction**: shows the cards that Entropy will transform selected hand cards into during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Out-of-combat relic result prediction**: shows immediate random results when hovering Neow and other Ancient relic options, relic rewards, and merchant relics.
 - **Rest-site result prediction**: shows random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel when hovering rest-site options.
@@ -76,6 +77,10 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Seeker Strike (random candidates)
 - Uproar
 
+### Combat Transform
+
+- Entropy
+
 ### Card Rewards
 
 - Driftwood reroll
@@ -116,6 +121,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Enable multiplayer prediction | Controls whether any prediction results are shown in multiplayer, default on |
 | Enable fair mode | Limits predictions to information obtainable through Save & Load, default on |
 | Predict transform results | Controls whether transform selection grid hover tips and confirmation previews show predicted cards |
+| Predict combat transform results | Controls whether combat transform selections show predicted cards |
 | Predict potion card results | Controls whether random-card-generation potions show predicted cards |
 | Predict potion generation | Controls whether Entropic Brew and Alchemize show predicted potions |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |

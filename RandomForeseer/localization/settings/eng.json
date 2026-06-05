@@ -32,6 +32,8 @@
   "toggle.enable_combat_card_selection_prediction.description": "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select.",
   "toggle.enable_combat_card_selection_drift_warnings.label": "Show selection prediction warnings",
   "toggle.enable_combat_card_selection_drift_warnings.description": "When enabled, card selection predictions that may be shifted by damage, block, draw, death, or autoplay side effects show a warning tooltip.",
+  "toggle.enable_combat_transform_prediction.label": "Predict combat transform results",
+  "toggle.enable_combat_transform_prediction.description": "When enabled, combat transform selections show the exact card the current RNG will produce.",
   "toggle.enable_driftwood_reroll_prediction.label": "Predict Driftwood rerolls",
   "toggle.enable_driftwood_reroll_prediction.description": "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer.",
   "toggle.enable_out_of_combat_relic_prediction.label": "Predict out-of-combat relic results",
