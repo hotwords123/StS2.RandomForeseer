@@ -54,15 +54,11 @@ internal static class PredictionHoverTips
         return [tip];
     }
 
-    // Relics passed here must already be mutable previews; event options and predicted relic rewards
-    // create mutable relic instances at their source.
     public static IReadOnlyList<IHoverTip> Relics(IEnumerable<RelicModel> relics)
     {
         return relics.Select(relic => (IHoverTip)CreatePredictionTextHoverTip(relic.HoverTip)).ToList();
     }
 
-    // Potions passed here must already be mutable previews; PotionFactory returns canonical models,
-    // so callers should mirror real obtain/reward paths and convert with ToMutable() before calling.
     public static IReadOnlyList<IHoverTip> Potions(IEnumerable<PotionModel> potions)
     {
         return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();

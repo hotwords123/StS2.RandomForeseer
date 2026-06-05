@@ -134,10 +134,7 @@ internal static class CombatTransformPrediction
         private static CardModel? PredictTransformResult(CardModel original, Rng rng)
         {
             var options = CardFactory.GetDefaultTransformationOptions(original, isInCombat: true);
-            var canonical = rng.NextItem(options);
-            return canonical == null
-                ? null
-                : PredictionUtils.CreatePreviewCard(canonical, original.Owner);
+            return rng.NextItem(options);
         }
     }
 }

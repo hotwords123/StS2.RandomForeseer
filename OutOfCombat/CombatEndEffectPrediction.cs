@@ -74,7 +74,7 @@ internal static class CombatEndEffectPrediction
         var card = nicheRng.NextItem(candidates);
         if (card != null && deckState != null)
         {
-            PredictionUtils.UpgradePreviewCardInPlace(card);
+            PredictionUtils.UpgradeCardInPlace(card);
         }
     }
 
@@ -97,7 +97,7 @@ internal static class CombatEndEffectPrediction
 
         var card = CardModel.FromSerializable(serializableCard);
         card.Owner = player;
-        PredictionUtils.UpgradePreviewCardInPlace(card);
+        PredictionUtils.UpgradeCardInPlace(card);
         deckState.Add(card);
     }
 }

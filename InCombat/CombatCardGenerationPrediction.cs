@@ -82,7 +82,7 @@ internal static class CombatCardGenerationPrediction
         var cards = PredictionUtils.TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng);
 
         return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
+            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
             : cards;
     }
 
@@ -90,7 +90,7 @@ internal static class CombatCardGenerationPrediction
     {
         var cards = PredictColorlessCards(source, 1, previewRng);
         return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
+            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
             : cards;
     }
 
@@ -107,7 +107,7 @@ internal static class CombatCardGenerationPrediction
     {
         var cards = PredictColorlessCards(source, 3, previewRng);
         return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
+            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
             : cards;
     }
 
@@ -126,7 +126,7 @@ internal static class CombatCardGenerationPrediction
         var cards = PredictionUtils.TakeRandomDistinctForCombat(owner, candidates, 3, previewRng);
 
         return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
+            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
             : cards;
     }
 
@@ -143,7 +143,7 @@ internal static class CombatCardGenerationPrediction
         var cards = PredictionUtils.TakeRandomForCombat(owner, candidates, cardsToExhaust, previewRng);
 
         return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedPreviewCard).ToList()
+            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
             : cards;
     }
 
@@ -188,12 +188,8 @@ internal static class CombatCardGenerationPrediction
             return null;
         }
 
-        var preview = PredictionUtils.CreatePreviewCard(card, target);
-        if (source.IsUpgraded)
-        {
-            PredictionUtils.UpgradePreviewCardInPlace(preview);
-        }
-
-        return preview;
+        return source.IsUpgraded
+            ? PredictionUtils.ToUpgradedCard(card)
+            : card;
     }
 }

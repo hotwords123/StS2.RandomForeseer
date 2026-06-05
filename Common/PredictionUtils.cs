@@ -88,15 +88,15 @@ internal static class PredictionUtils
             .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
     }
 
-    public static CardModel CreatePreviewCard(CardModel canonical, Player player)
+    public static CardModel CreateCard(CardModel canonical, Player player)
     {
-        var preview = canonical.CanonicalInstance.ToMutable();
-        preview.Owner = player;
-        preview.AfterCreated();
-        return preview;
+        var card = canonical.ToMutable();
+        card.Owner = player;
+        card.AfterCreated();
+        return card;
     }
 
-    public static void UpgradePreviewCardInPlace(CardModel previewCard)
+    public static void UpgradeCardInPlace(CardModel previewCard)
     {
         if (previewCard.IsUpgradable)
         {
@@ -105,10 +105,10 @@ internal static class PredictionUtils
         }
     }
 
-    public static CardModel ToUpgradedPreviewCard(CardModel card)
+    public static CardModel ToUpgradedCard(CardModel card)
     {
         var previewCard = (CardModel)card.MutableClone();
-        UpgradePreviewCardInPlace(previewCard);
+        UpgradeCardInPlace(previewCard);
         return previewCard;
     }
 
@@ -132,14 +132,14 @@ internal static class PredictionUtils
         return PotionFactory.CreateRandomPotionInCombat(player, CloneRng(rng)).ToMutable();
     }
 
-    private static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)
+    public static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)
     {
         return player.RunState.Players.Count > 1
             ? cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.SingleplayerOnly)
             : cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.MultiplayerOnly);
     }
 
-    private static IEnumerable<CardModel> FilterForCombat(IEnumerable<CardModel> cards)
+    public static IEnumerable<CardModel> FilterForCombat(IEnumerable<CardModel> cards)
     {
         return cards
             .Where(card => card.CanBeGeneratedInCombat)

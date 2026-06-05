@@ -54,7 +54,7 @@ internal static class BattlewornDummyPrediction
             .ToList()
             .StableShuffle(eventRng)
             .Take(2)
-            .Select(PredictionUtils.ToUpgradedPreviewCard)
+            .Select(PredictionUtils.ToUpgradedCard)
             .ToList();
     }
 

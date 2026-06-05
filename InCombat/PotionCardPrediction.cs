@@ -36,7 +36,7 @@ internal static class PotionCardPrediction
             PowerPotion => PredictCharacterCards(potion, CardType.Power, 3, previewRng),
             ColorlessPotion => PredictColorlessCards(potion, 3, previewRng),
             CosmicConcoction => PredictColorlessCards(potion, potion.DynamicVars.Cards.IntValue, previewRng)
-                .Select(PredictionUtils.ToUpgradedPreviewCard)
+                .Select(PredictionUtils.ToUpgradedCard)
                 .ToList(),
             OrobicAcid => PredictOrobicAcid(potion, previewRng),
             _ => []

@@ -80,7 +80,7 @@ internal static class OutOfCombatPredictionUtils
     {
         var options = CardFactory.GetDefaultTransformationOptions(original, isInCombat);
         var canonical = rng.NextItem(options) ?? throw new InvalidOperationException($"Could not predict a transform result for {original.Id}.");
-        return PredictionUtils.CreatePreviewCard(canonical, original.Owner);
+        return canonical.ToMutable();
     }
 
     public static IReadOnlyList<IReadOnlyList<CardModel>> PredictDistinctDeckTransformResultBundles(
@@ -91,7 +91,7 @@ internal static class OutOfCombatPredictionUtils
         IEnumerable<CardModel>? extraTransformableCards = null)
     {
         return Enumerable.Range(0, transformCount)
-            .Select(slot => (IReadOnlyList<CardModel>)PredictDistinctDeckTransformResults(
+            .Select(slot => PredictDistinctDeckTransformResults(
                 player,
                 realRng,
                 afterGenerated,
@@ -144,7 +144,7 @@ internal static class OutOfCombatPredictionUtils
             .ToList()
             .StableShuffle(rng)
             .Take(count)
-            .Select(PredictionUtils.ToUpgradedPreviewCard)
+            .Select(PredictionUtils.ToUpgradedCard)
             .ToList();
     }
 
@@ -169,7 +169,7 @@ internal static class OutOfCombatPredictionUtils
             }
 
             candidates.Remove(card);
-            cards.Add(PredictionUtils.ToUpgradedPreviewCard(card));
+            cards.Add(PredictionUtils.ToUpgradedCard(card));
         }
 
         return cards;

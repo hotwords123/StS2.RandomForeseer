@@ -97,7 +97,7 @@ internal static class CombatCardSelectionPrediction
         return PileType.Discard.GetPile(source.Owner).Cards
             .Where(card => card.IsUpgradable)
             .TakeRandom(source.DynamicVars.Cards.IntValue, previewRng)
-            .Select(PredictionUtils.ToUpgradedPreviewCard)
+            .Select(PredictionUtils.ToUpgradedCard)
             .ToList();
     }
 
@@ -113,7 +113,6 @@ internal static class CombatCardSelectionPrediction
         return PileType.Draw.GetPile(source.Owner).Cards
             .Where(card => card.Rarity == CardRarity.Rare)
             .TakeRandom(count, previewRng)
-            .Select(ToExistingCardPreview)
             .ToList();
     }
 
@@ -123,7 +122,6 @@ internal static class CombatCardSelectionPrediction
             .ToList()
             .StableShuffle(previewRng)
             .Take(source.DynamicVars.Cards.IntValue)
-            .Select(ToExistingCardPreview)
             .ToList();
     }
 
@@ -143,21 +141,14 @@ internal static class CombatCardSelectionPrediction
             .StableShuffle(previewRng)
             .FirstOrDefault();
 
-        return predicted == null
-            ? null
-            : ToExistingCardPreview(predicted);
-    }
-
-    private static CardModel ToExistingCardPreview(CardModel card)
-    {
-        return (CardModel)card.MutableClone();
+        return predicted;
     }
 
     private static CombatCardSelectionPredictionResult HighlightHandCard(CardModel? card)
     {
         return card == null
             ? CombatCardSelectionPredictionResult.Empty
-            : new CombatCardSelectionPredictionResult([ToExistingCardPreview(card)], new HashSet<CardModel> { card });
+            : new CombatCardSelectionPredictionResult([card], new HashSet<CardModel> { card });
     }
 
     private static CombatCardSelectionPredictionResult HoverTipCards(CardModel? card)

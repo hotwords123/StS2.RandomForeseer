@@ -47,7 +47,7 @@ internal static class TheFutureOfPotionsPrediction
             PredictionUtils.CloneRng(player.PlayerRng.Rewards),
             PredictionUtils.CloneRng(player.RunState.Rng.Niche),
             afterGenerated: null)
-            .Select(PredictionUtils.ToUpgradedPreviewCard)
+            .Select(PredictionUtils.ToUpgradedCard)
             .ToList();
 
         return PredictionHoverTips.Cards(cards);

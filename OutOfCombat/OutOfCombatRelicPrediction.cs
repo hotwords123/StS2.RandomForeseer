@@ -195,7 +195,7 @@ internal static class OutOfCombatRelicPrediction
             bundles.Add(OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(
                 player,
                 player.RunState.Rng.Niche,
-                PredictionUtils.UpgradePreviewCardInPlace,
+                PredictionUtils.UpgradeCardInPlace,
                 rngCounterOffset: slot));
         }
 
@@ -298,7 +298,7 @@ internal static class OutOfCombatRelicPrediction
             }
 
             availableCurses.Remove(card);
-            curses.Add(PredictionUtils.CreatePreviewCard(card, player));
+            curses.Add(card);
         }
 
         return curses;
@@ -399,11 +399,7 @@ internal static class OutOfCombatRelicPrediction
             if (isDefect && rewards.NextInt(100) < 1)
             {
                 var claw = ModelDb.Card<Claw>();
-                bundles.Add([
-                    PredictionUtils.CreatePreviewCard(claw, player),
-                    PredictionUtils.CreatePreviewCard(claw, player),
-                    PredictionUtils.CreatePreviewCard(claw, player)
-                ]);
+                bundles.Add([claw, claw, claw]);
                 continue;
             }
 
@@ -411,22 +407,22 @@ internal static class OutOfCombatRelicPrediction
             var availableCommon = commonCards.Where(card => !usedCardIds.Contains(card.Id)).ToList();
             for (var i = 0; i < 2; i++)
             {
-                var card = rewards.NextItem(availableCommon);
-                if (card == null)
+                var common = rewards.NextItem(availableCommon);
+                if (common == null)
                 {
                     break;
                 }
 
-                bundle.Add(PredictionUtils.CreatePreviewCard(card, player));
-                usedCardIds.Add(card.Id);
-                availableCommon.Remove(card);
+                bundle.Add(common);
+                usedCardIds.Add(common.Id);
+                availableCommon.Remove(common);
             }
 
             var availableUncommon = uncommonCards.Where(card => !usedCardIds.Contains(card.Id)).ToList();
             var uncommon = rewards.NextItem(availableUncommon);
             if (uncommon != null)
             {
-                bundle.Add(PredictionUtils.CreatePreviewCard(uncommon, player));
+                bundle.Add(uncommon);
                 usedCardIds.Add(uncommon.Id);
             }
 

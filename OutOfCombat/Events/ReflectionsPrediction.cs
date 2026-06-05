@@ -60,7 +60,7 @@ internal static class ReflectionsPrediction
             }
 
             upgradableCards.Remove(card);
-            previews.Add(PredictionUtils.ToUpgradedPreviewCard(card));
+            previews.Add(PredictionUtils.ToUpgradedCard(card));
         }
 
         return previews;

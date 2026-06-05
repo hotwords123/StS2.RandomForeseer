@@ -18,13 +18,9 @@ internal static class TrashHeapPrediction
         return option.TextKey switch
         {
             "TRASH_HEAP.pages.INITIAL.options.DIVE_IN" =>
-                OutOfCombatPredictionUtils.RelicTipsWithPickup(trashHeap.Owner!, [rng.NextItem(TrashHeap.Relics)!.ToMutable()]),
+                OutOfCombatPredictionUtils.RelicTipsWithPickup(trashHeap.Owner!, [rng.NextItem(TrashHeap.Relics)!]),
             "TRASH_HEAP.pages.INITIAL.options.GRAB" =>
-                PredictionHoverTips.Cards([
-                    PredictionUtils.CreatePreviewCard(
-                        rng.NextItem(TrashHeap.Cards)!,
-                        trashHeap.Owner!)
-                ]),
+                PredictionHoverTips.Cards([rng.NextItem(TrashHeap.Cards)!]),
             _ => []
         };
     }

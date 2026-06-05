@@ -56,7 +56,7 @@ internal static class TransformPreviewPredictor
             return new CardTransformation(
                 original,
                 _upgradePreview
-                    ? PredictionUtils.ToUpgradedPreviewCard(predicted)
+                    ? PredictionUtils.ToUpgradedCard(predicted)
                     : predicted);
         }
     }

@@ -93,7 +93,7 @@ internal static class CardRewardPrediction
         var possibleCards = options.GetPossibleCards(player)
             .Except(blacklist)
             .ToList();
-        var filteredCards = FilterForPlayerCount(player, possibleCards).ToArray();
+        var filteredCards = PredictionUtils.FilterForPlayerCount(player, possibleCards).ToArray();
         var selectedRarity = (CardRarity?)null;
 
         IEnumerable<CardModel> candidates;
@@ -126,7 +126,7 @@ internal static class CardRewardPrediction
                 $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
         }
 
-        return PredictionUtils.CreatePreviewCard(canonical, player);
+        return canonical.ToMutable();
     }
 
     private static CardRarity RollForRarity(
@@ -180,7 +180,7 @@ internal static class CardRewardPrediction
         originalOdds = Hook.ModifyCardRewardUpgradeOdds(player.RunState, player, card, originalOdds);
         if (roll <= originalOdds)
         {
-            PredictionUtils.UpgradePreviewCardInPlace(card);
+            PredictionUtils.UpgradeCardInPlace(card);
         }
     }
 
@@ -332,7 +332,7 @@ internal static class CardRewardPrediction
         {
             if (result.Card.Type == type && result.Card.IsUpgradable)
             {
-                result.ModifyCard(UpgradePreview(result.Card), relic);
+                result.ModifyCard(PredictionUtils.ToUpgradedCard(result.Card), relic);
             }
         }
     }
@@ -397,7 +397,7 @@ internal static class CardRewardPrediction
         {
             if (result.Card.IsUpgradable)
             {
-                var upgradedCard = UpgradePreview(result.Card);
+                var upgradedCard = PredictionUtils.ToUpgradedCard(result.Card);
                 if (modifyingRelic != null)
                 {
                     result.ModifyCard(upgradedCard, modifyingRelic);
@@ -432,17 +432,10 @@ internal static class CardRewardPrediction
         }
     }
 
-    private static CardModel UpgradePreview(CardModel card)
-    {
-        var preview = ClonePreviewCard(card);
-        PredictionUtils.UpgradePreviewCardInPlace(preview);
-        return preview;
-    }
-
     private static CardModel EnchantPreview<T>(CardModel card, decimal amount)
         where T : EnchantmentModel
     {
-        var preview = ClonePreviewCard(card);
+        var preview = (CardModel)card.MutableClone();
         var enchantment = ModelDb.Enchantment<T>().ToMutable();
         if (preview.Enchantment == null)
         {
@@ -456,18 +449,6 @@ internal static class CardRewardPrediction
 
         preview.FinalizeUpgradeInternal();
         return preview;
-    }
-
-    private static CardModel ClonePreviewCard(CardModel card)
-    {
-        return (CardModel)card.ClonePreservingMutability();
-    }
-
-    private static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)
-    {
-        return player.RunState.Players.Count > 1
-            ? cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.SingleplayerOnly)
-            : cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.MultiplayerOnly);
     }
 
     private static IEnumerable<AbstractModel> IterateResultModifiers(

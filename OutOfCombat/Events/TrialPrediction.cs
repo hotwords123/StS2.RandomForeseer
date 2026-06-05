@@ -39,7 +39,7 @@ internal static class TrialPrediction
     {
         var player = trial.Owner!;
         // The real event adds Doubt to the deck before opening the transform selector.
-        var addedCurse = PredictionUtils.CreatePreviewCard(ModelDb.Card<Doubt>(), player);
+        var addedCurse = PredictionUtils.CreateCard(ModelDb.Card<Doubt>(), player);
         return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
             player,
             trial.Rng,
