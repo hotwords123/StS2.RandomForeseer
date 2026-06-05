@@ -102,23 +102,20 @@ internal static class PredictionCardHoverTipLayoutPatches
         // Vanilla positions card tips here, then NHoverTipSet.SetAlignment*/CorrectHorizontalOverflow decides
         // whether card and text tips should stay on opposite sides or move to the same side. Keep this prefix
         // limited to prediction-card sizing/wrapping so the vanilla horizontal fallback still gets the first try.
+        var layout = GetBestWrappedLayout(tips, availableWidth);
+        var scaledSize = ApplyWrappedLayout(tips, layout.Scale, layout.Rows);
+        __instance.Size = scaledSize;
         if (!SourceRects.TryGetValue(__instance, out _))
         {
             // Without a source rect we cannot place a vertical fallback around the hovered object reliably, so keep
             // the old conservative behavior: fit the prediction cards to the side and clamp them into the viewport.
-            var sideLayout = GetBestWrappedLayout(tips, availableWidth);
-            var scaledSideSize = ApplyWrappedLayout(tips, sideLayout.Scale, sideLayout.Rows);
-            __instance.Size = scaledSideSize;
             __instance.GlobalPosition = ClampToViewport(
-                GetSidePosition(globalStartLocation, alignment, scaledSideSize),
-                scaledSideSize,
+                GetSidePosition(globalStartLocation, alignment, scaledSize),
+                scaledSize,
                 viewportSize);
             return false;
         }
 
-        var layout = GetBestWrappedLayout(tips, availableWidth);
-        var scaledSize = ApplyWrappedLayout(tips, layout.Scale, layout.Rows);
-        __instance.Size = scaledSize;
         // Do not choose the mod's top/bottom fallback yet. The NHoverTipSet postfix below runs after vanilla's
         // CorrectHorizontalOverflow, so vertical fallback is reserved for cases vanilla still cannot keep visible.
         __instance.GlobalPosition = GetSidePosition(globalStartLocation, alignment, scaledSize);
@@ -386,6 +383,11 @@ internal static class PredictionCardHoverTipLayoutPatches
             position.Y + size.Y <= viewportSize.Y - ViewportMargin;
     }
 
+    private static bool FitsHorizontallyWithinViewport(Rect2 rect, Vector2 viewportSize)
+    {
+        return rect.Position.X >= 0f && rect.End.X <= viewportSize.X;
+    }
+
     private static float Clamp(float value, float min, float max)
     {
         return max < min
@@ -425,10 +427,10 @@ internal static class PredictionCardHoverTipLayoutPatches
             : cardRect;
 
         // This is called from SetAlignment*/SetAlignmentForCardHolder postfixes, after vanilla has already had
-        // a chance to place both containers. If either the card rect or the combined rect still overflows, replace
-        // that arrangement with the prediction fallback layout.
-        if (FitsWithinViewport(cardRect.Position, cardRect.Size, viewportSize) &&
-            FitsWithinViewport(combinedRect.Position, combinedRect.Size, viewportSize))
+        // a chance to place both containers. Vanilla also clamps vertical overflow before its horizontal fallback,
+        // so reserve the prediction top/bottom fallback for cases that still cannot fit horizontally.
+        if (FitsHorizontallyWithinViewport(cardRect, viewportSize) &&
+            FitsHorizontallyWithinViewport(combinedRect, viewportSize))
         {
             return;
         }
