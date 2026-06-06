@@ -120,25 +120,18 @@ internal static class OutOfCombatPredictionUtils
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
 
         return Enumerable.Range(0, rewardCount)
-            .Select(_ => (IReadOnlyList<CardModel>)PredictCards(player, optionCount, options, rewardRng, nicheRng))
+            .Select(_ => PredictCards(player, optionCount, options, rewardRng, nicheRng))
             .ToList();
     }
 
     public static IReadOnlyList<CardModel> PredictUpgradedDeckCards(
         Player player,
         int count,
-        Func<CardModel, bool> filter)
-    {
-        return PredictUpgradedDeckCards(player, count, filter, player.RunState.Rng.Niche);
-    }
-
-    public static IReadOnlyList<CardModel> PredictUpgradedDeckCards(
-        Player player,
-        int count,
         Func<CardModel, bool> filter,
-        Rng realRng)
+        Rng? rng = null)
     {
-        var rng = PredictionUtils.CloneRng(realRng);
+        rng ??= PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+
         return PileType.Deck.GetPile(player).Cards
             .Where(filter)
             .ToList()
@@ -152,9 +145,8 @@ internal static class OutOfCombatPredictionUtils
         Player player,
         int count,
         Func<CardModel, bool> filter,
-        Rng realRng)
+        Rng rng)
     {
-        var rng = PredictionUtils.CloneRng(realRng);
         var candidates = PileType.Deck.GetPile(player).Cards
             .Where(filter)
             .ToList();
@@ -179,9 +171,8 @@ internal static class OutOfCombatPredictionUtils
         Player player,
         int count,
         Func<CardModel, bool> filter,
-        Rng realRng)
+        Rng rng)
     {
-        var rng = PredictionUtils.CloneRng(realRng);
         var candidates = PileType.Deck.GetPile(player).Cards
             .Where(filter)
             .ToList();
@@ -204,18 +195,15 @@ internal static class OutOfCombatPredictionUtils
         return cards;
     }
 
-    public static IReadOnlyList<PotionModel> PredictUniformPotions(Player player, int count, Rng rng)
-    {
-        return PredictUniformPotions(player, count, rng, potion => true);
-    }
-
     public static IReadOnlyList<PotionModel> PredictUniformPotions(
         Player player,
         int count,
-        Rng rng,
-        Func<PotionModel, bool> filter)
+        Rng? rng = null,
+        Func<PotionModel, bool>? filter = null)
     {
-        var previewRng = PredictionUtils.CloneRng(rng);
+        rng ??= PredictionUtils.CloneRng(player.PlayerRng.Rewards);
+        filter ??= (_ => true);
+
         var options = player.Character.PotionPool
             .GetUnlockedPotions(player.UnlockState)
             .Concat(ModelDb.PotionPool<SharedPotionPool>().GetUnlockedPotions(player.UnlockState))
@@ -225,7 +213,7 @@ internal static class OutOfCombatPredictionUtils
 
         for (var i = 0; i < count; i++)
         {
-            var potion = previewRng.NextItem(options);
+            var potion = rng.NextItem(options);
             if (potion == null)
             {
                 break;
@@ -235,6 +223,13 @@ internal static class OutOfCombatPredictionUtils
         }
 
         return potions;
+    }
+
+    public static IReadOnlyList<PotionModel> PredictPotionRewards(Player player, int count, Rng rng)
+    {
+        return Enumerable.Range(0, count)
+            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, rng))
+            .ToList();
     }
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count)

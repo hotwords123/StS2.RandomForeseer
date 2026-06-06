@@ -50,10 +50,10 @@ internal static class RelicPickupPrediction
                 NewLeaf when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictNewLeaf(player)),
                 PhialHolster when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Potions(PredictionUtils.PredictOutOfCombatPotions(
+                    PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
-                        player.RunState.Rng.CombatPotionGeneration)),
+                        PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))),
                 ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player), isVanillaCardBundle: true),
                 SilkenTress silkenTress when IsAllModesUnfairPredictionAllowed() =>
                     PredictSilkenTressRewardTips(player, silkenTress),
@@ -73,10 +73,10 @@ internal static class RelicPickupPrediction
 
                 // Orobas
                 AlchemicalCoffer when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Potions(PredictionUtils.PredictOutOfCombatPotions(
+                    PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["PotionSlots"].IntValue,
-                        player.RunState.Rng.CombatPotionGeneration)),
+                        PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))),
                 GlassEye => PredictionHoverTips.CardBundles(PredictGlassEyeBundles(player)),
                 SandCastle when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictSandCastle(player, relic.DynamicVars.Cards.IntValue)),
@@ -90,10 +90,10 @@ internal static class RelicPickupPrediction
                     PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
 
                 // Non-Ancient relics
-                Cauldron => PredictionHoverTips.Potions(PredictionUtils.PredictOutOfCombatPotionRewards(
+                Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
                     player,
                     relic.DynamicVars["Potions"].IntValue,
-                    player.PlayerRng.Rewards)),
+                    PredictionUtils.CloneRng(player.PlayerRng.Rewards))),
                 FragrantMushroom => PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
                     player,
                     relic.DynamicVars.Cards.IntValue,

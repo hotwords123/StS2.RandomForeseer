@@ -1,10 +1,12 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
 using RandomForeseer.Common;
+using RandomForeseer.OutOfCombat;
 
 namespace RandomForeseer.InCombat;
 
@@ -39,10 +41,10 @@ internal static class PotionGenerationPrediction
     {
         return potion switch
         {
-            EntropicBrew => PredictionUtils.PredictOutOfCombatPotionRewards(
+            EntropicBrew => OutOfCombatPredictionUtils.PredictPotionRewards(
                 player,
                 player.PotionSlots.Count,
-                player.RunState.Rng.CombatPotionGeneration),
+                PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration)),
             _ => []
         };
     }
@@ -51,7 +53,9 @@ internal static class PotionGenerationPrediction
     {
         return card switch
         {
-            Alchemize => [PredictionUtils.PredictInCombatPotion(card.Owner, card.Owner.RunState.Rng.CombatPotionGeneration)],
+            Alchemize => [PotionFactory.CreateRandomPotionInCombat(
+                card.Owner,
+                PredictionUtils.CloneRng(card.Owner.RunState.Rng.CombatPotionGeneration))],
             _ => []
         };
     }

@@ -15,7 +15,11 @@ internal static class DoorsOfLightAndDarkPrediction
     private static IReadOnlyList<IHoverTip> GetHoverTips(DoorsOfLightAndDark doors, EventOption option)
     {
         return option.TextKey == "DOORS_OF_LIGHT_AND_DARK.pages.INITIAL.options.LIGHT"
-            ? PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(doors.Owner!, 2, card => card.IsUpgradable, doors.Rng))
+            ? PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
+                doors.Owner!,
+                2,
+                card => card.IsUpgradable,
+                PredictionUtils.CloneRng(doors.Rng)))
             : [];
     }
 }

@@ -21,7 +21,11 @@ internal static class EndlessConveyorPrediction
         return option.TextKey switch
         {
             "ENDLESS_CONVEYOR.pages.INITIAL.options.OBSERVE_CHEF" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCardsByNextItem(player, 1, card => card.IsUpgradable, endlessConveyor.Rng)),
+                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCardsByNextItem(
+                    player,
+                    1,
+                    card => card.IsUpgradable,
+                    PredictionUtils.CloneRng(endlessConveyor.Rng))),
             "ENDLESS_CONVEYOR.pages.ALL.options.FRIED_EEL" =>
                 PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(
                     player,
@@ -30,12 +34,13 @@ internal static class EndlessConveyorPrediction
             "ENDLESS_CONVEYOR.pages.ALL.options.JELLY_LIVER" =>
                 PredictionHoverTips.Cards(PredictJellyLiver(endlessConveyor)),
             "ENDLESS_CONVEYOR.pages.ALL.options.SUSPICIOUS_CONDIMENT" =>
-                PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(
+                PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(player, 1)),
+            "ENDLESS_CONVEYOR.pages.ALL.options.SPICY_SNAPPY" =>
+                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCardsByNextItem(
                     player,
                     1,
-                    player.PlayerRng.Rewards)),
-            "ENDLESS_CONVEYOR.pages.ALL.options.SPICY_SNAPPY" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCardsByNextItem(player, 1, card => card.IsUpgradable, endlessConveyor.Rng)),
+                    card => card.IsUpgradable,
+                    PredictionUtils.CloneRng(endlessConveyor.Rng))),
             _ => []
         };
     }

@@ -19,7 +19,11 @@ internal static class TabletOfTruthPrediction
             "TABLET_OF_TRUTH.pages.DECIPHER_1.options.DECIPHER" or
             "TABLET_OF_TRUTH.pages.DECIPHER_2.options.DECIPHER" or
             "TABLET_OF_TRUTH.pages.DECIPHER_3.options.DECIPHER"
-            ? PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCardsByNextItem(tabletOfTruth.Owner!, 1, card => card.IsUpgradable, tabletOfTruth.Rng))
+            ? PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCardsByNextItem(
+                tabletOfTruth.Owner!,
+                1,
+                card => card.IsUpgradable,
+                PredictionUtils.CloneRng(tabletOfTruth.Rng)))
             : [];
     }
 }

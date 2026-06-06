@@ -2,11 +2,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.RestSite;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
-using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
@@ -79,7 +77,7 @@ internal static class RestSitePredictionFocusPatch
                 }
                 case TinyMailbox:
                 {
-                    var potions = PredictPotionRewards(player, 2, rewardRng);
+                    var potions = OutOfCombatPredictionUtils.PredictPotionRewards(player, 2, rewardRng);
                     tips.AddRange(PredictionHoverTips.Potions(potions));
                     break;
                 }
@@ -87,11 +85,6 @@ internal static class RestSitePredictionFocusPatch
         }
 
         return tips;
-    }
-
-    private static IReadOnlyList<PotionModel> PredictPotionRewards(Player player, int count, Rng rewardRng)
-    {
-        return PredictionUtils.PredictOutOfCombatPotionRewards(player, count, rewardRng);
     }
 }
 

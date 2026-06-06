@@ -15,10 +15,7 @@ internal static class TheLegendsWereTruePrediction
     private static IReadOnlyList<IHoverTip> GetHoverTips(TheLegendsWereTrue legends, EventOption option)
     {
         return option.TextKey == "THE_LEGENDS_WERE_TRUE.pages.INITIAL.options.SLOWLY_FIND_AN_EXIT"
-            ? PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(
-                legends.Owner!,
-                1,
-                legends.Owner!.PlayerRng.Rewards))
+            ? PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(legends.Owner!, 1))
             : [];
     }
 }

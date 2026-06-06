@@ -21,7 +21,11 @@ internal static class WelcomeToWongosPrediction
             "WELCOME_TO_WONGOS.pages.INITIAL.options.BARGAIN_BIN" =>
                 OutOfCombatPredictionUtils.RelicTipsWithPickup(player, OutOfCombatPredictionUtils.PredictRelicRewards(player, [RelicRarity.Common], relic => relic.IsAllowedInShops)),
             "WELCOME_TO_WONGOS.pages.INITIAL.options.LEAVE" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictDowngradedDeckCardsByNextItem(player, 1, card => card.IsUpgraded, welcomeToWongos.Rng)),
+                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictDowngradedDeckCardsByNextItem(
+                    player,
+                    1,
+                    card => card.IsUpgraded,
+                    PredictionUtils.CloneRng(welcomeToWongos.Rng))),
             _ => []
         };
     }

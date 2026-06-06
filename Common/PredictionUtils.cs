@@ -135,24 +135,6 @@ internal static class PredictionUtils
         return relic;
     }
 
-    public static IReadOnlyList<PotionModel> PredictOutOfCombatPotions(Player player, int count, Rng rng)
-    {
-        return PotionFactory.CreateRandomPotionsOutOfCombat(player, count, CloneRng(rng));
-    }
-
-    public static IReadOnlyList<PotionModel> PredictOutOfCombatPotionRewards(Player player, int count, Rng rng)
-    {
-        var previewRng = CloneRng(rng);
-        return Enumerable.Range(0, count)
-            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, previewRng))
-            .ToList();
-    }
-
-    public static PotionModel PredictInCombatPotion(Player player, Rng rng)
-    {
-        return PotionFactory.CreateRandomPotionInCombat(player, CloneRng(rng));
-    }
-
     public static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)
     {
         return player.RunState.Players.Count > 1

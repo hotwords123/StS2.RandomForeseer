@@ -17,7 +17,10 @@ internal static class PotionCourierPrediction
     {
         var player = potionCourier.Owner!;
         return option.TextKey == "POTION_COURIER.pages.INITIAL.options.RANSACK"
-            ? PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(player, 1, player.PlayerRng.Rewards, potion => potion.Rarity == PotionRarity.Uncommon))
+            ? PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(
+                player,
+                1,
+                filter: potion => potion.Rarity == PotionRarity.Uncommon))
             : [];
     }
 }

@@ -25,10 +25,7 @@ internal static class BattlewornDummyPrediction
         return option.TextKey switch
         {
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_1" =>
-                PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(
-                    player,
-                    1,
-                    player.PlayerRng.Rewards)),
+                PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(player, 1)),
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_2" =>
                 PredictionHoverTips.Cards(PredictSetting2(battlewornDummy)),
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_3" =>
