@@ -40,8 +40,7 @@ internal static class TreasureRoomRelicPredictionPatch
                 return;
             }
 
-            var previewRelic = PredictionUtils.CreateRelic(relic, player);
-            var predictionTips = RelicPickupPrediction.GetHoverTips(player, previewRelic);
+            var predictionTips = RelicPickupPrediction.GetHoverTips(player, relic);
             if (predictionTips.Count == 0)
             {
                 return;
