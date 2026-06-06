@@ -4,11 +4,10 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Cards;
-using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
+using RandomForeseer.Common.Hooks;
+using RandomForeseer.InCombat.Hooks;
 
 namespace RandomForeseer.InCombat;
 
@@ -63,34 +62,20 @@ internal static class DrawPilePredictionUtils
     {
         var shuffledCards = discardPileCards.ToList();
         shuffledCards.StableShuffle(previewShuffleRng);
+
         Hook.ModifyShuffleOrder(combatState, player, shuffledCards, isInitialShuffle: false);
-        var hasDriftRisk = SimulateAfterShuffleListeners(combatState, player, shuffledCards, previewShuffleRng);
-        return new DrawPilePredictionResult(shuffledCards, hasDriftRisk);
-    }
 
-    private static bool SimulateAfterShuffleListeners(
-        ICombatState combatState,
-        Player player,
-        List<CardModel> drawPileCards,
-        Rng previewShuffleRng)
-    {
-        var hasDriftRisk = false;
-        foreach (var model in Hook.IterateCombatHookListeners(combatState))
+        var hookResults = AfterShuffleHook.Run(new AfterShuffleHookContext
         {
-            switch (model)
-            {
-                case BiiigHug { Owner: { } owner } when owner == player:
-                    var soot = PredictionUtils.CreateCard(ModelDb.Card<Soot>(), player);
-                    drawPileCards.Insert(previewShuffleRng.NextInt(drawPileCards.Count + 1), soot);
-                    break;
-                case StratagemPower { Owner.Player: { } powerOwner } when powerOwner == player:
-                case TheAbacus { Owner: { } relicOwner } when relicOwner == player:
-                    hasDriftRisk = true;
-                    break;
-            }
-        }
+            CombatState = combatState,
+            Player = player,
+            DrawPileCards = shuffledCards,
+            ShuffleRng = previewShuffleRng
+        });
 
-        return hasDriftRisk;
+        var hasDriftRisk = hookResults.Any(
+            result => result.Kind is HookResultKind.DriftRisk or HookResultKind.Unsupported);
+        return new DrawPilePredictionResult(shuffledCards, hasDriftRisk);
     }
 }
 
