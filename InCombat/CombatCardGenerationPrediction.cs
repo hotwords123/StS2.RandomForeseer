@@ -81,17 +81,13 @@ internal static class CombatCardGenerationPrediction
             .Where(card => card.EnergyCost is { Canonical: 0, CostsX: false });
         var cards = PredictionUtils.TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng);
 
-        return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
-            : cards;
+        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
     }
 
     private static IReadOnlyList<CardModel> PredictManifestAuthority(CardModel source, Rng previewRng)
     {
         var cards = PredictColorlessCards(source, 1, previewRng);
-        return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
-            : cards;
+        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
     }
 
     private static IReadOnlyList<CardModel> PredictMetamorphosis(CardModel source, Rng previewRng)
@@ -106,9 +102,7 @@ internal static class CombatCardGenerationPrediction
     private static IReadOnlyList<CardModel> PredictQuasar(CardModel source, Rng previewRng)
     {
         var cards = PredictColorlessCards(source, 3, previewRng);
-        return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
-            : cards;
+        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
     }
 
     private static IReadOnlyList<CardModel> PredictSplash(CardModel source, Rng previewRng)
@@ -125,9 +119,7 @@ internal static class CombatCardGenerationPrediction
             .Where(card => card.Type == CardType.Attack);
         var cards = PredictionUtils.TakeRandomDistinctForCombat(owner, candidates, 3, previewRng);
 
-        return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
-            : cards;
+        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
     }
 
     private static IReadOnlyList<CardModel> PredictStoke(CardModel source, Rng previewRng)
@@ -142,9 +134,7 @@ internal static class CombatCardGenerationPrediction
         var candidates = PredictionUtils.GetUnlockedCharacterCards(owner);
         var cards = PredictionUtils.TakeRandomForCombat(owner, candidates, cardsToExhaust, previewRng);
 
-        return source.IsUpgraded
-            ? cards.Select(PredictionUtils.ToUpgradedCard).ToList()
-            : cards;
+        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
     }
 
     private static IReadOnlyList<CardModel> PredictLargesseCards(CardModel source, Rng previewRng)
@@ -177,19 +167,17 @@ internal static class CombatCardGenerationPrediction
     private static CardModel? PredictLargesseCard(CardModel source, Player target, Rng sourceRng)
     {
         var card = PredictionUtils.TakeRandomDistinctForCombat(
-                target,
-                ModelDb.CardPool<ColorlessCardPool>()
-                    .GetUnlockedCards(target.UnlockState, target.RunState.CardMultiplayerConstraint),
-                1,
-                PredictionUtils.CloneRng(sourceRng))
-            .FirstOrDefault();
+            target,
+            ModelDb.CardPool<ColorlessCardPool>()
+                .GetUnlockedCards(target.UnlockState, target.RunState.CardMultiplayerConstraint),
+            1,
+            PredictionUtils.CloneRng(sourceRng))
+        .FirstOrDefault();
         if (card == null)
         {
             return null;
         }
 
-        return source.IsUpgraded
-            ? PredictionUtils.ToUpgradedCard(card)
-            : card;
+        return PredictionUtils.ToUpgradedCardIf(card, source.IsUpgraded);
     }
 }

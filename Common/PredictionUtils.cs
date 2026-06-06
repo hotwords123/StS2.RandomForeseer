@@ -112,6 +112,22 @@ internal static class PredictionUtils
         return previewCard;
     }
 
+    public static CardModel ToUpgradedCardIf(CardModel card, bool shouldUpgrade)
+    {
+        return shouldUpgrade
+            ? ToUpgradedCard(card)
+            : card;
+    }
+
+    public static IReadOnlyList<CardModel> ToUpgradedCardsIf(
+        IReadOnlyList<CardModel> cards,
+        bool shouldUpgrade)
+    {
+        return shouldUpgrade
+            ? cards.Select(ToUpgradedCard).ToList()
+            : cards;
+    }
+
     public static RelicModel CreateRelic(RelicModel canonical, Player player)
     {
         var relic = canonical.ToMutable();
