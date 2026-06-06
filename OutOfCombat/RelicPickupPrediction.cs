@@ -337,7 +337,7 @@ internal static class RelicPickupPrediction
         var rng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         return PileType.Deck.GetPile(player).Cards
             .Where(card => card.IsBasicStrikeOrDefend && card.IsRemovable)
-            .Select(card => OutOfCombatPredictionUtils.PredictTransformResult(card, rng))
+            .Select(card => PredictionUtils.PredictTransformResult(card, rng, isInCombat: false))
             .ToList();
     }
 
@@ -362,13 +362,13 @@ internal static class RelicPickupPrediction
         var strike = source.FirstOrDefault(card => card.Tags.Contains(CardTag.Strike));
         if (strike != null)
         {
-            cards.Add(OutOfCombatPredictionUtils.PredictTransformResult(strike, rng));
+            cards.Add(PredictionUtils.PredictTransformResult(strike, rng, isInCombat: false));
         }
 
         var defend = source.FirstOrDefault(card => card.Tags.Contains(CardTag.Defend));
         if (defend != null)
         {
-            cards.Add(OutOfCombatPredictionUtils.PredictTransformResult(defend, rng));
+            cards.Add(PredictionUtils.PredictTransformResult(defend, rng, isInCombat: false));
         }
 
         return cards;

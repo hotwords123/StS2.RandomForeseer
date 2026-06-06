@@ -1,5 +1,4 @@
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -121,7 +120,7 @@ internal static class CombatTransformPrediction
             CardModel? hoveredReplacement = null;
             foreach (var card in predictionSequence)
             {
-                var replacement = PredictTransformResult(card, previewRng);
+                var replacement = PredictionUtils.PredictTransformResult(card, previewRng, isInCombat: true);
                 if (card == hoveredCard)
                 {
                     hoveredReplacement = replacement;
@@ -129,12 +128,6 @@ internal static class CombatTransformPrediction
             }
 
             return hoveredReplacement;
-        }
-
-        private static CardModel? PredictTransformResult(CardModel original, Rng rng)
-        {
-            var options = CardFactory.GetDefaultTransformationOptions(original, isInCombat: true);
-            return rng.NextItem(options);
         }
     }
 }

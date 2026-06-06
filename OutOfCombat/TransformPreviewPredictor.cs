@@ -1,5 +1,4 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
@@ -22,40 +21,22 @@ internal static class TransformPreviewPredictor
         return new TransformPreviewPredictionSession(realRng, upgradePreview).Predict;
     }
 
-    private sealed class TransformPreviewPredictionSession : IResettableTransformPreviewPredictor
+    private sealed class TransformPreviewPredictionSession(Rng realRng, bool upgradePreview) : IResettableTransformPreviewPredictor
     {
-        private readonly Rng _realRng;
-        private readonly bool _upgradePreview;
-
-        private Rng _previewRng;
-
-        public TransformPreviewPredictionSession(Rng realRng, bool upgradePreview)
-        {
-            _realRng = realRng;
-            _upgradePreview = upgradePreview;
-            _previewRng = PredictionUtils.CloneRng(realRng);
-        }
+        private Rng _previewRng = PredictionUtils.CloneRng(realRng);
 
         public void Reset()
         {
-            _previewRng = PredictionUtils.CloneRng(_realRng);
+            _previewRng = PredictionUtils.CloneRng(realRng);
         }
 
         public CardTransformation Predict(CardModel original)
         {
-            var options = CardFactory.GetDefaultTransformationOptions(
-                original,
-                original.CombatState != null);
-
-            var predicted = _previewRng.NextItem(options);
-            if (predicted == null)
-            {
-                return new CardTransformation(original);
-            }
+            var predicted = PredictionUtils.PredictTransformResult(original, _previewRng, isInCombat: false);
 
             return new CardTransformation(
                 original,
-                PredictionUtils.ToUpgradedCardIf(predicted, _upgradePreview));
+                PredictionUtils.ToUpgradedCardIf(predicted, upgradePreview));
         }
     }
 }

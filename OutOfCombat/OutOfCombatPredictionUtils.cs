@@ -68,19 +68,12 @@ internal static class OutOfCombatPredictionUtils
                     rng.FastForwardCounter(rng.Counter + rngCounterOffset);
                 }
 
-                var preview = PredictTransformResult(card, rng).ToMutable();
+                var preview = PredictionUtils.PredictTransformResult(card, rng, isInCombat: false).ToMutable();
                 afterGenerated?.Invoke(preview);
                 return preview;
             })
             .DistinctBy(card => card.Id)
             .ToList();
-    }
-
-    public static CardModel PredictTransformResult(CardModel original, Rng rng, bool isInCombat = false)
-    {
-        var options = CardFactory.GetDefaultTransformationOptions(original, isInCombat);
-        var result = rng.NextItem(options) ?? throw new InvalidOperationException($"Could not predict a transform result for {original.Id}.");
-        return result;
     }
 
     public static IReadOnlyList<IReadOnlyList<CardModel>> PredictDistinctDeckTransformResultBundles(

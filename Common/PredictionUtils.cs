@@ -149,4 +149,12 @@ internal static class PredictionUtils
             .Where(card => card.Rarity is not CardRarity.Basic and not CardRarity.Ancient and not CardRarity.Event)
             .Distinct();
     }
+
+    public static CardModel PredictTransformResult(CardModel original, Rng rng, bool isInCombat)
+    {
+        var options = CardFactory.GetDefaultTransformationOptions(original, isInCombat);
+        var result = rng.NextItem(options)
+            ?? throw new InvalidOperationException($"Could not predict a transform result for {original.Id}.");
+        return result;
+    }
 }
