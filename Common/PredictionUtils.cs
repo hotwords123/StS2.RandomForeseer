@@ -28,9 +28,9 @@ internal static class PredictionUtils
         return GetUnlockedCards(player, ModelDb.CardPool<ColorlessCardPool>());
     }
 
-    public static CardModel CreateCard(CardModel canonical, Player player)
+    public static CardModel CreateCard(CardModel card, Player player)
     {
-        var card = canonical.ToMutable();
+        card = (CardModel)card.MutableClone();
         card.Owner = player;
         card.AfterCreated();
         return card;
@@ -68,16 +68,16 @@ internal static class PredictionUtils
             : cards;
     }
 
-    public static RelicModel CreateRelic(RelicModel canonical, Player player)
+    public static RelicModel CreateRelic(RelicModel relic, Player player)
     {
-        var relic = canonical.ToMutable();
+        relic = (RelicModel)relic.MutableClone();
         relic.Owner = player;
         return relic;
     }
 
-    public static PotionModel CreatePotion(PotionModel canonical, Player player)
+    public static PotionModel CreatePotion(PotionModel potion, Player player)
     {
-        var potion = canonical.ToMutable();
+        potion = (PotionModel)potion.MutableClone();
         potion.Owner = player;
         return potion;
     }
