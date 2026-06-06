@@ -1,6 +1,7 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
@@ -10,7 +11,7 @@ internal static class PotionPredictionHoverTipsPatch
 {
     private static void Postfix(PotionModel __instance, ref IEnumerable<IHoverTip> __result)
     {
-        if (!__instance.IsMutable || __instance.Owner == null)
+        if (!__instance.IsMutable || __instance.Owner == null || __instance.Owner.RunState is not RunState)
         {
             return;
         }
