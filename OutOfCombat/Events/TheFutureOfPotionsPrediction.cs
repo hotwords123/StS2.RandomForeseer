@@ -41,12 +41,11 @@ internal static class TheFutureOfPotionsPrediction
             .ForNonCombatWithUniformOdds([player.Character.CardPool], card => card.Rarity == targetRarity && card.Type == cardType)
             .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications);
         var cards = OutOfCombatPredictionUtils.PredictCards(
-            player,
-            3,
-            options,
-            PredictionUtils.CloneRng(player.PlayerRng.Rewards),
-            PredictionUtils.CloneRng(player.RunState.Rng.Niche),
-            afterGenerated: null)
+                player,
+                3,
+                options,
+                PredictionUtils.CloneRng(player.PlayerRng.Rewards),
+                PredictionUtils.CloneRng(player.RunState.Rng.Niche))
             .Select(PredictionUtils.ToUpgradedCard)
             .ToList();
 

@@ -1,6 +1,7 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
 
@@ -9,13 +10,7 @@ internal static class PotionPredictionHoverTipsPatch
 {
     private static void Postfix(PotionModel __instance, ref IEnumerable<IHoverTip> __result)
     {
-        if (!__instance.IsMutable)
-        {
-            return;
-        }
-
-        var owner = __instance.Owner;
-        if (owner == null)
+        if (!__instance.IsMutable || __instance.Owner == null)
         {
             return;
         }
@@ -23,7 +18,7 @@ internal static class PotionPredictionHoverTipsPatch
         IReadOnlyList<IHoverTip> generatedCardPredictionTips;
         try
         {
-            generatedCardPredictionTips = PotionCardPrediction.GetHoverTips(owner, __instance);
+            generatedCardPredictionTips = CombatCardGenerationPrediction.GetPotionHoverTips(__instance);
         }
         catch (Exception ex)
         {
@@ -39,7 +34,7 @@ internal static class PotionPredictionHoverTipsPatch
         IReadOnlyList<IHoverTip> generatedPotionPredictionTips;
         try
         {
-            generatedPotionPredictionTips = PotionGenerationPrediction.GetPotionHoverTips(owner, __instance);
+            generatedPotionPredictionTips = PotionGenerationPrediction.GetPotionHoverTips(__instance);
         }
         catch (Exception ex)
         {
@@ -55,7 +50,7 @@ internal static class PotionPredictionHoverTipsPatch
         IReadOnlyList<IHoverTip> autoPlayPredictionTips;
         try
         {
-            autoPlayPredictionTips = AutoPlayFromDrawPilePrediction.GetPotionHoverTips(owner, __instance);
+            autoPlayPredictionTips = AutoPlayFromDrawPilePrediction.GetPotionHoverTips(__instance);
         }
         catch (Exception ex)
         {

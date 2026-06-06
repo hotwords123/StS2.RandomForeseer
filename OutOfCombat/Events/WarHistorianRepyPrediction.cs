@@ -20,7 +20,7 @@ internal static class WarHistorianRepyPrediction
         }
 
         var player = warHistorianRepy.Owner!;
-        var tips = PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
+        var tips = PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
             player,
             2,
             PredictionUtils.CloneRng(player.PlayerRng.Rewards))).ToList();

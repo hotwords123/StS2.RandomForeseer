@@ -2,6 +2,7 @@ using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Ascension;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
@@ -93,7 +94,7 @@ internal static class CardRewardPrediction
         var possibleCards = options.GetPossibleCards(player)
             .Except(blacklist)
             .ToList();
-        var filteredCards = PredictionUtils.FilterForPlayerCount(player, possibleCards).ToArray();
+        var filteredCards = CardFactory.FilterForPlayerCount(player.RunState, possibleCards).ToArray();
         var selectedRarity = (CardRarity?)null;
 
         IEnumerable<CardModel> candidates;

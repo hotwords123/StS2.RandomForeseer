@@ -18,7 +18,7 @@ internal static class WhisperingHollowPrediction
         return option.TextKey switch
         {
             "WHISPERING_HOLLOW.pages.INITIAL.options.GOLD" =>
-                PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
+                PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
                     whisperingHollow.Owner!,
                     2,
                     PredictionUtils.CloneRng(whisperingHollow.Owner!.PlayerRng.Rewards))),

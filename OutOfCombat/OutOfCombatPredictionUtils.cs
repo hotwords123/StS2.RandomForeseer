@@ -37,7 +37,6 @@ internal static class OutOfCombatPredictionUtils
         CardCreationOptions options,
         Rng rewardRng,
         Rng nicheRng,
-        Action? afterGenerated = null,
         IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
         return CardRewardPrediction.PredictCards(
@@ -46,14 +45,13 @@ internal static class OutOfCombatPredictionUtils
             options,
             rewardRng,
             nicheRng,
-            afterGenerated,
-            extraResultModifiers);
+            extraResultModifiers: extraResultModifiers);
     }
 
     public static IReadOnlyList<CardModel> PredictDistinctDeckTransformResults(
         Player player,
         Rng realRng,
-        Action<CardModel>? afterGenerated = null,
+        bool upgradeResults = false,
         int rngCounterOffset = 0,
         IEnumerable<CardModel>? extraTransformableCards = null)
     {
@@ -68,11 +66,10 @@ internal static class OutOfCombatPredictionUtils
                     rng.FastForwardCounter(rng.Counter + rngCounterOffset);
                 }
 
-                var preview = PredictionUtils.PredictTransformResult(card, rng, isInCombat: false).ToMutable();
-                afterGenerated?.Invoke(preview);
-                return preview;
+                return PredictionUtils.PredictTransformResult(card, rng, isInCombat: false);
             })
             .DistinctBy(card => card.Id)
+            .Select(card => PredictionUtils.ToUpgradedCardIf(card, upgradeResults))
             .ToList();
     }
 
@@ -80,19 +77,18 @@ internal static class OutOfCombatPredictionUtils
         Player player,
         Rng realRng,
         int transformCount,
-        Action<CardModel>? afterGenerated = null,
+        bool upgradeResults = false,
         IEnumerable<CardModel>? extraTransformableCards = null)
     {
         return Enumerable.Range(0, transformCount)
             .Select(slot => PredictDistinctDeckTransformResults(
                 player,
                 realRng,
-                afterGenerated,
+                upgradeResults,
                 rngCounterOffset: slot,
                 extraTransformableCards))
             .ToList();
     }
-
 
     public static CardCreationOptions CreateCharacterCardRewardOptions(Player player)
     {
@@ -216,13 +212,6 @@ internal static class OutOfCombatPredictionUtils
         }
 
         return potions;
-    }
-
-    public static IReadOnlyList<PotionModel> PredictPotionRewards(Player player, int count, Rng rng)
-    {
-        return Enumerable.Range(0, count)
-            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, rng))
-            .ToList();
     }
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count)

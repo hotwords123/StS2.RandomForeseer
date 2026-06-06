@@ -77,7 +77,7 @@ internal static class RestSitePredictionFocusPatch
                 }
                 case TinyMailbox:
                 {
-                    var potions = OutOfCombatPredictionUtils.PredictPotionRewards(player, 2, rewardRng);
+                    var potions = PredictionUtils.PredictPotionRewards(player, 2, rewardRng);
                     tips.AddRange(PredictionHoverTips.Potions(potions));
                     break;
                 }

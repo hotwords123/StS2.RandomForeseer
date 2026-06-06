@@ -32,11 +32,11 @@ internal static class AutoPlayFromDrawPilePrediction
         return GetHoverTips(card.Owner, count);
     }
 
-    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(Player player, PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableAutoPlayFromDrawPilePrediction) ||
             !potion.IsMutable ||
-            player.Creature.CombatState == null)
+            potion.Owner.Creature.CombatState == null)
         {
             return [];
         }
@@ -47,7 +47,7 @@ internal static class AutoPlayFromDrawPilePrediction
             _ => 0
         };
 
-        return GetHoverTips(player, count);
+        return GetHoverTips(potion.Owner, count);
     }
 
     private static IReadOnlyList<IHoverTip> GetHoverTips(Player player, int count)

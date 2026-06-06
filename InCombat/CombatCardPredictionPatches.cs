@@ -1,10 +1,10 @@
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
 
@@ -43,7 +43,7 @@ internal static class CombatCardPredictionHoverTipsPatch
     {
         try
         {
-            predictionTips.AddRange(CombatCardGenerationPrediction.GetHoverTips(card));
+            predictionTips.AddRange(CombatCardGenerationPrediction.GetCardHoverTips(card));
         }
         catch (Exception ex)
         {

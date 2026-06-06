@@ -1,6 +1,4 @@
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.CardPools;
@@ -15,77 +13,19 @@ internal static class PredictionUtils
         return new Rng(rng.Seed, rng.Counter);
     }
 
-    public static IReadOnlyList<CardModel> TakeRandomDistinctForCombat(
-        Player player,
-        IEnumerable<CardModel> cards,
-        int count,
-        Rng rng)
+    public static IEnumerable<CardModel> GetUnlockedCards(Player player, CardPoolModel cardPool)
     {
-        return FilterForCombat(FilterForPlayerCount(player, cards))
-            .ToList()
-            .UnstableShuffle(rng)
-            .Take(count)
-            .ToList();
-    }
-
-    public static IReadOnlyList<CardModel> TakeRandomDistinctCharacterCardsForCombat(
-        Player player,
-        CardType? type,
-        int count,
-        Rng rng)
-    {
-        var candidates = GetUnlockedCharacterCards(player);
-        if (type.HasValue)
-        {
-            candidates = candidates.Where(card => card.Type == type.Value);
-        }
-
-        return TakeRandomDistinctForCombat(player, candidates, count, rng);
-    }
-
-    public static IReadOnlyList<CardModel> TakeRandomDistinctColorlessCardsForCombat(
-        Player player,
-        int count,
-        Rng rng)
-    {
-        return TakeRandomDistinctForCombat(player, GetUnlockedColorlessCards(player), count, rng);
-    }
-
-    public static IReadOnlyList<CardModel> TakeRandomForCombat(
-        Player player,
-        IEnumerable<CardModel> cards,
-        int count,
-        Rng rng)
-    {
-        var options = FilterForPlayerCount(player, FilterForCombat(cards)).ToList();
-        if (options.Count == 0)
-        {
-            return [];
-        }
-
-        var results = new List<CardModel>();
-        for (var i = 0; i < count; i++)
-        {
-            var card = rng.NextItem(options);
-            if (card != null)
-            {
-                results.Add(card);
-            }
-        }
-
-        return results;
+        return cardPool.GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
     }
 
     public static IEnumerable<CardModel> GetUnlockedCharacterCards(Player player)
     {
-        return player.Character.CardPool
-            .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
+        return GetUnlockedCards(player, player.Character.CardPool);
     }
 
     public static IEnumerable<CardModel> GetUnlockedColorlessCards(Player player)
     {
-        return ModelDb.CardPool<ColorlessCardPool>()
-            .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
+        return GetUnlockedCards(player, ModelDb.CardPool<ColorlessCardPool>());
     }
 
     public static CardModel CreateCard(CardModel canonical, Player player)
@@ -135,19 +75,11 @@ internal static class PredictionUtils
         return relic;
     }
 
-    public static IEnumerable<CardModel> FilterForPlayerCount(Player player, IEnumerable<CardModel> cards)
+    public static PotionModel CreatePotion(PotionModel canonical, Player player)
     {
-        return player.RunState.Players.Count > 1
-            ? cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.SingleplayerOnly)
-            : cards.Where(card => card.MultiplayerConstraint != CardMultiplayerConstraint.MultiplayerOnly);
-    }
-
-    public static IEnumerable<CardModel> FilterForCombat(IEnumerable<CardModel> cards)
-    {
-        return cards
-            .Where(card => card.CanBeGeneratedInCombat)
-            .Where(card => card.Rarity is not CardRarity.Basic and not CardRarity.Ancient and not CardRarity.Event)
-            .Distinct();
+        var potion = canonical.ToMutable();
+        potion.Owner = player;
+        return potion;
     }
 
     public static CardModel PredictTransformResult(CardModel original, Rng rng, bool isInCombat)
@@ -156,5 +88,12 @@ internal static class PredictionUtils
         var result = rng.NextItem(options)
             ?? throw new InvalidOperationException($"Could not predict a transform result for {original.Id}.");
         return result;
+    }
+
+    public static IReadOnlyList<PotionModel> PredictPotionRewards(Player player, int count, Rng rng)
+    {
+        return Enumerable.Range(0, count)
+            .Select(_ => PotionFactory.CreateRandomPotionOutOfCombat(player, rng))
+            .ToList();
     }
 }

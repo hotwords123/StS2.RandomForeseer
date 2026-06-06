@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
+using RandomForeseer.Common;
 using RandomForeseer.InCombat;
 
 namespace RandomForeseer.OutOfCombat;
@@ -22,7 +23,7 @@ internal static class MerchantPredictionPatch
                 RelicPickupPrediction.GetHoverTips(relicEntry._player, relic),
 
             NMerchantPotion { Entry: MerchantPotionEntry { Model: { } potion } potionEntry } =>
-                PotionGenerationPrediction.GetPotionHoverTips(potionEntry._player, potion),
+                PotionGenerationPrediction.GetPotionHoverTips(PredictionUtils.CreatePotion(potion, potionEntry._player)),
 
             _ => []
         };

@@ -11,7 +11,6 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
@@ -90,7 +89,7 @@ internal static class RelicPickupPrediction
                     PredictionHoverTips.Cards(PredictSereTalon(player, relic)),
 
                 // Non-Ancient relics
-                Cauldron => PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictPotionRewards(
+                Cauldron => PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
                     player,
                     relic.DynamicVars["Potions"].IntValue,
                     PredictionUtils.CloneRng(player.PlayerRng.Rewards))),
@@ -130,7 +129,7 @@ internal static class RelicPickupPrediction
                 card => card.Rarity == CardRarity.Rare)
             .WithFlags(CardCreationFlags.NoUpgradeRoll);
 
-        return PredictCards(player, count, options);
+        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<CardModel> PredictColorlessCards(Player player, int count)
@@ -140,19 +139,17 @@ internal static class RelicPickupPrediction
             CardCreationSource.Other,
             CardRarityOddsType.RegularEncounter);
 
-        return PredictCards(player, count, options);
+        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<CardModel> PredictMultiplayerCards(Player player, int count)
     {
-        var customCardPool =
-            ModelDb.CardPool<ColorlessCardPool>()
-                .GetUnlockedCards(player.RunState.UnlockState, player.RunState.CardMultiplayerConstraint)
-                .Concat(player.Character.CardPool.GetUnlockedCards(player.RunState.UnlockState, player.RunState.CardMultiplayerConstraint))
+        var customCardPool = PredictionUtils.GetUnlockedColorlessCards(player)
+                .Concat(PredictionUtils.GetUnlockedCharacterCards(player))
                 .Where(card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
         var options = new CardCreationOptions(customCardPool, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
 
-        return PredictCards(player, count, options);
+        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<IReadOnlyList<CardModel>> PredictKaleidoscopeBundles(Player player)
@@ -177,7 +174,7 @@ internal static class RelicPickupPrediction
                         CardCreationSource.Other,
                         CardRarityOddsType.RegularEncounter)
                     .WithFlags(CardCreationFlags.NoCardPoolModifications);
-                bundle.AddRange(PredictCards(player, 1, options, rewardRng, nicheRng));
+                bundle.AddRange(OutOfCombatPredictionUtils.PredictCards(player, 1, options, rewardRng, nicheRng));
             }
 
             bundles.Add(bundle);
@@ -188,18 +185,11 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<IReadOnlyList<CardModel>> PredictAstrolabeBundles(Player player)
     {
-        var bundles = new List<IReadOnlyList<CardModel>>();
-
-        for (var slot = 0; slot < 3; slot++)
-        {
-            bundles.Add(OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(
-                player,
-                player.RunState.Rng.Niche,
-                PredictionUtils.UpgradeCardInPlace,
-                rngCounterOffset: slot));
-        }
-
-        return bundles;
+        return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
+            player,
+            player.RunState.Rng.Niche,
+            3,
+            upgradeResults: true);
     }
 
     private static IReadOnlyList<IReadOnlyList<CardModel>> PredictGlassEyeBundles(Player player)
@@ -221,7 +211,7 @@ internal static class RelicPickupPrediction
                 var options = CardCreationOptions
                     .ForNonCombatWithUniformOdds([player.Character.CardPool], card => card.Rarity == rarity)
                     .WithFlags(CardCreationFlags.NoRarityModification);
-                return PredictCards(player, 3, options, rewardRng, nicheRng);
+                return OutOfCombatPredictionUtils.PredictCards(player, 3, options, rewardRng, nicheRng);
             })
             .ToList();
     }
@@ -244,7 +234,7 @@ internal static class RelicPickupPrediction
                 var options = CardCreationOptions
                     .ForNonCombatWithUniformOdds([character.CardPool], card => card.Rarity == rarity)
                     .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications);
-                return PredictCards(player, cardCount, options, rewardRng, nicheRng);
+                return OutOfCombatPredictionUtils.PredictCards(player, cardCount, options, rewardRng, nicheRng);
             })
             .ToList();
     }
@@ -254,7 +244,7 @@ internal static class RelicPickupPrediction
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         var options = OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player);
-        var tips = PredictionHoverTips.Cards(PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
+        var tips = PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
 
         var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
         tips.AddRange(PredictionHoverTips.Potions([potion]));
@@ -282,8 +272,7 @@ internal static class RelicPickupPrediction
     private static IReadOnlyList<CardModel> PredictNeowsBonesCurses(Player player, int count)
     {
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        var availableCurses = ModelDb.CardPool<CurseCardPool>()
-            .GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint)
+        var availableCurses = PredictionUtils.GetUnlockedCards(player, ModelDb.CardPool<CurseCardPool>())
             .Where(card => card.CanBeGeneratedByModifiers)
             .OrderBy(card => card.Id)
             .ToList();
@@ -452,24 +441,6 @@ internal static class RelicPickupPrediction
         }
 
         return relics;
-    }
-
-    private static IReadOnlyList<CardModel> PredictCards(
-        Player player,
-        int count,
-        CardCreationOptions options)
-    {
-        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
-    }
-
-    private static IReadOnlyList<CardModel> PredictCards(
-        Player player,
-        int count,
-        CardCreationOptions options,
-        Rng rewardRng,
-        Rng nicheRng)
-    {
-        return OutOfCombatPredictionUtils.PredictCards(player, count, options, rewardRng, nicheRng);
     }
 
     private static void WarnOnce(Type relicType, string message)
