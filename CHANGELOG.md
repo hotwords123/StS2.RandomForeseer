@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.5.0
+
+### feat
+
+- 新增抽牌堆自动出牌预测，支持破灭、倾泻和精炼混沌，并可在抽牌堆不足时预览洗牌后的后续结果。
+  Added draw-pile autoplay prediction for Havoc, Cascade, and Distilled Chaos, including post-shuffle previews when the draw pile is short.
+
+### fix
+
+- 修复药水随机印牌预测未正确受公平模式限制的问题。
+  Fixed potion card predictions not being properly gated by fair mode.
+
+- 修复预览模型克隆对 canonical 实例的依赖，避免部分悬停来源无法生成预测。
+  Fixed preview model cloning requiring canonical instances, which prevented predictions from being produced for some hover sources.
+
+- 修复完整熵变牌选择悬停预测、抽牌堆自动出牌预览数量、生成卡牌原始费用显示和战斗预测悬停阶段判断等问题。
+  Fixed full Entropy transform hover prediction, draw-pile autoplay preview count limits, original cost display for generated cards, and combat prediction hover phase checks.
+
+- 修复部分事件预测的公平模式或战斗结束效果处理，包括重拳出击奖励和事件选项中的战斗结束随机结果。
+  Fixed fair-mode or combat-end-effect handling for some event predictions, including Punch Off rewards and combat-end random results from event options.
+
 ## v0.4.0
 
 ### feat
