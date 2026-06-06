@@ -67,7 +67,7 @@ internal static class EventOptionPredictionRegistry
             return [];
         }
 
-        return OutOfCombatRelicPrediction.GetHoverTips(eventModel.Owner, option.Relic);
+        return RelicPickupPrediction.GetHoverTips(eventModel.Owner, option.Relic);
     }
 }
 

@@ -19,13 +19,13 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class OutOfCombatRelicPrediction
+internal static class RelicPickupPrediction
 {
     private static readonly HashSet<Type> WarnedRelicTypes = [];
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, RelicModel relic)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOutOfCombatRelicPrediction))
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableRelicPickupPrediction))
         {
             return [];
         }
@@ -116,7 +116,7 @@ internal static class OutOfCombatRelicPrediction
         }
         catch (Exception ex)
         {
-            WarnOnce(relic.GetType(), $"Could not predict out-of-combat relic result for {relic.Id}: {ex}");
+            WarnOnce(relic.GetType(), $"Could not predict relic pickup effect for {relic.Id}: {ex}");
             return [];
         }
     }

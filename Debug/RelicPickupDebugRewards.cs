@@ -13,7 +13,7 @@ using MegaCrit.Sts2.Core.Saves.Runs;
 
 namespace RandomForeseer.Debug;
 
-internal static class OutOfCombatRelicDebugRewards
+internal static class RelicPickupDebugRewards
 {
     private static readonly RelicRarity[] TreasureTestRarities =
     [

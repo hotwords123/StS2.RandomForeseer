@@ -90,8 +90,8 @@
 - 支持浮木卡牌奖励重掷预测，悬停重掷按钮时显示下一组奖励。  
   Added Driftwood card reward reroll prediction.
 
-- 支持局外遗物结果预测，覆盖先古之民遗物选项、遗物奖励和商店遗物的即时随机结果。  
-  Added out-of-combat relic result prediction for Ancient relic options, relic rewards, and merchant relics.
+- 支持遗物拾起效果预测，覆盖先古之民遗物选项、遗物奖励和商店遗物的即时随机结果。  
+  Added relic pickup effect prediction for Ancient relic options, relic rewards, and merchant relics.
 
 - 支持非先古之民事件选项预测，显示即时随机奖励、随机升级/降级和后续随机选项。  
   Added non-Ancient event option prediction for immediate random rewards, random upgrades/downgrades, and random follow-up options.

@@ -41,7 +41,7 @@ internal static class TreasureRoomRelicPredictionPatch
             }
 
             var previewRelic = PredictionUtils.CreateRelic(relic, player);
-            var predictionTips = OutOfCombatRelicPrediction.GetHoverTips(player, previewRelic);
+            var predictionTips = RelicPickupPrediction.GetHoverTips(player, previewRelic);
             if (predictionTips.Count == 0)
             {
                 return;

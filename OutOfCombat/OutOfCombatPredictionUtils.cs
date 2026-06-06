@@ -283,7 +283,7 @@ internal static class OutOfCombatPredictionUtils
         var tips = PredictionHoverTips.Relics(relics).ToList();
         foreach (var relic in relics)
         {
-            tips.AddRange(OutOfCombatRelicPrediction.GetHoverTips(player, relic));
+            tips.AddRange(RelicPickupPrediction.GetHoverTips(player, relic));
         }
 
         return tips;

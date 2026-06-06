@@ -34,7 +34,7 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableDriftwoodRerollPrediction { get; set; } = true;
 
-    public bool EnableOutOfCombatRelicPrediction { get; set; } = true;
+    public bool EnableRelicPickupPrediction { get; set; } = true;
 
     public bool EnableRestSitePrediction { get; set; } = true;
 
@@ -62,7 +62,7 @@ internal static class RandomForeseerSettings
     private const string EnableCombatCardSelectionDriftWarningsKey = "enable_combat_card_selection_drift_warnings";
     private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
-    private const string EnableOutOfCombatRelicPredictionKey = "enable_out_of_combat_relic_prediction";
+    private const string EnableRelicPickupPredictionKey = "enable_relic_pickup_prediction";
     private const string EnableRestSitePredictionKey = "enable_rest_site_prediction";
     private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
     private const string SlipperyBridgeRerollPreviewCountKey = "slippery_bridge_reroll_preview_count";
@@ -169,12 +169,12 @@ internal static class RandomForeseerSettings
             settings => settings.EnableDriftwoodRerollPrediction,
             (settings, value) => settings.EnableDriftwoodRerollPrediction = value);
 
-    private static readonly IModSettingsValueBinding<bool> EnableOutOfCombatRelicPredictionBinding =
+    private static readonly IModSettingsValueBinding<bool> EnableRelicPickupPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
-            settings => settings.EnableOutOfCombatRelicPrediction,
-            (settings, value) => settings.EnableOutOfCombatRelicPrediction = value);
+            settings => settings.EnableRelicPickupPrediction,
+            (settings, value) => settings.EnableRelicPickupPrediction = value);
 
     private static readonly IModSettingsValueBinding<bool> EnableRestSitePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
@@ -228,7 +228,7 @@ internal static class RandomForeseerSettings
 
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
-    public static bool EnableOutOfCombatRelicPrediction => EnableOutOfCombatRelicPredictionBinding.Read();
+    public static bool EnableRelicPickupPrediction => EnableRelicPickupPredictionBinding.Read();
 
     public static bool EnableRestSitePrediction => EnableRestSitePredictionBinding.Read();
 
@@ -345,12 +345,12 @@ internal static class RandomForeseerSettings
                     () => true);
 
                 section.AddToggle(
-                    EnableOutOfCombatRelicPredictionKey,
-                    Text("toggle.enable_out_of_combat_relic_prediction.label", "Predict out-of-combat relic results"),
-                    EnableOutOfCombatRelicPredictionBinding,
+                    EnableRelicPickupPredictionKey,
+                    Text("toggle.enable_relic_pickup_prediction.label", "Predict relic pickup effects"),
+                    EnableRelicPickupPredictionBinding,
                     Text(
-                        "toggle.enable_out_of_combat_relic_prediction.description",
-                        "When enabled, out-of-combat relic tooltips show immediate random results such as cards, relics, potions, curses, and transforms."),
+                        "toggle.enable_relic_pickup_prediction.description",
+                        "When enabled, relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup."),
                     () => true);
 
                 section.AddToggle(
@@ -492,12 +492,12 @@ internal static class RandomForeseerSettings
                     () => true);
             });
 
-            page.AddSection("out_of_combat_relic_debug", section =>
+            page.AddSection("relic_pickup_debug", section =>
             {
-                section.WithTitle(Text("section.out_of_combat_relic_debug.title", "Out-of-combat relic prediction"));
+                section.WithTitle(Text("section.relic_pickup_debug.title", "Relic pickup prediction"));
                 section.WithDescription(Text(
-                    "section.out_of_combat_relic_debug.description",
-                    "Debug tools for out-of-combat relic prediction."));
+                    "section.relic_pickup_debug.description",
+                    "Debug tools for relic pickup prediction."));
 
                 section.AddButton(
                     "offer_predicted_non_ancient_relics",
@@ -505,7 +505,7 @@ internal static class RandomForeseerSettings
                     Text(
                         "button.offer_predicted_non_ancient_relics.text",
                         "Offer"),
-                    Debug.OutOfCombatRelicDebugRewards.OfferPredictedNonAncientRelics,
+                    Debug.RelicPickupDebugRewards.OfferPredictedNonAncientRelics,
                     ModSettingsButtonTone.Danger,
                     Text(
                         "button.offer_predicted_non_ancient_relics.description",
@@ -517,7 +517,7 @@ internal static class RandomForeseerSettings
                     Text(
                         "button.open_predicted_treasure_room.text",
                         "Open"),
-                    Debug.OutOfCombatRelicDebugRewards.OpenPredictedTreasureRoom,
+                    Debug.RelicPickupDebugRewards.OpenPredictedTreasureRoom,
                     ModSettingsButtonTone.Danger,
                     Text(
                         "button.open_predicted_treasure_room.description",

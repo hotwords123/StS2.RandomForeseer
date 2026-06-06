@@ -19,7 +19,7 @@ internal static class MerchantPredictionPatch
         IReadOnlyList<IHoverTip> predictionTips = owner switch
         {
             NMerchantRelic { Entry: MerchantRelicEntry { Model: { } relic } relicEntry } =>
-                OutOfCombatRelicPrediction.GetHoverTips(relicEntry._player, relic),
+                RelicPickupPrediction.GetHoverTips(relicEntry._player, relic),
 
             NMerchantPotion { Entry: MerchantPotionEntry { Model: { } potion } potionEntry } =>
                 PotionGenerationPrediction.GetPotionHoverTips(potionEntry._player, potion),

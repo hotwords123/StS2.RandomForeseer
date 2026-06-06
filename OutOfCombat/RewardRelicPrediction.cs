@@ -14,7 +14,7 @@ internal static class RewardRelicPredictionPatch
             return;
         }
 
-        var predictionTips = OutOfCombatRelicPrediction.GetHoverTips(relicReward.Player, relic);
+        var predictionTips = RelicPickupPrediction.GetHoverTips(relicReward.Player, relic);
         if (predictionTips.Count > 0)
         {
             __result = __result.Concat(predictionTips).ToList();
