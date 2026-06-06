@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -31,12 +32,18 @@ internal static class CombatCardGenerationPrediction
     public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionCardPrediction) ||
-            potion.Owner.Creature.CombatState == null)
+            !ShouldShowPotionCardPrediction(potion))
         {
             return [];
         }
 
         return PredictionHoverTips.Cards(PredictCards(potion));
+    }
+
+    private static bool ShouldShowPotionCardPrediction(PotionModel potion)
+    {
+        return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInAllModes) ||
+            CombatManager.Instance.IsInProgress && !potion.Owner.Creature.IsDead;
     }
 
     private static IReadOnlyList<CardModel> PredictCards(CardModel card)
