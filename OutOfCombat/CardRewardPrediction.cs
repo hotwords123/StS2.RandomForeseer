@@ -6,19 +6,16 @@ using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Enchantments;
-using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Odds;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
+using RandomForeseer.OutOfCombat.Hooks;
 
 namespace RandomForeseer.OutOfCombat;
 
 internal static class CardRewardPrediction
 {
-    private static readonly HashSet<Type> WarnedUnsupportedModifierTypes = [];
-
     private static readonly HashSet<MethodInfo> WarnedUnsupportedAfterGeneratedHandlers = [];
 
     public static IReadOnlyList<CardModel> PredictCards(
@@ -32,13 +29,21 @@ internal static class CardRewardPrediction
     {
         var rarityOdds = new CardRarityOdds(player.PlayerOdds.CardRarity.CurrentValue, rewardRng);
         options = CloneOptions(options);
-        var resultModifiers = extraResultModifiers?.ToList() ?? [];
 
         var results = CreateBaseRewards(player, cardCount, options, rewardRng, rarityOdds).ToList();
-        ApplyEarlyKnownModifiers(player, results, options, rewardRng, rarityOdds, resultModifiers);
-        WarnAboutUnsupportedModifiers(player, early: true, resultModifiers);
-        ApplyLateKnownModifiers(player, results, options, nicheRng, resultModifiers);
-        WarnAboutUnsupportedModifiers(player, early: false, resultModifiers);
+        var hookContext = new CardRewardHookContext
+        {
+            Player = player,
+            Results = results,
+            Options = options,
+            RewardRng = rewardRng,
+            NicheRng = nicheRng,
+            RarityOdds = rarityOdds,
+            ExtraModifiers = extraResultModifiers?.ToList() ?? []
+        };
+
+        CardRewardHook.RunEarly(hookContext);
+        CardRewardHook.RunLate(hookContext);
         ApplyKnownAfterGeneratedModifiers(afterGenerated, results);
 
         return results.Select(result => result.Card).ToList();
@@ -59,7 +64,7 @@ internal static class CardRewardPrediction
         return clone;
     }
 
-    private static IEnumerable<CardCreationResult> CreateBaseRewards(
+    internal static IEnumerable<CardCreationResult> CreateBaseRewards(
         Player player,
         int cardCount,
         CardCreationOptions options,
@@ -185,65 +190,6 @@ internal static class CardRewardPrediction
         }
     }
 
-    private static void ApplyEarlyKnownModifiers(
-        Player player,
-        List<CardCreationResult> results,
-        CardCreationOptions options,
-        Rng rewardRng,
-        CardRarityOdds rarityOdds,
-        IReadOnlyList<AbstractModel> extraResultModifiers)
-    {
-        foreach (var modifier in IterateResultModifiers(player, extraResultModifiers))
-        {
-            if (modifier is LastingCandy lastingCandy)
-            {
-                ApplyLastingCandy(lastingCandy, player, results, options, rewardRng, rarityOdds);
-            }
-        }
-    }
-
-    private static void ApplyLateKnownModifiers(
-        Player player,
-        List<CardCreationResult> results,
-        CardCreationOptions options,
-        Rng nicheRng,
-        IReadOnlyList<AbstractModel> extraResultModifiers)
-    {
-        foreach (var modifier in IterateResultModifiers(player, extraResultModifiers))
-        {
-            switch (modifier)
-            {
-                case FrozenEgg frozenEgg:
-                    UpgradeCardsByType(frozenEgg, player, results, options, CardType.Power);
-                    break;
-                case MoltenEgg moltenEgg:
-                    UpgradeCardsByType(moltenEgg, player, results, options, CardType.Attack);
-                    break;
-                case ToxicEgg toxicEgg:
-                    UpgradeCardsByType(toxicEgg, player, results, options, CardType.Skill);
-                    break;
-                case SilverCrucible silverCrucible:
-                    UpgradeAllCards(silverCrucible, player, results, options);
-                    break;
-                case LavaLamp lavaLamp:
-                    ApplyLavaLamp(lavaLamp, player, results);
-                    break;
-                case Glitter glitter:
-                    EnchantAllValid<Glam>(glitter, player, results, 1m);
-                    break;
-                case FresnelLens fresnelLens:
-                    EnchantAllValid<Nimble>(fresnelLens, player, results, fresnelLens.DynamicVars["NimbleAmount"].BaseValue);
-                    break;
-                case SilkenTress silkenTress:
-                    ApplySilkenTress(silkenTress, player, results, options);
-                    break;
-                case WingCharm wingCharm:
-                    ApplyWingCharm(wingCharm, player, results, nicheRng);
-                    break;
-            }
-        }
-    }
-
     private static void ApplyKnownAfterGeneratedModifiers(Action? afterGenerated, List<CardCreationResult> results)
     {
         if (afterGenerated == null)
@@ -255,7 +201,7 @@ internal static class CardRewardPrediction
         {
             if (IsTheFutureOfPotionsUpgradeCardsInReward(handler))
             {
-                UpgradeAllValidCards(modifyingRelic: null, results);
+                UpgradeAllValidCards(results);
             }
             else if (WarnedUnsupportedAfterGeneratedHandlers.Add(handler.Method))
             {
@@ -275,229 +221,15 @@ internal static class CardRewardPrediction
                 targetTypeName.Contains("TheFutureOfPotions", StringComparison.Ordinal));
     }
 
-    private static void ApplyLastingCandy(
-        LastingCandy relic,
-        Player player,
-        List<CardCreationResult> results,
-        CardCreationOptions options,
-        Rng rewardRng,
-        CardRarityOdds rarityOdds)
-    {
-        if (relic.Owner != player ||
-            options.Source != CardCreationSource.Encounter ||
-            relic.CombatsSeen <= 0 ||
-            relic.CombatsSeen % 2 != 0)
-        {
-            return;
-        }
-
-        var candidates = options.GetPossibleCards(player)
-            .Where(card => card.Type == CardType.Power && results.TrueForAll(result => result.originalCard.Id != card.Id))
-            .ToList();
-        if (candidates.Count == 0)
-        {
-            candidates = options.GetPossibleCards(player)
-                .Where(card => card.Type == CardType.Power)
-                .ToList();
-        }
-
-        if (candidates.Count == 0)
-        {
-            return;
-        }
-
-        var candyOptions = new CardCreationOptions(candidates, CardCreationSource.Other, options.RarityOdds)
-            .WithFlags(CardCreationFlags.NoModifyHooks | CardCreationFlags.NoCardPoolModifications);
-        var card = CreateBaseRewards(player, 1, candyOptions, rewardRng, rarityOdds).FirstOrDefault()?.Card;
-        if (card != null)
-        {
-            var result = new CardCreationResult(card);
-            result.ModifyCard(card, relic);
-            results.Add(result);
-        }
-    }
-
-    private static void UpgradeCardsByType(
-        RelicModel relic,
-        Player player,
-        List<CardCreationResult> results,
-        CardCreationOptions options,
-        CardType type)
-    {
-        if (relic.Owner != player || options.Flags.HasFlag(CardCreationFlags.NoHookUpgrades))
-        {
-            return;
-        }
-
-        foreach (var result in results)
-        {
-            if (result.Card.Type == type && result.Card.IsUpgradable)
-            {
-                result.ModifyCard(PredictionUtils.ToUpgradedCard(result.Card), relic);
-            }
-        }
-    }
-
-    private static void UpgradeAllCards(
-        SilverCrucible relic,
-        Player player,
-        List<CardCreationResult> results,
-        CardCreationOptions options)
-    {
-        if (relic.Owner != player ||
-            relic.TimesUsed >= relic.DynamicVars.Cards.IntValue ||
-            !options.Flags.HasFlag(CardCreationFlags.IsCardReward))
-        {
-            return;
-        }
-
-        UpgradeAllValidCards(relic, results);
-    }
-
-    private static void ApplyLavaLamp(LavaLamp relic, Player player, List<CardCreationResult> results)
-    {
-        if (relic.Owner == player && player.RunState.CurrentRoom is MegaCrit.Sts2.Core.Rooms.CombatRoom && !relic.TookDamageThisCombat)
-        {
-            UpgradeAllValidCards(relic, results);
-        }
-    }
-
-    private static void ApplySilkenTress(
-        SilkenTress relic,
-        Player player,
-        List<CardCreationResult> results,
-        CardCreationOptions options)
-    {
-        if (relic.Owner == player && !relic.IsUsedUp && options.Flags.HasFlag(CardCreationFlags.IsCardReward))
-        {
-            EnchantAllValid<Glam>(relic, player, results, 1m);
-        }
-    }
-
-    private static void ApplyWingCharm(WingCharm relic, Player player, List<CardCreationResult> results, Rng nicheRng)
-    {
-        if (relic.Owner != player)
-        {
-            return;
-        }
-
-        var swift = ModelDb.Enchantment<Swift>();
-        var validResults = results.Where(result => swift.CanEnchant(result.Card)).ToList();
-        var selected = nicheRng.NextItem(validResults);
-        if (selected != null)
-        {
-            selected.ModifyCard(
-                EnchantPreview<Swift>(selected.Card, relic.DynamicVars["SwiftAmount"].BaseValue),
-                relic);
-        }
-    }
-
-    private static void UpgradeAllValidCards(RelicModel? modifyingRelic, List<CardCreationResult> results)
+    private static void UpgradeAllValidCards(List<CardCreationResult> results)
     {
         foreach (var result in results)
         {
             if (result.Card.IsUpgradable)
             {
                 var upgradedCard = PredictionUtils.ToUpgradedCard(result.Card);
-                if (modifyingRelic != null)
-                {
-                    result.ModifyCard(upgradedCard, modifyingRelic);
-                }
-                else
-                {
-                    result.ModifyCard(upgradedCard);
-                }
+                result.ModifyCard(upgradedCard);
             }
         }
-    }
-
-    private static void EnchantAllValid<T>(
-        RelicModel relic,
-        Player player,
-        List<CardCreationResult> results,
-        decimal amount)
-        where T : EnchantmentModel
-    {
-        if (relic.Owner != player)
-        {
-            return;
-        }
-
-        var enchantment = ModelDb.Enchantment<T>();
-        foreach (var result in results)
-        {
-            if (enchantment.CanEnchant(result.Card))
-            {
-                result.ModifyCard(EnchantPreview<T>(result.Card, amount), relic);
-            }
-        }
-    }
-
-    private static CardModel EnchantPreview<T>(CardModel card, decimal amount)
-        where T : EnchantmentModel
-    {
-        var preview = (CardModel)card.MutableClone();
-        var enchantment = ModelDb.Enchantment<T>().ToMutable();
-        if (preview.Enchantment == null)
-        {
-            preview.EnchantInternal(enchantment, amount);
-            enchantment.ModifyCard();
-        }
-        else if (preview.Enchantment.GetType() == enchantment.GetType())
-        {
-            preview.Enchantment.Amount += (int)amount;
-        }
-
-        preview.FinalizeUpgradeInternal();
-        return preview;
-    }
-
-    private static IEnumerable<AbstractModel> IterateResultModifiers(
-        Player player,
-        IReadOnlyList<AbstractModel> extraResultModifiers)
-    {
-        return player.RunState.IterateHookListeners(null).Concat(extraResultModifiers);
-    }
-
-    private static void WarnAboutUnsupportedModifiers(
-        Player player,
-        bool early,
-        IReadOnlyList<AbstractModel> extraResultModifiers)
-    {
-        var methodName = early
-            ? nameof(AbstractModel.TryModifyCardRewardOptions)
-            : nameof(AbstractModel.TryModifyCardRewardOptionsLate);
-        var parameters = new[]
-        {
-            typeof(Player),
-            typeof(List<CardCreationResult>),
-            typeof(CardCreationOptions)
-        };
-
-        foreach (var modifier in IterateResultModifiers(player, extraResultModifiers))
-        {
-            var type = modifier.GetType();
-            if (IsKnownRewardOptionModifier(modifier) ||
-                WarnedUnsupportedModifierTypes.Contains(type) ||
-                !Overrides(type, methodName, parameters))
-            {
-                continue;
-            }
-
-            WarnedUnsupportedModifierTypes.Add(type);
-            Entry.Logger.Warn($"Card reward prediction does not safely mirror {type.FullName}.{methodName}; preview may omit that modifier.");
-        }
-    }
-
-    private static bool IsKnownRewardOptionModifier(AbstractModel modifier)
-    {
-        return modifier is LastingCandy or FrozenEgg or MoltenEgg or ToxicEgg or SilverCrucible or LavaLamp or Glitter or
-            FresnelLens or SilkenTress or WingCharm;
-    }
-
-    private static bool Overrides(Type type, string methodName, Type[] parameters)
-    {
-        return type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public, parameters)?.DeclaringType !=
-            typeof(AbstractModel);
     }
 }
