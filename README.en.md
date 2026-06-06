@@ -127,13 +127,13 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Enable singleplayer prediction | Controls whether any prediction results are shown in singleplayer, default on |
 | Enable multiplayer prediction | Controls whether any prediction results are shown in multiplayer, default on |
 | Enable fair mode | Limits predictions to information obtainable through Save & Load, default on |
+| Show prediction drift warnings | Controls whether side-effect-sensitive predictions show a warning, default on |
 | Predict transform results | Controls whether transform selection grid hover tips and confirmation previews show predicted cards |
 | Predict combat transform results | Controls whether combat transform selections show predicted cards |
 | Predict potion card results | Controls whether random-card-generation potions show predicted cards |
 | Predict potion generation | Controls whether Entropic Brew and Alchemize show predicted potions |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
-| Show selection prediction warnings | Controls whether side-effect-sensitive selection predictions show a warning, default on |
 | Predict draw-pile autoplay | Controls whether Havoc, Cascade, and Distilled Chaos show the cards that will be played from the draw pile |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict relic pickup effects | Controls whether relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup |

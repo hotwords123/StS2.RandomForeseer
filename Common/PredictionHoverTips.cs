@@ -64,13 +64,13 @@ internal static class PredictionHoverTips
         return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();
     }
 
-    public static IHoverTip CardSelectionDriftWarning()
+    public static IHoverTip DriftWarning(string key)
     {
         var tip = new HoverTip(
-            PredictionLocalization.Text("card_selection_drift_warning.title"),
-            PredictionLocalization.Text("card_selection_drift_warning.description"))
+            PredictionLocalization.Text($"drift_warning.{key}.title"),
+            PredictionLocalization.Text($"drift_warning.{key}.description"))
         {
-            Id = $"{PredictionWarningHoverTipIdPrefix}:CardSelectionDrift",
+            Id = $"{PredictionWarningHoverTipIdPrefix}:Drift:{key}",
             IsInstanced = true
         };
         return tip;

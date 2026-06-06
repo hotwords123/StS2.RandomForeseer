@@ -16,21 +16,9 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableFairMode { get; set; } = true;
 
+    public bool EnableDriftWarnings { get; set; } = true;
+
     public bool EnableTransformPrediction { get; set; } = true;
-
-    public bool EnablePotionCardPrediction { get; set; } = true;
-
-    public bool EnablePotionGenerationPrediction { get; set; } = true;
-
-    public bool EnableCombatCardPrediction { get; set; } = true;
-
-    public bool EnableCombatCardSelectionPrediction { get; set; } = true;
-
-    public bool EnableCombatCardSelectionDriftWarnings { get; set; } = true;
-
-    public bool EnableCombatTransformPrediction { get; set; } = true;
-
-    public bool EnableAutoPlayFromDrawPilePrediction { get; set; } = true;
 
     public bool EnableDriftwoodRerollPrediction { get; set; } = true;
 
@@ -41,6 +29,18 @@ internal sealed class RandomForeseerSettingsData
     public bool EnableEventOptionPrediction { get; set; } = true;
 
     public int SlipperyBridgeRerollPreviewCount { get; set; } = 5;
+
+    public bool EnablePotionCardPrediction { get; set; } = true;
+
+    public bool EnablePotionGenerationPrediction { get; set; } = true;
+
+    public bool EnableCombatCardPrediction { get; set; } = true;
+
+    public bool EnableCombatCardSelectionPrediction { get; set; } = true;
+
+    public bool EnableAutoPlayFromDrawPilePrediction { get; set; } = true;
+
+    public bool EnableCombatTransformPrediction { get; set; } = true;
 
     public bool EnableFrozenEye { get; set; } = true;
 
@@ -53,19 +53,19 @@ internal static class RandomForeseerSettings
     private const string EnableSingleplayerPredictionKey = "enable_singleplayer_prediction";
     private const string EnableMultiplayerPredictionKey = "enable_multiplayer_prediction";
     private const string EnableFairModeKey = "enable_fair_mode";
+    private const string EnableDriftWarningsKey = "enable_drift_warnings";
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
-    private const string EnableCombatTransformPredictionKey = "enable_combat_transform_prediction";
-    private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
-    private const string EnablePotionGenerationPredictionKey = "enable_potion_generation_prediction";
-    private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
-    private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
-    private const string EnableCombatCardSelectionDriftWarningsKey = "enable_combat_card_selection_drift_warnings";
-    private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
     private const string EnableRelicPickupPredictionKey = "enable_relic_pickup_prediction";
     private const string EnableRestSitePredictionKey = "enable_rest_site_prediction";
     private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
     private const string SlipperyBridgeRerollPreviewCountKey = "slippery_bridge_reroll_preview_count";
+    private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
+    private const string EnablePotionGenerationPredictionKey = "enable_potion_generation_prediction";
+    private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
+    private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
+    private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
+    private const string EnableCombatTransformPredictionKey = "enable_combat_transform_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
     private const string EnableAncientEventDebugRerollKey = "enable_ancient_event_debug_reroll";
 
@@ -99,68 +99,19 @@ internal static class RandomForeseerSettings
             settings => settings.EnableFairMode,
             (settings, value) => settings.EnableFairMode = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableDriftWarningsBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableDriftWarnings,
+            (settings, value) => settings.EnableDriftWarnings = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableTransformPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableTransformPrediction,
             (settings, value) => settings.EnableTransformPrediction = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnableCombatTransformPredictionBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnableCombatTransformPrediction,
-            (settings, value) => settings.EnableCombatTransformPrediction = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnablePotionCardPredictionBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnablePotionCardPrediction,
-            (settings, value) => settings.EnablePotionCardPrediction = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnablePotionGenerationPredictionBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnablePotionGenerationPrediction,
-            (settings, value) => settings.EnablePotionGenerationPrediction = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnableFrozenEyeBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnableFrozenEye,
-            (settings, value) => settings.EnableFrozenEye = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnableCombatCardPredictionBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnableCombatCardPrediction,
-            (settings, value) => settings.EnableCombatCardPrediction = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnableCombatCardSelectionPredictionBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnableCombatCardSelectionPrediction,
-            (settings, value) => settings.EnableCombatCardSelectionPrediction = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnableCombatCardSelectionDriftWarningsBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnableCombatCardSelectionDriftWarnings,
-            (settings, value) => settings.EnableCombatCardSelectionDriftWarnings = value);
-
-    private static readonly IModSettingsValueBinding<bool> EnableAutoPlayFromDrawPilePredictionBinding =
-        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
-            Entry.ModId,
-            DataKey,
-            settings => settings.EnableAutoPlayFromDrawPilePrediction,
-            (settings, value) => settings.EnableAutoPlayFromDrawPilePrediction = value);
 
     private static readonly IModSettingsValueBinding<bool> EnableDriftwoodRerollPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
@@ -197,6 +148,55 @@ internal static class RandomForeseerSettings
             settings => settings.SlipperyBridgeRerollPreviewCount,
             (settings, value) => settings.SlipperyBridgeRerollPreviewCount = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnablePotionCardPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnablePotionCardPrediction,
+            (settings, value) => settings.EnablePotionCardPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnablePotionGenerationPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnablePotionGenerationPrediction,
+            (settings, value) => settings.EnablePotionGenerationPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableCombatCardPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableCombatCardPrediction,
+            (settings, value) => settings.EnableCombatCardPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableCombatCardSelectionPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableCombatCardSelectionPrediction,
+            (settings, value) => settings.EnableCombatCardSelectionPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableAutoPlayFromDrawPilePredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableAutoPlayFromDrawPilePrediction,
+            (settings, value) => settings.EnableAutoPlayFromDrawPilePrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableCombatTransformPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableCombatTransformPrediction,
+            (settings, value) => settings.EnableCombatTransformPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableFrozenEyeBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableFrozenEye,
+            (settings, value) => settings.EnableFrozenEye = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAncientEventDebugRerollBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -210,21 +210,9 @@ internal static class RandomForeseerSettings
 
     public static bool EnableFairMode => EnableFairModeBinding.Read();
 
+    public static bool EnableDriftWarnings => EnableDriftWarningsBinding.Read();
+
     public static bool EnableTransformPrediction => EnableTransformPredictionBinding.Read();
-
-    public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
-
-    public static bool EnablePotionGenerationPrediction => EnablePotionGenerationPredictionBinding.Read();
-
-    public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
-
-    public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
-
-    public static bool EnableCombatCardSelectionDriftWarnings => EnableCombatCardSelectionDriftWarningsBinding.Read();
-
-    public static bool EnableCombatTransformPrediction => EnableCombatTransformPredictionBinding.Read();
-
-    public static bool EnableAutoPlayFromDrawPilePrediction => EnableAutoPlayFromDrawPilePredictionBinding.Read();
 
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
@@ -235,6 +223,18 @@ internal static class RandomForeseerSettings
     public static bool EnableEventOptionPrediction => EnableEventOptionPredictionBinding.Read();
 
     public static int SlipperyBridgeRerollPreviewCount => Math.Clamp(SlipperyBridgeRerollPreviewCountBinding.Read(), 1, 10);
+
+    public static bool EnablePotionCardPrediction => EnablePotionCardPredictionBinding.Read();
+
+    public static bool EnablePotionGenerationPrediction => EnablePotionGenerationPredictionBinding.Read();
+
+    public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
+
+    public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
+
+    public static bool EnableAutoPlayFromDrawPilePrediction => EnableAutoPlayFromDrawPilePredictionBinding.Read();
+
+    public static bool EnableCombatTransformPrediction => EnableCombatTransformPredictionBinding.Read();
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
@@ -316,6 +316,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_fair_mode.description",
                         "When enabled, prediction is limited to information that can be obtained through Save & Load."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableDriftWarningsKey,
+                    Text("toggle.enable_drift_warnings.label", "Show prediction drift warnings"),
+                    EnableDriftWarningsBinding,
+                    Text(
+                        "toggle.enable_drift_warnings.description",
+                        "When enabled, predictions that may be shifted by side effects show a warning tooltip."),
                     () => true);
             });
 
@@ -425,15 +434,6 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_combat_card_selection_prediction.description",
                         "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select."),
-                    () => true);
-
-                section.AddToggle(
-                    EnableCombatCardSelectionDriftWarningsKey,
-                    Text("toggle.enable_combat_card_selection_drift_warnings.label", "Show selection prediction warnings"),
-                    EnableCombatCardSelectionDriftWarningsBinding,
-                    Text(
-                        "toggle.enable_combat_card_selection_drift_warnings.description",
-                        "When enabled, card selection predictions that may be shifted by damage, block, draw, death, or autoplay side effects show a warning tooltip."),
                     () => true);
 
                 section.AddToggle(

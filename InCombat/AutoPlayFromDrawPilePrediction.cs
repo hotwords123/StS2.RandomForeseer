@@ -57,8 +57,14 @@ internal static class AutoPlayFromDrawPilePrediction
             return [];
         }
 
-        var cards = DrawPilePredictionUtils.PredictTopCardsAfterNecessaryShuffles(player, count);
-        return PredictionHoverTips.Cards(cards);
+        var prediction = DrawPilePredictionUtils.PredictTopCardsAfterNecessaryShuffles(player, count);
+        var tips = PredictionHoverTips.Cards(prediction.Cards).ToList();
+        if (prediction.HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
+        {
+            tips.Add(PredictionHoverTips.DriftWarning("auto_play_from_draw_pile"));
+        }
+
+        return tips;
     }
 
     private static int PredictCascadeCount(Cascade cascade)

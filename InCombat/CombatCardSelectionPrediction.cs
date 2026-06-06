@@ -27,9 +27,9 @@ internal static class CombatCardSelectionPrediction
     {
         var prediction = GetPrediction(card);
         var tips = PredictionHoverTips.Cards(prediction.HoverTipCards).ToList();
-        if (prediction.HasDriftRisk && RandomForeseerSettings.EnableCombatCardSelectionDriftWarnings)
+        if (prediction.HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
         {
-            tips.Add(PredictionHoverTips.CardSelectionDriftWarning());
+            tips.Add(PredictionHoverTips.DriftWarning("card_selection"));
         }
 
         return tips;
