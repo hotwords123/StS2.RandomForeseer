@@ -110,11 +110,7 @@ internal static class CombatTransformPrediction
 
         private CardModel? PredictReplacement(CardModel hoveredCard)
         {
-            var selectedCards = Hand._selectedCards.ToList();
-            var hoveredSelectionIndex = selectedCards.IndexOf(hoveredCard);
-            var predictionSequence = hoveredSelectionIndex >= 0
-                ? selectedCards.Take(hoveredSelectionIndex + 1)
-                : selectedCards.Append(hoveredCard);
+            var predictionSequence = GetPredictionSequence(hoveredCard);
 
             var previewRng = PredictionUtils.CloneRng(realRng);
             CardModel? hoveredReplacement = null;
@@ -128,6 +124,25 @@ internal static class CombatTransformPrediction
             }
 
             return hoveredReplacement;
+        }
+
+        private IReadOnlyList<CardModel> GetPredictionSequence(CardModel hoveredCard)
+        {
+            var selectedCards = Hand._selectedCards.ToList();
+            var hoveredSelectionIndex = selectedCards.IndexOf(hoveredCard);
+            if (hoveredSelectionIndex >= 0)
+            {
+                return selectedCards.Take(hoveredSelectionIndex + 1).ToList();
+            }
+
+            if (selectedCards.Count >= Hand._prefs.MaxSelect && selectedCards.Count > 0)
+            {
+                selectedCards[^1] = hoveredCard;
+                return selectedCards;
+            }
+
+            selectedCards.Add(hoveredCard);
+            return selectedCards;
         }
     }
 }
