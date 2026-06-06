@@ -27,6 +27,7 @@ internal static class AutoPlayFromDrawPilePrediction
             Cascade cascade => PredictCascadeCount(cascade),
             _ => 0
         };
+        count = Math.Min(count, 9);
 
         return GetHoverTips(card.Owner, count);
     }
