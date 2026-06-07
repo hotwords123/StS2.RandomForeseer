@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Godot;
 using HarmonyLib;
@@ -9,11 +10,23 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using RandomForeseer.Common;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace RandomForeseer.InCombat;
+
+internal static class CardPileUtils
+{
+    public static bool TryGetDrawPileOwner(CardPile pile, [NotNullWhen(true)] out Player? player)
+    {
+        player = CombatManager.Instance._state?.Players
+            .FirstOrDefault(candidate => candidate.PlayerCombatState?.DrawPile == pile);
+        return player != null;
+    }
+}
 
 [HarmonyPatch(typeof(NCardPileScreen), "OnPileContentsChanged")]
 internal static class FrozenEyeCardPileScreenPatch
@@ -61,7 +74,7 @@ internal static class FrozenEyeCardPileScreenPatch
             return false;
         }
 
-        if (!TryGetDrawPileOwner(screen, out var player) ||
+        if (!CardPileUtils.TryGetDrawPileOwner(screen.Pile, out var player) ||
             player.Creature.CombatState?.CurrentSide != player.Creature.Side)
         {
             return false;
@@ -69,13 +82,6 @@ internal static class FrozenEyeCardPileScreenPatch
 
         prediction = DrawPilePrediction.PredictShuffleAfterDrawPileDepleted(player);
         return prediction.Cards.Count > 0;
-    }
-
-    public static bool TryGetDrawPileOwner(NCardPileScreen screen, [NotNullWhen(true)] out Player? player)
-    {
-        player = CombatManager.Instance._state?.Players
-            .FirstOrDefault(candidate => candidate.PlayerCombatState?.DrawPile == screen.Pile);
-        return player != null;
     }
 
     public static bool TryGetPredictedShuffleCards(NCardGrid grid, [NotNullWhen(true)] out HashSet<CardModel>? predictedCards)
@@ -99,30 +105,30 @@ internal static class FrozenEyeCardPileScreenRefreshPatch
     [HarmonyPostfix]
     private static void SubscribeDiscardPileChanges(NCardPileScreen __instance)
     {
-        if (!FrozenEyeCardPileScreenPatch.TryGetDrawPileOwner(__instance, out var player) ||
-            player.PlayerCombatState is not { } combatState)
+        if (!CardPileUtils.TryGetDrawPileOwner(__instance.Pile, out var player) ||
+            player.PlayerCombatState is not { } playerCombatState)
         {
             return;
         }
 
         var callback = RefreshCallbacks.GetValue(__instance, screen => new ScreenRefreshCallback(screen));
-        combatState.DiscardPile.ContentsChanged -= callback.Refresh;
-        combatState.DiscardPile.ContentsChanged += callback.Refresh;
+        playerCombatState.DiscardPile.ContentsChanged -= callback.Refresh;
+        playerCombatState.DiscardPile.ContentsChanged += callback.Refresh;
     }
 
     [HarmonyPatch(nameof(NCardPileScreen._ExitTree))]
     [HarmonyPostfix]
     private static void UnsubscribeDiscardPileChanges(NCardPileScreen __instance)
     {
-        if (!FrozenEyeCardPileScreenPatch.TryGetDrawPileOwner(__instance, out var player) ||
-            player.PlayerCombatState is not { } combatState)
+        if (!CardPileUtils.TryGetDrawPileOwner(__instance.Pile, out var player) ||
+            player.PlayerCombatState is not { } playerCombatState)
         {
             return;
         }
 
         if (RefreshCallbacks.TryGetValue(__instance, out var callback))
         {
-            combatState.DiscardPile.ContentsChanged -= callback.Refresh;
+            playerCombatState.DiscardPile.ContentsChanged -= callback.Refresh;
         }
     }
 
@@ -145,6 +151,35 @@ internal static class FrozenEyeCardPileScreenRefreshPatch
 
             FrozenEyeCardPileScreenPatch.TryRefreshDrawPileView(screen);
         }
+    }
+}
+
+[HarmonyPatch(typeof(NCombatCardPile), "OnRelease")]
+internal static class FrozenEyeEmptyDrawPileOpenPatch
+{
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+    {
+        var rewriter = HarmonyIlRewriter.From(instructions, original);
+        rewriter
+            .ReplaceCall(
+                "allow empty draw pile view when shuffle prediction can be shown",
+                AccessTools.PropertyGetter(typeof(CardPile), nameof(CardPile.IsEmpty)),
+                AccessTools.Method(typeof(FrozenEyeEmptyDrawPileOpenPatch), nameof(ShouldTreatPileAsEmpty)))
+            .RequireExactly(1);
+        return rewriter.InstructionsChecked("Frozen Eye empty draw pile open");
+    }
+
+    private static bool ShouldTreatPileAsEmpty(CardPile pile)
+    {
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
+            !RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableShufflePrediction) ||
+            !CardPileUtils.TryGetDrawPileOwner(pile, out var player) ||
+            player.Creature.CombatState?.CurrentSide != player.Creature.Side)
+        {
+            return pile.IsEmpty;
+        }
+
+        return pile.IsEmpty && (player.PlayerCombatState?.DiscardPile.IsEmpty ?? true);
     }
 }
 
