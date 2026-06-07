@@ -1,8 +1,10 @@
+using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -63,11 +65,11 @@ internal static class AfterCardDrawnHook
         registry.Register<IterationPower>(HandleIterationPower);
         registry.Register<PagestormPower>(HandlePagestormPower);
         registry.Register<AutomationPower>(SkipOriginal);
-        registry.Register<ChainsOfBindingPower>(HandleDriftRiskIfOwner);
+        registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
         registry.Register<CorrosiveWavePower>(HandleDriftRiskIfOwner);
         registry.Register<SpeedsterPower>(HandleSpeedsterPower);
-        registry.Register<KinglyKick>(HandleDriftRiskIfDrawnCard);
-        registry.Register<KinglyPunch>(HandleDriftRiskIfDrawnCard);
+        registry.Register<KinglyKick>(HandleKinglyKick);
+        registry.Register<KinglyPunch>(HandleKinglyPunch);
         registry.Register<Cards.Void>(SkipOriginal);
 
         return registry;
@@ -109,7 +111,7 @@ internal static class AfterCardDrawnHook
             return HookResultKind.Ignored;
         }
 
-        if (context.StatusCardsDrawnThisTurn > 1)
+        if (context.StatusCardsDrawnThisTurn.Value > 1)
         {
             return HookResultKind.Ignored;
         }
@@ -129,6 +131,22 @@ internal static class AfterCardDrawnHook
         return HookResultKind.Applied;
     }
 
+    private static HookResultKind HandleChainsOfBindingPower(ChainsOfBindingPower power, AfterCardDrawnHookContext context)
+    {
+        var bound = ModelDb.Affliction<Bound>();
+        if (context.PreviewCard.Owner != power.Owner?.Player ||
+            context.CombatState.CurrentSide != power.Owner.Side ||
+            !bound.CanAfflict(context.PreviewCard) ||
+            context.BoundCardsAfflictedThisTurn.Value >= power.Amount)
+        {
+            return HookResultKind.Ignored;
+        }
+
+        context.MutablePreviewCard.AfflictInternal(bound.ToMutable(), power.Amount);
+        context.BoundCardsAfflictedThisTurn.Value++;
+        return HookResultKind.Applied;
+    }
+
     private static HookResultKind HandleSpeedsterPower(SpeedsterPower power, AfterCardDrawnHookContext context)
     {
         return !context.FromHandDraw &&
@@ -138,16 +156,32 @@ internal static class AfterCardDrawnHook
                 : HookResultKind.Ignored;
     }
 
+    private static HookResultKind HandleKinglyKick(KinglyKick card, AfterCardDrawnHookContext context)
+    {
+        if (context.OriginalCard != card)
+        {
+            return HookResultKind.Ignored;
+        }
+
+        context.MutablePreviewCard.EnergyCost.AddThisCombat(-1);
+        return HookResultKind.Applied;
+    }
+
+    private static HookResultKind HandleKinglyPunch(KinglyPunch card, AfterCardDrawnHookContext context)
+    {
+        if (context.OriginalCard != card)
+        {
+            return HookResultKind.Ignored;
+        }
+
+        var previewCard = context.MutablePreviewCard;
+        previewCard.DynamicVars.Damage.BaseValue += previewCard.DynamicVars["Increase"].BaseValue;
+        return HookResultKind.Applied;
+    }
+
     private static HookResultKind HandleDriftRiskIfOwner(PowerModel power, AfterCardDrawnHookContext context)
     {
         return context.PreviewCard.Owner.Creature == power.Owner
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
-    }
-
-    private static HookResultKind HandleDriftRiskIfDrawnCard(CardModel model, AfterCardDrawnHookContext context)
-    {
-        return context.OriginalCard == model
             ? HookResultKind.DriftRisk
             : HookResultKind.Ignored;
     }
@@ -176,7 +210,9 @@ internal sealed class AfterCardDrawnHookContext
 
     public required Rng EnergyCostRng { get; init; }
 
-    public required int StatusCardsDrawnThisTurn { get; init; }
+    public required StrongBox<int> StatusCardsDrawnThisTurn { get; init; }
+
+    public required StrongBox<int> BoundCardsAfflictedThisTurn { get; init; }
 
     public required Action<int> Draw { get; init; }
 }

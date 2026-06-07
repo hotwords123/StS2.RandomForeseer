@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -7,6 +8,7 @@ using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
@@ -30,7 +32,9 @@ internal sealed class DrawPilePrediction(
     private readonly List<PredictedCard> _drawPileCards = PredictedCard.FromCards(drawPileCards);
     private readonly List<PredictedCard> _discardPileCards = PredictedCard.FromCards(discardPileCards);
 
-    private int _statusCardsDrawnThisTurn = CountStatusCardsDrawnThisTurn(combatState, player);
+    private readonly StrongBox<int> _statusCardsDrawnThisTurn = new(CountStatusCardsDrawnThisTurn(combatState, player));
+    private readonly StrongBox<int> _boundCardsAfflictedThisTurn = new(CountBoundCardsAfflictedThisTurn(combatState, player));
+
     private bool _reachedSimulationLimit;
 
     public static DrawPilePredictionResult PredictTopCardsAfterNecessaryShuffles(Player player, int count)
@@ -152,7 +156,7 @@ internal sealed class DrawPilePrediction(
 
             if (predictedCard.Original.Type == CardType.Status)
             {
-                _statusCardsDrawnThisTurn++;
+                _statusCardsDrawnThisTurn.Value++;
             }
 
             RunAfterCardDrawnHooks(predictedCard, DrawInternal);
@@ -261,6 +265,7 @@ internal sealed class DrawPilePrediction(
             FromHandDraw = false,
             EnergyCostRng = energyCostRng,
             StatusCardsDrawnThisTurn = _statusCardsDrawnThisTurn,
+            BoundCardsAfflictedThisTurn = _boundCardsAfflictedThisTurn,
             Draw = draw
         };
 
@@ -276,6 +281,16 @@ internal sealed class DrawPilePrediction(
                 entry.HappenedThisTurn(combatState) &&
                 entry.Actor == player.Creature &&
                 entry.Card.Type == CardType.Status);
+    }
+
+    private static int CountBoundCardsAfflictedThisTurn(ICombatState combatState, Player player)
+    {
+        return CombatManager.Instance.History.Entries
+            .OfType<CardAfflictedEntry>()
+            .Count(entry =>
+                entry.HappenedThisTurn(combatState) &&
+                entry.Actor == player.Creature &&
+                entry.Affliction is Bound);
     }
 
     private static bool HasRisk(IEnumerable<HookResult> results)
