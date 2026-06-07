@@ -31,9 +31,12 @@ internal sealed class DrawPilePrediction(
     private readonly List<PredictedCard> _handCards = PredictedCard.FromCards(handCards);
     private readonly List<PredictedCard> _drawPileCards = PredictedCard.FromCards(drawPileCards);
     private readonly List<PredictedCard> _discardPileCards = PredictedCard.FromCards(discardPileCards);
+    private readonly List<PredictedCard> _predictedCards = [];
 
     private readonly StrongBox<int> _statusCardsDrawnThisTurn = new(CountStatusCardsDrawnThisTurn(combatState, player));
     private readonly StrongBox<int> _boundCardsAfflictedThisTurn = new(CountBoundCardsAfflictedThisTurn(combatState, player));
+    private readonly Dictionary<RelicModel, int> _jossPaperCardsExhausted = [];
+    private readonly Dictionary<RelicModel, bool> _burningSticksUsedThisCombat = [];
 
     private bool _reachedSimulationLimit;
 
@@ -94,74 +97,68 @@ internal sealed class DrawPilePrediction(
             return DrawPilePredictionResult.Empty;
         }
 
-        var predictedCards = new List<PredictedCard>();
-
         DrawInternal(count);
-        return DrawPilePredictionResult.FromPredictedCards(predictedCards, hasDriftRisk);
+        return DrawPilePredictionResult.FromPredictedCards(_predictedCards, hasDriftRisk);
+    }
 
-        void DrawInternal(int drawCount)
+    private void DrawInternal(int drawCount)
+    {
+        if (drawCount <= 0 || _reachedSimulationLimit)
         {
-            if (drawCount <= 0 || _reachedSimulationLimit)
-            {
-                return;
-            }
-
-            var shouldDrawResults = ShouldDrawHook.Run(new ShouldDrawHookContext
-            {
-                CombatState = combatState,
-                Player = player,
-                FromHandDraw = false
-            });
-
-            hasDriftRisk |= HasRisk(shouldDrawResults);
-
-            if (shouldDrawResults.Any(result => result.Kind == HookResultKind.Blocked))
-            {
-                return;
-            }
-
-            var remainingHandSpace = Math.Max(0, CardPile.MaxCardsInHand - _handCards.Count);
-
-            for (var i = 0; i < drawCount && remainingHandSpace > 0; i++)
-            {
-                if (!DrawOne())
-                {
-                    break;
-                }
-
-                remainingHandSpace = Math.Max(0, CardPile.MaxCardsInHand - _handCards.Count);
-            }
+            return;
         }
 
-        bool DrawOne()
+        var shouldDrawResults = ShouldDrawHook.Run(new ShouldDrawHookContext
         {
-            if (predictedCards.Count >= MaxSimulatedDraws)
-            {
-                hasDriftRisk = true;
-                _reachedSimulationLimit = true;
-                return false;
-            }
+            CombatState = combatState,
+            Player = player,
+            FromHandDraw = false
+        });
 
-            ShuffleIfNecessary();
+        hasDriftRisk |= HasRisk(shouldDrawResults);
 
-            if (_drawPileCards.Count == 0)
-            {
-                return false;
-            }
-
-            var predictedCard = _drawPileCards[0];
-            _drawPileCards.RemoveAt(0);
-            _handCards.Add(predictedCard);
-            predictedCards.Add(predictedCard);
-
-            if (predictedCard.Original.Type == CardType.Status)
-            {
-                _statusCardsDrawnThisTurn.Value++;
-            }
-
-            RunAfterCardDrawnHooks(predictedCard, DrawInternal);
-            return true;
+        if (shouldDrawResults.Any(result => result.Kind == HookResultKind.Blocked))
+        {
+            return;
         }
+
+        for (var i = 0; i < drawCount; i++)
+        {
+            if (_handCards.Count >= CardPile.MaxCardsInHand || !DrawOne())
+            {
+                break;
+            }
+        }
+    }
+
+    private bool DrawOne()
+    {
+        if (_predictedCards.Count >= MaxSimulatedDraws)
+        {
+            hasDriftRisk = true;
+            _reachedSimulationLimit = true;
+            return false;
+        }
+
+        ShuffleIfNecessary();
+
+        if (_drawPileCards.Count == 0)
+        {
+            return false;
+        }
+
+        var predictedCard = _drawPileCards[0];
+        _drawPileCards.RemoveAt(0);
+        _handCards.Add(predictedCard);
+        _predictedCards.Add(predictedCard);
+
+        if (predictedCard.Original.Type == CardType.Status)
+        {
+            _statusCardsDrawnThisTurn.Value++;
+        }
+
+        RunAfterCardDrawnHooks(predictedCard, DrawInternal);
+        return true;
     }
 
     public void MoveHandToDrawPile()
@@ -170,9 +167,14 @@ internal sealed class DrawPilePrediction(
         _handCards.Clear();
     }
 
-    public void ClearHand()
+    public void ExhaustHand()
     {
-        _handCards.Clear();
+        var exhaustedCards = _handCards.ToList();
+        foreach (var card in exhaustedCards)
+        {
+            _handCards.Remove(card);
+            RunAfterCardExhaustedHooks(card, causedByEthereal: false);
+        }
     }
 
     public DrawPilePredictionResult RandomizeHandCosts()
@@ -271,6 +273,32 @@ internal sealed class DrawPilePrediction(
 
         hasDriftRisk |= HasRisk(AfterCardDrawnHook.RunEarly(context));
         hasDriftRisk |= HasRisk(AfterCardDrawnHook.Run(context));
+    }
+
+    private void RunAfterCardExhaustedHooks(PredictedCard card, bool causedByEthereal)
+    {
+        var context = new AfterCardExhaustedHookContext
+        {
+            CombatState = combatState,
+            Player = player,
+            Card = card,
+            CausedByEthereal = causedByEthereal,
+            JossPaperCardsExhausted = _jossPaperCardsExhausted,
+            BurningSticksUsedThisCombat = _burningSticksUsedThisCombat,
+            Draw = DrawInternal,
+            AddToHand = AddToHand
+        };
+
+        hasDriftRisk |= HasRisk(AfterCardExhaustedHook.Run(context));
+    }
+
+    private void AddToHand(PredictedCard card)
+    {
+        if (_handCards.Count < CardPile.MaxCardsInHand)
+        {
+            _handCards.Add(card);
+            _predictedCards.Add(card);
+        }
     }
 
     private static int CountStatusCardsDrawnThisTurn(ICombatState combatState, Player player)

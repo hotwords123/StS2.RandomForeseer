@@ -44,7 +44,7 @@ internal static class PotionDrawPrediction
         }
 
         // Mirrors GlowwaterPotion.OnUse: exhaust current hand, then draw.
-        prediction.ClearHand();
+        prediction.ExhaustHand();
         return prediction.Draw(count);
     }
 
