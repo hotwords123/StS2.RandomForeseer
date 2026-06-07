@@ -57,5 +57,7 @@
   "button.open_predicted_treasure_room.text": "Open",
   "button.open_predicted_treasure_room.description": "Only works during a run. Opens a treasure room whose relic target is randomly chosen from War Paint and Whetstone.",
   "toggle.enable_frozen_eye.label": "Enable Frozen Eye",
-  "toggle.enable_frozen_eye.description": "When enabled, the combat draw pile view shows cards in draw order."
+  "toggle.enable_frozen_eye.description": "When enabled, the combat draw pile view shows cards in draw order.",
+  "toggle.enable_shuffle_prediction.label": "Predict shuffle order",
+  "toggle.enable_shuffle_prediction.description": "When enabled, the Frozen Eye draw pile view previews the order in which the discard pile will be shuffled into the draw pile."
 }

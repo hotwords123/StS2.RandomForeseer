@@ -4,6 +4,7 @@
   "drift_warning.draw_pile.title": "提示",
   "drift_warning.draw_pile.description": "抽牌、洗牌或抽牌时触发的效果可能改变牌堆、推进随机数或触发战斗副作用，因此这里的预测不一定准确。\n你可以在设置界面关闭这个提示。",
   "frozen_eye.draw_pile_info_order": "[gold]（点击查看时卡牌会按实际抽牌顺序显示）[/gold]",
+  "frozen_eye.draw_pile_info_order_with_shuffle_prediction": "[gold]（按实际抽牌顺序显示，灰色卡牌为抽空后弃牌堆洗入顺序预测）[/gold]",
   "frozen_eye.draw_pile_hover_view": "点击这里查看你抽牌堆中的卡牌（按实际抽牌顺序）。",
   "transform_bundle_explanation.title": "预测",
   "transform_bundle_explanation.description": "每组牌依次对应选择的先后顺序，展示该位置能变化得到的所有牌。",

@@ -46,6 +46,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableFrozenEye { get; set; } = true;
 
+    public bool EnableShufflePrediction { get; set; } = true;
+
     public bool EnableAncientEventDebugReroll { get; set; }
 }
 
@@ -70,6 +72,7 @@ internal static class RandomForeseerSettings
     private const string EnablePotionDrawPredictionKey = "enable_potion_draw_prediction";
     private const string EnableCombatTransformPredictionKey = "enable_combat_transform_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
+    private const string EnableShufflePredictionKey = "enable_shuffle_prediction";
     private const string EnableAncientEventDebugRerollKey = "enable_ancient_event_debug_reroll";
 
     private static bool _isDataRegistered;
@@ -207,6 +210,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableFrozenEye,
             (settings, value) => settings.EnableFrozenEye = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableShufflePredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableShufflePrediction,
+            (settings, value) => settings.EnableShufflePrediction = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAncientEventDebugRerollBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -249,6 +259,8 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatTransformPrediction => EnableCombatTransformPredictionBinding.Read();
 
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
+
+    public static bool EnableShufflePrediction => EnableShufflePredictionBinding.Read();
 
     public static bool EnableAncientEventDebugReroll => EnableAncientEventDebugRerollBinding.Read();
 
@@ -482,6 +494,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_frozen_eye.description",
                         "When enabled, the combat draw pile view shows cards in draw order."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableShufflePredictionKey,
+                    Text("toggle.enable_shuffle_prediction.label", "Predict shuffle order"),
+                    EnableShufflePredictionBinding,
+                    Text(
+                        "toggle.enable_shuffle_prediction.description",
+                        "When enabled, the Frozen Eye draw pile view previews the order in which the discard pile will be shuffled into the draw pile."),
                     () => true);
             });
 

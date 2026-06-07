@@ -54,6 +54,13 @@ internal sealed class DrawPilePrediction(
             : DrawPilePredictionResult.Empty;
     }
 
+    public static DrawPilePredictionResult PredictShuffleAfterDrawPileDepleted(Player player)
+    {
+        return TryCreate(player, out var prediction)
+            ? prediction.ShuffleAfterDrawPileDepleted()
+            : DrawPilePredictionResult.Empty;
+    }
+
     public DrawPilePredictionResult PeekTopCardsAfterNecessaryShuffles(int count)
     {
         if (count <= 0)
@@ -99,6 +106,18 @@ internal sealed class DrawPilePrediction(
 
         DrawInternal(count);
         return DrawPilePredictionResult.FromPredictedCards(_predictedCards, hasDriftRisk);
+    }
+
+    public DrawPilePredictionResult ShuffleAfterDrawPileDepleted()
+    {
+        if (_discardPileCards.Count == 0)
+        {
+            return DrawPilePredictionResult.Empty;
+        }
+
+        _drawPileCards.Clear();
+        Shuffle();
+        return DrawPilePredictionResult.FromPredictedCards(_drawPileCards, hasDriftRisk);
     }
 
     private void DrawInternal(int drawCount)

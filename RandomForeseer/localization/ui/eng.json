@@ -4,6 +4,7 @@
   "drift_warning.draw_pile.title": "Notice",
   "drift_warning.draw_pile.description": "Draw, shuffle, or on-draw effects may change the pile, advance RNG, or trigger combat side effects, so this prediction may not be accurate.\nYou can turn off this notice in settings.",
   "frozen_eye.draw_pile_info_order": "[gold](Cards shown are in draw order)[/gold]",
+  "frozen_eye.draw_pile_info_order_with_shuffle_prediction": "[gold](Shown in draw order; gray cards predict the discard shuffle after depletion)[/gold]",
   "frozen_eye.draw_pile_hover_view": "Click to view the cards in your draw pile (in draw order).",
   "transform_bundle_explanation.title": "Prediction",
   "transform_bundle_explanation.description": "Each pack follows the order cards are chosen, showing all possible results when a deck card is transformed in that position.",
