@@ -8,11 +8,10 @@ internal delegate HookResultKind HookHandler<in TContext>(AbstractModel model, T
 internal sealed record HookSpec(string Name, Type[] ParameterTypes);
 
 // Shared per-hook dispatcher. Each concrete hook owns one or more registries with a typed context;
-// this class only handles exact model-type matching, optional original calls, and unsupported detection.
+// this class only handles exact model-type matching and unsupported detection.
 internal sealed class HookRegistry<TContext>(HookSpec hook, string predictionName)
 {
     private readonly Dictionary<Type, HookHandler<TContext>> _handlers = [];
-    private readonly HashSet<Type> _originalTypes = [];
     private readonly HashSet<Type> _warnedUnsupportedTypes = [];
 
     public void Register<TModel>(Func<TModel, TContext, HookResultKind> handler)
@@ -23,40 +22,36 @@ internal sealed class HookRegistry<TContext>(HookSpec hook, string predictionNam
         _handlers[typeof(TModel)] = (model, context) => handler((TModel)model, context);
     }
 
-    public void RegisterOriginal<TModel>()
-        where TModel : AbstractModel
-    {
-        // Use only for hooks whose original implementation has been audited as safe to call during
-        // prediction.
-        _originalTypes.Add(typeof(TModel));
-    }
-
     public IReadOnlyList<HookResult> Run(
         IEnumerable<AbstractModel> models,
-        TContext context,
-        Func<AbstractModel, TContext, HookResultKind>? callOriginal = null)
+        TContext context)
     {
         var results = new List<HookResult>();
 
         foreach (var model in models)
         {
             var type = model.GetType();
+            HookResultKind resultKind;
+
             if (_handlers.TryGetValue(type, out var handler))
             {
-                results.Add(new HookResult(handler(model, context), model));
-                continue;
+                resultKind = handler(model, context);
             }
-
-            if (_originalTypes.Contains(type) && callOriginal != null)
-            {
-                results.Add(new HookResult(callOriginal(model, context), model));
-                continue;
-            }
-
-            if (Overrides(type))
+            else if (Overrides(type))
             {
                 WarnUnsupported(type);
-                results.Add(new HookResult(HookResultKind.Unsupported, model));
+                resultKind = HookResultKind.Unsupported;
+            }
+            else
+            {
+                continue;
+            }
+
+            results.Add(new HookResult(resultKind, model));
+
+            if (resultKind == HookResultKind.Blocked)
+            {
+                break;
             }
         }
 

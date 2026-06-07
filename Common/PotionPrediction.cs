@@ -30,6 +30,15 @@ internal static class PotionPrediction
             Entry.Logger.Warn($"Potion generation prediction failed for {potion.Id}: {ex}");
         }
 
+        try
+        {
+            tips.AddRange(PotionDrawPrediction.GetPotionHoverTips(previewPotion));
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Potion draw-pile prediction failed for {potion.Id}: {ex}");
+        }
+
         return tips;
     }
 }

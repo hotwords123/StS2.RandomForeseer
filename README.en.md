@@ -14,6 +14,7 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
 - **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
+- **Potion draw prediction**: shows the cards that supported draw potions will draw, including cards after shuffle.
 - **Combat transform prediction**: shows the cards that Entropy will transform selected hand cards into during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
 - **Relic pickup effect prediction**: relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup.
@@ -84,6 +85,15 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Cascade
 - Distilled Chaos
 
+### Potion Draw
+
+- Swift Potion
+- Clarity Extract
+- Cure All
+- Glowwater Potion
+- Snecko Oil (full hand and randomized costs)
+- Bottled Potential
+
 ### Combat Transform
 
 - Entropy
@@ -135,6 +145,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
 | Predict draw-pile autoplay | Controls whether Havoc, Cascade, and Distilled Chaos show the cards that will be played from the draw pile |
+| Predict potion draw | Controls whether supported potion draw effects show predicted cards |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
 | Predict relic pickup effects | Controls whether relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup |
 | Predict rest-site results | Controls whether rest-site options show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel |

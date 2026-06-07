@@ -34,6 +34,8 @@
   "toggle.enable_combat_card_selection_prediction.description": "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select.",
   "toggle.enable_auto_play_from_draw_pile_prediction.label": "Predict draw-pile autoplay",
   "toggle.enable_auto_play_from_draw_pile_prediction.description": "When enabled, Havoc, Cascade, and Distilled Chaos tooltips show the cards that will be played from the draw pile.",
+  "toggle.enable_potion_draw_prediction.label": "Predict potion draw",
+  "toggle.enable_potion_draw_prediction.description": "When enabled, supported draw potions show the cards that will be drawn, including cards after shuffle.",
   "toggle.enable_combat_transform_prediction.label": "Predict combat transform results",
   "toggle.enable_combat_transform_prediction.description": "When enabled, combat transform selections show the exact card the current RNG will produce.",
   "toggle.enable_driftwood_reroll_prediction.label": "Predict Driftwood rerolls",

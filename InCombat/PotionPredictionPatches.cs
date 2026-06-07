@@ -63,5 +63,21 @@ internal static class PotionPredictionHoverTipsPatch
         {
             __result = __result.Concat(autoPlayPredictionTips);
         }
+
+        IReadOnlyList<IHoverTip> drawPilePredictionTips;
+        try
+        {
+            drawPilePredictionTips = PotionDrawPrediction.GetPotionHoverTips(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Potion draw-pile prediction failed for {__instance.Id}: {ex}");
+            return;
+        }
+
+        if (drawPilePredictionTips.Count > 0)
+        {
+            __result = __result.Concat(drawPilePredictionTips);
+        }
     }
 }

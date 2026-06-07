@@ -40,6 +40,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableAutoPlayFromDrawPilePrediction { get; set; } = true;
 
+    public bool EnablePotionDrawPrediction { get; set; } = true;
+
     public bool EnableCombatTransformPrediction { get; set; } = true;
 
     public bool EnableFrozenEye { get; set; } = true;
@@ -65,6 +67,7 @@ internal static class RandomForeseerSettings
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
     private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
+    private const string EnablePotionDrawPredictionKey = "enable_potion_draw_prediction";
     private const string EnableCombatTransformPredictionKey = "enable_combat_transform_prediction";
     private const string EnableFrozenEyeKey = "enable_frozen_eye";
     private const string EnableAncientEventDebugRerollKey = "enable_ancient_event_debug_reroll";
@@ -183,6 +186,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableAutoPlayFromDrawPilePrediction,
             (settings, value) => settings.EnableAutoPlayFromDrawPilePrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnablePotionDrawPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnablePotionDrawPrediction,
+            (settings, value) => settings.EnablePotionDrawPrediction = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableCombatTransformPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -233,6 +243,8 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
 
     public static bool EnableAutoPlayFromDrawPilePrediction => EnableAutoPlayFromDrawPilePredictionBinding.Read();
+
+    public static bool EnablePotionDrawPrediction => EnablePotionDrawPredictionBinding.Read();
 
     public static bool EnableCombatTransformPrediction => EnableCombatTransformPredictionBinding.Read();
 
@@ -443,6 +455,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_auto_play_from_draw_pile_prediction.description",
                         "When enabled, Havoc, Cascade, and Distilled Chaos tooltips show the cards that will be played from the draw pile."),
+                    () => true);
+
+                section.AddToggle(
+                    EnablePotionDrawPredictionKey,
+                    Text("toggle.enable_potion_draw_prediction.label", "Predict potion draw"),
+                    EnablePotionDrawPredictionBinding,
+                    Text(
+                        "toggle.enable_potion_draw_prediction.description",
+                        "When enabled, supported draw potions show the cards that will be drawn, including cards after shuffle."),
                     () => true);
 
                 section.AddToggle(

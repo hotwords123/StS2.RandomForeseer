@@ -1,8 +1,8 @@
 {
   "drift_warning.card_selection.title": "提示",
   "drift_warning.card_selection.description": "这张牌的效果可能改变目标牌堆或推进随机数，因此这里的预测不一定准确。\n你可以在设置界面关闭这个提示。",
-  "drift_warning.auto_play_from_draw_pile.title": "提示",
-  "drift_warning.auto_play_from_draw_pile.description": "洗牌后的效果可能在这些牌被打出前改变抽牌堆、推进随机数或触发战斗副作用，因此这里的预测不一定准确。\n你可以在设置界面关闭这个提示。",
+  "drift_warning.draw_pile.title": "提示",
+  "drift_warning.draw_pile.description": "抽牌、洗牌或抽牌时触发的效果可能改变牌堆、推进随机数或触发战斗副作用，因此这里的预测不一定准确。\n你可以在设置界面关闭这个提示。",
   "frozen_eye.draw_pile_info_order": "[gold]（点击查看时卡牌会按实际抽牌顺序显示）[/gold]",
   "frozen_eye.draw_pile_hover_view": "点击这里查看你抽牌堆中的卡牌（按实际抽牌顺序）。",
   "transform_bundle_explanation.title": "预测",

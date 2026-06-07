@@ -34,6 +34,8 @@
   "toggle.enable_combat_card_selection_prediction.description": "启用后，战斗卡牌提示和手牌高亮会显示当前随机数状态将选中的已有卡牌。",
   "toggle.enable_auto_play_from_draw_pile_prediction.label": "预测抽牌堆自动出牌",
   "toggle.enable_auto_play_from_draw_pile_prediction.description": "启用后，破灭、倾泻和精炼混沌的提示会显示将从抽牌堆打出的牌。",
+  "toggle.enable_potion_draw_prediction.label": "预测药水抽牌",
+  "toggle.enable_potion_draw_prediction.description": "启用后，支持的抽牌药水会显示将抽到的牌，包括洗牌后的牌。",
   "toggle.enable_combat_transform_prediction.label": "预测战斗随机变牌",
   "toggle.enable_combat_transform_prediction.description": "启用后，战斗内变牌选择会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_driftwood_reroll_prediction.label": "预测浮木重掷奖励",

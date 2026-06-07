@@ -48,7 +48,8 @@ internal static class AfterShuffleHook
         }
 
         var soot = PredictionUtils.CreateCard(ModelDb.Card<Soot>(), context.Player);
-        context.DrawPileCards.Insert(context.ShuffleRng.NextInt(context.DrawPileCards.Count + 1), soot);
+        var position = context.ShuffleRng.NextInt(context.DrawPileCards.Count + 1);
+        context.DrawPileCards.Insert(position, new PredictedCard(soot));
         return HookResultKind.Applied;
     }
 
@@ -73,7 +74,7 @@ internal sealed class AfterShuffleHookContext
 
     public required Player Player { get; init; }
 
-    public required List<CardModel> DrawPileCards { get; init; }
+    public required List<PredictedCard> DrawPileCards { get; init; }
 
     public required Rng ShuffleRng { get; init; }
 }

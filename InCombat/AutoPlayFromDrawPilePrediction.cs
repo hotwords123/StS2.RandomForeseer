@@ -5,7 +5,6 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
-using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
 
@@ -27,7 +26,6 @@ internal static class AutoPlayFromDrawPilePrediction
             Cascade cascade => PredictCascadeCount(cascade),
             _ => 0
         };
-        count = Math.Min(count, 9);
 
         return GetHoverTips(card.Owner, count);
     }
@@ -57,14 +55,7 @@ internal static class AutoPlayFromDrawPilePrediction
             return [];
         }
 
-        var prediction = DrawPilePredictionUtils.PredictTopCardsAfterNecessaryShuffles(player, count);
-        var tips = PredictionHoverTips.Cards(prediction.Cards).ToList();
-        if (prediction.HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
-        {
-            tips.Add(PredictionHoverTips.DriftWarning("auto_play_from_draw_pile"));
-        }
-
-        return tips;
+        return DrawPilePrediction.PredictTopCardsAfterNecessaryShuffles(player, count).ToHoverTips();
     }
 
     private static int PredictCascadeCount(Cascade cascade)

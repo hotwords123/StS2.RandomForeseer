@@ -7,6 +7,9 @@ internal enum HookResultKind
     // The hook was recognized, but its runtime conditions did not require a preview change.
     Ignored,
 
+    // The hook was recognized and prevents the predicted action from continuing.
+    Blocked,
+
     // The handler mirrored the hook and changed the preview state.
     Applied,
 
