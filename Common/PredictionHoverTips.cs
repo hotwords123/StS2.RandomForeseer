@@ -6,6 +6,7 @@ namespace RandomForeseer.Common;
 
 internal static class PredictionHoverTips
 {
+    private const int MaxDriftWarningModelNames = 3;
     private const string PredictionTextHoverTipIdPrefix = $"{Entry.ModId}:PredictionText";
     private const string PredictionWarningHoverTipIdPrefix = $"{Entry.ModId}:PredictionWarning";
 
@@ -64,11 +65,14 @@ internal static class PredictionHoverTips
         return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();
     }
 
-    public static IHoverTip DriftWarning(string key)
+    public static IHoverTip DriftWarning(string key, PredictionRisk risk)
     {
+        var description = PredictionLocalization.Text($"drift_warning.{key}.description");
+        ConfigureDriftWarningDescription(description, risk);
+
         var tip = new HoverTip(
             PredictionLocalization.Text($"drift_warning.{key}.title"),
-            PredictionLocalization.Text($"drift_warning.{key}.description"))
+            description)
         {
             Id = $"{PredictionWarningHoverTipIdPrefix}:Drift:{key}",
             IsInstanced = true
@@ -89,6 +93,40 @@ internal static class PredictionHoverTips
     public static bool IsPredictionHoverTip(IHoverTip tip)
     {
         return IsPredictionTextHoverTip(tip) || IsPredictionWarningHoverTip(tip);
+    }
+
+    private static void ConfigureDriftWarningDescription(LocString description, PredictionRisk risk)
+    {
+        var modelNames = risk.Models.Select(GetModelName).Distinct().ToList();
+        var shownModelNames = modelNames.Take(MaxDriftWarningModelNames).ToList();
+        var extraModelCount = modelNames.Count - shownModelNames.Count;
+
+        description.Add("HasModels", shownModelNames.Count > 0);
+        description.Add("Models", shownModelNames);
+        description.Add("ExtraModelCount", extraModelCount);
+    }
+
+    private static string GetModelName(AbstractModel model)
+    {
+        try
+        {
+            return model switch
+            {
+                CardModel card => card.Title,
+                RelicModel relic => relic.Title.GetFormattedText(),
+                PowerModel power => power.Title.GetFormattedText(),
+                PotionModel potion => potion.Title.GetFormattedText(),
+                ModifierModel modifier => modifier.Title.GetFormattedText(),
+                AfflictionModel affliction => affliction.Title.GetFormattedText(),
+                EnchantmentModel enchantment => enchantment.Title.GetFormattedText(),
+                OrbModel orb => orb.Title.GetFormattedText(),
+                _ => model.Id.Entry
+            };
+        }
+        catch
+        {
+            return model.Id.Entry;
+        }
     }
 
     private static HoverTip CreatePredictionTextHoverTip(HoverTip tip)

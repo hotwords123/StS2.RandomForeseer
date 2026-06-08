@@ -23,8 +23,7 @@ internal sealed class DrawPilePrediction(
     IEnumerable<CardModel> drawPileCards,
     IEnumerable<CardModel> discardPileCards,
     Rng shuffleRng,
-    Rng energyCostRng,
-    bool hasDriftRisk = false)
+    Rng energyCostRng)
 {
     private const int MaxSimulatedDraws = 10;
 
@@ -37,6 +36,7 @@ internal sealed class DrawPilePrediction(
     private readonly StrongBox<int> _boundCardsAfflictedThisTurn = new(CountBoundCardsAfflictedThisTurn(combatState, player));
     private readonly Dictionary<RelicModel, int> _jossPaperCardsExhausted = [];
     private readonly Dictionary<RelicModel, bool> _burningSticksUsedThisCombat = [];
+    private readonly PredictionRiskTracker _driftRisk = new();
 
     private bool _reachedSimulationLimit;
 
@@ -94,7 +94,7 @@ internal sealed class DrawPilePrediction(
             predictedCards.Add(card);
         }
 
-        return DrawPilePredictionResult.FromPredictedCards(predictedCards, hasDriftRisk);
+        return DrawPilePredictionResult.FromPredictedCards(predictedCards, _driftRisk.Snapshot());
     }
 
     public DrawPilePredictionResult Draw(int count)
@@ -105,7 +105,7 @@ internal sealed class DrawPilePrediction(
         }
 
         DrawInternal(count);
-        return DrawPilePredictionResult.FromPredictedCards(_predictedCards, hasDriftRisk);
+        return DrawPilePredictionResult.FromPredictedCards(_predictedCards, _driftRisk.Snapshot());
     }
 
     public DrawPilePredictionResult ShuffleAfterDrawPileDepleted()
@@ -117,7 +117,7 @@ internal sealed class DrawPilePrediction(
 
         _drawPileCards.Clear();
         Shuffle();
-        return DrawPilePredictionResult.FromPredictedCards(_drawPileCards, hasDriftRisk);
+        return DrawPilePredictionResult.FromPredictedCards(_drawPileCards, _driftRisk.Snapshot());
     }
 
     private void DrawInternal(int drawCount)
@@ -134,7 +134,7 @@ internal sealed class DrawPilePrediction(
             FromHandDraw = false
         });
 
-        hasDriftRisk |= HasRisk(shouldDrawResults);
+        _driftRisk.AddHookResults(shouldDrawResults);
 
         if (shouldDrawResults.Any(result => result.Kind == HookResultKind.Blocked))
         {
@@ -154,7 +154,7 @@ internal sealed class DrawPilePrediction(
     {
         if (_predictedCards.Count >= MaxSimulatedDraws)
         {
-            hasDriftRisk = true;
+            _driftRisk.AddUnknown();
             _reachedSimulationLimit = true;
             return false;
         }
@@ -227,7 +227,7 @@ internal sealed class DrawPilePrediction(
             card.MutablePreview.EnergyCost.SetThisTurnOrUntilPlayed(energyCostRng.NextInt(4));
         }
 
-        return DrawPilePredictionResult.FromPredictedCards(_handCards, hasDriftRisk);
+        return DrawPilePredictionResult.FromPredictedCards(_handCards, _driftRisk.Snapshot());
     }
 
     public void Shuffle()
@@ -262,7 +262,7 @@ internal sealed class DrawPilePrediction(
         _drawPileCards.Clear();
         _drawPileCards.AddRange(shuffledCards);
         _discardPileCards.Clear();
-        hasDriftRisk |= HasRisk(hookResults);
+        _driftRisk.AddHookResults(hookResults);
     }
 
     public static bool TryCreate(Player player, [NotNullWhen(true)] out DrawPilePrediction? prediction)
@@ -308,8 +308,8 @@ internal sealed class DrawPilePrediction(
             Draw = draw
         };
 
-        hasDriftRisk |= HasRisk(AfterCardDrawnHook.RunEarly(context));
-        hasDriftRisk |= HasRisk(AfterCardDrawnHook.Run(context));
+        _driftRisk.AddHookResults(AfterCardDrawnHook.RunEarly(context));
+        _driftRisk.AddHookResults(AfterCardDrawnHook.Run(context));
     }
 
     private void RunAfterCardDiscardedHooks(PredictedCard card)
@@ -320,7 +320,7 @@ internal sealed class DrawPilePrediction(
             Card = card
         };
 
-        hasDriftRisk |= HasRisk(AfterCardDiscardedHook.Run(context));
+        _driftRisk.AddHookResults(AfterCardDiscardedHook.Run(context));
     }
 
     private void RunAfterCardExhaustedHooks(PredictedCard card, bool causedByEthereal)
@@ -337,7 +337,7 @@ internal sealed class DrawPilePrediction(
             AddToHand = AddToHand
         };
 
-        hasDriftRisk |= HasRisk(AfterCardExhaustedHook.Run(context));
+        _driftRisk.AddHookResults(AfterCardExhaustedHook.Run(context));
     }
 
     private void AddToHand(PredictedCard card)
@@ -369,19 +369,17 @@ internal sealed class DrawPilePrediction(
                 entry.Affliction is Bound);
     }
 
-    private static bool HasRisk(IEnumerable<HookResult> results)
-    {
-        return results.Any(result => result.Kind is HookResultKind.DriftRisk or HookResultKind.Unsupported);
-    }
 }
 
-internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, bool HasDriftRisk)
+internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, PredictionRisk Risk)
 {
-    public static DrawPilePredictionResult Empty { get; } = new([], false);
+    public bool HasDriftRisk => Risk.HasRisk;
 
-    public static DrawPilePredictionResult FromPredictedCards(IEnumerable<PredictedCard> cards, bool hasDriftRisk)
+    public static DrawPilePredictionResult Empty { get; } = new([], PredictionRisk.None);
+
+    public static DrawPilePredictionResult FromPredictedCards(IEnumerable<PredictedCard> cards, PredictionRisk risk)
     {
-        return new DrawPilePredictionResult(cards.Select(card => card.Preview).ToList(), hasDriftRisk);
+        return new DrawPilePredictionResult(cards.Select(card => card.Preview).ToList(), risk);
     }
 
     public IReadOnlyList<IHoverTip> ToHoverTips()
@@ -389,7 +387,7 @@ internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, 
         var tips = PredictionHoverTips.Cards(Cards).ToList();
         if (HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
         {
-            tips.Add(PredictionHoverTips.DriftWarning("draw_pile"));
+            tips.Add(PredictionHoverTips.DriftWarning("draw_pile", Risk));
         }
 
         return tips;

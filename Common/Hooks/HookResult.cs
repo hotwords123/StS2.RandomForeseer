@@ -20,4 +20,7 @@ internal enum HookResultKind
     DriftRisk
 }
 
-internal sealed record HookResult(HookResultKind Kind, AbstractModel Model);
+internal sealed record HookResult(HookResultKind Kind, AbstractModel Model)
+{
+    public bool IsPredictionRisk => Kind is HookResultKind.DriftRisk or HookResultKind.Unsupported;
+}
