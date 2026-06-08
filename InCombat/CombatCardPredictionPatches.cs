@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
@@ -113,26 +112,5 @@ internal static class CombatCardPredictionHoverTipsPatch
         }
 
         return hand.CurrentMode == NPlayerHand.Mode.Play && localHolder is NHandCardHolder;
-    }
-}
-
-[HarmonyPatch(typeof(NMouseCardPlay), "StartCardDrag")]
-internal static class CombatCardPredictionMouseDragHoverTipsPatch
-{
-    private static void Postfix(NMouseCardPlay __instance)
-    {
-        if (__instance.Holder is not { } holder ||
-            holder.CardModel is not { } card)
-        {
-            return;
-        }
-
-        var predictionTips = CombatCardPredictionHoverTipsPatch.GetPredictionHoverTips(card);
-        if (predictionTips.Count <= 0)
-        {
-            return;
-        }
-
-        NHoverTipSet.CreateAndShow(holder, predictionTips)?.SetAlignmentForCardHolder(holder);
     }
 }
