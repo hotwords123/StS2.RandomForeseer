@@ -114,6 +114,16 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Immediate random results from merchant relics
 - Card rewards from Dream Catcher, potions from Tiny Mailbox, and relics that Shovel's rest-site Dig option will obtain
 
+## Integrations
+
+### lemonSpire2
+
+When lemonSpire2 is installed, its teammate panel reuses Random Foreseer's existing predictions:
+
+- Combat card generation, combat card selection, draw-pile autoplay, and potion generation predictions for teammate hand cards
+- Relic pickup effect predictions for teammate Ancient relic choices
+- Immediate random result predictions for teammate merchant relics and merchant potions
+
 ## Installation
 
 1. Install and enable `STS2-RitsuLib`.
@@ -192,6 +202,7 @@ Common/                             Shared prediction HoverTip, RNG, and localiz
 InCombat/                           In-combat card, potion, and Frozen Eye predictions
 OutOfCombat/                        Out-of-combat event, reward, merchant, rest-site, and transform predictions
 OutOfCombat/Events/                 Non-Ancient event option predictions
+Integrations/                       Optional integration patches for other mods
 Debug/                              Debug entry points and test reward screens
 RandomForeseer/localization/        Mod settings and UI localization resources
 Entry.cs                            Mod entry point and Harmony patch registration

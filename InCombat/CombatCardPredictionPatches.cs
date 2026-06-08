@@ -1,4 +1,5 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
@@ -92,8 +93,17 @@ internal static class CombatCardPredictionHoverTipsPatch
 
     private static bool ShouldShowCombatPlayPredictionHoverTips(CardModel card)
     {
-        var hand = NPlayerHand.Instance;
-        return hand?.CurrentMode == NPlayerHand.Mode.Play && hand.GetCardHolder(card) is NHandCardHolder;
+        if (card.Pile?.Type != PileType.Hand || card.Owner.Creature.CombatState == null)
+        {
+            return false;
+        }
+
+        if (NPlayerHand.Instance is not { } hand || hand.GetCardHolder(card) is not { } localHolder)
+        {
+            return true;
+        }
+
+        return hand.CurrentMode == NPlayerHand.Mode.Play && localHolder is NHandCardHolder;
     }
 }
 

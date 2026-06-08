@@ -3,6 +3,8 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using RandomForeseer.Common;
+using RandomForeseer.Integrations;
+using RandomForeseer.Integrations.LemonSpire;
 using STS2RitsuLib;
 using STS2RitsuLib.Interop;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
@@ -39,7 +41,12 @@ public partial class Entry
         RandomForeseerSettings.Register();
         OutOfCombat.EventOptionRandomPrediction.Register();
 
-        new Harmony($"{ModId}.Harmony").PatchAll(assembly);
+        var harmony = new Harmony($"{ModId}.Harmony");
+        harmony.PatchAllUncategorized(assembly);
+        var integrationPatcher = new IntegrationCategoryPatcher(harmony, assembly);
+        integrationPatcher.Register(
+            LemonSpireTypes.ModId,
+            LemonSpireTypes.PatchCategory);
 
         Logger.Info("RandomForeseer initialized.");
     }
