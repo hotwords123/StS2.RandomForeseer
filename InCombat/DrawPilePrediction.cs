@@ -186,6 +186,19 @@ internal sealed class DrawPilePrediction(
         _handCards.Clear();
     }
 
+    public void RemoveFromHand(CardModel card)
+    {
+        _handCards.RemoveAll(predictedCard => predictedCard.Original == card);
+    }
+
+    public int DiscardHand()
+    {
+        var count = _handCards.Count;
+        _discardPileCards.AddRange(_handCards);
+        _handCards.Clear();
+        return count;
+    }
+
     public void ExhaustHand()
     {
         var exhaustedCards = _handCards.ToList();

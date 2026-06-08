@@ -77,6 +77,15 @@ internal static class CombatCardPredictionHoverTipsPatch
         {
             Entry.Logger.Warn($"Auto-play from draw pile prediction failed for {card.Id}: {ex}");
         }
+
+        try
+        {
+            predictionTips.AddRange(CardDrawPrediction.GetCardHoverTips(card));
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Card draw prediction failed for {card.Id}: {ex}");
+        }
     }
 
     private static void AddCombatTransformPredictionHoverTips(CardModel card, List<IHoverTip> predictionTips)
