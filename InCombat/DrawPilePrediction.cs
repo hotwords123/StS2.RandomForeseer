@@ -194,8 +194,13 @@ internal sealed class DrawPilePrediction(
     public int DiscardHand()
     {
         var count = _handCards.Count;
-        _discardPileCards.AddRange(_handCards);
-        _handCards.Clear();
+        foreach (var card in _handCards.ToList())
+        {
+            _handCards.Remove(card);
+            _discardPileCards.Add(card);
+            RunAfterCardDiscardedHooks(card);
+        }
+
         return count;
     }
 
@@ -305,6 +310,17 @@ internal sealed class DrawPilePrediction(
 
         hasDriftRisk |= HasRisk(AfterCardDrawnHook.RunEarly(context));
         hasDriftRisk |= HasRisk(AfterCardDrawnHook.Run(context));
+    }
+
+    private void RunAfterCardDiscardedHooks(PredictedCard card)
+    {
+        var context = new AfterCardDiscardedHookContext
+        {
+            CombatState = combatState,
+            Card = card
+        };
+
+        hasDriftRisk |= HasRisk(AfterCardDiscardedHook.Run(context));
     }
 
     private void RunAfterCardExhaustedHooks(PredictedCard card, bool causedByEthereal)
