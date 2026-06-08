@@ -32,7 +32,7 @@ internal static class AfterCardExhaustedHook
 
     private static HookRegistry<AfterCardExhaustedHookContext> CreateRegistry()
     {
-        var registry = new HookRegistry<AfterCardExhaustedHookContext>(AfterCardExhausted, "Exhaust prediction");
+        var registry = new HookRegistry<AfterCardExhaustedHookContext>(AfterCardExhausted);
 
         registry.Register<BurningSticks>(HandleBurningSticks);
         registry.Register<CharonsAshes>(HandleRelicDriftRiskIfOwner);

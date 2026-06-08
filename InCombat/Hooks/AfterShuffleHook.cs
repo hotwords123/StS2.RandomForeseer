@@ -31,7 +31,7 @@ internal static class AfterShuffleHook
 
     private static HookRegistry<AfterShuffleHookContext> CreateRegistry()
     {
-        var registry = new HookRegistry<AfterShuffleHookContext>(AfterShuffle, "After-shuffle prediction");
+        var registry = new HookRegistry<AfterShuffleHookContext>(AfterShuffle);
 
         registry.Register<BiiigHug>(HandleBiiigHug);
         registry.Register<StratagemPower>(HandleStratagemPower);

@@ -9,7 +9,7 @@ internal sealed record HookSpec(string Name, Type[] ParameterTypes);
 
 // Shared per-hook dispatcher. Each concrete hook owns one or more registries with a typed context;
 // this class only handles exact model-type matching and unsupported detection.
-internal sealed class HookRegistry<TContext>(HookSpec hook, string predictionName)
+internal sealed class HookRegistry<TContext>(HookSpec hook)
 {
     private readonly Dictionary<Type, HookHandler<TContext>> _handlers = [];
     private readonly HashSet<Type> _warnedUnsupportedTypes = [];
@@ -78,6 +78,6 @@ internal sealed class HookRegistry<TContext>(HookSpec hook, string predictionNam
         }
 
         Entry.Logger.Warn(
-            $"{predictionName} does not safely mirror {modelType.FullName}.{hook.Name}; preview may omit that modifier.");
+            $"Mirror for {hook.Name} does not safely handle {modelType.FullName}; preview may omit that modifier.");
     }
 }

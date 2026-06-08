@@ -26,7 +26,7 @@ internal static class AfterCardDiscardedHook
 
     private static HookRegistry<AfterCardDiscardedHookContext> CreateRegistry()
     {
-        var registry = new HookRegistry<AfterCardDiscardedHookContext>(AfterCardDiscarded, "Discard prediction");
+        var registry = new HookRegistry<AfterCardDiscardedHookContext>(AfterCardDiscarded);
 
         registry.Register<Tingsha>(HandleRelicDriftRiskIfOwner);
         registry.Register<ToughBandages>(HandleRelicDriftRiskIfOwner);

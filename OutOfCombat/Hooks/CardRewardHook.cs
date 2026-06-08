@@ -49,7 +49,7 @@ internal static class CardRewardHook
 
     private static HookRegistry<CardRewardHookContext> CreateEarly()
     {
-        var registry = new HookRegistry<CardRewardHookContext>(TryModifyCardRewardOptions, "Card reward prediction");
+        var registry = new HookRegistry<CardRewardHookContext>(TryModifyCardRewardOptions);
 
         registry.Register<LastingCandy>(HandleLastingCandy);
 
@@ -58,7 +58,7 @@ internal static class CardRewardHook
 
     private static HookRegistry<CardRewardHookContext> CreateLate()
     {
-        var registry = new HookRegistry<CardRewardHookContext>(TryModifyCardRewardOptionsLate, "Card reward prediction");
+        var registry = new HookRegistry<CardRewardHookContext>(TryModifyCardRewardOptionsLate);
 
         registry.Register<FrozenEgg>(HandleFrozenEgg);
         registry.Register<MoltenEgg>(HandleMoltenEgg);

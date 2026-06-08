@@ -49,7 +49,7 @@ internal static class AfterCardDrawnHook
 
     private static HookRegistry<AfterCardDrawnHookContext> CreateEarly()
     {
-        var registry = new HookRegistry<AfterCardDrawnHookContext>(AfterCardDrawnEarly, "Draw-pile prediction");
+        var registry = new HookRegistry<AfterCardDrawnHookContext>(AfterCardDrawnEarly);
 
         registry.Register<HellraiserPower>(HandleHellraiserPower);
 
@@ -58,7 +58,7 @@ internal static class AfterCardDrawnHook
 
     private static HookRegistry<AfterCardDrawnHookContext> CreateNormal()
     {
-        var registry = new HookRegistry<AfterCardDrawnHookContext>(AfterCardDrawn, "Draw-pile prediction");
+        var registry = new HookRegistry<AfterCardDrawnHookContext>(AfterCardDrawn);
 
         registry.Register<ConfusedPower>(HandleConfusedPower);
         registry.Register<Slither>(HandleSlither);

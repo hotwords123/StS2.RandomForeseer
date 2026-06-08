@@ -26,7 +26,7 @@ internal static class ShouldDrawHook
 
     private static HookRegistry<ShouldDrawHookContext> CreateRegistry()
     {
-        var registry = new HookRegistry<ShouldDrawHookContext>(ShouldDraw, "Draw-pile prediction");
+        var registry = new HookRegistry<ShouldDrawHookContext>(ShouldDraw);
 
         registry.Register<NoDrawPower>(HandleNoDrawPower);
         registry.Register<Fiddle>(CallOriginal);
