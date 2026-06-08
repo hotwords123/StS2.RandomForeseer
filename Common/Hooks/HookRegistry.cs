@@ -1,5 +1,5 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Modding;
 
 namespace RandomForeseer.Common.Hooks;
 
@@ -12,6 +12,7 @@ internal sealed record HookSpec(string Name, Type[] ParameterTypes);
 internal sealed class HookRegistry<TContext>(HookSpec hook)
 {
     private readonly Dictionary<Type, HookHandler<TContext>> _handlers = [];
+    private readonly HashSet<Type> _warnedIgnoredUnsupportedTypes = [];
     private readonly HashSet<Type> _warnedUnsupportedTypes = [];
 
     public void Register<TModel>(Func<TModel, TContext, HookResultKind> handler)
@@ -37,10 +38,19 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
             {
                 resultKind = handler(model, context);
             }
-            else if (Overrides(type))
+            else if (HookReflection.TryGetOverride(hook, type, out var overrideMethod))
             {
-                WarnUnsupported(type);
-                resultKind = HookResultKind.Unsupported;
+                if (HookReflection.TryGetMod(overrideMethod, out var mod) &&
+                    HookReflection.IsNonGameplayMod(mod))
+                {
+                    WarnIgnoredUnsupported(type, mod);
+                    resultKind = HookResultKind.Ignored;
+                }
+                else
+                {
+                    WarnUnsupported(type);
+                    resultKind = HookResultKind.Unsupported;
+                }
             }
             else
             {
@@ -58,15 +68,16 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
         return results;
     }
 
-    // Publicizer excludes virtual members, so reflection remains the safest way to distinguish
-    // inherited no-op hooks from model-specific overrides.
-    private bool Overrides(Type modelType)
+    private void WarnIgnoredUnsupported(Type modelType, Mod mod)
     {
-        var method = modelType.GetMethod(
-            hook.Name,
-            BindingFlags.Instance | BindingFlags.Public,
-            hook.ParameterTypes);
-        return method?.DeclaringType != typeof(AbstractModel);
+        // Log each ignored model type once per registry so recurring hover previews do not flood the log.
+        if (!_warnedIgnoredUnsupportedTypes.Add(modelType))
+        {
+            return;
+        }
+
+        Entry.Logger.Warn(
+            $"Mirror for {hook.Name} ignored unsupported {modelType.FullName} from non-gameplay mod {mod.manifest?.id}.");
     }
 
     private void WarnUnsupported(Type modelType)
