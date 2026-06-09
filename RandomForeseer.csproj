@@ -24,6 +24,7 @@
         <CopyModOnBuild Condition="'$(CopyModOnBuild)' == ''">true</CopyModOnBuild>
         <RunPckExport Condition="'$(RunPckExport)' == '' and '$(DesignTimeBuild)' != 'true'">true</RunPckExport>
         <RunPckExport Condition="'$(RunPckExport)' == ''">false</RunPckExport>
+        <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">true</SyncManifestDependenciesOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -83,7 +84,7 @@
     </Target>
 
     <Target Name="SyncManifestDependencies" AfterTargets="Build" BeforeTargets="CopyMod"
-            Condition="'$(DesignTimeBuild)' != 'true' and '$(PkgSTS2_RitsuLib)' != ''">
+            Condition="'$(SyncManifestDependenciesOnBuild)' != 'false' and '$(DesignTimeBuild)' != 'true' and '$(PkgSTS2_RitsuLib)' != ''">
         <PropertyGroup>
             <RitsuLibVersion>$([System.IO.Path]::GetFileName('$(PkgSTS2_RitsuLib)'))</RitsuLibVersion>
             <ManifestFile>$(MSBuildProjectDirectory)\$(MSBuildProjectName).json</ManifestFile>
