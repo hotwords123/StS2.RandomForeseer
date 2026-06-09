@@ -95,3 +95,8 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
             $"Mirror for {hook.Name} does not safely handle {modelType.FullName}; preview may omit that modifier.");
     }
 }
+
+internal interface IPredictionHookContext
+{
+    PredictionRiskTracker RiskTracker { get; }
+}
