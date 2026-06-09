@@ -29,7 +29,7 @@ internal static class AfterCardDiscardedHook
         var registry = new HookRegistry<AfterCardDiscardedHookContext>(AfterCardDiscarded);
 
         registry.Register<Tingsha>(HandleRelicDriftRiskIfOwner);
-        registry.Register<ToughBandages>(HandleRelicDriftRiskIfOwner);
+        registry.Register<ToughBandages>(HandleToughBandages);
 
         return registry;
     }
@@ -38,21 +38,35 @@ internal static class AfterCardDiscardedHook
         RelicModel relic,
         AfterCardDiscardedHookContext context)
     {
-        // Deferred:
-        // - Tingsha chooses a random damage target through CombatTargets.NextItem.
-        // - ToughBandages is pure block and can be connected once DrawPilePrediction shares
-        //   a DamageBlockRiskDetector session with these hooks.
+        // Tingsha chooses a random damage target through CombatTargets.NextItem; target RNG
+        // is not mirrored here.
         if (relic.Owner == context.PreviewCard.Owner &&
             relic.Owner.Creature.Side == context.CombatState.CurrentSide)
         {
             context.RiskTracker.AddCurrentSource();
         }
     }
+
+    private static void HandleToughBandages(ToughBandages relic, AfterCardDiscardedHookContext context)
+    {
+        if (relic.Owner != context.PreviewCard.Owner ||
+            relic.Owner.Creature.Side != context.CombatState.CurrentSide)
+        {
+            return;
+        }
+
+        context.Executor.GainBlock(
+            relic.Owner.Creature,
+            relic.DynamicVars.Block.BaseValue,
+            relic.DynamicVars.Block.Props);
+    }
 }
 
 internal sealed class AfterCardDiscardedHookContext : IPredictionHookContext
 {
     public required PredictionRiskTracker RiskTracker { get; init; }
+
+    public required IDamageBlockExecutor Executor { get; init; }
 
     public required ICombatState CombatState { get; init; }
 

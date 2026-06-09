@@ -54,8 +54,8 @@ internal static class AfterShuffleHook
 
     private static void HandleStratagemPower(StratagemPower power, AfterShuffleHookContext context)
     {
-        // Deferred: this opens a combat-pile card selection and moves chosen cards to hand,
-        // which is a pile/choice simulation problem rather than damage/block detection.
+        // Stratagem opens a combat-pile card selection and moves chosen cards to hand;
+        // combat pile selection is not mirrored here.
         if (power.Owner?.Player == context.Player)
         {
             context.RiskTracker.AddCurrentSource();
@@ -64,18 +64,23 @@ internal static class AfterShuffleHook
 
     private static void HandleTheAbacus(TheAbacus relic, AfterShuffleHookContext context)
     {
-        // Deferred: pure block, but DrawPilePrediction first needs to share a
-        // DamageBlockRiskDetector session with these hooks.
-        if (relic.Owner == context.Player)
+        if (relic.Owner != context.Player)
         {
-            context.RiskTracker.AddCurrentSource();
+            return;
         }
+
+        context.Executor.GainBlock(
+            relic.Owner.Creature,
+            relic.DynamicVars.Block.BaseValue,
+            relic.DynamicVars.Block.Props);
     }
 }
 
 internal sealed class AfterShuffleHookContext : IPredictionHookContext
 {
     public required PredictionRiskTracker RiskTracker { get; init; }
+
+    public required IDamageBlockExecutor Executor { get; init; }
 
     public required ICombatState CombatState { get; init; }
 

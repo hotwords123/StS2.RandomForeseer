@@ -26,11 +26,14 @@ internal interface IDamageBlockExecutor
 
 // Lightweight drift-risk detector for damage/block chains. This intentionally mirrors only
 // prediction-relevant risk gates and never mutates combat state or advances RNG.
-internal sealed class DamageBlockRiskDetector(ICombatState combatState) : IDamageBlockExecutor
+internal sealed class DamageBlockRiskDetector(
+    ICombatState combatState,
+    PredictionRiskTracker? tracker = null,
+    PredictionStateStore? stateStore = null) : IDamageBlockExecutor
 {
-    private readonly PredictionStateStore _stateStore = new();
+    private readonly PredictionRiskTracker _tracker = tracker ?? new();
 
-    private readonly PredictionRiskTracker _tracker = new();
+    private readonly PredictionStateStore _stateStore = stateStore ?? new();
 
     public static PredictionRisk DetectGainBlock(CardModel card)
     {

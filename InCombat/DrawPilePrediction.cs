@@ -36,10 +36,15 @@ internal sealed class DrawPilePrediction(
         StatusCardsDrawnThisTurn = CountStatusCardsDrawnThisTurn(combatState, player),
         BoundCardsAfflictedThisTurn = CountBoundCardsAfflictedThisTurn(combatState, player)
     };
+    private readonly PredictionRiskTracker _tracker = new();
     private readonly PredictionStateStore _stateStore = new();
-    private readonly PredictionRiskTracker _driftRisk = new();
+
+    private DamageBlockRiskDetector? _damageBlockDetector;
 
     private bool _reachedSimulationLimit;
+
+    private DamageBlockRiskDetector DamageBlockDetector =>
+        _damageBlockDetector ??= new DamageBlockRiskDetector(combatState, _tracker, _stateStore);
 
     public static DrawPilePredictionResult PredictTopCardsAfterNecessaryShuffles(Player player, int count)
     {
@@ -95,7 +100,7 @@ internal sealed class DrawPilePrediction(
             predictedCards.Add(card);
         }
 
-        return DrawPilePredictionResult.FromPredictedCards(predictedCards, _driftRisk.Snapshot());
+        return DrawPilePredictionResult.FromPredictedCards(predictedCards, _tracker.Snapshot());
     }
 
     public DrawPilePredictionResult Draw(int count)
@@ -106,7 +111,7 @@ internal sealed class DrawPilePrediction(
         }
 
         DrawInternal(count);
-        return DrawPilePredictionResult.FromPredictedCards(_predictedCards, _driftRisk.Snapshot());
+        return DrawPilePredictionResult.FromPredictedCards(_predictedCards, _tracker.Snapshot());
     }
 
     public DrawPilePredictionResult ShuffleAfterDrawPileDepleted()
@@ -118,7 +123,7 @@ internal sealed class DrawPilePrediction(
 
         _drawPileCards.Clear();
         Shuffle();
-        return DrawPilePredictionResult.FromPredictedCards(_drawPileCards, _driftRisk.Snapshot());
+        return DrawPilePredictionResult.FromPredictedCards(_drawPileCards, _tracker.Snapshot());
     }
 
     private void DrawInternal(int drawCount)
@@ -130,7 +135,7 @@ internal sealed class DrawPilePrediction(
 
         var shouldDrawContext = new ShouldDrawHookContext
         {
-            RiskTracker = _driftRisk,
+            RiskTracker = _tracker,
             CombatState = combatState,
             Player = player,
             FromHandDraw = false
@@ -155,7 +160,7 @@ internal sealed class DrawPilePrediction(
     {
         if (_predictedCards.Count >= MaxSimulatedDraws)
         {
-            _driftRisk.AddUnknown();
+            _tracker.AddUnknown();
             _reachedSimulationLimit = true;
             return false;
         }
@@ -228,7 +233,7 @@ internal sealed class DrawPilePrediction(
             card.MutablePreview.EnergyCost.SetThisTurnOrUntilPlayed(energyCostRng.NextInt(4));
         }
 
-        return DrawPilePredictionResult.FromPredictedCards(_handCards, _driftRisk.Snapshot());
+        return DrawPilePredictionResult.FromPredictedCards(_handCards, _tracker.Snapshot());
     }
 
     public void Shuffle()
@@ -254,7 +259,8 @@ internal sealed class DrawPilePrediction(
 
         AfterShuffleHook.Run(new AfterShuffleHookContext
         {
-            RiskTracker = _driftRisk,
+            RiskTracker = _tracker,
+            Executor = DamageBlockDetector,
             CombatState = combatState,
             Player = player,
             DrawPileCards = shuffledCards,
@@ -299,7 +305,7 @@ internal sealed class DrawPilePrediction(
     {
         var context = new AfterCardDrawnHookContext
         {
-            RiskTracker = _driftRisk,
+            RiskTracker = _tracker,
             CombatState = combatState,
             Player = player,
             Card = card,
@@ -317,7 +323,8 @@ internal sealed class DrawPilePrediction(
     {
         var context = new AfterCardDiscardedHookContext
         {
-            RiskTracker = _driftRisk,
+            RiskTracker = _tracker,
+            Executor = DamageBlockDetector,
             CombatState = combatState,
             Card = card
         };
@@ -329,7 +336,8 @@ internal sealed class DrawPilePrediction(
     {
         var context = new AfterCardExhaustedHookContext
         {
-            RiskTracker = _driftRisk,
+            RiskTracker = _tracker,
+            Executor = DamageBlockDetector,
             CombatState = combatState,
             Player = player,
             Card = card,

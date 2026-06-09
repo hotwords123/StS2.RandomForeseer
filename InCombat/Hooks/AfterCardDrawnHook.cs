@@ -77,8 +77,8 @@ internal static class AfterCardDrawnHook
 
     private static void HandleHellraiserPower(HellraiserPower power, AfterCardDrawnHookContext context)
     {
-        // Deferred: this auto-plays the drawn Strike, so the effect can be any card command,
-        // not just the damage/block chain handled by DamageBlockRiskDetector.
+        // Hellraiser auto-plays the drawn Strike; arbitrary auto-play command effects are
+        // not mirrored here.
         if (context.PreviewCard.Owner.Creature == power.Owner && context.PreviewCard.Tags.Contains(CardTag.Strike))
         {
             context.RiskTracker.AddCurrentSource();
@@ -144,8 +144,8 @@ internal static class AfterCardDrawnHook
 
     private static void HandleSpeedsterPower(SpeedsterPower power, AfterCardDrawnHookContext context)
     {
-        // Deferred: this is all-enemy damage. It can use DamageBlockRiskDetector once the
-        // detector has a real damage path instead of the current placeholder risk.
+        // Speedster deals damage to all hittable enemies after a non-hand draw on the owner's
+        // turn; damage side effects are not mirrored here.
         if (!context.FromHandDraw &&
             context.PreviewCard.Owner.Creature == power.Owner &&
             context.PreviewCard.Owner.Creature.CombatState?.CurrentSide == context.PreviewCard.Owner.Creature.Side)
@@ -177,8 +177,8 @@ internal static class AfterCardDrawnHook
 
     private static void HandleDriftRiskIfOwner(PowerModel power, AfterCardDrawnHookContext context)
     {
-        // Deferred for CorrosiveWavePower: it applies Poison, which is outside the current
-        // damage/block-only detector scope.
+        // CorrosiveWavePower applies Poison to all hittable enemies; power application
+        // side effects are not mirrored here.
         if (context.PreviewCard.Owner.Creature == power.Owner)
         {
             context.RiskTracker.AddCurrentSource();

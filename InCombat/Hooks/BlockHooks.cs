@@ -82,8 +82,8 @@ internal static class BlockHooks
             return;
         }
 
-        // Deferred: vanilla chooses the target through CombatTargets.NextItem, which advances RNG
-        // even when only one target exists. Keep this as drift risk until target RNG is mirrored.
+        // Juggernaut chooses the target through CombatTargets.NextItem, which advances RNG
+        // even when only one target exists; target RNG is not mirrored here.
         context.RiskTracker.AddCurrentSource();
     }
 }

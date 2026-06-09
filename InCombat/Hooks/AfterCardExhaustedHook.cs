@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models.Achievements;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
 
@@ -38,7 +39,7 @@ internal static class AfterCardExhaustedHook
         registry.Register<CharonsAshes>(HandleRelicDriftRiskIfOwner);
         registry.Register<DarkEmbracePower>(HandleDarkEmbracePower);
         registry.RegisterIgnored<DrumOfBattle>();
-        registry.Register<FeelNoPainPower>(HandlePowerDriftRiskIfOwner);
+        registry.Register<FeelNoPainPower>(HandleFeelNoPainPower);
         registry.Register<ForgottenSoul>(HandleRelicDriftRiskIfOwner);
         registry.Register<JossPaper>(HandleJossPaper);
         registry.RegisterIgnored<SkillIronclad1Achievement>();
@@ -77,8 +78,8 @@ internal static class AfterCardExhaustedHook
 
         if (context.CausedByEthereal)
         {
-            // Deferred: ethereal exhaust happens during end-turn cleanup, and this prediction
-            // currently only mirrors explicit draw/exhaust flows.
+            // Ethereal exhaust happens during end-turn cleanup; this draw/exhaust simulation
+            // does not mirror cleanup timing.
             context.RiskTracker.AddCurrentSource();
             return;
         }
@@ -95,8 +96,8 @@ internal static class AfterCardExhaustedHook
 
         if (context.CausedByEthereal)
         {
-            // Deferred: ethereal exhaust happens during end-turn cleanup, and this prediction
-            // currently only mirrors explicit draw/exhaust flows.
+            // Ethereal exhaust happens during end-turn cleanup; this draw/exhaust simulation
+            // does not mirror cleanup timing.
             context.RiskTracker.AddCurrentSource();
             return;
         }
@@ -119,23 +120,22 @@ internal static class AfterCardExhaustedHook
 
     private static void HandleRelicDriftRiskIfOwner(RelicModel relic, AfterCardExhaustedHookContext context)
     {
-        // Deferred:
-        // - CharonsAshes is all-enemy damage and waits for a real damage detector path.
-        // - ForgottenSoul chooses a random damage target through CombatTargets.NextItem.
+        // CharonsAshes deals all-enemy damage. ForgottenSoul chooses a random damage target
+        // through CombatTargets.NextItem. Damage side effects and target RNG are not mirrored here.
         if (relic.Owner == context.PreviewCard.Owner)
         {
             context.RiskTracker.AddCurrentSource();
         }
     }
 
-    private static void HandlePowerDriftRiskIfOwner(PowerModel power, AfterCardExhaustedHookContext context)
+    private static void HandleFeelNoPainPower(FeelNoPainPower power, AfterCardExhaustedHookContext context)
     {
-        // Deferred for FeelNoPainPower: pure block, but DrawPilePrediction first needs to
-        // share a DamageBlockRiskDetector session with these hooks.
-        if (power.Owner == context.PreviewCard.Owner.Creature)
+        if (power.Owner != context.PreviewCard.Owner.Creature)
         {
-            context.RiskTracker.AddCurrentSource();
+            return;
         }
+
+        context.Executor.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
     }
 
 }
@@ -153,6 +153,8 @@ internal sealed class JossPaperPredictionState
 internal sealed class AfterCardExhaustedHookContext : IPredictionHookContext
 {
     public required PredictionRiskTracker RiskTracker { get; init; }
+
+    public required IDamageBlockExecutor Executor { get; init; }
 
     public required ICombatState CombatState { get; init; }
 
