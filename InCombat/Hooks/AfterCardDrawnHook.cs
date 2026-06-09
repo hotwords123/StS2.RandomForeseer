@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -111,7 +110,7 @@ internal static class AfterCardDrawnHook
             return HookResultKind.Ignored;
         }
 
-        if (context.StatusCardsDrawnThisTurn.Value > 1)
+        if (context.State.StatusCardsDrawnThisTurn > 1)
         {
             return HookResultKind.Ignored;
         }
@@ -137,13 +136,13 @@ internal static class AfterCardDrawnHook
         if (context.PreviewCard.Owner != power.Owner?.Player ||
             context.CombatState.CurrentSide != power.Owner.Side ||
             !bound.CanAfflict(context.PreviewCard) ||
-            context.BoundCardsAfflictedThisTurn.Value >= power.Amount)
+            context.State.BoundCardsAfflictedThisTurn >= power.Amount)
         {
             return HookResultKind.Ignored;
         }
 
         context.MutablePreviewCard.AfflictInternal(bound.ToMutable(), power.Amount);
-        context.BoundCardsAfflictedThisTurn.Value++;
+        context.State.BoundCardsAfflictedThisTurn++;
         return HookResultKind.Applied;
     }
 
@@ -210,9 +209,7 @@ internal sealed class AfterCardDrawnHookContext
 
     public required Rng EnergyCostRng { get; init; }
 
-    public required StrongBox<int> StatusCardsDrawnThisTurn { get; init; }
-
-    public required StrongBox<int> BoundCardsAfflictedThisTurn { get; init; }
+    public required DrawPilePredictionState State { get; init; }
 
     public required Action<int> Draw { get; init; }
 }

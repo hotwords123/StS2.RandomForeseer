@@ -49,14 +49,23 @@ internal static class AfterCardExhaustedHook
     private static HookResultKind HandleBurningSticks(BurningSticks relic, AfterCardExhaustedHookContext context)
     {
         if (context.PreviewCard.Owner != relic.Owner ||
-            context.BurningSticksUsedThisCombat.GetValueOrDefault(relic, relic.WasUsedThisCombat) ||
             context.PreviewCard.Type != CardType.Skill)
         {
             return HookResultKind.Ignored;
         }
 
+        var state = context.StateStore.Get(relic, () => new BurningSticksPredictionState
+        {
+            WasUsedThisCombat = relic.WasUsedThisCombat
+        });
+
+        if (state.WasUsedThisCombat)
+        {
+            return HookResultKind.Ignored;
+        }
+
         context.AddToHand(new PredictedCard(context.MutablePreviewCard.CreateClone()));
-        context.BurningSticksUsedThisCombat[relic] = true;
+        state.WasUsedThisCombat = true;
         return HookResultKind.Applied;
     }
 
@@ -88,7 +97,12 @@ internal static class AfterCardExhaustedHook
             return HookResultKind.DriftRisk;
         }
 
-        var cardsExhausted = context.JossPaperCardsExhausted.GetValueOrDefault(relic, relic.CardsExhausted) + 1;
+        var state = context.StateStore.Get(relic, () => new JossPaperPredictionState
+        {
+            CardsExhausted = relic.CardsExhausted
+        });
+
+        var cardsExhausted = state.CardsExhausted + 1;
         var threshold = relic.DynamicVars["ExhaustAmount"].IntValue;
         if (cardsExhausted >= threshold)
         {
@@ -96,7 +110,7 @@ internal static class AfterCardExhaustedHook
             cardsExhausted %= threshold;
         }
 
-        context.JossPaperCardsExhausted[relic] = cardsExhausted;
+        state.CardsExhausted = cardsExhausted;
         return HookResultKind.Applied;
     }
 
@@ -120,6 +134,16 @@ internal static class AfterCardExhaustedHook
     }
 }
 
+internal sealed class BurningSticksPredictionState
+{
+    public bool WasUsedThisCombat { get; set; }
+}
+
+internal sealed class JossPaperPredictionState
+{
+    public int CardsExhausted { get; set; }
+}
+
 internal sealed class AfterCardExhaustedHookContext
 {
     public required ICombatState CombatState { get; init; }
@@ -136,9 +160,7 @@ internal sealed class AfterCardExhaustedHookContext
 
     public required bool CausedByEthereal { get; init; }
 
-    public required Dictionary<RelicModel, int> JossPaperCardsExhausted { get; init; }
-
-    public required Dictionary<RelicModel, bool> BurningSticksUsedThisCombat { get; init; }
+    public required PredictionStateStore StateStore { get; init; }
 
     public required Action<int> Draw { get; init; }
 

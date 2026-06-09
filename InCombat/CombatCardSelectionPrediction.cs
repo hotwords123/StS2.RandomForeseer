@@ -39,14 +39,20 @@ internal static class CombatCardSelectionPrediction
     {
         return card switch
         {
-            TrueGrit when !card.IsUpgraded => HighlightHandCard(PredictHandCard(card, c => true, previewRng)).WithDriftRisk(card),
-            Cinder => HighlightHandCard(PredictHandCard(card, c => true, previewRng)).WithDriftRisk(card),
-            Thrash => HighlightHandCard(PredictHandCard(card, c => c.Type == CardType.Attack, previewRng)).WithDriftRisk(card),
+            TrueGrit when !card.IsUpgraded => HighlightHandCard(PredictHandCard(card, c => true, previewRng))
+                .WithRisk(DamageBlockRiskDetector.DetectGainBlock(card)),
+            Cinder => HighlightHandCard(PredictHandCard(card, c => true, previewRng))
+                .WithRisk(DamageBlockRiskDetector.DetectAttack(card)),
+            Thrash => HighlightHandCard(PredictHandCard(card, c => c.Type == CardType.Attack, previewRng))
+                .WithRisk(DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
             HiddenGem => HoverTipCards(PredictHiddenGem(card, previewRng)),
-            DrainPower => HoverTipCards(PredictDrainPower(card, previewRng)).WithDriftRisk(card),
+            DrainPower => HoverTipCards(PredictDrainPower(card, previewRng))
+                .WithRisk(DamageBlockRiskDetector.DetectAttack(card)),
             Anointed => HoverTipCards(PredictAnointed(card, previewRng)),
-            SeekerStrike => HoverTipCards(PredictSeekerStrike(card, previewRng)).WithDriftRisk(card),
-            Uproar => HoverTipCards(PredictUproar(card)).WithDriftRisk(card),
+            SeekerStrike => HoverTipCards(PredictSeekerStrike(card, previewRng))
+                .WithRisk(DamageBlockRiskDetector.DetectAttack(card)),
+            Uproar => HoverTipCards(PredictUproar(card))
+                .WithRisk(DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
             _ => CombatCardSelectionPredictionResult.Empty
         };
     }
@@ -182,10 +188,10 @@ internal sealed record CombatCardSelectionPredictionResult(
 
     public static CombatCardSelectionPredictionResult Empty { get; } = new([], new HashSet<CardModel>());
 
-    public CombatCardSelectionPredictionResult WithDriftRisk(AbstractModel source)
+    public CombatCardSelectionPredictionResult WithRisk(PredictionRisk risk)
     {
-        return this == Empty
+        return this == Empty || !risk.HasRisk
             ? this
-            : this with { Risk = new PredictionRisk(true, [source]) };
+            : this with { Risk = risk };
     }
 }

@@ -20,10 +20,10 @@ internal sealed class PredictionRiskTracker
         HasRisk = true;
     }
 
-    public void Add(AbstractModel model)
+    public void Add(AbstractModel? model)
     {
         HasRisk = true;
-        if (_modelIds.Add(model.Id))
+        if (model != null && _modelIds.Add(model.Id))
         {
             _models.Add(model);
         }

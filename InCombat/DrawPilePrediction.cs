@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -32,10 +31,12 @@ internal sealed class DrawPilePrediction(
     private readonly List<PredictedCard> _discardPileCards = PredictedCard.FromCards(discardPileCards);
     private readonly List<PredictedCard> _predictedCards = [];
 
-    private readonly StrongBox<int> _statusCardsDrawnThisTurn = new(CountStatusCardsDrawnThisTurn(combatState, player));
-    private readonly StrongBox<int> _boundCardsAfflictedThisTurn = new(CountBoundCardsAfflictedThisTurn(combatState, player));
-    private readonly Dictionary<RelicModel, int> _jossPaperCardsExhausted = [];
-    private readonly Dictionary<RelicModel, bool> _burningSticksUsedThisCombat = [];
+    private readonly DrawPilePredictionState _state = new()
+    {
+        StatusCardsDrawnThisTurn = CountStatusCardsDrawnThisTurn(combatState, player),
+        BoundCardsAfflictedThisTurn = CountBoundCardsAfflictedThisTurn(combatState, player)
+    };
+    private readonly PredictionStateStore _stateStore = new();
     private readonly PredictionRiskTracker _driftRisk = new();
 
     private bool _reachedSimulationLimit;
@@ -173,7 +174,7 @@ internal sealed class DrawPilePrediction(
 
         if (predictedCard.Original.Type == CardType.Status)
         {
-            _statusCardsDrawnThisTurn.Value++;
+            _state.StatusCardsDrawnThisTurn++;
         }
 
         RunAfterCardDrawnHooks(predictedCard, DrawInternal);
@@ -303,8 +304,7 @@ internal sealed class DrawPilePrediction(
             Card = card,
             FromHandDraw = false,
             EnergyCostRng = energyCostRng,
-            StatusCardsDrawnThisTurn = _statusCardsDrawnThisTurn,
-            BoundCardsAfflictedThisTurn = _boundCardsAfflictedThisTurn,
+            State = _state,
             Draw = draw
         };
 
@@ -331,8 +331,7 @@ internal sealed class DrawPilePrediction(
             Player = player,
             Card = card,
             CausedByEthereal = causedByEthereal,
-            JossPaperCardsExhausted = _jossPaperCardsExhausted,
-            BurningSticksUsedThisCombat = _burningSticksUsedThisCombat,
+            StateStore = _stateStore,
             Draw = DrawInternal,
             AddToHand = AddToHand
         };
@@ -369,6 +368,13 @@ internal sealed class DrawPilePrediction(
                 entry.Affliction is Bound);
     }
 
+}
+
+internal sealed class DrawPilePredictionState
+{
+    public int StatusCardsDrawnThisTurn { get; set; }
+
+    public int BoundCardsAfflictedThisTurn { get; set; }
 }
 
 internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, PredictionRisk Risk)
