@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
+using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
 
 namespace RandomForeseer.InCombat.Hooks;
@@ -19,9 +20,12 @@ internal static class ShouldDrawHook
 
     private static readonly HookRegistry<ShouldDrawHookContext> Registry = CreateRegistry();
 
-    public static IReadOnlyList<HookResult> Run(ShouldDrawHookContext context)
+    public static void Run(ShouldDrawHookContext context)
     {
-        return Registry.Run(context.CombatState.IterateHookListeners(), context);
+        Registry.Run(
+            context.CombatState.IterateHookListeners(),
+            context,
+            static context => !context.IsBlocked);
     }
 
     private static HookRegistry<ShouldDrawHookContext> CreateRegistry()
@@ -34,30 +38,40 @@ internal static class ShouldDrawHook
         return registry;
     }
 
-    private static HookResultKind HandleNoDrawPower(NoDrawPower power, ShouldDrawHookContext context)
+    private static void HandleNoDrawPower(NoDrawPower power, ShouldDrawHookContext context)
     {
         if (context.FromHandDraw || context.Player != power.Owner?.Player)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         // NoDrawPower.ShouldDraw flashes as a side effect, so mirror the predicate instead of calling it.
-        return HookResultKind.Blocked;
+        context.Block();
     }
 
-    private static HookResultKind CallOriginal(AbstractModel model, ShouldDrawHookContext context)
+    private static void CallOriginal(AbstractModel model, ShouldDrawHookContext context)
     {
-        return model.ShouldDraw(context.Player, context.FromHandDraw)
-            ? HookResultKind.Ignored
-            : HookResultKind.Blocked;
+        if (!model.ShouldDraw(context.Player, context.FromHandDraw))
+        {
+            context.Block();
+        }
     }
 }
 
-internal sealed class ShouldDrawHookContext
+internal sealed class ShouldDrawHookContext : IPredictionHookContext
 {
+    public required PredictionRiskTracker RiskTracker { get; init; }
+
     public required ICombatState CombatState { get; init; }
 
     public required Player Player { get; init; }
 
     public required bool FromHandDraw { get; init; }
+
+    public bool IsBlocked { get; private set; }
+
+    public void Block()
+    {
+        IsBlocked = true;
+    }
 }

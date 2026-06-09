@@ -36,14 +36,14 @@ internal static class AfterCardDrawnHook
     private static readonly HookRegistry<AfterCardDrawnHookContext> Early = CreateEarly();
     private static readonly HookRegistry<AfterCardDrawnHookContext> Normal = CreateNormal();
 
-    public static IReadOnlyList<HookResult> RunEarly(AfterCardDrawnHookContext context)
+    public static void RunEarly(AfterCardDrawnHookContext context)
     {
-        return Early.Run(context.CombatState.IterateHookListeners(), context);
+        Early.Run(context.CombatState.IterateHookListeners(), context);
     }
 
-    public static IReadOnlyList<HookResult> Run(AfterCardDrawnHookContext context)
+    public static void Run(AfterCardDrawnHookContext context)
     {
-        return Normal.Run(context.CombatState.IterateHookListeners(), context);
+        Normal.Run(context.CombatState.IterateHookListeners(), context);
     }
 
     private static HookRegistry<AfterCardDrawnHookContext> CreateEarly()
@@ -63,74 +63,71 @@ internal static class AfterCardDrawnHook
         registry.Register<Slither>(HandleSlither);
         registry.Register<IterationPower>(HandleIterationPower);
         registry.Register<PagestormPower>(HandlePagestormPower);
-        registry.Register<AutomationPower>(SkipOriginal);
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
         registry.Register<CorrosiveWavePower>(HandleDriftRiskIfOwner);
         registry.Register<SpeedsterPower>(HandleSpeedsterPower);
         registry.Register<KinglyKick>(HandleKinglyKick);
         registry.Register<KinglyPunch>(HandleKinglyPunch);
-        registry.Register<Cards.Void>(SkipOriginal);
+
+        registry.RegisterIgnored<AutomationPower>();
+        registry.RegisterIgnored<Cards.Void>();
 
         return registry;
     }
 
-    private static HookResultKind HandleHellraiserPower(HellraiserPower power, AfterCardDrawnHookContext context)
+    private static void HandleHellraiserPower(HellraiserPower power, AfterCardDrawnHookContext context)
     {
-        return context.PreviewCard.Owner.Creature == power.Owner && context.PreviewCard.Tags.Contains(CardTag.Strike)
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
+        // Deferred: this auto-plays the drawn Strike, so the effect can be any card command,
+        // not just the damage/block chain handled by DamageBlockRiskDetector.
+        if (context.PreviewCard.Owner.Creature == power.Owner && context.PreviewCard.Tags.Contains(CardTag.Strike))
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 
-    private static HookResultKind HandleConfusedPower(ConfusedPower power, AfterCardDrawnHookContext context)
+    private static void HandleConfusedPower(ConfusedPower power, AfterCardDrawnHookContext context)
     {
         if (context.PreviewCard.Owner != power.Owner?.Player || context.PreviewCard.EnergyCost.Canonical < 0)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.MutablePreviewCard.EnergyCost.SetThisCombat(context.EnergyCostRng.NextInt(4));
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleSlither(Slither slither, AfterCardDrawnHookContext context)
+    private static void HandleSlither(Slither slither, AfterCardDrawnHookContext context)
     {
         if (context.OriginalCard != slither.Card)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.MutablePreviewCard.EnergyCost.SetThisCombat(context.EnergyCostRng.NextInt(4));
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleIterationPower(IterationPower power, AfterCardDrawnHookContext context)
+    private static void HandleIterationPower(IterationPower power, AfterCardDrawnHookContext context)
     {
-        if (context.PreviewCard.Owner.Creature != power.Owner || context.PreviewCard.Type != CardType.Status)
+        if (context.PreviewCard.Owner.Creature != power.Owner ||
+            context.PreviewCard.Type != CardType.Status ||
+            context.State.StatusCardsDrawnThisTurn > 1)
         {
-            return HookResultKind.Ignored;
-        }
-
-        if (context.State.StatusCardsDrawnThisTurn > 1)
-        {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.Draw(power.Amount);
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandlePagestormPower(PagestormPower power, AfterCardDrawnHookContext context)
+    private static void HandlePagestormPower(PagestormPower power, AfterCardDrawnHookContext context)
     {
         if (context.PreviewCard.Owner.Creature != power.Owner || !context.PreviewCard.Keywords.Contains(CardKeyword.Ethereal))
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.Draw(power.Amount);
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleChainsOfBindingPower(ChainsOfBindingPower power, AfterCardDrawnHookContext context)
+    private static void HandleChainsOfBindingPower(ChainsOfBindingPower power, AfterCardDrawnHookContext context)
     {
         var bound = ModelDb.Affliction<Bound>();
         if (context.PreviewCard.Owner != power.Owner?.Player ||
@@ -138,61 +135,62 @@ internal static class AfterCardDrawnHook
             !bound.CanAfflict(context.PreviewCard) ||
             context.State.BoundCardsAfflictedThisTurn >= power.Amount)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.MutablePreviewCard.AfflictInternal(bound.ToMutable(), power.Amount);
         context.State.BoundCardsAfflictedThisTurn++;
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleSpeedsterPower(SpeedsterPower power, AfterCardDrawnHookContext context)
+    private static void HandleSpeedsterPower(SpeedsterPower power, AfterCardDrawnHookContext context)
     {
-        return !context.FromHandDraw &&
+        // Deferred: this is all-enemy damage. It can use DamageBlockRiskDetector once the
+        // detector has a real damage path instead of the current placeholder risk.
+        if (!context.FromHandDraw &&
             context.PreviewCard.Owner.Creature == power.Owner &&
-            context.PreviewCard.Owner.Creature.CombatState?.CurrentSide == context.PreviewCard.Owner.Creature.Side
-                ? HookResultKind.DriftRisk
-                : HookResultKind.Ignored;
+            context.PreviewCard.Owner.Creature.CombatState?.CurrentSide == context.PreviewCard.Owner.Creature.Side)
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 
-    private static HookResultKind HandleKinglyKick(KinglyKick card, AfterCardDrawnHookContext context)
+    private static void HandleKinglyKick(KinglyKick card, AfterCardDrawnHookContext context)
     {
         if (context.OriginalCard != card)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.MutablePreviewCard.EnergyCost.AddThisCombat(-1);
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleKinglyPunch(KinglyPunch card, AfterCardDrawnHookContext context)
+    private static void HandleKinglyPunch(KinglyPunch card, AfterCardDrawnHookContext context)
     {
         if (context.OriginalCard != card)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var previewCard = context.MutablePreviewCard;
         previewCard.DynamicVars.Damage.BaseValue += previewCard.DynamicVars["Increase"].BaseValue;
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleDriftRiskIfOwner(PowerModel power, AfterCardDrawnHookContext context)
+    private static void HandleDriftRiskIfOwner(PowerModel power, AfterCardDrawnHookContext context)
     {
-        return context.PreviewCard.Owner.Creature == power.Owner
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
+        // Deferred for CorrosiveWavePower: it applies Poison, which is outside the current
+        // damage/block-only detector scope.
+        if (context.PreviewCard.Owner.Creature == power.Owner)
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 
-    private static HookResultKind SkipOriginal(AbstractModel model, AfterCardDrawnHookContext context)
-    {
-        return HookResultKind.Ignored;
-    }
 }
 
-internal sealed class AfterCardDrawnHookContext
+internal sealed class AfterCardDrawnHookContext : IPredictionHookContext
 {
+    public required PredictionRiskTracker RiskTracker { get; init; }
+
     public required ICombatState CombatState { get; init; }
 
     public required Player Player { get; init; }

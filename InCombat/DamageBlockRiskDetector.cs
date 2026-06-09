@@ -107,6 +107,7 @@ internal sealed class DamageBlockRiskDetector(ICombatState combatState) : IDamag
 
         var context = new BlockHookContext
         {
+            RiskTracker = _tracker,
             Executor = this,
             StateStore = _stateStore,
             CombatState = combatState,
@@ -118,6 +119,6 @@ internal sealed class DamageBlockRiskDetector(ICombatState combatState) : IDamag
 
         // BeforeBlockGained and AfterModifyingBlockAmount currently have no vanilla implementations
         // that can move prediction RNG; leave them unregistered until that changes.
-        _tracker.AddHookResults(BlockHooks.RunAfterBlockGained(context));
+        BlockHooks.RunAfterBlockGained(context);
     }
 }

@@ -21,9 +21,9 @@ internal static class BlockHooks
 
     private static readonly HookRegistry<BlockHookContext> AfterBlockGainedRegistry = CreateAfterBlockGainedRegistry();
 
-    public static IReadOnlyList<HookResult> RunAfterBlockGained(BlockHookContext context)
+    public static void RunAfterBlockGained(BlockHookContext context)
     {
-        return AfterBlockGainedRegistry.Run(context.CombatState.IterateHookListeners(), context);
+        AfterBlockGainedRegistry.Run(context.CombatState.IterateHookListeners(), context);
     }
 
     private static HookRegistry<BlockHookContext> CreateAfterBlockGainedRegistry()
@@ -36,7 +36,7 @@ internal static class BlockHooks
         return registry;
     }
 
-    private static HookResultKind HandleBeaconOfHopePower(BeaconOfHopePower power, BlockHookContext context)
+    private static void HandleBeaconOfHopePower(BeaconOfHopePower power, BlockHookContext context)
     {
         var state = context.StateStore.Get<BeaconOfHopePredictionState>(power);
         if (context.Creature != power.Owner ||
@@ -44,13 +44,13 @@ internal static class BlockHooks
             context.Amount < 2m ||
             state.HasAlreadyBeenGivenBlock)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var amountToGive = context.Amount * 0.5m;
         if (amountToGive < 1m)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var teammates = context.CombatState.GetTeammatesOf(power.Owner)
@@ -58,7 +58,7 @@ internal static class BlockHooks
             .ToList();
         if (teammates.Count == 0)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         state.HasAlreadyBeenGivenBlock = true;
@@ -73,28 +73,18 @@ internal static class BlockHooks
         {
             state.HasAlreadyBeenGivenBlock = false;
         }
-
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleJuggernautPower(JuggernautPower power, BlockHookContext context)
+    private static void HandleJuggernautPower(JuggernautPower power, BlockHookContext context)
     {
         if (context.Creature != power.Owner || context.CombatState.HittableEnemies.Count == 0)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
-        if (context.CombatState.HittableEnemies.Count > 1)
-        {
-            return HookResultKind.DriftRisk;
-        }
-
-        context.Executor.Damage(
-            context.CombatState.HittableEnemies,
-            power.Amount,
-            ValueProp.Unpowered,
-            power.Owner);
-        return HookResultKind.Applied;
+        // Deferred: vanilla chooses the target through CombatTargets.NextItem, which advances RNG
+        // even when only one target exists. Keep this as drift risk until target RNG is mirrored.
+        context.RiskTracker.AddCurrentSource();
     }
 }
 
@@ -103,8 +93,10 @@ internal sealed class BeaconOfHopePredictionState
     public bool HasAlreadyBeenGivenBlock { get; set; }
 }
 
-internal sealed class BlockHookContext
+internal sealed class BlockHookContext : IPredictionHookContext
 {
+    public required PredictionRiskTracker RiskTracker { get; init; }
+
     public required IDamageBlockExecutor Executor { get; init; }
 
     public required PredictionStateStore StateStore { get; init; }

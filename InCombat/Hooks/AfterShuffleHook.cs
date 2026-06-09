@@ -24,9 +24,9 @@ internal static class AfterShuffleHook
 
     private static readonly HookRegistry<AfterShuffleHookContext> Registry = CreateRegistry();
 
-    public static IReadOnlyList<HookResult> Run(AfterShuffleHookContext context)
+    public static void Run(AfterShuffleHookContext context)
     {
-        return Registry.Run(context.CombatState.IterateHookListeners(), context);
+        Registry.Run(context.CombatState.IterateHookListeners(), context);
     }
 
     private static HookRegistry<AfterShuffleHookContext> CreateRegistry()
@@ -40,36 +40,43 @@ internal static class AfterShuffleHook
         return registry;
     }
 
-    private static HookResultKind HandleBiiigHug(BiiigHug relic, AfterShuffleHookContext context)
+    private static void HandleBiiigHug(BiiigHug relic, AfterShuffleHookContext context)
     {
         if (relic.Owner != context.Player)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var soot = PredictionUtils.CreateCard(ModelDb.Card<Soot>(), context.Player);
         var position = context.ShuffleRng.NextInt(context.DrawPileCards.Count + 1);
         context.DrawPileCards.Insert(position, new PredictedCard(soot));
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleStratagemPower(StratagemPower power, AfterShuffleHookContext context)
+    private static void HandleStratagemPower(StratagemPower power, AfterShuffleHookContext context)
     {
-        return power.Owner?.Player == context.Player
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
+        // Deferred: this opens a combat-pile card selection and moves chosen cards to hand,
+        // which is a pile/choice simulation problem rather than damage/block detection.
+        if (power.Owner?.Player == context.Player)
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 
-    private static HookResultKind HandleTheAbacus(TheAbacus relic, AfterShuffleHookContext context)
+    private static void HandleTheAbacus(TheAbacus relic, AfterShuffleHookContext context)
     {
-        return relic.Owner == context.Player
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
+        // Deferred: pure block, but DrawPilePrediction first needs to share a
+        // DamageBlockRiskDetector session with these hooks.
+        if (relic.Owner == context.Player)
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 }
 
-internal sealed class AfterShuffleHookContext
+internal sealed class AfterShuffleHookContext : IPredictionHookContext
 {
+    public required PredictionRiskTracker RiskTracker { get; init; }
+
     public required ICombatState CombatState { get; init; }
 
     public required Player Player { get; init; }

@@ -3,19 +3,20 @@ using MegaCrit.Sts2.Core.Modding;
 
 namespace RandomForeseer.Common.Hooks;
 
-internal delegate HookResultKind HookHandler<in TContext>(AbstractModel model, TContext context);
+internal delegate void HookHandler<in TContext>(AbstractModel model, TContext context);
 
 internal sealed record HookSpec(string Name, Type[] ParameterTypes);
 
 // Shared per-hook dispatcher. Each concrete hook owns one or more registries with a typed context;
 // this class only handles exact model-type matching and unsupported detection.
 internal sealed class HookRegistry<TContext>(HookSpec hook)
+    where TContext : IPredictionHookContext
 {
     private readonly Dictionary<Type, HookHandler<TContext>> _handlers = [];
     private readonly HashSet<Type> _warnedIgnoredUnsupportedTypes = [];
     private readonly HashSet<Type> _warnedUnsupportedTypes = [];
 
-    public void Register<TModel>(Func<TModel, TContext, HookResultKind> handler)
+    public void Register<TModel>(Action<TModel, TContext> handler)
         where TModel : AbstractModel
     {
         // Exact type matching is intentional: a derived model may have different side effects and
@@ -23,49 +24,51 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
         _handlers[typeof(TModel)] = (model, context) => handler((TModel)model, context);
     }
 
-    public IReadOnlyList<HookResult> Run(
-        IEnumerable<AbstractModel> models,
-        TContext context)
+    public void RegisterIgnored<TModel>()
+        where TModel : AbstractModel
     {
-        var results = new List<HookResult>();
+        Register<TModel>(static (_, _) => { });
+    }
 
+    public void Run(
+        IEnumerable<AbstractModel> models,
+        TContext context,
+        Func<TContext, bool>? shouldContinue = null)
+    {
         foreach (var model in models)
         {
             var type = model.GetType();
-            HookResultKind resultKind;
 
-            if (_handlers.TryGetValue(type, out var handler))
+            using (context.RiskTracker.PushSource(model))
             {
-                resultKind = handler(model, context);
-            }
-            else if (HookReflection.TryGetOverride(hook, type, out var overrideMethod))
-            {
-                if (HookReflection.TryGetMod(overrideMethod, out var mod) &&
-                    HookReflection.IsNonGameplayMod(mod))
+                if (_handlers.TryGetValue(type, out var handler))
                 {
-                    WarnIgnoredUnsupported(type, mod);
-                    resultKind = HookResultKind.Ignored;
+                    handler(model, context);
+                }
+                else if (HookReflection.TryGetOverride(hook, type, out var overrideMethod))
+                {
+                    if (HookReflection.TryGetMod(overrideMethod, out var mod) &&
+                        HookReflection.IsNonGameplayMod(mod))
+                    {
+                        WarnIgnoredUnsupported(type, mod);
+                    }
+                    else
+                    {
+                        WarnUnsupported(type);
+                        context.RiskTracker.AddCurrentSource();
+                    }
                 }
                 else
                 {
-                    WarnUnsupported(type);
-                    resultKind = HookResultKind.Unsupported;
+                    continue;
                 }
             }
-            else
-            {
-                continue;
-            }
 
-            results.Add(new HookResult(resultKind, model));
-
-            if (resultKind == HookResultKind.Blocked)
+            if (shouldContinue?.Invoke(context) == false)
             {
                 break;
             }
         }
-
-        return results;
     }
 
     private void WarnIgnoredUnsupported(Type modelType, Mod mod)

@@ -37,14 +37,14 @@ internal static class CardRewardHook
 
     private static readonly HookRegistry<CardRewardHookContext> Late = CreateLate();
 
-    public static IReadOnlyList<HookResult> RunEarly(CardRewardHookContext context)
+    public static void RunEarly(CardRewardHookContext context)
     {
-        return Early.Run(context.IterateModifiers(), context);
+        Early.Run(context.IterateModifiers(), context);
     }
 
-    public static IReadOnlyList<HookResult> RunLate(CardRewardHookContext context)
+    public static void RunLate(CardRewardHookContext context)
     {
-        return Late.Run(context.IterateModifiers(), context);
+        Late.Run(context.IterateModifiers(), context);
     }
 
     private static HookRegistry<CardRewardHookContext> CreateEarly()
@@ -73,14 +73,14 @@ internal static class CardRewardHook
         return registry;
     }
 
-    private static HookResultKind HandleLastingCandy(LastingCandy relic, CardRewardHookContext context)
+    private static void HandleLastingCandy(LastingCandy relic, CardRewardHookContext context)
     {
         if (relic.Owner != context.Player ||
             context.Options.Source != CardCreationSource.Encounter ||
             relic.CombatsSeen <= 0 ||
             relic.CombatsSeen % 2 != 0)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var candidates = context.Options.GetPossibleCards(context.Player)
@@ -95,7 +95,7 @@ internal static class CardRewardHook
 
         if (candidates.Count == 0)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var candyOptions = new CardCreationOptions(candidates, CardCreationSource.Other, context.Options.RarityOdds)
@@ -108,85 +108,80 @@ internal static class CardRewardHook
             context.RarityOdds).FirstOrDefault()?.Card;
         if (card == null)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var result = new CardCreationResult(card);
         result.ModifyCard(card, relic);
         context.Results.Add(result);
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleFrozenEgg(FrozenEgg relic, CardRewardHookContext context)
+    private static void HandleFrozenEgg(FrozenEgg relic, CardRewardHookContext context)
     {
-        return UpgradeCardsByType(relic, context, CardType.Power);
+        UpgradeCardsByType(relic, context, CardType.Power);
     }
 
-    private static HookResultKind HandleMoltenEgg(MoltenEgg relic, CardRewardHookContext context)
+    private static void HandleMoltenEgg(MoltenEgg relic, CardRewardHookContext context)
     {
-        return UpgradeCardsByType(relic, context, CardType.Attack);
+        UpgradeCardsByType(relic, context, CardType.Attack);
     }
 
-    private static HookResultKind HandleToxicEgg(ToxicEgg relic, CardRewardHookContext context)
+    private static void HandleToxicEgg(ToxicEgg relic, CardRewardHookContext context)
     {
-        return UpgradeCardsByType(relic, context, CardType.Skill);
+        UpgradeCardsByType(relic, context, CardType.Skill);
     }
 
-    private static HookResultKind HandleSilverCrucible(SilverCrucible relic, CardRewardHookContext context)
+    private static void HandleSilverCrucible(SilverCrucible relic, CardRewardHookContext context)
     {
         if (relic.Owner != context.Player ||
             relic.TimesUsed >= relic.DynamicVars.Cards.IntValue ||
             !context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward))
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
-        return UpgradeAllValidCards(relic, context.Results)
-            ? HookResultKind.Applied
-            : HookResultKind.Ignored;
+        UpgradeAllValidCards(relic, context.Results);
     }
 
-    private static HookResultKind HandleLavaLamp(LavaLamp relic, CardRewardHookContext context)
+    private static void HandleLavaLamp(LavaLamp relic, CardRewardHookContext context)
     {
         if (relic.Owner != context.Player ||
             context.Player.RunState.CurrentRoom is not MegaCrit.Sts2.Core.Rooms.CombatRoom ||
             relic.TookDamageThisCombat)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
-        return UpgradeAllValidCards(relic, context.Results)
-            ? HookResultKind.Applied
-            : HookResultKind.Ignored;
+        UpgradeAllValidCards(relic, context.Results);
     }
 
-    private static HookResultKind HandleGlitter(Glitter relic, CardRewardHookContext context)
+    private static void HandleGlitter(Glitter relic, CardRewardHookContext context)
     {
-        return EnchantAllValid<Glam>(relic, context, 1m);
+        EnchantAllValid<Glam>(relic, context, 1m);
     }
 
-    private static HookResultKind HandleFresnelLens(FresnelLens relic, CardRewardHookContext context)
+    private static void HandleFresnelLens(FresnelLens relic, CardRewardHookContext context)
     {
-        return EnchantAllValid<Nimble>(relic, context, relic.DynamicVars["NimbleAmount"].BaseValue);
+        EnchantAllValid<Nimble>(relic, context, relic.DynamicVars["NimbleAmount"].BaseValue);
     }
 
-    private static HookResultKind HandleSilkenTress(SilkenTress relic, CardRewardHookContext context)
+    private static void HandleSilkenTress(SilkenTress relic, CardRewardHookContext context)
     {
         if (relic.Owner != context.Player ||
             relic.IsUsedUp ||
             !context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward))
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
-        return EnchantAllValid<Glam>(relic, context, 1m);
+        EnchantAllValid<Glam>(relic, context, 1m);
     }
 
-    private static HookResultKind HandleWingCharm(WingCharm relic, CardRewardHookContext context)
+    private static void HandleWingCharm(WingCharm relic, CardRewardHookContext context)
     {
         if (relic.Owner != context.Player)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var swift = ModelDb.Enchantment<Swift>();
@@ -194,74 +189,57 @@ internal static class CardRewardHook
         var selected = context.NicheRng.NextItem(validResults);
         if (selected == null)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         selected.ModifyCard(
             EnchantPreview<Swift>(selected.Card, relic.DynamicVars["SwiftAmount"].BaseValue),
             relic);
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind UpgradeCardsByType(RelicModel relic, CardRewardHookContext context, CardType type)
+    private static void UpgradeCardsByType(RelicModel relic, CardRewardHookContext context, CardType type)
     {
         if (relic.Owner != context.Player || context.Options.Flags.HasFlag(CardCreationFlags.NoHookUpgrades))
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
-        var changed = false;
         foreach (var result in context.Results)
         {
             if (result.Card.Type == type && result.Card.IsUpgradable)
             {
                 result.ModifyCard(PredictionUtils.ToUpgradedCard(result.Card), relic);
-                changed = true;
             }
         }
-
-        return changed
-            ? HookResultKind.Applied
-            : HookResultKind.Ignored;
     }
 
-    private static bool UpgradeAllValidCards(RelicModel relic, List<CardCreationResult> results)
+    private static void UpgradeAllValidCards(RelicModel relic, List<CardCreationResult> results)
     {
-        var changed = false;
         foreach (var result in results)
         {
             if (result.Card.IsUpgradable)
             {
                 result.ModifyCard(PredictionUtils.ToUpgradedCard(result.Card), relic);
-                changed = true;
             }
         }
-
-        return changed;
     }
 
-    private static HookResultKind EnchantAllValid<T>(RelicModel relic, CardRewardHookContext context, decimal amount)
+    private static void EnchantAllValid<T>(RelicModel relic, CardRewardHookContext context, decimal amount)
         where T : EnchantmentModel
     {
         if (relic.Owner != context.Player)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
-        var changed = false;
         var enchantment = ModelDb.Enchantment<T>();
         foreach (var result in context.Results)
         {
             if (enchantment.CanEnchant(result.Card))
             {
                 result.ModifyCard(EnchantPreview<T>(result.Card, amount), relic);
-                changed = true;
             }
         }
-
-        return changed
-            ? HookResultKind.Applied
-            : HookResultKind.Ignored;
     }
 
     private static CardModel EnchantPreview<T>(CardModel card, decimal amount)
@@ -284,8 +262,10 @@ internal static class CardRewardHook
     }
 }
 
-internal sealed class CardRewardHookContext
+internal sealed class CardRewardHookContext : IPredictionHookContext
 {
+    public required PredictionRiskTracker RiskTracker { get; init; }
+
     public required Player Player { get; init; }
 
     public required List<CardCreationResult> Results { get; init; }

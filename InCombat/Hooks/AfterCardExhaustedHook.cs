@@ -25,9 +25,9 @@ internal static class AfterCardExhaustedHook
 
     private static readonly HookRegistry<AfterCardExhaustedHookContext> Registry = CreateRegistry();
 
-    public static IReadOnlyList<HookResult> Run(AfterCardExhaustedHookContext context)
+    public static void Run(AfterCardExhaustedHookContext context)
     {
-        return Registry.Run(context.CombatState.IterateHookListeners(), context);
+        Registry.Run(context.CombatState.IterateHookListeners(), context);
     }
 
     private static HookRegistry<AfterCardExhaustedHookContext> CreateRegistry()
@@ -37,21 +37,21 @@ internal static class AfterCardExhaustedHook
         registry.Register<BurningSticks>(HandleBurningSticks);
         registry.Register<CharonsAshes>(HandleRelicDriftRiskIfOwner);
         registry.Register<DarkEmbracePower>(HandleDarkEmbracePower);
-        registry.Register<DrumOfBattle>(SkipOriginal);
+        registry.RegisterIgnored<DrumOfBattle>();
         registry.Register<FeelNoPainPower>(HandlePowerDriftRiskIfOwner);
         registry.Register<ForgottenSoul>(HandleRelicDriftRiskIfOwner);
         registry.Register<JossPaper>(HandleJossPaper);
-        registry.Register<SkillIronclad1Achievement>(SkipOriginal);
+        registry.RegisterIgnored<SkillIronclad1Achievement>();
 
         return registry;
     }
 
-    private static HookResultKind HandleBurningSticks(BurningSticks relic, AfterCardExhaustedHookContext context)
+    private static void HandleBurningSticks(BurningSticks relic, AfterCardExhaustedHookContext context)
     {
         if (context.PreviewCard.Owner != relic.Owner ||
             context.PreviewCard.Type != CardType.Skill)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         var state = context.StateStore.Get(relic, () => new BurningSticksPredictionState
@@ -61,40 +61,44 @@ internal static class AfterCardExhaustedHook
 
         if (state.WasUsedThisCombat)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         context.AddToHand(new PredictedCard(context.MutablePreviewCard.CreateClone()));
         state.WasUsedThisCombat = true;
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleDarkEmbracePower(DarkEmbracePower power, AfterCardExhaustedHookContext context)
+    private static void HandleDarkEmbracePower(DarkEmbracePower power, AfterCardExhaustedHookContext context)
     {
         if (context.PreviewCard.Owner.Creature != power.Owner)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         if (context.CausedByEthereal)
         {
-            return HookResultKind.DriftRisk;
+            // Deferred: ethereal exhaust happens during end-turn cleanup, and this prediction
+            // currently only mirrors explicit draw/exhaust flows.
+            context.RiskTracker.AddCurrentSource();
+            return;
         }
 
         context.Draw(power.Amount);
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleJossPaper(JossPaper relic, AfterCardExhaustedHookContext context)
+    private static void HandleJossPaper(JossPaper relic, AfterCardExhaustedHookContext context)
     {
         if (context.PreviewCard.Owner != relic.Owner)
         {
-            return HookResultKind.Ignored;
+            return;
         }
 
         if (context.CausedByEthereal)
         {
-            return HookResultKind.DriftRisk;
+            // Deferred: ethereal exhaust happens during end-turn cleanup, and this prediction
+            // currently only mirrors explicit draw/exhaust flows.
+            context.RiskTracker.AddCurrentSource();
+            return;
         }
 
         var state = context.StateStore.Get(relic, () => new JossPaperPredictionState
@@ -111,27 +115,29 @@ internal static class AfterCardExhaustedHook
         }
 
         state.CardsExhausted = cardsExhausted;
-        return HookResultKind.Applied;
     }
 
-    private static HookResultKind HandleRelicDriftRiskIfOwner(RelicModel relic, AfterCardExhaustedHookContext context)
+    private static void HandleRelicDriftRiskIfOwner(RelicModel relic, AfterCardExhaustedHookContext context)
     {
-        return relic.Owner == context.PreviewCard.Owner
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
+        // Deferred:
+        // - CharonsAshes is all-enemy damage and waits for a real damage detector path.
+        // - ForgottenSoul chooses a random damage target through CombatTargets.NextItem.
+        if (relic.Owner == context.PreviewCard.Owner)
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 
-    private static HookResultKind HandlePowerDriftRiskIfOwner(PowerModel power, AfterCardExhaustedHookContext context)
+    private static void HandlePowerDriftRiskIfOwner(PowerModel power, AfterCardExhaustedHookContext context)
     {
-        return power.Owner == context.PreviewCard.Owner.Creature
-            ? HookResultKind.DriftRisk
-            : HookResultKind.Ignored;
+        // Deferred for FeelNoPainPower: pure block, but DrawPilePrediction first needs to
+        // share a DamageBlockRiskDetector session with these hooks.
+        if (power.Owner == context.PreviewCard.Owner.Creature)
+        {
+            context.RiskTracker.AddCurrentSource();
+        }
     }
 
-    private static HookResultKind SkipOriginal(AbstractModel model, AfterCardExhaustedHookContext context)
-    {
-        return HookResultKind.Ignored;
-    }
 }
 
 internal sealed class BurningSticksPredictionState
@@ -144,8 +150,10 @@ internal sealed class JossPaperPredictionState
     public int CardsExhausted { get; set; }
 }
 
-internal sealed class AfterCardExhaustedHookContext
+internal sealed class AfterCardExhaustedHookContext : IPredictionHookContext
 {
+    public required PredictionRiskTracker RiskTracker { get; init; }
+
     public required ICombatState CombatState { get; init; }
 
     public required Player Player { get; init; }

@@ -128,16 +128,16 @@ internal sealed class DrawPilePrediction(
             return;
         }
 
-        var shouldDrawResults = ShouldDrawHook.Run(new ShouldDrawHookContext
+        var shouldDrawContext = new ShouldDrawHookContext
         {
+            RiskTracker = _driftRisk,
             CombatState = combatState,
             Player = player,
             FromHandDraw = false
-        });
+        };
+        ShouldDrawHook.Run(shouldDrawContext);
 
-        _driftRisk.AddHookResults(shouldDrawResults);
-
-        if (shouldDrawResults.Any(result => result.Kind == HookResultKind.Blocked))
+        if (shouldDrawContext.IsBlocked)
         {
             return;
         }
@@ -252,8 +252,9 @@ internal sealed class DrawPilePrediction(
                 : new PredictedCard(card))
             .ToList();
 
-        var hookResults = AfterShuffleHook.Run(new AfterShuffleHookContext
+        AfterShuffleHook.Run(new AfterShuffleHookContext
         {
+            RiskTracker = _driftRisk,
             CombatState = combatState,
             Player = player,
             DrawPileCards = shuffledCards,
@@ -263,7 +264,6 @@ internal sealed class DrawPilePrediction(
         _drawPileCards.Clear();
         _drawPileCards.AddRange(shuffledCards);
         _discardPileCards.Clear();
-        _driftRisk.AddHookResults(hookResults);
     }
 
     public static bool TryCreate(Player player, [NotNullWhen(true)] out DrawPilePrediction? prediction)
@@ -299,6 +299,7 @@ internal sealed class DrawPilePrediction(
     {
         var context = new AfterCardDrawnHookContext
         {
+            RiskTracker = _driftRisk,
             CombatState = combatState,
             Player = player,
             Card = card,
@@ -308,25 +309,27 @@ internal sealed class DrawPilePrediction(
             Draw = draw
         };
 
-        _driftRisk.AddHookResults(AfterCardDrawnHook.RunEarly(context));
-        _driftRisk.AddHookResults(AfterCardDrawnHook.Run(context));
+        AfterCardDrawnHook.RunEarly(context);
+        AfterCardDrawnHook.Run(context);
     }
 
     private void RunAfterCardDiscardedHooks(PredictedCard card)
     {
         var context = new AfterCardDiscardedHookContext
         {
+            RiskTracker = _driftRisk,
             CombatState = combatState,
             Card = card
         };
 
-        _driftRisk.AddHookResults(AfterCardDiscardedHook.Run(context));
+        AfterCardDiscardedHook.Run(context);
     }
 
     private void RunAfterCardExhaustedHooks(PredictedCard card, bool causedByEthereal)
     {
         var context = new AfterCardExhaustedHookContext
         {
+            RiskTracker = _driftRisk,
             CombatState = combatState,
             Player = player,
             Card = card,
@@ -336,7 +339,7 @@ internal sealed class DrawPilePrediction(
             AddToHand = AddToHand
         };
 
-        _driftRisk.AddHookResults(AfterCardExhaustedHook.Run(context));
+        AfterCardExhaustedHook.Run(context);
     }
 
     private void AddToHand(PredictedCard card)
