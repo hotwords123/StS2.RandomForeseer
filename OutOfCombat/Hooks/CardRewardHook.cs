@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Odds;
 using MegaCrit.Sts2.Core.Random;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
@@ -146,7 +147,7 @@ internal static class CardRewardHook
     private static void HandleLavaLamp(LavaLamp relic, CardRewardHookContext context)
     {
         if (relic.Owner != context.Player ||
-            context.Player.RunState.CurrentRoom is not MegaCrit.Sts2.Core.Rooms.CombatRoom ||
+            context.Player.RunState.CurrentRoom is not CombatRoom ||
             relic.TookDamageThisCombat)
         {
             return;
