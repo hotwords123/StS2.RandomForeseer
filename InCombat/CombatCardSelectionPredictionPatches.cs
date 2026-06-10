@@ -36,14 +36,14 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
             return;
         }
 
-        SetHighlightedCards(source, prediction.HandCardsToHighlight);
+        SetHighlightedCards(source, prediction.SelectedCards);
     }
 
     public static void ClearHighlightsForSource(CardModel? source)
     {
         if (source != null && _sourceCard == source)
         {
-            SetHighlightedCards(null, new HashSet<CardModel>());
+            SetHighlightedCards(null, []);
         }
     }
 
@@ -53,13 +53,14 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
     {
         var source = __instance.CardNode?.Model;
 
-        if (!isHovered)
+        if (isHovered)
+        {
+            ApplyHighlightsForSource(source);
+        }
+        else
         {
             ClearHighlightsForSource(source);
-            return;
         }
-
-        ApplyHighlightsForSource(source);
     }
 
     [HarmonyPatch(nameof(NHandCardHolder.UpdateCard))]
@@ -76,7 +77,7 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
         __instance.CardNode.CardHighlight.Modulate = PredictionHighlightColor;
     }
 
-    private static void SetHighlightedCards(CardModel? source, IReadOnlySet<CardModel> cards)
+    private static void SetHighlightedCards(CardModel? source, IReadOnlyList<CardModel> cards)
     {
         var cardsToRefresh = _highlightedCards
             .Concat(cards)

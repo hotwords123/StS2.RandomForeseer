@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
@@ -25,34 +26,39 @@ internal static class CombatCardSelectionPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        var prediction = GetPrediction(card);
-        var tips = PredictionHoverTips.Cards(prediction.HoverTipCards).ToList();
-        if (prediction.HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
-        {
-            tips.Add(PredictionHoverTips.DriftWarning("card_selection", prediction.Risk));
-        }
-
-        return tips;
+        return GetPrediction(card).ToHoverTips();
     }
 
-    private static CombatCardSelectionPredictionResult Predict(CardModel card, MegaCrit.Sts2.Core.Random.Rng previewRng)
+    private static CombatCardSelectionPredictionResult Predict(CardModel card, Rng previewRng)
     {
         return card switch
         {
-            TrueGrit when !card.IsUpgraded => HighlightHandCard(PredictHandCard(card, c => true, previewRng))
-                .WithRisk(DamageBlockRiskDetector.DetectGainBlock(card)),
-            Cinder => HighlightHandCard(PredictHandCard(card, c => true, previewRng))
-                .WithRisk(DamageBlockRiskDetector.DetectAttack(card)),
-            Thrash => HighlightHandCard(PredictHandCard(card, c => c.Type == CardType.Attack, previewRng))
-                .WithRisk(DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
-            HiddenGem => HoverTipCards(PredictHiddenGem(card, previewRng)),
-            DrainPower => HoverTipCards(PredictDrainPower(card, previewRng))
-                .WithRisk(DamageBlockRiskDetector.DetectAttack(card)),
-            Anointed => HoverTipCards(PredictAnointed(card, previewRng)),
-            SeekerStrike => HoverTipCards(PredictSeekerStrike(card, previewRng))
-                .WithRisk(DamageBlockRiskDetector.DetectAttack(card)),
-            Uproar => HoverTipCards(PredictUproar(card))
-                .WithRisk(DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
+            Cinder => CombatCardSelectionPredictionResult.FromSelectedCard(
+                PredictHandCard(card, _ => true, previewRng),
+                DamageBlockRiskDetector.DetectAttack(card)),
+            HiddenGem => CombatCardSelectionPredictionResult.FromSelectedCard(
+                PredictHiddenGem(card, previewRng),
+                PredictionRisk.None),
+            Thrash => CombatCardSelectionPredictionResult.FromSelectedCard(
+                PredictHandCard(card, c => c.Type == CardType.Attack, previewRng),
+                DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
+            TrueGrit { IsUpgraded: false } => CombatCardSelectionPredictionResult.FromSelectedCard(
+                PredictHandCard(card, _ => true, previewRng),
+                DamageBlockRiskDetector.DetectGainBlock(card)),
+            Uproar => CombatCardSelectionPredictionResult.FromSelectedCard(
+                PredictUproar(card),
+                DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
+
+            Anointed => CombatCardSelectionPredictionResult.FromSelectedCards(
+                PredictAnointed(card, previewRng),
+                PredictionRisk.None),
+            DrainPower => CombatCardSelectionPredictionResult.FromSelectedCards(
+                PredictDrainPower(card, previewRng),
+                DamageBlockRiskDetector.DetectAttack(card)),
+            SeekerStrike => CombatCardSelectionPredictionResult.FromSelectedCards(
+                PredictSeekerStrike(card, previewRng),
+                DamageBlockRiskDetector.DetectAttack(card)),
+
             _ => CombatCardSelectionPredictionResult.Empty
         };
     }
@@ -60,16 +66,15 @@ internal static class CombatCardSelectionPrediction
     private static CardModel? PredictHandCard(
         CardModel source,
         Func<CardModel, bool> filter,
-        MegaCrit.Sts2.Core.Random.Rng previewRng)
+        Rng previewRng)
     {
         var candidates = PileType.Hand.GetPile(source.Owner).Cards
-            .Where(card => card != source)
-            .Where(filter);
+            .Where(card => card != source && filter(card));
 
         return previewRng.NextItem(candidates);
     }
 
-    private static CardModel? PredictHiddenGem(CardModel source, MegaCrit.Sts2.Core.Random.Rng previewRng)
+    private static CardModel? PredictHiddenGem(CardModel source, Rng previewRng)
     {
         var drawPileCards = PileType.Draw.GetPile(source.Owner).Cards.ToList();
         if (drawPileCards.Count == 0)
@@ -98,7 +103,7 @@ internal static class CombatCardSelectionPrediction
         return preview;
     }
 
-    private static IReadOnlyList<CardModel> PredictDrainPower(CardModel source, MegaCrit.Sts2.Core.Random.Rng previewRng)
+    private static IReadOnlyList<CardModel> PredictDrainPower(CardModel source, Rng previewRng)
     {
         return PileType.Discard.GetPile(source.Owner).Cards
             .Where(card => card.IsUpgradable)
@@ -107,7 +112,7 @@ internal static class CombatCardSelectionPrediction
             .ToList();
     }
 
-    private static IReadOnlyList<CardModel> PredictAnointed(CardModel source, MegaCrit.Sts2.Core.Random.Rng previewRng)
+    private static IReadOnlyList<CardModel> PredictAnointed(CardModel source, Rng previewRng)
     {
         var cardsInHandAfterPlay = PileType.Hand.GetPile(source.Owner).Cards.Count(card => card != source);
         var count = CardPile.MaxCardsInHand - cardsInHandAfterPlay;
@@ -122,7 +127,7 @@ internal static class CombatCardSelectionPrediction
             .ToList();
     }
 
-    private static IReadOnlyList<CardModel> PredictSeekerStrike(CardModel source, MegaCrit.Sts2.Core.Random.Rng previewRng)
+    private static IReadOnlyList<CardModel> PredictSeekerStrike(CardModel source, Rng previewRng)
     {
         return PileType.Draw.GetPile(source.Owner).Cards
             .ToList()
@@ -149,49 +154,38 @@ internal static class CombatCardSelectionPrediction
 
         return predicted;
     }
-
-    private static CombatCardSelectionPredictionResult HighlightHandCard(CardModel? card)
-    {
-        return card == null
-            ? CombatCardSelectionPredictionResult.Empty
-            : new CombatCardSelectionPredictionResult([card], new HashSet<CardModel> { card });
-    }
-
-    private static CombatCardSelectionPredictionResult HoverTipCards(CardModel? card)
-    {
-        return card == null
-            ? CombatCardSelectionPredictionResult.Empty
-            : new CombatCardSelectionPredictionResult([card], new HashSet<CardModel>());
-    }
-
-    private static CombatCardSelectionPredictionResult HoverTipCards(IReadOnlyList<CardModel> cards)
-    {
-        return cards.Count == 0
-            ? CombatCardSelectionPredictionResult.Empty
-            : new CombatCardSelectionPredictionResult(cards, new HashSet<CardModel>());
-    }
 }
 
 internal sealed record CombatCardSelectionPredictionResult(
-    IReadOnlyList<CardModel> HoverTipCards,
-    IReadOnlySet<CardModel> HandCardsToHighlight,
+    IReadOnlyList<CardModel> SelectedCards,
     PredictionRisk Risk)
 {
     public bool HasDriftRisk => Risk is { HasRisk: true };
 
-    public CombatCardSelectionPredictionResult(
-        IReadOnlyList<CardModel> hoverTipCards,
-        IReadOnlySet<CardModel> handCardsToHighlight)
-        : this(hoverTipCards, handCardsToHighlight, PredictionRisk.None)
+    public static CombatCardSelectionPredictionResult FromSelectedCards(IReadOnlyList<CardModel> selectedCards, PredictionRisk risk)
     {
+        return selectedCards.Count > 0
+            ? new(selectedCards, risk)
+            : Empty;
     }
 
-    public static CombatCardSelectionPredictionResult Empty { get; } = new([], new HashSet<CardModel>());
-
-    public CombatCardSelectionPredictionResult WithRisk(PredictionRisk risk)
+    public static CombatCardSelectionPredictionResult FromSelectedCard(CardModel? selectedCard, PredictionRisk risk)
     {
-        return this == Empty || !risk.HasRisk
-            ? this
-            : this with { Risk = risk };
+        return selectedCard != null
+            ? new([selectedCard], risk)
+            : Empty;
+    }
+
+    public static CombatCardSelectionPredictionResult Empty { get; } = new([], PredictionRisk.None);
+
+    public IReadOnlyList<IHoverTip> ToHoverTips()
+    {
+        var tips = PredictionHoverTips.Cards(SelectedCards).ToList();
+        if (HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
+        {
+            tips.Add(PredictionHoverTips.DriftWarning("card_selection", Risk));
+        }
+
+        return tips;
     }
 }
