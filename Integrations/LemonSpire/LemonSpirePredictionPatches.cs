@@ -5,7 +5,6 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
@@ -114,23 +113,6 @@ internal static class LemonSpireTypes
         catch
         {
             return null;
-        }
-    }
-}
-
-[HarmonyPatchCategory(LemonSpireTypes.PatchCategory)]
-[HarmonyPatch(
-    typeof(NHoverTipSet),
-    nameof(NHoverTipSet.CreateAndShow),
-    [typeof(Control), typeof(IEnumerable<IHoverTip>), typeof(HoverTipAlignment)])]
-internal static class LemonSpirePredictionHoverTipPatch
-{
-    private static void Prefix(Control owner, ref IEnumerable<IHoverTip> hoverTips)
-    {
-        var predictionTips = LemonSpirePredictionControls.GetHoverTips(owner);
-        if (predictionTips.Count > 0)
-        {
-            hoverTips = hoverTips.Concat(predictionTips).ToList();
         }
     }
 }

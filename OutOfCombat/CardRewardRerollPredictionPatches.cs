@@ -71,7 +71,6 @@ internal static class CardRewardRerollButtonHoverTipPatch
             var button = buttons[i];
             button.Connect(NClickableControl.SignalName.Focused, Callable.From<NClickableControl>(_ => ShowPrediction(button, reward)));
             button.Connect(NClickableControl.SignalName.Unfocused, Callable.From<NClickableControl>(_ => HidePrediction(button)));
-            button.Connect(Node.SignalName.TreeExiting, Callable.From(() => HidePrediction(button)));
         }
     }
 

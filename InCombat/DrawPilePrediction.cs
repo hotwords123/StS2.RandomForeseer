@@ -10,7 +10,6 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
-using RandomForeseer.Common.Hooks;
 using RandomForeseer.InCombat.Hooks;
 
 namespace RandomForeseer.InCombat;

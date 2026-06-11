@@ -1,3 +1,4 @@
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -9,14 +10,13 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class TransformSelectionHoverTipPrediction
+internal static class TransformSelectionPrediction
 {
-    public static IReadOnlyList<IHoverTip> GetHoverTips(
-        NDeckTransformSelectScreen screen,
-        NGridCardHolder holder)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
     {
-        var hoveredCard = holder.CardModel;
-        if (hoveredCard == null)
+        if (owner is not NGridCardHolder holder ||
+            FindTransformSelectScreen(holder) is not { } screen ||
+            holder.CardModel is not { } hoveredCard)
         {
             return [];
         }
@@ -62,46 +62,6 @@ internal static class TransformSelectionHoverTipPrediction
 
         return hoveredTransformation?.Replacement;
     }
-}
-
-[HarmonyPatch(typeof(NCardHolder), "CreateHoverTips")]
-internal static class TransformSelectionHoverTipPatch
-{
-    public static void RefreshHoverTips(NDeckTransformSelectScreen screen, CardModel card)
-    {
-        var holder = screen._grid.GetCardHolder(card);
-        if (holder is not { _isHovered: true })
-        {
-            return;
-        }
-
-        NHoverTipSet.Remove(holder);
-        if (!screen._previewContainer.Visible)
-        {
-            holder.Call(NCardHolder.MethodName.CreateHoverTips);
-        }
-    }
-
-    private static bool Prefix(NCardHolder __instance)
-    {
-        if (__instance is not NGridCardHolder holder ||
-            holder.CardNode is not { } cardNode ||
-            cardNode.Model is not { } cardModel ||
-            FindTransformSelectScreen(holder) is not { } screen)
-        {
-            return true;
-        }
-
-        var predictionTips = TransformSelectionHoverTipPrediction.GetHoverTips(screen, holder);
-        if (predictionTips.Count == 0)
-        {
-            return true;
-        }
-
-        var tips = cardModel.HoverTips.Concat(predictionTips).ToList();
-        NHoverTipSet.CreateAndShow(holder, tips)?.SetAlignmentForCardHolder(holder);
-        return false;
-    }
 
     private static NDeckTransformSelectScreen? FindTransformSelectScreen(NCardHolder holder)
     {
@@ -122,6 +82,16 @@ internal static class TransformSelectionHoverTipRefreshPatch
 {
     private static void Postfix(NDeckTransformSelectScreen __instance, CardModel card)
     {
-        TransformSelectionHoverTipPatch.RefreshHoverTips(__instance, card);
+        var holder = __instance._grid.GetCardHolder(card);
+        if (holder is not { _isHovered: true })
+        {
+            return;
+        }
+
+        NHoverTipSet.Remove(holder);
+        if (!__instance._previewContainer.Visible)
+        {
+            holder.Call(NCardHolder.MethodName.CreateHoverTips);
+        }
     }
 }

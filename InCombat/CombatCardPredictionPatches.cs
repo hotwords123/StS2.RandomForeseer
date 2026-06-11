@@ -11,6 +11,21 @@ namespace RandomForeseer.InCombat;
 [HarmonyPatch(typeof(CardModel), nameof(CardModel.HoverTips), MethodType.Getter)]
 internal static class CombatCardPredictionHoverTipsPatch
 {
+    private static readonly PredictionHoverTipRegistry<CardModel> CombatPlayPredictionProviders = new();
+
+    private static readonly PredictionHoverTipRegistry<CardModel> CombatTransformPredictionProviders = new();
+
+    static CombatCardPredictionHoverTipsPatch()
+    {
+        CombatPlayPredictionProviders.Register("combat card generation", CombatCardGenerationPrediction.GetCardHoverTips);
+        CombatPlayPredictionProviders.Register("combat potion generation", PotionGenerationPrediction.GetCardHoverTips);
+        CombatPlayPredictionProviders.Register("combat card selection", CombatCardSelectionPrediction.GetHoverTips);
+        CombatPlayPredictionProviders.Register("auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetCardHoverTips);
+        CombatPlayPredictionProviders.Register("card draw", CardDrawPrediction.GetCardHoverTips);
+
+        CombatTransformPredictionProviders.Register("combat transform selection", CombatTransformPrediction.GetCardHoverTips);
+    }
+
     private static void Postfix(CardModel __instance, ref IEnumerable<IHoverTip> __result)
     {
         var predictionTips = GetPredictionHoverTips(__instance);
@@ -31,72 +46,12 @@ internal static class CombatCardPredictionHoverTipsPatch
 
         if (ShouldShowCombatPlayPredictionHoverTips(card))
         {
-            AddCombatPlayPredictionHoverTips(card, predictionTips);
+            predictionTips.AddRange(CombatPlayPredictionProviders.GetHoverTips(card));
         }
 
-        AddCombatTransformPredictionHoverTips(card, predictionTips);
+        predictionTips.AddRange(CombatTransformPredictionProviders.GetHoverTips(card));
 
         return predictionTips;
-    }
-
-    private static void AddCombatPlayPredictionHoverTips(CardModel card, List<IHoverTip> predictionTips)
-    {
-        try
-        {
-            predictionTips.AddRange(CombatCardGenerationPrediction.GetCardHoverTips(card));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Combat card generation prediction failed for {card.Id}: {ex}");
-        }
-
-        try
-        {
-            predictionTips.AddRange(PotionGenerationPrediction.GetCardHoverTips(card));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Combat potion generation prediction failed for {card.Id}: {ex}");
-        }
-
-        try
-        {
-            predictionTips.AddRange(CombatCardSelectionPrediction.GetHoverTips(card));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Combat card selection prediction failed for {card.Id}: {ex}");
-        }
-
-        try
-        {
-            predictionTips.AddRange(AutoPlayFromDrawPilePrediction.GetCardHoverTips(card));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Auto-play from draw pile prediction failed for {card.Id}: {ex}");
-        }
-
-        try
-        {
-            predictionTips.AddRange(CardDrawPrediction.GetCardHoverTips(card));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Card draw prediction failed for {card.Id}: {ex}");
-        }
-    }
-
-    private static void AddCombatTransformPredictionHoverTips(CardModel card, List<IHoverTip> predictionTips)
-    {
-        try
-        {
-            predictionTips.AddRange(CombatTransformPrediction.GetCardHoverTips(card));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Combat transform selection prediction failed for {card.Id}: {ex}");
-        }
     }
 
     private static bool ShouldShowCombatPlayPredictionHoverTips(CardModel card)

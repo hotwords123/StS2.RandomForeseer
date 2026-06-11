@@ -7,38 +7,24 @@ namespace RandomForeseer.Common;
 
 internal static class PotionPrediction
 {
+    private static readonly PredictionHoverTipRegistry<PotionModel> PredictionProviders = new();
+
+    static PotionPrediction()
+    {
+        PredictionProviders.Register("potion card generation", CombatCardGenerationPrediction.GetPotionHoverTips);
+        PredictionProviders.Register("potion generation", PotionGenerationPrediction.GetPotionHoverTips);
+        PredictionProviders.Register("potion auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetPotionHoverTips);
+        PredictionProviders.Register("potion draw", PotionDrawPrediction.GetPotionHoverTips);
+    }
+
+    public static IReadOnlyList<IHoverTip> GetHoverTips(PotionModel potion)
+    {
+        return PredictionProviders.GetHoverTips(potion);
+    }
+
     public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, PotionModel potion)
     {
         var previewPotion = PredictionUtils.CreatePotion(potion, player);
-        var tips = new List<IHoverTip>();
-
-        try
-        {
-            tips.AddRange(CombatCardGenerationPrediction.GetPotionHoverTips(previewPotion));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Potion card prediction failed for {potion.Id}: {ex}");
-        }
-
-        try
-        {
-            tips.AddRange(PotionGenerationPrediction.GetPotionHoverTips(previewPotion));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Potion generation prediction failed for {potion.Id}: {ex}");
-        }
-
-        try
-        {
-            tips.AddRange(PotionDrawPrediction.GetPotionHoverTips(previewPotion));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Potion draw-pile prediction failed for {potion.Id}: {ex}");
-        }
-
-        return tips;
+        return PredictionProviders.GetHoverTips(previewPotion);
     }
 }

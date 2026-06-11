@@ -9,7 +9,7 @@ namespace RandomForeseer.Common;
 [HarmonyPatch(typeof(NHoverTipSet), "Init")]
 internal static class PredictionHoverTipBackgroundPatch
 {
-    private static readonly ConditionalWeakTable<NHoverTipSet, PredictionTextTipMaskBox> PredictionTextTipMasks = [];
+    private static readonly ConditionalWeakTable<NHoverTipSet, List<bool>> PredictionTextTipMasks = [];
 
     private static readonly Lazy<ShaderMaterial> PredictionBackgroundMaterial = new(CreatePredictionBackgroundMaterial);
 
@@ -29,12 +29,12 @@ internal static class PredictionHoverTipBackgroundPatch
         }
 
         PredictionTextTipMasks.Remove(__instance);
-        PredictionTextTipMasks.Add(__instance, new PredictionTextTipMaskBox(predictionTextTipMask));
+        PredictionTextTipMasks.Add(__instance, predictionTextTipMask);
     }
 
     private static void Postfix(NHoverTipSet __instance)
     {
-        if (!PredictionTextTipMasks.TryGetValue(__instance, out var box))
+        if (!PredictionTextTipMasks.TryGetValue(__instance, out var mask))
         {
             return;
         }
@@ -46,9 +46,9 @@ internal static class PredictionHoverTipBackgroundPatch
             .OfType<Control>()
             .ToList();
 
-        for (var i = 0; i < Math.Min(textTips.Count, box.Mask.Count); i++)
+        for (var i = 0; i < Math.Min(textTips.Count, mask.Count); i++)
         {
-            if (!box.Mask[i])
+            if (!mask[i])
             {
                 continue;
             }
@@ -69,10 +69,5 @@ internal static class PredictionHoverTipBackgroundPatch
         material.SetShaderParameter("s", 1.75f);
         material.SetShaderParameter("v", 1.15f);
         return material;
-    }
-
-    private sealed class PredictionTextTipMaskBox(IReadOnlyList<bool> mask)
-    {
-        public IReadOnlyList<bool> Mask { get; } = mask;
     }
 }
