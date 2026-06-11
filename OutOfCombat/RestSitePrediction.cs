@@ -66,7 +66,7 @@ internal static class RestSitePredictionFocusPatch
             {
                 case DreamCatcher:
                 {
-                    var cards = OutOfCombatPredictionUtils.PredictCards(
+                    var cards = CardRewardPrediction.PredictCards(
                         player,
                         3,
                         CardCreationOptions.ForRoom(player, RoomType.Monster).WithFlags(CardCreationFlags.IsCardReward),

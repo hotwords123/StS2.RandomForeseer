@@ -22,6 +22,23 @@ internal static class CardRewardPrediction
         Player player,
         int cardCount,
         CardCreationOptions options,
+        Action? afterGenerated = null,
+        IEnumerable<AbstractModel>? extraResultModifiers = null)
+    {
+        return PredictCards(
+            player,
+            cardCount,
+            options,
+            PredictionUtils.CloneRng(player.PlayerRng.Rewards),
+            PredictionUtils.CloneRng(player.RunState.Rng.Niche),
+            afterGenerated,
+            extraResultModifiers);
+    }
+
+    public static IReadOnlyList<CardModel> PredictCards(
+        Player player,
+        int cardCount,
+        CardCreationOptions options,
         Rng rewardRng,
         Rng nicheRng,
         Action? afterGenerated = null,

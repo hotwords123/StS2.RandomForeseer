@@ -16,7 +16,7 @@ internal static class BrainLeechPrediction
         return option.TextKey switch
         {
             "BRAIN_LEECH.pages.INITIAL.options.SHARE_KNOWLEDGE" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(
+                PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(
                     player,
                     brainLeech.DynamicVars["FromCardChoiceCount"].IntValue,
                     CardCreationOptions.ForNonCombatWithDefaultOdds([player.Character.CardPool]))),

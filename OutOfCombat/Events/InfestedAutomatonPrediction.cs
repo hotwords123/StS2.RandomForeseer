@@ -15,12 +15,12 @@ internal static class InfestedAutomatonPrediction
         return option.TextKey switch
         {
             "INFESTED_AUTOMATON.pages.INITIAL.options.STUDY" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(
+                PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(
                     player,
                     1,
                     CardCreationOptions.ForNonCombatWithDefaultOdds([player.Character.CardPool], card => card.Type == CardType.Power))),
             "INFESTED_AUTOMATON.pages.INITIAL.options.TOUCH_CORE" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(
+                PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(
                     player,
                     1,
                     CardCreationOptions.ForNonCombatWithDefaultOdds(

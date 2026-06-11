@@ -20,6 +20,6 @@ internal static class RoomFullOfCheesePrediction
         var options = CardCreationOptions
             .ForNonCombatWithUniformOdds([player.Character.CardPool], card => card.Rarity == CardRarity.Common)
             .WithFlags(CardCreationFlags.NoRarityModification);
-        return PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(player, 8, options));
+        return PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(player, 8, options));
     }
 }

@@ -1,7 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Rewards;
-using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
@@ -24,8 +23,6 @@ internal static class CardRewardRerollPrediction
             player,
             reward.OptionCount,
             reward.RerollOptions,
-            PredictionUtils.CloneRng(player.PlayerRng.Rewards),
-            PredictionUtils.CloneRng(player.RunState.Rng.Niche),
             AfterGeneratedField(reward));
 
         return PredictionHoverTips.Cards(cards);

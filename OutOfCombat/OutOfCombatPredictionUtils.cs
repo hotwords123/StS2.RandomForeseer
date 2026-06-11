@@ -18,36 +18,6 @@ namespace RandomForeseer.OutOfCombat;
 
 internal static class OutOfCombatPredictionUtils
 {
-    public static IReadOnlyList<CardModel> PredictCards(
-        Player player,
-        int count,
-        CardCreationOptions options)
-    {
-        return PredictCards(
-            player,
-            count,
-            options,
-            PredictionUtils.CloneRng(player.PlayerRng.Rewards),
-            PredictionUtils.CloneRng(player.RunState.Rng.Niche));
-    }
-
-    public static IReadOnlyList<CardModel> PredictCards(
-        Player player,
-        int count,
-        CardCreationOptions options,
-        Rng rewardRng,
-        Rng nicheRng,
-        IEnumerable<AbstractModel>? extraResultModifiers = null)
-    {
-        return CardRewardPrediction.PredictCards(
-            player,
-            count,
-            options,
-            rewardRng,
-            nicheRng,
-            extraResultModifiers: extraResultModifiers);
-    }
-
     public static IReadOnlyList<CardModel> PredictDistinctDeckTransformResults(
         Player player,
         Rng realRng,
@@ -109,7 +79,7 @@ internal static class OutOfCombatPredictionUtils
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
 
         return Enumerable.Range(0, rewardCount)
-            .Select(_ => PredictCards(player, optionCount, options, rewardRng, nicheRng))
+            .Select(_ => CardRewardPrediction.PredictCards(player, optionCount, options, rewardRng, nicheRng))
             .ToList();
     }
 
@@ -284,7 +254,7 @@ internal static class OutOfCombatPredictionUtils
     {
         // Normal monster rewards are generated before event-specific follow-up rewards.
         FastForwardBeforeMonsterCardReward(player, rewardRng, minGoldReward, maxGoldReward);
-        PredictCards(
+        CardRewardPrediction.PredictCards(
             player,
             3,
             CardCreationOptions.ForRoom(player, RoomType.Monster),

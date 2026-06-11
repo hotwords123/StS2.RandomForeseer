@@ -129,7 +129,7 @@ internal static class RelicPickupPrediction
                 card => card.Rarity == CardRarity.Rare)
             .WithFlags(CardCreationFlags.NoUpgradeRoll);
 
-        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
+        return CardRewardPrediction.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<CardModel> PredictColorlessCards(Player player, int count)
@@ -139,7 +139,7 @@ internal static class RelicPickupPrediction
             CardCreationSource.Other,
             CardRarityOddsType.RegularEncounter);
 
-        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
+        return CardRewardPrediction.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<CardModel> PredictMultiplayerCards(Player player, int count)
@@ -149,7 +149,7 @@ internal static class RelicPickupPrediction
                 .Where(card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
         var options = new CardCreationOptions(customCardPool, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
 
-        return OutOfCombatPredictionUtils.PredictCards(player, count, options);
+        return CardRewardPrediction.PredictCards(player, count, options);
     }
 
     private static IReadOnlyList<IReadOnlyList<CardModel>> PredictKaleidoscopeBundles(Player player)
@@ -174,7 +174,7 @@ internal static class RelicPickupPrediction
                         CardCreationSource.Other,
                         CardRarityOddsType.RegularEncounter)
                     .WithFlags(CardCreationFlags.NoCardPoolModifications);
-                bundle.AddRange(OutOfCombatPredictionUtils.PredictCards(player, 1, options, rewardRng, nicheRng));
+                bundle.AddRange(CardRewardPrediction.PredictCards(player, 1, options, rewardRng, nicheRng));
             }
 
             bundles.Add(bundle);
@@ -211,7 +211,7 @@ internal static class RelicPickupPrediction
                 var options = CardCreationOptions
                     .ForNonCombatWithUniformOdds([player.Character.CardPool], card => card.Rarity == rarity)
                     .WithFlags(CardCreationFlags.NoRarityModification);
-                return OutOfCombatPredictionUtils.PredictCards(player, 3, options, rewardRng, nicheRng);
+                return CardRewardPrediction.PredictCards(player, 3, options, rewardRng, nicheRng);
             })
             .ToList();
     }
@@ -234,7 +234,7 @@ internal static class RelicPickupPrediction
                 var options = CardCreationOptions
                     .ForNonCombatWithUniformOdds([character.CardPool], card => card.Rarity == rarity)
                     .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications);
-                return OutOfCombatPredictionUtils.PredictCards(player, cardCount, options, rewardRng, nicheRng);
+                return CardRewardPrediction.PredictCards(player, cardCount, options, rewardRng, nicheRng);
             })
             .ToList();
     }
@@ -244,7 +244,7 @@ internal static class RelicPickupPrediction
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         var options = OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player);
-        var tips = PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
+        var tips = PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
 
         var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
         tips.AddRange(PredictionHoverTips.Potions([potion]));
@@ -305,7 +305,7 @@ internal static class RelicPickupPrediction
 
         OutOfCombatPredictionUtils.FastForwardBeforeFirstMonsterCardReward(player, rewardRng);
 
-        var cards = OutOfCombatPredictionUtils.PredictCards(
+        var cards = CardRewardPrediction.PredictCards(
             player,
             3,
             options,

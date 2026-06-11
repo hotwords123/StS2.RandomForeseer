@@ -28,7 +28,7 @@ internal static class ColorfulPhilosophersPrediction
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         var bundles = new[] { CardRarity.Common, CardRarity.Uncommon, CardRarity.Rare }
-            .Select(rarity => OutOfCombatPredictionUtils.PredictCards(
+            .Select(rarity => CardRewardPrediction.PredictCards(
                 player,
                 colorfulPhilosophers.DynamicVars.Cards.IntValue,
                 new CardCreationOptions([pool], CardCreationSource.Other, CardRarityOddsType.Uniform, card => card.Rarity == rarity)

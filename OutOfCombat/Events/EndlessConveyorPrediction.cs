@@ -22,7 +22,7 @@ internal static class EndlessConveyorPrediction
                     card => card.IsUpgradable,
                     PredictionUtils.CloneRng(endlessConveyor.Rng))),
             "ENDLESS_CONVEYOR.pages.ALL.options.FRIED_EEL" =>
-                PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictCards(
+                PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(
                     player,
                     1,
                     CardCreationOptions.ForNonCombatWithDefaultOdds([ModelDb.CardPool<ColorlessCardPool>()]))),
