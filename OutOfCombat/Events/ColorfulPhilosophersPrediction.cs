@@ -9,12 +9,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class ColorfulPhilosophersPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<ColorfulPhilosophers>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(ColorfulPhilosophers colorfulPhilosophers, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(ColorfulPhilosophers colorfulPhilosophers, EventOption option)
     {
         const string prefix = "COLORFUL_PHILOSOPHERS.pages.INITIAL.options.";
         if (!option.TextKey.StartsWith(prefix, StringComparison.Ordinal))

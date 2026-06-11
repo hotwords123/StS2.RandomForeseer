@@ -8,12 +8,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class WhisperingHollowPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<WhisperingHollow>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(WhisperingHollow whisperingHollow, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(WhisperingHollow whisperingHollow, EventOption option)
     {
         return option.TextKey switch
         {

@@ -9,12 +9,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class InfestedAutomatonPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<InfestedAutomaton>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(InfestedAutomaton infestedAutomaton, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(InfestedAutomaton infestedAutomaton, EventOption option)
     {
         var player = infestedAutomaton.Owner!;
         return option.TextKey switch

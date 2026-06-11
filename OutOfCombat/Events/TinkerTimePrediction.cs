@@ -33,12 +33,7 @@ internal static class TinkerTimePrediction
         ]
     };
 
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<TinkerTime>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(TinkerTime tinkerTime, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(TinkerTime tinkerTime, EventOption option)
     {
         if (!RidersByOptionKey.TryGetValue(option.TextKey, out var riders))
         {

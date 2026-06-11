@@ -11,12 +11,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class TrialPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<Trial>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(Trial trial, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Trial trial, EventOption option)
     {
         var player = trial.Owner!;
         return option.TextKey switch

@@ -9,12 +9,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class RoomFullOfCheesePrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<RoomFullOfCheese>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(RoomFullOfCheese roomFullOfCheese, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(RoomFullOfCheese roomFullOfCheese, EventOption option)
     {
         if (option.TextKey != "ROOM_FULL_OF_CHEESE.pages.INITIAL.options.GORGE")
         {

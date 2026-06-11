@@ -9,12 +9,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class ReflectionsPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<Reflections>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(Reflections reflections, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Reflections reflections, EventOption option)
     {
         if (option.TextKey != "REFLECTIONS.pages.INITIAL.options.TOUCH_A_MIRROR")
         {

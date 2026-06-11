@@ -7,12 +7,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class WellspringPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<Wellspring>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(Wellspring wellspring, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Wellspring wellspring, EventOption option)
     {
         return option.TextKey == "WELLSPRING.pages.INITIAL.options.BOTTLE"
             ? PredictionHoverTips.Potions(OutOfCombatPredictionUtils.PredictUniformPotions(wellspring.Owner!, 1))

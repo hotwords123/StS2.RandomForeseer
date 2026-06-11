@@ -9,12 +9,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class SlipperyBridgePrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<SlipperyBridge>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(SlipperyBridge slipperyBridge, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(SlipperyBridge slipperyBridge, EventOption option)
     {
         if (!option.TextKey.Contains("HOLD_ON", StringComparison.Ordinal))
         {

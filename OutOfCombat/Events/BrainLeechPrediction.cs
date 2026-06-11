@@ -10,12 +10,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class BrainLeechPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<BrainLeech>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(BrainLeech brainLeech, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(BrainLeech brainLeech, EventOption option)
     {
         var player = brainLeech.Owner!;
         return option.TextKey switch

@@ -10,12 +10,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class EndlessConveyorPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<EndlessConveyor>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(EndlessConveyor endlessConveyor, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(EndlessConveyor endlessConveyor, EventOption option)
     {
         var player = endlessConveyor.Owner!;
         return option.TextKey switch

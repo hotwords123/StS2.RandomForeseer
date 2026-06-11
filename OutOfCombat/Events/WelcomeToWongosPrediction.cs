@@ -8,12 +8,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class WelcomeToWongosPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<WelcomeToWongos>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(WelcomeToWongos welcomeToWongos, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(WelcomeToWongos welcomeToWongos, EventOption option)
     {
         var player = welcomeToWongos.Owner!;
         return option.TextKey switch

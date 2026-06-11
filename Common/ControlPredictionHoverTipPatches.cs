@@ -17,7 +17,7 @@ internal static class ControlPredictionHoverTipPatches
 
     static ControlPredictionHoverTipPatches()
     {
-        Registry.Register("event option", EventOptionPredictionRegistry.GetHoverTips);
+        Registry.Register("event option", EventOptionPrediction.GetHoverTips);
         Registry.Register("merchant", MerchantPrediction.GetHoverTips);
         Registry.Register("transform selection", TransformSelectionPrediction.GetHoverTips);
         Registry.Register("treasure room relic", TreasureRoomRelicPrediction.GetHoverTips);

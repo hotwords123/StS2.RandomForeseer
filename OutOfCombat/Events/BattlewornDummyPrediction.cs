@@ -12,15 +12,13 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class BattlewornDummyPrediction
 {
-    public static void Register()
+    public static IReadOnlyList<IHoverTip> GetHoverTips(BattlewornDummy battlewornDummy, EventOption option)
     {
-        EventOptionPredictionRegistry.Register<BattlewornDummy>(
-            GetHoverTips,
-            PredictionFairness.UnfairInAllModes);
-    }
+        if (!RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInAllModes))
+        {
+            return [];
+        }
 
-    private static IReadOnlyList<IHoverTip> GetHoverTips(BattlewornDummy battlewornDummy, EventOption option)
-    {
         var player = battlewornDummy.Owner!;
         return option.TextKey switch
         {

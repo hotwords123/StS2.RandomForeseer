@@ -8,12 +8,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class AromaOfChaosPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<AromaOfChaos>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(AromaOfChaos aromaOfChaos, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(AromaOfChaos aromaOfChaos, EventOption option)
     {
         return option.TextKey == "AROMA_OF_CHAOS.pages.INITIAL.options.LET_GO"
             ? PredictionHoverTips.Cards(PredictLetGo(aromaOfChaos))

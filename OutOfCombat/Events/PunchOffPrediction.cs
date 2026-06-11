@@ -12,12 +12,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class PunchOffPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<PunchOff>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(PunchOff punchOff, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(PunchOff punchOff, EventOption option)
     {
         var player = punchOff.Owner!;
         return option.TextKey switch

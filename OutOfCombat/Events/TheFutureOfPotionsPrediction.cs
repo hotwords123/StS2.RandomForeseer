@@ -10,12 +10,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class TheFutureOfPotionsPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<TheFutureOfPotions>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(TheFutureOfPotions future, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(TheFutureOfPotions future, EventOption option)
     {
         if (option.TextKey != "THE_FUTURE_OF_POTIONS.pages.INITIAL.options.POTION")
         {

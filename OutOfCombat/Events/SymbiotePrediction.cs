@@ -8,12 +8,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class SymbiotePrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<Symbiote>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(Symbiote symbiote, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Symbiote symbiote, EventOption option)
     {
         return option.TextKey == "SYMBIOTE.pages.INITIAL.options.KILL_WITH_FIRE"
             ? PredictionHoverTips.Cards(PredictKillWithFire(symbiote))

@@ -39,7 +39,6 @@ public partial class Entry
 
         PredictionLocalization.Register();
         RandomForeseerSettings.Register();
-        OutOfCombat.EventOptionRandomPrediction.Register();
 
         var harmony = new Harmony($"{ModId}.Harmony");
         harmony.PatchAllUncategorized(assembly);

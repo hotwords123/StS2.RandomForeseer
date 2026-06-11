@@ -2,77 +2,89 @@ using Godot;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Nodes.Events;
+using RandomForeseer.OutOfCombat.Events;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class EventOptionPredictionRegistry
+internal static class EventOptionPrediction
 {
-    private static readonly List<Func<EventModel, EventOption, IReadOnlyList<IHoverTip>>> Providers = [];
+    private static readonly Dictionary<Type, Func<EventModel, EventOption, IReadOnlyList<IHoverTip>>> Predictors = [];
 
-    static EventOptionPredictionRegistry()
+    static EventOptionPrediction()
     {
-        Register(GetRelicHoverTips);
+        Register<AromaOfChaos>(AromaOfChaosPrediction.GetHoverTips);
+        Register<BattlewornDummy>(BattlewornDummyPrediction.GetHoverTips);
+        Register<BrainLeech>(BrainLeechPrediction.GetHoverTips);
+        Register<ColorfulPhilosophers>(ColorfulPhilosophersPrediction.GetHoverTips);
+        Register<DollRoom>(DollRoomPrediction.GetHoverTips);
+        Register<DoorsOfLightAndDark>(DoorsOfLightAndDarkPrediction.GetHoverTips);
+        Register<EndlessConveyor>(EndlessConveyorPrediction.GetHoverTips);
+        Register<InfestedAutomaton>(InfestedAutomatonPrediction.GetHoverTips);
+        Register<LuminousChoir>(LuminousChoirPrediction.GetHoverTips);
+        Register<MorphicGrove>(MorphicGrovePrediction.GetHoverTips);
+        Register<PotionCourier>(PotionCourierPrediction.GetHoverTips);
+        Register<PunchOff>(PunchOffPrediction.GetHoverTips);
+        Register<RanwidTheElder>(RanwidTheElderPrediction.GetHoverTips);
+        Register<Reflections>(ReflectionsPrediction.GetHoverTips);
+        Register<RoomFullOfCheese>(RoomFullOfCheesePrediction.GetHoverTips);
+        Register<RoundTeaParty>(RoundTeaPartyPrediction.GetHoverTips);
+        Register<SlipperyBridge>(SlipperyBridgePrediction.GetHoverTips);
+        Register<Symbiote>(SymbiotePrediction.GetHoverTips);
+        Register<TabletOfTruth>(TabletOfTruthPrediction.GetHoverTips);
+        Register<TheFutureOfPotions>(TheFutureOfPotionsPrediction.GetHoverTips);
+        Register<TheLegendsWereTrue>(TheLegendsWereTruePrediction.GetHoverTips);
+        Register<ThisOrThat>(ThisOrThatPrediction.GetHoverTips);
+        Register<TinkerTime>(TinkerTimePrediction.GetHoverTips);
+        Register<TrashHeap>(TrashHeapPrediction.GetHoverTips);
+        Register<Trial>(TrialPrediction.GetHoverTips);
+        Register<UnrestSite>(UnrestSitePrediction.GetHoverTips);
+        Register<WarHistorianRepy>(WarHistorianRepyPrediction.GetHoverTips);
+        Register<WelcomeToWongos>(WelcomeToWongosPrediction.GetHoverTips);
+        Register<Wellspring>(WellspringPrediction.GetHoverTips);
+        Register<WhisperingHollow>(WhisperingHollowPrediction.GetHoverTips);
     }
 
-    public static void Register(Func<EventModel, EventOption, IReadOnlyList<IHoverTip>> provider)
-    {
-        Providers.Add(provider);
-    }
-
-    public static void Register<TEvent>(
-        Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> provider,
-        PredictionFairness fairness = PredictionFairness.Fair)
+    private static void Register<TEvent>(Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> predictor)
         where TEvent : EventModel
     {
-        Register((eventModel, option) =>
+        var eventType = typeof(TEvent);
+        if (!Predictors.TryAdd(eventType, (eventModel, option) => predictor((TEvent)eventModel, option)))
         {
-            if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEventOptionPrediction) ||
-                !RandomForeseerSettings.IsFairPredictionAllowed(fairness) ||
-                eventModel.Owner == null ||
-                option.IsLocked ||
-                eventModel is not TEvent typedEvent)
-            {
-                return [];
-            }
-
-            try
-            {
-                return provider(typedEvent, option);
-            }
-            catch (Exception ex)
-            {
-                Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
-                return [];
-            }
-        });
-    }
-
-    public static IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option)
-    {
-        var tips = new List<IHoverTip>();
-        foreach (var provider in Providers)
-        {
-            tips.AddRange(provider(eventModel, option));
+            Entry.Logger.Warn($"Duplicate event option prediction registration ignored: {eventType}");
         }
-
-        return tips;
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
     {
-        return owner is NEventOptionButton button
-            ? GetHoverTips(button.Event, button.Option)
-            : [];
-    }
-
-    private static IReadOnlyList<IHoverTip> GetRelicHoverTips(EventModel eventModel, EventOption option)
-    {
-        if (eventModel.Owner == null || option.Relic == null)
+        if (owner is not NEventOptionButton { Event: { } eventModel, Option: { } option } ||
+            eventModel.Owner == null ||
+            option.IsLocked)
         {
             return [];
         }
 
-        return RelicPickupPrediction.GetHoverTips(eventModel.Owner, option.Relic);
+        var tips = new List<IHoverTip>();
+
+        if (option.Relic != null)
+        {
+            tips.AddRange(RelicPickupPrediction.GetHoverTips(eventModel.Owner, option.Relic));
+        }
+
+        if (RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEventOptionPrediction) &&
+            Predictors.TryGetValue(eventModel.GetType(), out var predictor))
+        {
+            try
+            {
+                tips.AddRange(predictor(eventModel, option));
+            }
+            catch (Exception ex)
+            {
+                Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
+            }
+        }
+
+        return tips;
     }
 }

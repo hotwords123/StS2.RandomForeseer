@@ -8,12 +8,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class PotionCourierPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<PotionCourier>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(PotionCourier potionCourier, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(PotionCourier potionCourier, EventOption option)
     {
         var player = potionCourier.Owner!;
         return option.TextKey == "POTION_COURIER.pages.INITIAL.options.RANSACK"

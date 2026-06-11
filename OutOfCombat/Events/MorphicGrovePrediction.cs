@@ -8,12 +8,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class MorphicGrovePrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<MorphicGrove>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(MorphicGrove morphicGrove, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(MorphicGrove morphicGrove, EventOption option)
     {
         return option.TextKey == "MORPHIC_GROVE.pages.INITIAL.options.GROUP"
             ? PredictionHoverTips.CardBundles(PredictGroup(morphicGrove), isTransform: true)

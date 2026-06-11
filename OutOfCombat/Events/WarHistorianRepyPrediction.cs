@@ -7,12 +7,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class WarHistorianRepyPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<WarHistorianRepy>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(WarHistorianRepy warHistorianRepy, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(WarHistorianRepy warHistorianRepy, EventOption option)
     {
         if (option.TextKey != "WAR_HISTORIAN_REPY.pages.INITIAL.options.UNLOCK_CHEST")
         {

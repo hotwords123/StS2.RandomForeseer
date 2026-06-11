@@ -6,12 +6,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class RanwidTheElderPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<RanwidTheElder>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(RanwidTheElder ranwid, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(RanwidTheElder ranwid, EventOption option)
     {
         var player = ranwid.Owner!;
         return option.TextKey switch

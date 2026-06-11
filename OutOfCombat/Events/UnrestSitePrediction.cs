@@ -6,12 +6,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class UnrestSitePrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<UnrestSite>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(UnrestSite unrestSite, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(UnrestSite unrestSite, EventOption option)
     {
         return OutOfCombatPredictionUtils.PredictRelicsWithPickup(
             unrestSite.Owner!,

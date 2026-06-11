@@ -6,12 +6,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class LuminousChoirPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<LuminousChoir>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(LuminousChoir luminousChoir, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(LuminousChoir luminousChoir, EventOption option)
     {
         return option.TextKey == "LUMINOUS_CHOIR.pages.INITIAL.options.OFFER_TRIBUTE"
             ? OutOfCombatPredictionUtils.RelicTipsWithPickup(

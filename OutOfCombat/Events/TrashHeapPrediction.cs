@@ -7,12 +7,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class TrashHeapPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<TrashHeap>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(TrashHeap trashHeap, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(TrashHeap trashHeap, EventOption option)
     {
         var rng = PredictionUtils.CloneRng(trashHeap.Rng);
         return option.TextKey switch

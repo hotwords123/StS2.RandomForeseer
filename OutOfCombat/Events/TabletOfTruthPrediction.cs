@@ -7,12 +7,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class TabletOfTruthPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<TabletOfTruth>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(TabletOfTruth tabletOfTruth, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(TabletOfTruth tabletOfTruth, EventOption option)
     {
         return option.TextKey is
             "TABLET_OF_TRUTH.pages.INITIAL.options.DECIPHER_1" or

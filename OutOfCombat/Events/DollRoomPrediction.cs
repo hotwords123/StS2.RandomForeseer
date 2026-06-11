@@ -10,12 +10,7 @@ namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class DollRoomPrediction
 {
-    public static void Register()
-    {
-        EventOptionPredictionRegistry.Register<DollRoom>(GetHoverTips);
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(DollRoom dollRoom, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(DollRoom dollRoom, EventOption option)
     {
         var count = option.TextKey switch
         {
