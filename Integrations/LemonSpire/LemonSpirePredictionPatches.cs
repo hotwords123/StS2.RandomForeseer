@@ -26,16 +26,16 @@ internal sealed class LemonSpirePredictionContext(Player player, AbstractModel m
 {
     public IReadOnlyList<IHoverTip> GetHoverTips()
     {
-        return kind switch
+        return (kind, model) switch
         {
-            LemonSpirePredictionKind.HandCard
-                when model is CardModel card => CombatCardPredictionHoverTipsPatch.GetPredictionHoverTips(card),
+            (LemonSpirePredictionKind.HandCard, CardModel card)
+                => CombatCardPrediction.GetHoverTips(card),
 
-            LemonSpirePredictionKind.AncientRelicChoice or LemonSpirePredictionKind.ShopRelic
-                when model is RelicModel relic => RelicPickupPrediction.GetHoverTips(player, relic),
+            (LemonSpirePredictionKind.AncientRelicChoice or LemonSpirePredictionKind.ShopRelic, RelicModel relic)
+                => RelicPickupPrediction.GetHoverTips(player, relic),
 
-            LemonSpirePredictionKind.ShopPotion
-                when model is PotionModel potion => PotionPrediction.GetHoverTips(player, potion),
+            (LemonSpirePredictionKind.ShopPotion, PotionModel potion)
+                => PotionPrediction.GetHoverTips(player, potion),
 
             _ => []
         };
