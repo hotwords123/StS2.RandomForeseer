@@ -6,17 +6,11 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 
 namespace RandomForeseer.InCombat;
 
-[HarmonyPatch(typeof(NHandCardHolder))]
-internal static class CombatCardSelectionPredictionHandHighlightPatches
+internal static class CombatCardSelectionPredictionHighlight
 {
     private static readonly Color PredictionHighlightColor = new(1f, 0.36f, 0f, 0.98f);
     private static CardModel? _sourceCard;
     private static HashSet<CardModel> _highlightedCards = [];
-
-    public static bool IsHighlighted(CardModel? card)
-    {
-        return card != null && _highlightedCards.Contains(card);
-    }
 
     public static void ApplyHighlightsForSource(CardModel? source)
     {
@@ -47,34 +41,17 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
         }
     }
 
-    [HarmonyPatch("DoCardHoverEffects")]
-    [HarmonyPostfix]
-    private static void UpdatePredictionHighlightsOnHover(NHandCardHolder __instance, bool isHovered)
+    public static void ApplyHighlightToHolder(NHandCardHolder holder)
     {
-        var source = __instance.CardNode?.Model;
-
-        if (isHovered)
-        {
-            ApplyHighlightsForSource(source);
-        }
-        else
-        {
-            ClearHighlightsForSource(source);
-        }
-    }
-
-    [HarmonyPatch(nameof(NHandCardHolder.UpdateCard))]
-    [HarmonyPostfix]
-    private static void ShowPredictionHighlight(NHandCardHolder __instance)
-    {
-        var card = __instance.CardNode?.Model;
-        if (!IsHighlighted(card) || __instance.CardNode == null)
+        if (!holder.IsNodeReady() ||
+            holder.CardNode is not { Model: { } card } cardNode ||
+            !_highlightedCards.Contains(card))
         {
             return;
         }
 
-        __instance.CardNode.CardHighlight.AnimShow();
-        __instance.CardNode.CardHighlight.Modulate = PredictionHighlightColor;
+        cardNode.CardHighlight.AnimShow();
+        cardNode.CardHighlight.Modulate = PredictionHighlightColor;
     }
 
     private static void SetHighlightedCards(CardModel? source, IReadOnlyList<CardModel> cards)
@@ -108,12 +85,39 @@ internal static class CombatCardSelectionPredictionHandHighlightPatches
     }
 }
 
+[HarmonyPatch(typeof(NHandCardHolder))]
+internal static class CombatCardSelectionPredictionHandHighlightPatches
+{
+    [HarmonyPatch("DoCardHoverEffects")]
+    [HarmonyPostfix]
+    private static void UpdateHighlightsOnCardHover(NHandCardHolder __instance, bool isHovered)
+    {
+        var source = __instance.CardNode?.Model;
+
+        if (isHovered)
+        {
+            CombatCardSelectionPredictionHighlight.ApplyHighlightsForSource(source);
+        }
+        else
+        {
+            CombatCardSelectionPredictionHighlight.ClearHighlightsForSource(source);
+        }
+    }
+
+    [HarmonyPatch(nameof(NHandCardHolder.UpdateCard))]
+    [HarmonyPostfix]
+    private static void ShowHighlightAfterCardUpdate(NHandCardHolder __instance)
+    {
+        CombatCardSelectionPredictionHighlight.ApplyHighlightToHolder(__instance);
+    }
+}
+
 [HarmonyPatch(typeof(NPlayerHand), "StartCardPlay")]
 internal static class CombatCardSelectionPredictionStartCardPlayHighlightPatch
 {
     private static void Postfix(NHandCardHolder holder)
     {
-        CombatCardSelectionPredictionHandHighlightPatches.ApplyHighlightsForSource(holder.CardModel);
+        CombatCardSelectionPredictionHighlight.ApplyHighlightsForSource(holder.CardModel);
     }
 }
 
@@ -122,6 +126,6 @@ internal static class CombatCardSelectionPredictionCardPlayCleanupHighlightPatch
 {
     private static void Postfix(NCardPlay __instance)
     {
-        CombatCardSelectionPredictionHandHighlightPatches.ClearHighlightsForSource(__instance.Holder?.CardModel);
+        CombatCardSelectionPredictionHighlight.ClearHighlightsForSource(__instance.Holder?.CardModel);
     }
 }
