@@ -28,17 +28,25 @@ internal static class CardPileUtils
     }
 }
 
-[HarmonyPatch(typeof(NCardPileScreen), "OnPileContentsChanged")]
-internal static class FrozenEyeCardPileScreenPatch
+internal static class FrozenEyeDrawPileViewState
 {
     private static readonly ConditionalWeakTable<NCardGrid, HashSet<CardModel>> PredictedShuffleCardsByGrid = [];
 
-    private static bool Prefix(NCardPileScreen __instance)
+    public static bool TryGetPredictedShuffleCards(NCardGrid grid, [NotNullWhen(true)] out HashSet<CardModel>? predictedCards)
     {
-        return !TryRefreshDrawPileView(__instance);
+        return PredictedShuffleCardsByGrid.TryGetValue(grid, out predictedCards);
     }
 
-    public static bool TryRefreshDrawPileView(NCardPileScreen screen)
+    public static void SetPredictedShuffleCards(NCardGrid grid, IReadOnlyList<CardModel> predictedCards)
+    {
+        PredictedShuffleCardsByGrid.Remove(grid);
+        PredictedShuffleCardsByGrid.Add(grid, predictedCards.ToHashSet());
+    }
+}
+
+internal static class FrozenEyeDrawPileView
+{
+    public static bool TryRefresh(NCardPileScreen screen)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
             screen.Pile.Type != PileType.Draw ||
@@ -51,12 +59,12 @@ internal static class FrozenEyeCardPileScreenPatch
 
         if (TryGetShufflePrediction(screen, out var prediction))
         {
-            SetPredictedShuffleCards(grid, prediction.Cards);
+            FrozenEyeDrawPileViewState.SetPredictedShuffleCards(grid, prediction.Cards);
             previewCards = previewCards.Concat(prediction.Cards).ToList();
         }
         else
         {
-            SetPredictedShuffleCards(grid, []);
+            FrozenEyeDrawPileViewState.SetPredictedShuffleCards(grid, []);
         }
 
         grid.SetCards(previewCards, PileType.Draw, [SortingOrders.Ascending]);
@@ -83,23 +91,19 @@ internal static class FrozenEyeCardPileScreenPatch
         prediction = DrawPilePrediction.PredictShuffleAfterDrawPileDepleted(player);
         return prediction.Cards.Count > 0;
     }
-
-    public static bool TryGetPredictedShuffleCards(NCardGrid grid, [NotNullWhen(true)] out HashSet<CardModel>? predictedCards)
-    {
-        return PredictedShuffleCardsByGrid.TryGetValue(grid, out predictedCards);
-    }
-
-    private static void SetPredictedShuffleCards(NCardGrid grid, IReadOnlyList<CardModel> predictedCards)
-    {
-        PredictedShuffleCardsByGrid.Remove(grid);
-        PredictedShuffleCardsByGrid.Add(grid, predictedCards.ToHashSet());
-    }
 }
 
 [HarmonyPatch(typeof(NCardPileScreen))]
-internal static class FrozenEyeCardPileScreenRefreshPatch
+internal static class FrozenEyeCardPileScreenPatches
 {
     private static readonly ConditionalWeakTable<NCardPileScreen, ScreenRefreshCallback> RefreshCallbacks = [];
+
+    [HarmonyPatch("OnPileContentsChanged")]
+    [HarmonyPrefix]
+    private static bool RefreshDrawPileView(NCardPileScreen __instance)
+    {
+        return !FrozenEyeDrawPileView.TryRefresh(__instance);
+    }
 
     [HarmonyPatch(nameof(NCardPileScreen._EnterTree))]
     [HarmonyPostfix]
@@ -149,7 +153,7 @@ internal static class FrozenEyeCardPileScreenRefreshPatch
                 return;
             }
 
-            FrozenEyeCardPileScreenPatch.TryRefreshDrawPileView(screen);
+            FrozenEyeDrawPileView.TryRefresh(screen);
         }
     }
 }
@@ -171,15 +175,20 @@ internal static class FrozenEyeEmptyDrawPileOpenPatch
 
     private static bool ShouldTreatPileAsEmpty(CardPile pile)
     {
+        if (!pile.IsEmpty)
+        {
+            return false;
+        }
+
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye) ||
             !RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableShufflePrediction) ||
             !CardPileUtils.TryGetDrawPileOwner(pile, out var player) ||
             player.Creature.CombatState?.CurrentSide != player.Creature.Side)
         {
-            return pile.IsEmpty;
+            return true;
         }
 
-        return pile.IsEmpty && (player.PlayerCombatState?.DiscardPile.IsEmpty ?? true);
+        return player.PlayerCombatState?.DiscardPile.IsEmpty ?? true;
     }
 }
 
@@ -208,7 +217,7 @@ internal static class FrozenEyeCardGridModulatePatch
 
     private static void ApplyPredictionModulate(NCardGrid grid, IEnumerable<NGridCardHolder> holders)
     {
-        if (!FrozenEyeCardPileScreenPatch.TryGetPredictedShuffleCards(grid, out var predictedCards))
+        if (!FrozenEyeDrawPileViewState.TryGetPredictedShuffleCards(grid, out var predictedCards))
         {
             return;
         }
