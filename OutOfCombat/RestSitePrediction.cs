@@ -1,44 +1,16 @@
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.RestSite;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
-using MegaCrit.Sts2.Core.Nodes.RestSite;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-[HarmonyPatch(typeof(NRestSiteButton), "OnFocus")]
-internal static class RestSitePredictionFocusPatch
+internal static class RestSitePrediction
 {
-    private static void Postfix(NRestSiteButton __instance)
-    {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableRestSitePrediction))
-        {
-            return;
-        }
-
-        try
-        {
-            var tips = GetHoverTips(__instance.Option);
-            if (tips.Count <= 0)
-            {
-                return;
-            }
-
-            NHoverTipSet.Remove(__instance);
-            NHoverTipSet.CreateAndShow(__instance, tips, HoverTip.GetHoverTipAlignment(__instance));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Rest site prediction failed: {ex}");
-        }
-    }
-
-    private static IReadOnlyList<IHoverTip> GetHoverTips(RestSiteOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(RestSiteOption option)
     {
         return option switch
         {
@@ -85,28 +57,5 @@ internal static class RestSitePredictionFocusPatch
         }
 
         return tips;
-    }
-}
-
-[HarmonyPatch(typeof(NRestSiteButton), "OnUnfocus")]
-internal static class RestSitePredictionUnfocusPatch
-{
-    private static void Postfix(NRestSiteButton __instance)
-    {
-        HidePrediction(__instance);
-    }
-
-    internal static void HidePrediction(NRestSiteButton button)
-    {
-        NHoverTipSet.Remove(button);
-    }
-}
-
-[HarmonyPatch(typeof(NRestSiteButton), nameof(NRestSiteButton._ExitTree))]
-internal static class RestSitePredictionExitTreePatch
-{
-    private static void Postfix(NRestSiteButton __instance)
-    {
-        RestSitePredictionUnfocusPatch.HidePrediction(__instance);
     }
 }
