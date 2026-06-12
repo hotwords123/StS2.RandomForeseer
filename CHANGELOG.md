@@ -4,45 +4,45 @@
 
 ### feat
 
-- 新增抽牌堆自动出牌预测，支持破灭、倾泻和精炼混沌，并可在抽牌堆不足时预览洗牌后的后续结果。
+- 新增抽牌堆自动出牌预测，支持破灭、倾泻和精炼混沌，并可在抽牌堆不足时预览洗牌后的后续结果。  
   Added draw-pile autoplay prediction for Havoc, Cascade, and Distilled Chaos, including post-shuffle previews when the draw pile is short.
 
 ### fix
 
-- 修复药水随机印牌预测未正确受公平模式限制的问题。
+- 修复药水随机印牌预测未正确受公平模式限制的问题。  
   Fixed potion card predictions not being properly gated by fair mode.
 
-- 修复预览模型克隆对 canonical 实例的依赖，避免部分悬停来源无法生成预测。
+- 修复预览模型克隆对 canonical 实例的依赖，避免部分悬停来源无法生成预测。  
   Fixed preview model cloning requiring canonical instances, which prevented predictions from being produced for some hover sources.
 
-- 修复完整熵变牌选择悬停预测、生成卡牌原始费用显示和战斗预测悬停阶段判断等问题。
+- 修复完整熵变牌选择悬停预测、生成卡牌原始费用显示和战斗预测悬停阶段判断等问题。  
   Fixed full Entropy transform hover prediction, original cost display for generated cards, and combat prediction hover phase checks.
 
-- 修复部分事件预测的公平模式或战斗结束效果处理，包括重拳出击奖励和事件选项中的战斗结束随机结果。
+- 修复部分事件预测的公平模式或战斗结束效果处理，包括重拳出击奖励和事件选项中的战斗结束随机结果。  
   Fixed fair-mode or combat-end-effect handling for some event predictions, including Punch Off rewards and combat-end random results from event options.
 
 ## v0.4.0
 
 ### feat
 
-- 新增随机生成药水预测，支持混沌药水和炼制药水，并覆盖商店里的混沌药水。
+- 新增随机生成药水预测，支持混沌药水和炼制药水，并覆盖商店里的混沌药水。  
   Added potion generation prediction for Entropic Brew and Alchemize, including Entropic Brew in merchant stock.
 
-- 新增战斗随机变牌预测，战斗中“熵”选择手牌变牌时显示即将变化得到的卡牌。
+- 新增战斗随机变牌预测，战斗中“熵”选择手牌变牌时显示即将变化得到的卡牌。  
   Added combat transform prediction, showing the cards that Entropy will transform selected hand cards into during combat.
 
-- 改进变牌选择网格悬停预测，已选中牌按选择顺序显示结果，未选中牌按下一个选择位置显示结果。
+- 改进变牌选择网格悬停预测，已选中牌按选择顺序显示结果，未选中牌按下一个选择位置显示结果。  
   Improved transform selection grid hover prediction so selected cards show results in selection order and unselected cards show the next-position result.
 
 ### fix
 
-- 修复预测卡牌悬停提示的水平重叠和垂直裁剪回退布局问题。
+- 修复预测卡牌悬停提示的水平重叠和垂直裁剪回退布局问题。  
   Fixed horizontal overlap and vertical clamping fallback issues in predicted card hover tips.
 
-- 修复拖动战斗手牌时预测提示被隐藏的问题。
+- 修复拖动战斗手牌时预测提示被隐藏的问题。  
   Fixed combat card prediction tips being hidden while dragging cards.
 
-- 适配《杀戮尖塔 2》0.107.0。
+- 适配《杀戮尖塔 2》0.107.0。  
   Adapted predictions for Slay the Spire 2 0.107.0.
 
 ## v0.3.0
