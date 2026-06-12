@@ -23,7 +23,7 @@ internal static class RestSitePrediction
     public static IReadOnlyList<IHoverTip> PredictDigTips(Player player)
     {
         var relics = OutOfCombatPredictionUtils.PredictRelicRewards(player, 1);
-        return PredictionHoverTips.Relics(relics);
+        return OutOfCombatPredictionUtils.RelicTipsWithPickup(player, relics);
     }
 
     public static IReadOnlyList<IHoverTip> PredictRestTips(Player player)
