@@ -11,17 +11,17 @@ namespace RandomForeseer.Common;
     typeof(NHoverTipSet),
     nameof(NHoverTipSet.CreateAndShow),
     [typeof(Control), typeof(IEnumerable<IHoverTip>), typeof(HoverTipAlignment)])]
-internal static class ControlPredictionHoverTipPatches
+internal static class ControlHoverTipPredictionPatch
 {
     private static readonly PredictionHoverTipRegistry<Control> Registry = new();
 
-    static ControlPredictionHoverTipPatches()
+    static ControlHoverTipPredictionPatch()
     {
-        Registry.Register("event option", EventOptionPrediction.GetHoverTips);
-        Registry.Register("merchant", MerchantPrediction.GetHoverTips);
-        Registry.Register("transform selection", TransformSelectionPrediction.GetHoverTips);
-        Registry.Register("treasure room relic", TreasureRoomRelicPrediction.GetHoverTips);
-        Registry.Register("lemonSpire", LemonSpirePredictionControls.GetHoverTips);
+        Registry.Register("event option", EventOptionHoverTips.GetHoverTips);
+        Registry.Register("merchant entry", MerchantEntryHoverTips.GetHoverTips);
+        Registry.Register("transform selection", TransformSelectionHoverTips.GetHoverTips);
+        Registry.Register("treasure room relic", TreasureRoomRelicHoverTips.GetHoverTips);
+        Registry.Register("lemonSpire", LemonSpireControlHoverTips.GetHoverTips);
     }
 
     private static void Prefix(Control owner, ref IEnumerable<IHoverTip> hoverTips)

@@ -56,11 +56,9 @@ internal static class EventOptionPrediction
         }
     }
 
-    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option)
     {
-        if (owner is not NEventOptionButton { Event: { } eventModel, Option: { } option } ||
-            eventModel.Owner == null ||
-            option.IsLocked)
+        if (eventModel.Owner == null || option.IsLocked)
         {
             return [];
         }
@@ -86,5 +84,18 @@ internal static class EventOptionPrediction
         }
 
         return tips;
+    }
+}
+
+internal static class EventOptionHoverTips
+{
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
+    {
+        if (owner is not NEventOptionButton button)
+        {
+            return [];
+        }
+
+        return EventOptionPrediction.GetHoverTips(button.Event, button.Option);
     }
 }

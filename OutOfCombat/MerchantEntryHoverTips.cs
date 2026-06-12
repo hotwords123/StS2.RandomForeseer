@@ -6,7 +6,7 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class MerchantPrediction
+internal static class MerchantEntryHoverTips
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
     {

@@ -42,7 +42,7 @@ internal sealed class LemonSpirePredictionContext(Player player, AbstractModel m
     }
 }
 
-internal static class LemonSpirePredictionControls
+internal static class LemonSpireControlHoverTips
 {
     private static readonly ConditionalWeakTable<Control, LemonSpirePredictionContext> Contexts = [];
 
@@ -58,7 +58,10 @@ internal static class LemonSpirePredictionControls
             ? context.GetHoverTips()
             : [];
     }
+}
 
+internal static class LemonSpireControlTree
+{
     public static HashSet<Control> SnapshotDescendants(Control parent)
     {
         return Descendants(parent).ToHashSet();
@@ -135,9 +138,9 @@ internal static class LemonSpireHandCardPredictionPatch
 
     private static void Postfix(Player player, Control content)
     {
-        foreach (var entry in LemonSpirePredictionControls.Descendants(content).OfType<NDeckHistoryEntry>())
+        foreach (var entry in LemonSpireControlTree.Descendants(content).OfType<NDeckHistoryEntry>())
         {
-            LemonSpirePredictionControls.Register(entry, player, entry.Card, LemonSpirePredictionKind.HandCard);
+            LemonSpireControlHoverTips.Register(entry, player, entry.Card, LemonSpirePredictionKind.HandCard);
         }
     }
 }
@@ -160,16 +163,16 @@ internal static class LemonSpireAncientRelicChoicePredictionPatch
 
     private static void Prefix(HBoxContainer row, out HashSet<Control> __state)
     {
-        __state = LemonSpirePredictionControls.SnapshotDescendants(row);
+        __state = LemonSpireControlTree.SnapshotDescendants(row);
     }
 
     private static void Postfix(HBoxContainer row, Player player, RelicModel relic, HashSet<Control> __state)
     {
-        foreach (var holder in LemonSpirePredictionControls.NewDescendants(row, __state))
+        foreach (var holder in LemonSpireControlTree.NewDescendants(row, __state))
         {
             if (holder is NRelicBasicHolder)
             {
-                LemonSpirePredictionControls.Register(holder, player, relic, LemonSpirePredictionKind.AncientRelicChoice);
+                LemonSpireControlHoverTips.Register(holder, player, relic, LemonSpirePredictionKind.AncientRelicChoice);
                 return;
             }
         }
@@ -194,16 +197,16 @@ internal static class LemonSpireShopRelicPredictionPatch
 
     private static void Prefix(HBoxContainer row, out HashSet<Control> __state)
     {
-        __state = LemonSpirePredictionControls.SnapshotDescendants(row);
+        __state = LemonSpireControlTree.SnapshotDescendants(row);
     }
 
     private static void Postfix(HBoxContainer row, Player player, HashSet<Control> __state)
     {
-        foreach (var holder in LemonSpirePredictionControls.NewDescendants(row, __state))
+        foreach (var holder in LemonSpireControlTree.NewDescendants(row, __state))
         {
             if (holder is NRelicBasicHolder { _model: { } relic })
             {
-                LemonSpirePredictionControls.Register(holder, player, relic, LemonSpirePredictionKind.ShopRelic);
+                LemonSpireControlHoverTips.Register(holder, player, relic, LemonSpirePredictionKind.ShopRelic);
                 return;
             }
         }
@@ -228,16 +231,16 @@ internal static class LemonSpireShopPotionPredictionPatch
 
     private static void Prefix(HBoxContainer row, out HashSet<Control> __state)
     {
-        __state = LemonSpirePredictionControls.SnapshotDescendants(row);
+        __state = LemonSpireControlTree.SnapshotDescendants(row);
     }
 
     private static void Postfix(HBoxContainer row, Player player, HashSet<Control> __state)
     {
-        foreach (var holder in LemonSpirePredictionControls.NewDescendants(row, __state))
+        foreach (var holder in LemonSpireControlTree.NewDescendants(row, __state))
         {
             if (holder is NPotionHolder { Potion.Model: { } potion })
             {
-                LemonSpirePredictionControls.Register(holder, player, potion, LemonSpirePredictionKind.ShopPotion);
+                LemonSpireControlHoverTips.Register(holder, player, potion, LemonSpirePredictionKind.ShopPotion);
                 return;
             }
         }

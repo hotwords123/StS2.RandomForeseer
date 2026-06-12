@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Runs;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class TreasureRoomRelicPrediction
+internal static class TreasureRoomRelicHoverTips
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(Control control)
     {

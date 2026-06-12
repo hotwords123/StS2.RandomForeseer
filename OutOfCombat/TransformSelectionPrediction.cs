@@ -10,24 +10,19 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class TransformSelectionPrediction
+internal sealed class TransformSelectionPrediction(
+    IReadOnlySet<CardModel> selectedCards,
+    Func<CardModel, CardTransformation> cardToTransformation)
 {
-    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
+    public IReadOnlyList<IHoverTip> GetHoverTips(CardModel hoveredCard)
     {
-        if (owner is not NGridCardHolder holder ||
-            FindTransformSelectScreen(holder) is not { } screen ||
-            holder.CardModel is not { } hoveredCard)
-        {
-            return [];
-        }
-
-        var replacement = PredictReplacement(screen, hoveredCard);
+        var replacement = PredictReplacement(hoveredCard);
         if (replacement == null)
         {
             return [];
         }
 
-        var tipKey = screen._selectedCards.Contains(hoveredCard)
+        var tipKey = selectedCards.Contains(hoveredCard)
             ? "transform_selection_selected"
             : "transform_selection_unselected";
         var textTips = PredictionHoverTips.Text(
@@ -39,14 +34,13 @@ internal static class TransformSelectionPrediction
             .ToList();
     }
 
-    private static CardModel? PredictReplacement(NDeckTransformSelectScreen screen, CardModel hoveredCard)
+    private CardModel? PredictReplacement(CardModel hoveredCard)
     {
-        var cardToTransformation = screen._cardToTransformation;
-        var selectedCards = screen._selectedCards.ToList();
-        var hoveredSelectionIndex = selectedCards.IndexOf(hoveredCard);
+        var previewCards = selectedCards.ToList();
+        var hoveredSelectionIndex = previewCards.IndexOf(hoveredCard);
         var predictionSequence = hoveredSelectionIndex >= 0
-            ? selectedCards.Take(hoveredSelectionIndex + 1)
-            : selectedCards.Append(hoveredCard);
+            ? previewCards.Take(hoveredSelectionIndex + 1)
+            : previewCards.Append(hoveredCard);
 
         (cardToTransformation.Target as IResettableTransformPreviewPredictor)?.Reset();
 
@@ -61,6 +55,24 @@ internal static class TransformSelectionPrediction
         }
 
         return hoveredTransformation?.Replacement;
+    }
+}
+
+internal static class TransformSelectionHoverTips
+{
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
+    {
+        if (owner is not NGridCardHolder holder ||
+            FindTransformSelectScreen(holder) is not { } screen)
+        {
+            return [];
+        }
+
+        var prediction = new TransformSelectionPrediction(
+            screen._selectedCards,
+            screen._cardToTransformation);
+
+        return prediction.GetHoverTips(holder.CardModel);
     }
 
     private static NDeckTransformSelectScreen? FindTransformSelectScreen(NCardHolder holder)
