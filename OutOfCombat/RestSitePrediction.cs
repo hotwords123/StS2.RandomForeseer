@@ -20,13 +20,13 @@ internal static class RestSitePrediction
         };
     }
 
-    private static IReadOnlyList<IHoverTip> PredictDigTips(Player player)
+    public static IReadOnlyList<IHoverTip> PredictDigTips(Player player)
     {
         var relics = OutOfCombatPredictionUtils.PredictRelicRewards(player, 1);
         return PredictionHoverTips.Relics(relics);
     }
 
-    private static IReadOnlyList<IHoverTip> PredictRestTips(Player player)
+    public static IReadOnlyList<IHoverTip> PredictRestTips(Player player)
     {
         var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);

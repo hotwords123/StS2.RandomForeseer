@@ -110,7 +110,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 
 ### Non-Ancient Events
 
-- Immediate random results for event options in Aroma of Chaos, Battleworn Dummy, Brain Leech, Colorful Philosophers, Doll Room, Doors of Light and Dark, Endless Conveyor, Infested Automaton, Luminous Choir, Morphic Grove, Potion Courier, Punch Off, Ranwid the Elder, Reflections snoitcelfeR, Room Full of Cheese, The Round Tea Party, Slippery Bridge, Symbiote, Tablet of Truth, The Future of Potions?, The Legends Were True, This or That?, Tinker Time, Trash Heap, The Trial, Unrest Site, War Historian, Repy, Welcome to Wongo's, Wellspring, Whispering Hollow, and similar events.
+- Immediate random results for event options in Aroma of Chaos, Battleworn Dummy, Brain Leech, Colorful Philosophers, Dense Vegetation, Doll Room, Doors of Light and Dark, Endless Conveyor, Infested Automaton, Luminous Choir, Morphic Grove, Potion Courier, Punch Off, Ranwid the Elder, Reflections snoitcelfeR, Room Full of Cheese, The Round Tea Party, Slippery Bridge, Symbiote, Tablet of Truth, The Future of Potions?, The Legends Were True, This or That?, Tinker Time, Trash Heap, The Trial, Unrest Site, War Historian, Repy, Welcome to Wongo's, Wellspring, Whispering Hollow, and similar events.
 
 ### Relic Pickup Effects
 
@@ -118,7 +118,6 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Upon-pickup results for Cauldron, Orrery, Fragrant Mushroom, War Paint, Whetstone, and similar relics
 - Immediate random results from relic rewards
 - Immediate random results from merchant relics
-- Card rewards from Dream Catcher, potions from Tiny Mailbox, and relics that Shovel's rest-site Dig option will obtain
 
 ## Integrations
 

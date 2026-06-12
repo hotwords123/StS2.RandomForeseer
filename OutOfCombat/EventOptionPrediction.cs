@@ -18,6 +18,7 @@ internal static class EventOptionPrediction
         Register<BattlewornDummy>(BattlewornDummyPrediction.GetHoverTips);
         Register<BrainLeech>(BrainLeechPrediction.GetHoverTips);
         Register<ColorfulPhilosophers>(ColorfulPhilosophersPrediction.GetHoverTips);
+        Register<DenseVegetation>(DenseVegetationPrediction.GetHoverTips);
         Register<DollRoom>(DollRoomPrediction.GetHoverTips);
         Register<DoorsOfLightAndDark>(DoorsOfLightAndDarkPrediction.GetHoverTips);
         Register<EndlessConveyor>(EndlessConveyorPrediction.GetHoverTips);
