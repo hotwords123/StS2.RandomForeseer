@@ -8,9 +8,10 @@ internal static class UnrestSitePrediction
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(UnrestSite unrestSite, EventOption option)
     {
-        return OutOfCombatPredictionUtils.PredictRelicsWithPickup(
-            unrestSite.Owner!,
-            option,
-            OutOfCombatPredictionUtils.PredictRelicRewards(unrestSite.Owner!, 1));
+        return option.TextKey == "UNREST_SITE.pages.INITIAL.options.KILL"
+            ? OutOfCombatPredictionUtils.RelicTipsWithPickup(
+                unrestSite.Owner!,
+                OutOfCombatPredictionUtils.PredictRelicRewards(unrestSite.Owner!, 1))
+            : [];
     }
 }

@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Relics;
-using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Hooks;
@@ -213,16 +212,6 @@ internal static class OutOfCombatPredictionUtils
         return rarities
             .Select(rarity => grabBag.PullFromFront(rarity, filter ?? (_ => true), player.RunState) ?? RelicFactory.FallbackRelic)
             .ToList();
-    }
-
-    public static IReadOnlyList<IHoverTip> PredictRelicsWithPickup(
-        Player player,
-        EventOption option,
-        IReadOnlyList<RelicModel> relics)
-    {
-        return option.TextKey.Contains("LOCKED", StringComparison.Ordinal)
-            ? []
-            : RelicTipsWithPickup(player, relics);
     }
 
     public static IReadOnlyList<IHoverTip> RelicTipsWithPickup(Player player, IReadOnlyList<RelicModel> relics)
