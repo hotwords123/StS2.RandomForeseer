@@ -48,8 +48,7 @@ internal static class LemonSpireControlHoverTips
 
     public static void Register(Control control, Player player, AbstractModel model, LemonSpirePredictionKind kind)
     {
-        Contexts.Remove(control);
-        Contexts.Add(control, new LemonSpirePredictionContext(player, model, kind));
+        Contexts.AddOrUpdate(control, new LemonSpirePredictionContext(player, model, kind));
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Control control)

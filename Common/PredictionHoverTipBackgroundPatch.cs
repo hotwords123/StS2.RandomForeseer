@@ -28,8 +28,7 @@ internal static class PredictionHoverTipBackgroundPatch
             return;
         }
 
-        PredictionTextTipMasks.Remove(__instance);
-        PredictionTextTipMasks.Add(__instance, predictionTextTipMask);
+        PredictionTextTipMasks.AddOrUpdate(__instance, predictionTextTipMask);
     }
 
     private static void Postfix(NHoverTipSet __instance)

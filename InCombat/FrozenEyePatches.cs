@@ -39,8 +39,7 @@ internal static class FrozenEyeDrawPileViewState
 
     public static void SetPredictedShuffleCards(NCardGrid grid, IReadOnlyList<CardModel> predictedCards)
     {
-        PredictedShuffleCardsByGrid.Remove(grid);
-        PredictedShuffleCardsByGrid.Add(grid, predictedCards.ToHashSet());
+        PredictedShuffleCardsByGrid.AddOrUpdate(grid, predictedCards.ToHashSet());
     }
 }
 

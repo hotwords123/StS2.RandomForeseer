@@ -25,8 +25,7 @@ internal static class CardRewardAlternativeRerollSourcePatch
     {
         foreach (var alternative in __result.Where(alternative => alternative.OptionId == "REROLL"))
         {
-            RerollSources.Remove(alternative);
-            RerollSources.Add(alternative, cardReward);
+            RerollSources.AddOrUpdate(alternative, cardReward);
         }
     }
 }

@@ -44,8 +44,7 @@ internal static class PredictionCardHoverTipLayoutState
         HoverTipAlignment alignment = HoverTipAlignment.None,
         float textGap = 0f)
     {
-        SourceRects.Remove(container);
-        SourceRects.Add(container, new PredictionCardHoverTipSourceRect(sourceRect, alignment, textGap));
+        SourceRects.AddOrUpdate(container, new PredictionCardHoverTipSourceRect(sourceRect, alignment, textGap));
     }
 
     public static bool TryGetSourceRect(
