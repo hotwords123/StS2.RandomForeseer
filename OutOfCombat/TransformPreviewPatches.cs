@@ -57,28 +57,39 @@ internal static class TransformPreviewPatchShared
         MethodBase original,
         MethodInfo predictorFactory)
     {
-        // Async instance methods store their original "this" in the generated state machine.
-        var ownerField = AccessTools.Field(original.DeclaringType, "<>4__this")
-            ?? throw new InvalidOperationException($"Could not find async owner field on {original.FullDescription()}.");
+        var instructionList = instructions.ToList();
 
-        var rewriter = HarmonyIlRewriter.From(instructions, original);
-        var pattern = HarmonyIlPattern.Sequence(
-            instruction => instruction.opcode == OpCodes.Ldnull,
-            HarmonyIl.IsCall(FromDeckForTransformation3));
-        var callWithNull = rewriter
-            .FindMatches(pattern, $"transform selector call in {original.FullDescription()}")
-            .RequireSingle();
+        try
+        {
+            // Async instance methods store their original "this" in the generated state machine.
+            var ownerField = AccessTools.Field(original.DeclaringType, "<>4__this")
+                ?? throw new InvalidOperationException(
+                    $"Could not find async owner field on {original.FullDescription()}.");
 
-        rewriter.Replace(
-            // Replace only the optional-argument ldnull; keep the following selector call intact.
-            new HarmonyIlMatch(callWithNull.Index, 1),
-            [
-                HarmonyIl.Ldarg(0),
-                HarmonyIl.Ldfld(ownerField),
-                HarmonyIl.Call(predictorFactory),
-            ]);
+            var rewriter = HarmonyIlRewriter.From(instructionList, original);
+            var pattern = HarmonyIlPattern.Sequence(
+                instruction => instruction.opcode == OpCodes.Ldnull,
+                HarmonyIl.IsCall(FromDeckForTransformation3));
+            var callWithNull = rewriter
+                .FindMatches(pattern, $"transform selector call in {original.FullDescription()}")
+                .RequireSingle();
 
-        return rewriter.InstructionsChecked("transform selector preview factory argument");
+            rewriter.Replace(
+                // Replace only the optional-argument ldnull; keep the following selector call intact.
+                new HarmonyIlMatch(callWithNull.Index, 1),
+                [
+                    HarmonyIl.Ldarg(0),
+                    HarmonyIl.Ldfld(ownerField),
+                    HarmonyIl.Call(predictorFactory),
+                ]);
+
+            return rewriter.InstructionsChecked("transform selector preview factory argument");
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Transform preview transpiler failed for {original.FullDescription()}: {ex}");
+            return instructionList;
+        }
     }
 }
 

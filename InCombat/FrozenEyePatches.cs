@@ -162,14 +162,24 @@ internal static class FrozenEyeEmptyDrawPileOpenPatch
 {
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
     {
-        var rewriter = HarmonyIlRewriter.From(instructions, original);
-        rewriter
-            .ReplaceCall(
-                "allow empty draw pile view when shuffle prediction can be shown",
-                AccessTools.PropertyGetter(typeof(CardPile), nameof(CardPile.IsEmpty)),
-                AccessTools.Method(typeof(FrozenEyeEmptyDrawPileOpenPatch), nameof(ShouldTreatPileAsEmpty)))
-            .RequireExactly(1);
-        return rewriter.InstructionsChecked("Frozen Eye empty draw pile open");
+        var instructionList = instructions.ToList();
+
+        try
+        {
+            var rewriter = HarmonyIlRewriter.From(instructionList, original);
+            rewriter
+                .ReplaceCall(
+                    "allow empty draw pile view when shuffle prediction can be shown",
+                    AccessTools.PropertyGetter(typeof(CardPile), nameof(CardPile.IsEmpty)),
+                    AccessTools.Method(typeof(FrozenEyeEmptyDrawPileOpenPatch), nameof(ShouldTreatPileAsEmpty)))
+                .RequireExactly(1);
+            return rewriter.InstructionsChecked("Frozen Eye empty draw pile open");
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Frozen Eye empty draw pile transpiler failed for {original.FullDescription()}: {ex}");
+            return instructionList;
+        }
     }
 
     private static bool ShouldTreatPileAsEmpty(CardPile pile)
