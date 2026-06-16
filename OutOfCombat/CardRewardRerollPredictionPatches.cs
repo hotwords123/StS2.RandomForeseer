@@ -5,27 +5,20 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.CardRewardAlternatives;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Rewards;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
 [HarmonyPatch(typeof(CardRewardAlternative), nameof(CardRewardAlternative.Generate))]
 internal static class CardRewardAlternativeRerollSourcePatch
 {
-    private static readonly ConditionalWeakTable<CardRewardAlternative, CardRewardBox> RerollSources = [];
+    private static readonly ConditionalWeakTable<CardRewardAlternative, CardReward> RerollSources = [];
 
     public static bool TryGetRerollSource(CardRewardAlternative alternative, [NotNullWhen(true)] out CardReward? reward)
     {
-        if (RerollSources.TryGetValue(alternative, out var box))
-        {
-            reward = box.Reward;
-            return true;
-        }
-
-        reward = null;
-        return false;
+        return RerollSources.TryGetValue(alternative, out reward);
     }
 
     private static void Postfix(CardReward cardReward, IReadOnlyList<CardRewardAlternative> __result)
@@ -33,13 +26,8 @@ internal static class CardRewardAlternativeRerollSourcePatch
         foreach (var alternative in __result.Where(alternative => alternative.OptionId == "REROLL"))
         {
             RerollSources.Remove(alternative);
-            RerollSources.Add(alternative, new CardRewardBox(cardReward));
+            RerollSources.Add(alternative, cardReward);
         }
-    }
-
-    private sealed class CardRewardBox(CardReward reward)
-    {
-        public CardReward Reward { get; } = reward;
     }
 }
 
@@ -68,44 +56,40 @@ internal static class CardRewardRerollButtonHoverTipPatch
                 continue;
             }
 
-            var button = buttons[i];
-            button.Connect(NClickableControl.SignalName.Focused, Callable.From<NClickableControl>(_ => ShowPrediction(button, reward)));
-            button.Connect(NClickableControl.SignalName.Unfocused, Callable.From<NClickableControl>(_ => HidePrediction(button)));
+            CardRewardRerollButtonHoverTips.Register(buttons[i], reward);
         }
     }
+}
 
-    private static void ShowPrediction(Control button, CardReward reward)
+internal static class CardRewardRerollButtonHoverTips
+{
+    private static readonly ConditionalWeakTable<Control, CardReward> RerollRewards = [];
+
+    public static void Register(Control button, CardReward reward)
     {
-        try
+        if (!RerollRewards.TryAdd(button, reward))
         {
-            HidePrediction(button);
-            var tips = CardRewardRerollPrediction.GetHoverTips(reward);
-            if (tips.Count == 0)
-            {
-                return;
-            }
+            return;
+        }
 
-            NHoverTipSet.CreateAndShow(button, tips, GetSideAlignment(button));
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Driftwood reroll prediction failed: {ex}");
-        }
+        button.Connect(NClickableControl.SignalName.Focused, Callable.From<NClickableControl>(_ => ShowPrediction(button)));
+        button.Connect(NClickableControl.SignalName.Unfocused, Callable.From<NClickableControl>(_ => HidePrediction(button)));
+    }
+
+    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
+    {
+        return RerollRewards.TryGetValue(owner, out var reward)
+            ? CardRewardRerollPrediction.GetHoverTips(reward)
+            : [];
+    }
+
+    private static void ShowPrediction(Control button)
+    {
+        PredictionHoverTipSetHelper.EnsureHoverTipSet(button, HoverTip.GetHoverTipAlignment(button));
     }
 
     private static void HidePrediction(Control button)
     {
-        NHoverTipSet.Remove(button);
-    }
-
-    private static HoverTipAlignment GetSideAlignment(Control button)
-    {
-        var viewportWidth = button.GetViewport().GetVisibleRect().Size.X;
-        var buttonCenterX = button.GlobalPosition.X + button.Size.X * button.Scale.X / 2f;
-
-        // NHoverTipSet places card tips on the opposite side of the text alignment for Control owners.
-        return buttonCenterX < viewportWidth / 2f
-            ? HoverTipAlignment.Left
-            : HoverTipAlignment.Right;
+        PredictionHoverTipSetHelper.RemoveOwnedHoverTipSet(button);
     }
 }
