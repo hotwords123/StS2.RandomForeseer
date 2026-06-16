@@ -34,7 +34,7 @@ internal static class ControlHoverTipPredictionPatch
         var predictionTips = Registry.GetHoverTips(owner);
         if (predictionTips.Count > 0)
         {
-            hoverTips = hoverTips.Concat(predictionTips).ToList();
+            hoverTips = hoverTips.Concat(predictionTips);
         }
     }
 }

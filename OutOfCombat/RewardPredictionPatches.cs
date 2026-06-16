@@ -23,7 +23,7 @@ internal static class RewardPredictionPatch
 
         if (predictionTips.Count > 0)
         {
-            __result = __result.Concat(predictionTips).ToList();
+            __result = __result.Concat(predictionTips);
         }
     }
 }
