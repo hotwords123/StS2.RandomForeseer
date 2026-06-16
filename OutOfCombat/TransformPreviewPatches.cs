@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace RandomForeseer.OutOfCombat;
 
@@ -33,11 +34,8 @@ internal static class TransformPreviewPatchShared
             throw new MissingMethodException("Could not find async patch target.");
         }
 
-        var attribute = asyncMethod.GetCustomAttribute<AsyncStateMachineAttribute>();
-        if (attribute == null)
-        {
-            throw new InvalidOperationException($"{asyncMethod.FullDescription()} is not async.");
-        }
+        var attribute = asyncMethod.GetCustomAttribute<AsyncStateMachineAttribute>()
+            ?? throw new InvalidOperationException($"{asyncMethod.FullDescription()} is not async.");
 
         return AccessTools.Method(attribute.StateMachineType, "MoveNext")
             ?? throw new MissingMethodException(attribute.StateMachineType.FullName, "MoveNext");
@@ -62,41 +60,25 @@ internal static class TransformPreviewPatchShared
         // Async instance methods store their original "this" in the generated state machine.
         var ownerField = AccessTools.Field(original.DeclaringType, "<>4__this")
             ?? throw new InvalidOperationException($"Could not find async owner field on {original.FullDescription()}.");
-        var instructionList = new List<CodeInstruction>(instructions);
 
-        var result = new List<CodeInstruction>(instructionList.Count + 2);
-        var replacementCount = 0;
+        var rewriter = HarmonyIlRewriter.From(instructions, original);
+        var pattern = HarmonyIlPattern.Sequence(
+            instruction => instruction.opcode == OpCodes.Ldnull,
+            HarmonyIl.IsCall(FromDeckForTransformation3));
+        var callWithNull = rewriter
+            .FindMatches(pattern, $"transform selector call in {original.FullDescription()}")
+            .RequireSingle();
 
-        for (var i = 0; i < instructionList.Count; i++)
-        {
-            var instruction = instructionList[i];
-            if (instruction.opcode == OpCodes.Ldnull
-                && i + 1 < instructionList.Count
-                && instructionList[i + 1].Calls(FromDeckForTransformation3))
-            {
-                // Preserve any branch labels/exception blocks that pointed at the removed ldnull.
-                var loadThis = new CodeInstruction(OpCodes.Ldarg_0);
-                loadThis.labels.AddRange(instruction.labels);
-                loadThis.blocks.AddRange(instruction.blocks);
+        rewriter.Replace(
+            // Replace only the optional-argument ldnull; keep the following selector call intact.
+            new HarmonyIlMatch(callWithNull.Index, 1),
+            [
+                HarmonyIl.Ldarg(0),
+                HarmonyIl.Ldfld(ownerField),
+                HarmonyIl.Call(predictorFactory),
+            ]);
 
-                result.Add(loadThis);
-                result.Add(new CodeInstruction(OpCodes.Ldfld, ownerField));
-                result.Add(new CodeInstruction(OpCodes.Call, predictorFactory));
-                replacementCount++;
-            }
-            else
-            {
-                result.Add(instruction);
-            }
-        }
-
-        if (replacementCount != 1)
-        {
-            throw new InvalidOperationException(
-                $"Expected to patch exactly one transform selector call in {original.FullDescription()}, patched {replacementCount}.");
-        }
-
-        return result;
+        return rewriter.InstructionsChecked("transform selector preview factory argument");
     }
 }
 
