@@ -5,8 +5,10 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class TransformPreviewPredictor
+internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview)
 {
+    private Rng _previewRng = PredictionUtils.CloneRng(realRng);
+
     public static Func<CardModel, CardTransformation>? Make(
         Rng realRng,
         bool upgradePreview = false,
@@ -18,30 +20,20 @@ internal static class TransformPreviewPredictor
             return null;
         }
 
-        return new TransformPreviewPredictionSession(realRng, upgradePreview).Predict;
+        return new TransformPreviewPredictor(realRng, upgradePreview).Predict;
     }
 
-    private sealed class TransformPreviewPredictionSession(Rng realRng, bool upgradePreview) : IResettableTransformPreviewPredictor
+    public void Reset()
     {
-        private Rng _previewRng = PredictionUtils.CloneRng(realRng);
-
-        public void Reset()
-        {
-            _previewRng = PredictionUtils.CloneRng(realRng);
-        }
-
-        public CardTransformation Predict(CardModel original)
-        {
-            var predicted = PredictionUtils.PredictTransformResult(original, _previewRng, isInCombat: false);
-
-            return new CardTransformation(
-                original,
-                PredictionUtils.ToUpgradedCardIf(predicted, upgradePreview));
-        }
+        _previewRng = PredictionUtils.CloneRng(realRng);
     }
-}
 
-internal interface IResettableTransformPreviewPredictor
-{
-    void Reset();
+    public CardTransformation Predict(CardModel original)
+    {
+        var predicted = PredictionUtils.PredictTransformResult(original, _previewRng, isInCombat: false);
+
+        return new CardTransformation(
+            original,
+            PredictionUtils.ToUpgradedCardIf(predicted, upgradePreview));
+    }
 }

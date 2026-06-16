@@ -112,7 +112,7 @@ internal static class DeckTransformSelectScreenResetPredictionPatch
 
         // The same selection screen delegate can be reused after canceling the preview.
         // Resetting here keeps the cloned RNG aligned with the real RNG for each preview opening.
-        (predictor.Target as IResettableTransformPreviewPredictor)?.Reset();
+        (predictor.Target as TransformPreviewPredictor)?.Reset();
     }
 }
 

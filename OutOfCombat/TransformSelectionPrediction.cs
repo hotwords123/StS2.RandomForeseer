@@ -42,7 +42,7 @@ internal sealed class TransformSelectionPrediction(
             ? previewCards.Take(hoveredSelectionIndex + 1)
             : previewCards.Append(hoveredCard);
 
-        (cardToTransformation.Target as IResettableTransformPreviewPredictor)?.Reset();
+        (cardToTransformation.Target as TransformPreviewPredictor)?.Reset();
 
         CardTransformation? hoveredTransformation = null;
         foreach (var card in predictionSequence)
