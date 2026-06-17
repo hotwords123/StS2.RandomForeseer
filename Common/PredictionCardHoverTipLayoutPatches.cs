@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Saves;
 
 namespace RandomForeseer.Common;
@@ -449,7 +450,7 @@ internal static class PredictionCardHoverTipLayout
             ? cardRect.Merge(textContainer.GetGlobalRect())
             : cardRect;
 
-        // This is called from SetAlignment*/SetAlignmentForCardHolder postfixes, after vanilla has already had
+        // This is called from NHoverTipSet alignment postfixes, after vanilla has already had
         // a chance to place both containers. Vanilla also clamps vertical overflow before its horizontal fallback,
         // so reserve the prediction top/bottom fallback for cases that still cannot fit horizontally.
         if (FitsHorizontallyWithinViewport(cardRect, viewportSize) &&
@@ -626,6 +627,29 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
     [HarmonyPatch(nameof(NHoverTipSet.SetAlignmentForCardHolder))]
     [HarmonyPostfix]
     private static void ApplyCardHolderFallbackLayout(NHoverTipSet __instance)
+    {
+        PredictionCardHoverTipLayout.ApplyFallbackLayoutIfStillOverflowing(__instance);
+    }
+
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignmentForRelic))]
+    [HarmonyPrefix]
+    private static void RecordRelicSourceRect(NHoverTipSet __instance, NRelic relic)
+    {
+        var container = __instance._cardHoverTipContainer;
+        if (!ShouldRecordSourceRect(container))
+        {
+            return;
+        }
+
+        PredictionCardHoverTipLayoutState.RecordSourceRect(
+            container,
+            relic.Icon.GetGlobalRect(),
+            HoverTip.GetHoverTipAlignment(relic));
+    }
+
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignmentForRelic))]
+    [HarmonyPostfix]
+    private static void ApplyRelicFallbackLayout(NHoverTipSet __instance)
     {
         PredictionCardHoverTipLayout.ApplyFallbackLayoutIfStillOverflowing(__instance);
     }
