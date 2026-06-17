@@ -1,9 +1,9 @@
-using Godot;
+using System.Runtime.CompilerServices;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
-using MegaCrit.Sts2.Core.Nodes.Events;
 using RandomForeseer.OutOfCombat.Events;
 
 namespace RandomForeseer.OutOfCombat;
@@ -88,15 +88,39 @@ internal static class EventOptionPrediction
     }
 }
 
-internal static class EventOptionHoverTips
+internal static class EventOptionEventModelMap
 {
-    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
+    private static readonly ConditionalWeakTable<EventOption, EventModel> EventModels = [];
+
+    public static void Register(EventOption option, EventModel eventModel) => EventModels.AddOrUpdate(option, eventModel);
+
+    public static bool TryGetEventModel(EventOption option, out EventModel eventModel) =>
+        EventModels.TryGetValue(option, out eventModel!);
+}
+
+[HarmonyPatch(typeof(EventOption), "AddLocVars")]
+internal static class EventOptionAddLocVarsPatch
+{
+    private static void Postfix(EventOption __instance, EventModel eventModel)
     {
-        if (owner is not NEventOptionButton button)
+        EventOptionEventModelMap.Register(__instance, eventModel);
+    }
+}
+
+[HarmonyPatch(typeof(EventOption), nameof(EventOption.HoverTips), MethodType.Getter)]
+internal static class EventOptionPredictionHoverTipsPatch
+{
+    private static void Postfix(EventOption __instance, ref IEnumerable<IHoverTip> __result)
+    {
+        if (!EventOptionEventModelMap.TryGetEventModel(__instance, out var eventModel))
         {
-            return [];
+            return;
         }
 
-        return EventOptionPrediction.GetHoverTips(button.Event, button.Option);
+        var predictionTips = EventOptionPrediction.GetHoverTips(eventModel, __instance);
+        if (predictionTips.Count > 0)
+        {
+            __result = __result.Concat(predictionTips);
+        }
     }
 }
