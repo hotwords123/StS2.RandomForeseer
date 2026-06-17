@@ -64,6 +64,11 @@ function Get-ChangelogSection {
         throw "Release notes for $Tag in $Path are empty."
     }
 
+    # GitHub release notes render ordinary newlines as line breaks. If the
+    # changelog uses explicit <br> before the translated line, keeping both
+    # produces <br><br> on the release page.
+    $body = $body -replace '(?i)<br\s*/?>\r?\n([ \t]+)', "`n`$1"
+
     return $body
 }
 
