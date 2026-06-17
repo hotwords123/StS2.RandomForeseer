@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
+using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.InCombat;
 using RandomForeseer.OutOfCombat;
@@ -31,7 +32,12 @@ internal sealed class LemonSpirePredictionContext(Player player, AbstractModel m
             (LemonSpirePredictionKind.HandCard, CardModel card)
                 => CombatCardPrediction.GetHoverTips(card),
 
-            (LemonSpirePredictionKind.AncientRelicChoice or LemonSpirePredictionKind.ShopRelic, RelicModel relic)
+            (LemonSpirePredictionKind.AncientRelicChoice, RelicModel relic)
+                => IsAncientRelicChoiceStale(player)
+                    ? []
+                    : RelicPickupPrediction.GetHoverTips(player, relic),
+
+            (LemonSpirePredictionKind.ShopRelic, RelicModel relic)
                 => RelicPickupPrediction.GetHoverTips(player, relic),
 
             (LemonSpirePredictionKind.ShopPotion, PotionModel potion)
@@ -39,6 +45,25 @@ internal sealed class LemonSpirePredictionContext(Player player, AbstractModel m
 
             _ => []
         };
+    }
+
+    private static bool IsAncientRelicChoiceStale(Player player)
+    {
+        try
+        {
+            var eventModel = RunManager.Instance.EventSynchronizer.GetEventForPlayer(player);
+            if (eventModel is not AncientEventModel ancient)
+            {
+                return false;
+            }
+
+            return ancient.IsFinished ||
+                   ancient.CurrentOptions.Any(option => option is { Relic: not null, WasChosen: true });
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
 
