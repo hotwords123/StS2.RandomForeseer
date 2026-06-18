@@ -55,7 +55,9 @@ internal static class RelicPickupPrediction
                         PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))),
                 ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player), isVanillaCardBundle: true),
                 SilkenTress silkenTress when IsAllModesUnfairPredictionAllowed() =>
-                    PredictSilkenTressRewardTips(player, silkenTress),
+                    RewardPagePredictionContext.HasOtherPendingRelicReward(silkenTress)
+                        ? PredictionHoverTips.Text("silken_tress_reward_offset")
+                        : PredictSilkenTressRewardTips(player, silkenTress),
                 SmallCapsule when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
 

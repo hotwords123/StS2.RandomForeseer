@@ -6,6 +6,8 @@
   "frozen_eye.draw_pile_info_order": "[gold](Cards shown are in draw order)[/gold]",
   "frozen_eye.draw_pile_info_order_with_shuffle_prediction": "[gold](Shown in draw order; gray cards predict the discard shuffle after depletion)[/gold]",
   "frozen_eye.draw_pile_hover_view": "Click to view the cards in your draw pile (in draw order).",
+  "silken_tress_reward_offset.title": "Notice",
+  "silken_tress_reward_offset.description": "This reward screen still has another relic. Taking another relic first may change the RNG used by this prediction.\nTake the other relics first, then return to this relic to view the prediction.",
   "transform_bundle_explanation.title": "Prediction",
   "transform_bundle_explanation.description": "Each pack follows the order cards are chosen, showing all possible results when a deck card is transformed in that position.",
   "transform_selection_selected.title": "Prediction",
