@@ -1,9 +1,9 @@
 {
   "id": "RandomForeseer",
-  "name": "RandomForeseer",
+  "name": "随机数预测 (RandomForeseer)",
   "pck_name": "RandomForeseer",
   "author": "hotwords123",
-  "description": "Predicts random outcomes and foresees the future.",
+  "description": "预测随机，预见未来。\nPredicts random outcomes and foresees the future.",
   "version": "0.6.1",
   "has_pck": true,
   "has_dll": true,
