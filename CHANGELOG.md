@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.6.1
+
+### fix
+
+- 修复奖励页中同页还有其它未领取遗物时，华美发束预测可能错误显示的问题。<br>
+  Fixed Silken Tress prediction on reward screens where other unclaimed relics can shift the immediate pickup result.
+
+### perf
+
+- 适配《杀戮尖塔 2》0.107.1，并优化随机数状态克隆以减少预测开销。<br>
+  Adapted to Slay the Spire 2 0.107.1 and optimized RNG state cloning to reduce prediction overhead.
+
 ## v0.6.0
 
 ### feat
