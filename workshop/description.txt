@@ -1,6 +1,6 @@
 这个 Mod 可以预测战斗、事件、先古之民等多种场景的随机结果，减少不必要的 SL，提升游戏体验。
 
-本 Mod 支持单人和多人模式。默认情况下，它只显示可以通过 SL 获取的信息；各个预测功能都可以在 RitsuLib 设置界面中独立开关。
+本 Mod 支持单人和多人模式（多人模式下无需所有人同时安装）。默认情况下，它只显示可以通过 SL 获取的信息；各个预测功能都可以在 RitsuLib 设置界面中独立开关。
 
 GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
 
@@ -14,7 +14,7 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 [*]预测事件（变形灵林谷、审判）和遗物（新叶、星系仪）的变牌结果，可以显示卡组里每张牌分别会变成什么。
 [*]预测浮木重掷、遗物（磨刀石、星系仪）和休息处选项（捕梦网、铲子）的随机结果。
 [*]查看抽牌堆时，可以按实际抽牌顺序显示卡牌，并预览回合内洗牌后的牌序。
-[*]安装 lemonSpire2 时，队友面板中的部分手牌、遗物和商店内容也会显示预测。
+[*]安装 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747548124]柠檬尖塔[/url] 时，队友面板中的部分手牌、遗物和商店内容也会显示预测。
 [/list]
 
 [h2]设置[/h2]
