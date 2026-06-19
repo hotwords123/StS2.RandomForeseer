@@ -52,6 +52,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableShufflePrediction { get; set; } = true;
 
+    public bool ShowDebugSettingsPage { get; set; }
+
     public bool EnableAncientEventDebugReroll { get; set; }
 }
 
@@ -237,6 +239,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableShufflePrediction,
             (settings, value) => settings.EnableShufflePrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> ShowDebugSettingsPageBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.ShowDebugSettingsPage,
+            (settings, value) => settings.ShowDebugSettingsPage = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAncientEventDebugRerollBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -285,6 +294,8 @@ internal static class RandomForeseerSettings
     public static bool EnableFrozenEye => EnableFrozenEyeBinding.Read();
 
     public static bool EnableShufflePrediction => EnableShufflePredictionBinding.Read();
+
+    public static bool ShowDebugSettingsPage => ShowDebugSettingsPageBinding.Read();
 
     public static bool EnableAncientEventDebugReroll => EnableAncientEventDebugRerollBinding.Read();
 
@@ -549,6 +560,11 @@ internal static class RandomForeseerSettings
             });
 
         });
+
+        if (!ShowDebugSettingsPage)
+        {
+            return;
+        }
 
         RitsuLibFramework.RegisterModSettings(Entry.ModId, page =>
         {
