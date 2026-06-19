@@ -4,7 +4,6 @@ This directory contains the tracked source files used to create a Steam Workshop
 
 ## Tracked files
 
-- `image.original.png`: original Steam Workshop preview image source.
 - `image.png`: compressed Steam Workshop preview image used by the uploader. Keep it under 1 MB.
 - `description.txt`: Simplified Chinese Workshop page description source for manual editing on Steam.
 - `description.en.txt`: English Workshop page description source for manual editing on Steam.
