@@ -1,0 +1,32 @@
+This mod predicts random outcomes across combat, events, Ancients, and other game flows, reducing unnecessary Save & Load cycles while improving play flow.
+
+This mod supports both singleplayer and multiplayer. By default, it only shows information that can be obtained through Save & Load. Each prediction feature can be toggled independently in the RitsuLib settings page.
+
+GitHub: [url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
+
+[h2]Features[/h2]
+
+Most features show predictions when you hover the relevant item, including but not limited to:
+
+[list]
+[*]In combat, predicts random results for card generation effects (potions and card effects), card selection effects (True Grit, Thrash), draw-pile autoplay effects (Havoc, Distilled Chaos), and transform effects (Entropy).
+[*]In events and Ancients, predicts random option results, such as Neow relics (New Leaf, Neow's Bones) and card choices from the Colorful Philosophers event.
+[*]Predicts transform results from events (Morphic Grove, The Trial) and relics (New Leaf, Orrery), showing what each card in your deck would transform into.
+[*]Predicts random results from Driftwood rerolls, relics (Whetstone, Orrery), and rest-site options (Dream Catcher, Shovel).
+[*]When viewing the draw pile, shows cards in actual draw order and previews the order after an in-turn shuffle.
+[*]When lemonSpire2 is installed, selected teammate hand, relic, and shop predictions are also supported.
+[/list]
+
+[h2]Settings[/h2]
+
+You can manage each prediction feature from the settings page provided by RitsuLib. If a feature feels too powerful, or if you only want to use predictions in multiplayer to improve the experience, you can adjust it there.
+
+[list]
+[*]Singleplayer and multiplayer prediction can be enabled or disabled separately.
+[*]Fair mode is enabled by default. For out-of-combat options, it only shows information obtainable through Save & Load.
+[*]When fair mode is enabled, some Ancient relics that cannot be Save & Loaded in singleplayer, such as New Leaf, Leafy Poultice, and the curse from Neow's Bones, will not show predictions. Silken Tress will not reveal the card choice from the next reward, and card-generation potions viewed outside combat will not preview the cards they would generate in combat.
+[/list]
+
+[h2]Credits[/h2]
+
+Thanks to the friends who played multiplayer with me. They helped test the prototype mod and suggested many improvements.

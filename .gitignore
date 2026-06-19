@@ -1,6 +1,7 @@
 bin/
 obj/
 artifacts/
+ModUploader-win-x64/
 .vs/
 .idea/
 .godot/
@@ -12,5 +13,7 @@ local.props
 *.import
 *.tmp
 *.log
+workshop/*.local.json
+workshop/mod_id.txt
 
 AGENTS.md
