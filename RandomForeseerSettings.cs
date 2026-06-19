@@ -28,6 +28,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableEventOptionPrediction { get; set; } = true;
 
+    public bool EnableCrystalSphereClairvoyance { get; set; } = true;
+
     public int SlipperyBridgeRerollPreviewCount { get; set; } = 5;
 
     public bool EnablePotionCardPrediction { get; set; } = true;
@@ -65,6 +67,7 @@ internal static class RandomForeseerSettings
     private const string EnableRelicPickupPredictionKey = "enable_relic_pickup_prediction";
     private const string EnableRestSitePredictionKey = "enable_rest_site_prediction";
     private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
+    private const string EnableCrystalSphereClairvoyanceKey = "enable_crystal_sphere_clairvoyance";
     private const string SlipperyBridgeRerollPreviewCountKey = "slippery_bridge_reroll_preview_count";
     private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
     private const string EnablePotionGenerationPredictionKey = "enable_potion_generation_prediction";
@@ -149,6 +152,13 @@ internal static class RandomForeseerSettings
             DataKey,
             settings => settings.EnableEventOptionPrediction,
             (settings, value) => settings.EnableEventOptionPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableCrystalSphereClairvoyanceBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableCrystalSphereClairvoyance,
+            (settings, value) => settings.EnableCrystalSphereClairvoyance = value);
 
     private static readonly IModSettingsValueBinding<int> SlipperyBridgeRerollPreviewCountBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, int>(
@@ -251,6 +261,8 @@ internal static class RandomForeseerSettings
     public static bool EnableRestSitePrediction => EnableRestSitePredictionBinding.Read();
 
     public static bool EnableEventOptionPrediction => EnableEventOptionPredictionBinding.Read();
+
+    public static bool EnableCrystalSphereClairvoyance => EnableCrystalSphereClairvoyanceBinding.Read();
 
     public static int SlipperyBridgeRerollPreviewCount => Math.Clamp(SlipperyBridgeRerollPreviewCountBinding.Read(), 1, 10);
 
@@ -414,6 +426,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_event_option_prediction.description",
                         "When enabled, non-Ancient event option tooltips show immediate random results such as rewards, upgrades, and offered follow-up choices."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableCrystalSphereClairvoyanceKey,
+                    Text("toggle.enable_crystal_sphere_clairvoyance.label", "Enable Crystal Sphere clairvoyance"),
+                    EnableCrystalSphereClairvoyanceBinding,
+                    Text(
+                        "toggle.enable_crystal_sphere_clairvoyance.description",
+                        "When enabled, the Crystal Sphere minigame shows items through unrevealed fog."),
                     () => true);
 
                 section.AddIntSlider(

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 新增水晶球事件透视，可透过未揭开的迷雾查看小游戏中的物品位置和类型。<br>
+  Added Crystal Sphere clairvoyance, showing item locations and types through unrevealed fog in the minigame.
+
 ## v0.6.1
 
 ### fix
