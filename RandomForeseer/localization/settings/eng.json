@@ -48,6 +48,8 @@
   "toggle.enable_rest_site_prediction.description": "When enabled, rest-site option tooltips show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel.",
   "toggle.enable_event_option_prediction.label": "Predict event option results",
   "toggle.enable_event_option_prediction.description": "When enabled, non-Ancient event option tooltips show immediate random rewards, upgrades, and follow-up choices.",
+  "toggle.enable_crystal_sphere_clairvoyance.label": "Enable Crystal Sphere clairvoyance",
+  "toggle.enable_crystal_sphere_clairvoyance.description": "When enabled, the Crystal Sphere minigame shows items through unrevealed fog.",
   "slider.slippery_bridge_reroll_preview_count.label": "Slippery Bridge reroll previews",
   "slider.slippery_bridge_reroll_preview_count.description": "Controls how many future randomized cards to preview for Slippery Bridge's Hold On option.",
   "toggle.enable_ancient_event_debug_reroll.label": "Enable Ancient event debug reroll",

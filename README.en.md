@@ -23,6 +23,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Relic pickup effect prediction**: relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup.
 - **Rest-site result prediction**: shows random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel when hovering rest-site options.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
+- **Crystal Sphere clairvoyance**: shows item locations and types through unrevealed fog in the Crystal Sphere minigame.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened, and previews the discard pile order after shuffle during the player's turn.
 
 Each feature can be toggled independently from the mod settings page, and predictions can also be disabled globally for singleplayer or multiplayer. Fair mode is enabled by default and limits predictions to information obtainable through Save & Load.
@@ -168,6 +169,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict relic pickup effects | Controls whether relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup |
 | Predict rest-site results | Controls whether rest-site options show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel |
 | Predict event option results | Controls whether non-Ancient event options show immediate random results |
+| Enable Crystal Sphere clairvoyance | Controls whether the Crystal Sphere minigame shows items through unrevealed fog |
 | Slippery Bridge reroll previews | Controls how many future Hold On rerolls are previewed for Slippery Bridge, default 5 |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 | Predict shuffle order | Controls whether the Frozen Eye draw pile screen previews the discard pile order after shuffle |
