@@ -21,17 +21,18 @@
         <!-- 本机测试时 RitsuLib 包/构建逻辑会使用这个目录把 RitsuLib 部署到游戏 mods/STS2-RitsuLib。 -->
         <!-- Local test builds use this directory when RitsuLib package/build logic deploys RitsuLib to game mods/STS2-RitsuLib. -->
         <RitsuLibDeployDir Condition="'$(RitsuLibDeployDir)' == ''">$(Sts2Dir)\mods\STS2-RitsuLib</RitsuLibDeployDir>
+        <RitsuLibAutoCopy Condition="'$(RitsuLibAutoCopy)' == ''">false</RitsuLibAutoCopy>
         <CopyModOnBuild Condition="'$(CopyModOnBuild)' == ''">true</CopyModOnBuild>
         <RunPckExport Condition="'$(RunPckExport)' == '' and '$(DesignTimeBuild)' != 'true'">true</RunPckExport>
         <RunPckExport Condition="'$(RunPckExport)' == ''">false</RunPckExport>
-        <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">true</SyncManifestDependenciesOnBuild>
+        <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">false</SyncManifestDependenciesOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all"/>
         <PackageReference Include="Nothing.STS2RitsuLib.ModAnalyzers" Version="*" PrivateAssets="all"/>
         <!-- 主线 RitsuLib（STS2 0.105.0+），跟踪 NuGet 最新版本。兼容分支和 manifest 版本对齐规则见 README。 -->
-        <PackageReference Include="STS2.RitsuLib" Version="*" GeneratePathProperty="true"/>
+        <PackageReference Include="STS2.RitsuLib" Version="0.4.9" GeneratePathProperty="true"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -84,7 +85,7 @@
     </Target>
 
     <Target Name="SyncManifestDependencies" AfterTargets="Build" BeforeTargets="CopyMod"
-            Condition="'$(SyncManifestDependenciesOnBuild)' != 'false' and '$(DesignTimeBuild)' != 'true' and '$(PkgSTS2_RitsuLib)' != ''">
+            Condition="'$(SyncManifestDependenciesOnBuild)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(PkgSTS2_RitsuLib)' != ''">
         <PropertyGroup>
             <RitsuLibVersion>$([System.IO.Path]::GetFileName('$(PkgSTS2_RitsuLib)'))</RitsuLibVersion>
             <ManifestFile>$(MSBuildProjectDirectory)\$(MSBuildProjectName).json</ManifestFile>
