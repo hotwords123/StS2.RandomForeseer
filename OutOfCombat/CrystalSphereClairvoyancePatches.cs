@@ -7,12 +7,12 @@ namespace RandomForeseer.OutOfCombat;
 [HarmonyPatch(typeof(NCrystalSphereMask), nameof(NCrystalSphereMask._Ready))]
 internal static class CrystalSphereClairvoyancePatch
 {
-    private const float HiddenFogAlpha = 0.25f;
+    private const float HiddenFogAlpha = 0.4f;
 
     private static void Postfix(NCrystalSphereMask __instance)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(
-                RandomForeseerSettings.EnableCrystalSphereClairvoyance))
+            RandomForeseerSettings.EnableCrystalSphereClairvoyance))
         {
             return;
         }
