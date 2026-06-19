@@ -6,6 +6,8 @@ A random-outcome prediction mod for Slay the Spire 2. It previews selected RNG r
 
 Changelog: [CHANGELOG.md](CHANGELOG.md)
 
+Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedetails/?id=3747531952)
+
 ## Features
 
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform selection grid hover tips and confirmation previews.

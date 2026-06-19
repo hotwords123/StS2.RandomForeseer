@@ -6,6 +6,8 @@
 
 更新日志：[CHANGELOG.md](CHANGELOG.md)
 
+Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/filedetails/?id=3747531952)
+
 ## 功能
 
 - **预测牌组变化结果**：在变牌选择网格悬停提示和确认预览中显示当前随机数状态将生成的确切卡牌。
