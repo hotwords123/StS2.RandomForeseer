@@ -11,7 +11,7 @@
   "transform_bundle_explanation.title": "Prediction",
   "transform_bundle_explanation.description": "Each pack follows the order cards are chosen, showing all possible results when a deck card is transformed in that position.",
   "transform_selection_selected.title": "Prediction",
-  "transform_selection_selected.description": "This card will transform into [gold]{TransformedCard}[/gold].",
+  "transform_selection_selected.description": "This card will transform into [gold]{TransformedCard}[/gold].{HasOtherTransformedCards:\nIf you change the selection order, this card may also transform into {OtherTransformedCards:[gold]{}[/gold]|, |, or | or }.|}",
   "transform_selection_unselected.title": "Prediction",
-  "transform_selection_unselected.description": "If you choose this card now, it will transform into [gold]{TransformedCard}[/gold]."
+  "transform_selection_unselected.description": "If you choose this card now, it will transform into [gold]{TransformedCard}[/gold].{HasOtherTransformedCards:\nIf you change the selection order, this card may also transform into {OtherTransformedCards:[gold]{}[/gold]|, |, or | or }.|}"
 }

@@ -561,6 +561,8 @@ internal static class PredictionCardHoverTipLayout
 [HarmonyPatch(typeof(NHoverTipCardContainer))]
 internal static class PredictionCardHoverTipContainerPatches
 {
+    private static readonly Color DimmedCardModulate = new(0.6f, 0.6f, 0.6f);
+
     [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
     [HarmonyPrefix]
     private static bool AddPredictionCardBundleTip(NHoverTipCardContainer __instance, CardHoverTip cardTip)
@@ -579,13 +581,17 @@ internal static class PredictionCardHoverTipContainerPatches
     [HarmonyPostfix]
     private static void MarkPredictionCardTip(NHoverTipCardContainer __instance, CardHoverTip cardTip)
     {
-        if (cardTip is not PredictionCardHoverTip)
+        if (cardTip is not PredictionCardHoverTip predictionTip)
         {
             return;
         }
 
         var control = __instance.GetChildren().OfType<Control>().LastOrDefault();
         PredictionCardHoverTipLayoutState.MarkPredictionCard(control);
+        if (predictionTip.IsDimmed)
+        {
+            control?.GetNode<NCard>("%Card").Modulate = DimmedCardModulate;
+        }
     }
 
     [HarmonyPatch(nameof(NHoverTipCardContainer.LayoutResizeAndReposition))]

@@ -137,8 +137,10 @@ internal static class PredictionHoverTips
     }
 }
 
-internal class PredictionCardHoverTip(CardModel card) : CardHoverTip(card), IHoverTip
+internal class PredictionCardHoverTip(CardModel card, bool isDimmed = false) : CardHoverTip(card), IHoverTip
 {
+    public bool IsDimmed { get; } = isDimmed;
+
     bool IHoverTip.IsInstanced => true;
 }
 

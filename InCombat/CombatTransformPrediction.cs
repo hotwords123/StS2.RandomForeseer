@@ -69,59 +69,12 @@ internal static class CombatTransformPrediction
 
         public IReadOnlyList<IHoverTip> GetHoverTips(CardModel hoveredCard)
         {
-            var replacement = PredictReplacement(hoveredCard);
-            if (replacement == null)
-            {
-                return [];
-            }
-
-            var tipKey = Hand._selectedCards.Contains(hoveredCard)
-                ? "transform_selection_selected"
-                : "transform_selection_unselected";
-            var textTips = PredictionHoverTips.Text(
-                tipKey,
-                description => description.Add("TransformedCard", replacement.Title));
-
-            return textTips
-                .Concat(PredictionHoverTips.Cards([replacement]))
-                .ToList();
-        }
-
-        private CardModel? PredictReplacement(CardModel hoveredCard)
-        {
-            var predictionSequence = GetPredictionSequence(hoveredCard);
-
-            var previewRng = PredictionUtils.CloneRng(realRng);
-            CardModel? hoveredReplacement = null;
-            foreach (var card in predictionSequence)
-            {
-                var replacement = PredictionUtils.PredictTransformResult(card, previewRng, isInCombat: true);
-                if (card == hoveredCard)
-                {
-                    hoveredReplacement = replacement;
-                }
-            }
-
-            return hoveredReplacement;
-        }
-
-        private IReadOnlyList<CardModel> GetPredictionSequence(CardModel hoveredCard)
-        {
-            var selectedCards = Hand._selectedCards.ToList();
-            var hoveredSelectionIndex = selectedCards.IndexOf(hoveredCard);
-            if (hoveredSelectionIndex >= 0)
-            {
-                return selectedCards.Take(hoveredSelectionIndex + 1).ToList();
-            }
-
-            if (selectedCards.Count >= Hand._prefs.MaxSelect && selectedCards.Count > 0)
-            {
-                selectedCards[^1] = hoveredCard;
-                return selectedCards;
-            }
-
-            selectedCards.Add(hoveredCard);
-            return selectedCards;
+            return TransformPrediction.GetHoverTips(
+                hoveredCard,
+                Hand._selectedCards,
+                Hand._prefs.MaxSelect,
+                realRng,
+                isInCombat: true);
         }
     }
 }

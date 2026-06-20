@@ -11,7 +11,7 @@
   "transform_bundle_explanation.title": "预测",
   "transform_bundle_explanation.description": "每组牌依次对应选择的先后顺序，展示该位置能变化得到的所有牌。",
   "transform_selection_selected.title": "预测",
-  "transform_selection_selected.description": "这张牌将变化为[gold]{TransformedCard}[/gold]。",
+  "transform_selection_selected.description": "这张牌将变化为[gold]{TransformedCard}[/gold]。{HasOtherTransformedCards:\n如果改变选择顺序，这张牌还可能变化为{OtherTransformedCards:[gold]{}[/gold]|、|或|或}。|}",
   "transform_selection_unselected.title": "预测",
-  "transform_selection_unselected.description": "如果现在选择这张牌，它将变化为[gold]{TransformedCard}[/gold]。"
+  "transform_selection_unselected.description": "如果现在选择这张牌，它将变化为[gold]{TransformedCard}[/gold]。{HasOtherTransformedCards:\n如果改变选择顺序，这张牌还可能变化为{OtherTransformedCards:[gold]{}[/gold]|、|或|或}。|}"
 }

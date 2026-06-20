@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.Common;
@@ -26,6 +27,17 @@ internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview
     public void Reset()
     {
         _previewRng = PredictionUtils.CloneRng(realRng);
+    }
+
+    public IReadOnlyList<IHoverTip> GetHoverTips(CardModel card, IEnumerable<CardModel> selectedCards, int maxSelect)
+    {
+        return TransformPrediction.GetHoverTips(
+            card,
+            selectedCards,
+            maxSelect,
+            _previewRng,
+            isInCombat: false,
+            mapReplacement: replacement => PredictionUtils.ToUpgradedCardIf(replacement, upgradePreview));
     }
 
     public CardTransformation Predict(CardModel original)
