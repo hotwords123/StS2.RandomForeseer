@@ -81,6 +81,55 @@ function Copy-RequiredFile {
     Copy-Item -LiteralPath $SourcePath -Destination $DestinationPath -Force
 }
 
+function Set-JsonProperty {
+    param(
+        [Parameter(Mandatory = $true)]
+        [psobject]$Object,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+
+        [object]$Value
+    )
+
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        $Object | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
+        return
+    }
+
+    $property.Value = $Value
+}
+
+function Get-OrCreateJsonPropertyObject {
+    param(
+        [Parameter(Mandatory = $true)]
+        [psobject]$Object,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Name
+    )
+
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property -or $null -eq $property.Value) {
+        $value = [pscustomobject]@{}
+        Set-JsonProperty $Object $Name $value
+        return $value
+    }
+
+    return $property.Value
+}
+
+function Get-TextFileWithoutTrailingNewline {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    if (!(Test-Path $Path)) {
+        throw "Required text file not found: $Path"
+    }
+
+    return (Get-Content $Path -Raw).TrimEnd("`r", "`n")
+}
+
 if (!(Test-Path $manifestPath)) {
     throw "Manifest not found: $manifestPath"
 }
@@ -162,6 +211,18 @@ if ($packageManifest.has_pck) {
 
 $workshop = Get-Content $workshopJsonSource -Raw | ConvertFrom-Json
 $workshop.changeNote = Get-ChangelogSection $notesFile "v$Version"
+$localized = Get-OrCreateJsonPropertyObject $workshop "localized"
+
+$localizedDescriptions = @{
+    english = Join-Path $sourceDir "description.en.txt"
+    schinese = Join-Path $sourceDir "description.txt"
+}
+
+foreach ($entry in $localizedDescriptions.GetEnumerator()) {
+    $languageConfig = Get-OrCreateJsonPropertyObject $localized $entry.Key
+    Set-JsonProperty $languageConfig "description" (Get-TextFileWithoutTrailingNewline $entry.Value)
+}
+
 $workshop | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $workspacePath "workshop.json") -Encoding utf8
 
 Copy-RequiredFile -SourcePath $imageSource -DestinationPath (Join-Path $workspacePath "image.png")

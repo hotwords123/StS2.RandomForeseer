@@ -93,16 +93,30 @@ if ([string]::IsNullOrWhiteSpace($WorkshopItemId) -and $null -ne $config) {
     $WorkshopItemId = Get-OptionalString $config "itemId"
 }
 
-if ([string]::IsNullOrWhiteSpace($UploaderPath)) {
-    $UploaderPath = "ModUploader-win-x64/ModUploader.exe"
-}
-
 if ([string]::IsNullOrWhiteSpace($WorkspaceDir)) {
     $WorkspaceDir = "artifacts/workshop"
 }
 
+if ([string]::IsNullOrWhiteSpace($UploaderPath)) {
+    throw "Uploader path is not configured. Set uploaderPath in workshop/config.local.json, or pass -UploaderPath."
+}
+
 if (![System.IO.Path]::IsPathRooted($UploaderPath)) {
     $UploaderPath = Join-Path $root $UploaderPath
+}
+
+if ((Test-Path $UploaderPath) -and (Get-Item -LiteralPath $UploaderPath).PSIsContainer) {
+    $uploaderDirectory = $UploaderPath
+    $uploaderCandidates = @(
+        (Join-Path $uploaderDirectory "bin/Release/net8.0/ModUploader.exe"),
+        (Join-Path $uploaderDirectory "bin/Debug/net8.0/ModUploader.exe"),
+        (Join-Path $uploaderDirectory "ModUploader.exe")
+    )
+
+    $UploaderPath = $uploaderCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ([string]::IsNullOrWhiteSpace($UploaderPath)) {
+        $UploaderPath = $uploaderCandidates[0]
+    }
 }
 
 if (![System.IO.Path]::IsPathRooted($WorkspaceDir)) {
