@@ -43,7 +43,6 @@ internal static class PredictionUtils
     {
         card = (CardModel)card.MutableClone();
         card.Owner = player;
-        card.AfterCreated();
         return card;
     }
 
