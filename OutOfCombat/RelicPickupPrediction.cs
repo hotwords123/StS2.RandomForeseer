@@ -58,7 +58,7 @@ internal static class RelicPickupPrediction
                     RewardPagePredictionContext.HasOtherPendingRelicReward(silkenTress)
                         ? PredictionHoverTips.Text("silken_tress_reward_offset")
                         : PredictSilkenTressRewardTips(player, silkenTress),
-                SmallCapsule when IsSingleplayerUnfairPredictionAllowed() =>
+                SmallCapsule =>
                     PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
 
                 // Darv

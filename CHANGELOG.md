@@ -4,11 +4,16 @@
 
 ### feat
 
-- 新增水晶球事件透视，可透过未揭开的迷雾查看小游戏中的物品位置和类型。<br>
-  Added Crystal Sphere clairvoyance, showing item locations and types through unrevealed fog in the minigame.
+- 新增水晶球事件透视，可透过未揭开的迷雾查看小游戏中的物品位置和类型。(@GuMengSama)<br>
+  Added Crystal Sphere clairvoyance, showing item locations and types through unrevealed fog in the minigame. (@GuMengSama)
 
 - 改进局内和局外变牌悬停预测，会按选择位置显示同一张牌的所有可能结果，并将非当前位置结果变暗。<br>
   Improved in-combat and out-of-combat transform hover prediction to show all position results for the hovered card, dimming non-current positions.
+
+### fix
+
+- 修复小型扭蛋预测错误地受公平模式限制的问题。<br>
+  Fixed Small Capsule prediction being incorrectly gated by fair mode.
 
 ## v0.6.1
 
