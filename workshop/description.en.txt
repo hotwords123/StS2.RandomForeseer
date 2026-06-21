@@ -29,6 +29,33 @@ You can manage each prediction feature from the settings page provided by RitsuL
 [*]When [b]fair mode[/b] is enabled, some Ancient relics that cannot be Save & Loaded in singleplayer, such as [b]New Leaf[/b], [b]Leafy Poultice[/b], and the curse from [b]Neow's Bones[/b], will not show predictions. [b]Silken Tress[/b] will not reveal the card choice from the next reward, and card-generation potions viewed outside combat will not preview the cards they would generate in combat.
 [/list]
 
+[h2]FAQ[/h2]
+
+Here are some common questions. Please try these solutions before reporting an issue.
+
+[b]Q:[/b] Is multiplayer supported? Does everyone in multiplayer need to install it?
+[b]A:[/b] Multiplayer is supported, and only you need to install it. Only players with the mod installed can see prediction results; everyone else is unaffected.
+
+[b]Q:[/b] After installing the mod, all my saves are gone!
+[b]A:[/b] Vanilla saves and modded saves are separate. You can use another mod, such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700]Better Save Slots[/url], to import vanilla saves. You only need to import them once when first installing mods, then you can continue playing from the modded save.
+
+[b]Q:[/b] Where is the mod settings page?
+[b]A:[/b] Open [b]Game Settings[/b], scroll to the bottom, open [b]Mod Settings (RitsuLib)[/b], then find [b]Random Foreseer[/b] in the list on the left after it finishes loading. All settings are available there.
+
+[b]Q:[/b] I installed the mod, but I still cannot see predictions.
+[b]A:[/b] First, make sure the required RitsuLib dependency is installed and enabled. You can confirm this from the settings page mentioned above. Then try temporarily disabling other mods, except RitsuLib, to rule out mod conflicts. If the issue remains, please report it in the Steam discussions or GitHub Issues and include your game log ([url=https://steamcommunity.com/workshop/filedetails/?id=3747602295]how to find logs?[/url]).
+
+[b]Q:[/b] Why does a prediction differ from the actual result?
+[b]A:[/b] There are many possible causes, including but not limited to: mods that change vanilla content, teammates advancing RNG first in multiplayer, secondary effects from some cards advancing RNG, or game updates breaking predictions. If you can reproduce a specific issue, please report it with your game log and reproduction steps.
+
+[b]Q:[/b] Why can't [b]Leafy Poultice[/b] / the curse from [b]Neow's Bones[/b] / [b]Pandora's Box[/b] / [b]Astrolabe[/b], and so on be predicted?
+[b]A:[/b] In singleplayer, Save & Load cannot be used to reveal these Ancient relics' results ahead of time, so predictions only show after disabling [b]fair mode[/b] in settings.
+
+[b]Q:[/b] Why are there no predictions for the Crystal Sphere event?
+[b]A:[/b] To avoid duplicating existing work, you can use [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747839337]Omniscient Crystal Sphere[/url], which provides very detailed predictions for the Crystal Sphere event.
+
+[b]If none of the above solves your issue, you can report it in the Steam discussions or GitHub Issues. Please make sure to include your game log.[/b]
+
 [h2]Credits[/h2]
 
 Thanks to the friends who played multiplayer with me. They helped test the prototype mod and suggested many improvements.
