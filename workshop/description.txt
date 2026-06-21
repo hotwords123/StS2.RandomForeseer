@@ -51,8 +51,8 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 [b]Q:[/b] 为什么没法预测[b]树叶药膏[/b] / [b]涅奥骨骰[/b]的诅咒 / [b]潘多拉魔盒[/b] / [b]星盘[/b]等等？
 [b]A:[/b] 这些先古遗物在单人模式下无法 SL 得知结果，需要在设置中关闭[b]公平模式[/b]才能显示预测。
 
-[b]Q:[/b] 为什么水晶球事件没有预测？
-[b]A:[/b] 本着不重复造轮子的精神，可以使用 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747839337]Omniscient Crystal Sphere[/url] 这个 Mod，它提供了非常详尽的水晶球事件预测。
+[b]Q:[/b] 水晶球事件支持更详细的预测吗？
+[b]A:[/b] 目前支持透视迷雾后的物品位置和类型。如果需要更详尽的预测，可以使用 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747839337]这个 Mod[/url]。
 
 [b]如果以上都无法解决你的问题，可以在 Steam 讨论区或 GitHub Issues 中反馈。反馈时请务必附上游戏日志。[/b]
 
