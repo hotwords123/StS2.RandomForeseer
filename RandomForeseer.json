@@ -4,7 +4,7 @@
   "pck_name": "RandomForeseer",
   "author": "hotwords123",
   "description": "预测随机，预见未来。\nPredicts random outcomes and foresees the future.",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "has_pck": true,
   "has_dll": true,
   "affects_gameplay": false,
