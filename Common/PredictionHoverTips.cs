@@ -20,18 +20,15 @@ internal static class PredictionHoverTips
         bool isVanillaCardBundle = false,
         bool isTransform = false)
     {
-        var bundleList = bundles
-            .Where(bundle => bundle.Count > 0)
-            .Select(bundle => (IReadOnlyList<CardModel>)(isVanillaCardBundle
-                ? bundle.ToList()
-                : bundle.Reverse().ToList()))
-            .ToList();
+        var bundleList = bundles.Where(bundle => bundle.Count > 0).ToList();
 
         var tips = bundleList.Count switch
         {
             0 => [],
             1 => Cards(bundleList[0]),
-            _ => [(IHoverTip)new PredictionCardBundleHoverTip(bundleList)]
+            _ => [(IHoverTip)new PredictionCardBundleHoverTip(isVanillaCardBundle
+                ? bundleList
+                : bundleList.Select(bundle => bundle.Reverse().ToList()).ToList())]
         };
 
         return isTransform && bundleList.Count > 1

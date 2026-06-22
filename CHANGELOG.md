@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复单组卡牌预测顺序被错误反转的问题。<br>
+  Fixed single-bundle card predictions being shown in reversed order.
+
 ## v0.6.2
 
 ### feat
