@@ -50,7 +50,7 @@ internal static class TinkerTimePrediction
         };
         var cards = chosen.Select(rider =>
         {
-            var card = (MadScience)ModelDb.Card<MadScience>().ToMutable();
+            var card = (MadScience)PredictionUtils.CreateCard(ModelDb.Card<MadScience>(), tinkerTime.Owner!);
             card.TinkerTimeType = cardType;
             card.TinkerTimeRider = rider;
             return (CardModel)card;

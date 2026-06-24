@@ -150,7 +150,7 @@ internal static class CardRewardPrediction
                 $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
         }
 
-        return canonical.ToMutable();
+        return PredictionUtils.CreateCard(canonical, player);
     }
 
     private static CardRarity RollForRarity(
