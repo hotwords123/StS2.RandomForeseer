@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 战斗中支持对三选一界面的卡牌也显示预测。<br>
+  Added prediction for cards shown in choose-one screens during combat.
+
 ### fix
 
 - 修复单组卡牌预测顺序被错误反转的问题。<br>

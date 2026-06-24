@@ -45,16 +45,32 @@ internal static class CombatCardPrediction
 
     private static bool ShouldShowCombatPlayPrediction(CardModel card)
     {
-        if (card.Pile?.Type != PileType.Hand || card.Owner.Creature.CombatState == null)
+        if (card.Owner?.Creature.CombatState == null)
         {
             return false;
         }
 
-        if (NPlayerHand.Instance is not { } hand || hand.GetCardHolder(card) is not { } localHolder)
+        if (ChooseACardPredictionContext.Contains(card))
         {
+            // Cards shown by NChooseACardSelectionScreen are generated mutable cards with an owner,
+            // but they are not in any combat pile yet. Treat them like cards that will enter hand
+            // after the player chooses them, so they can show the same play predictions as hand cards.
             return true;
         }
 
-        return hand.CurrentMode == NPlayerHand.Mode.Play && localHolder is NHandCardHolder;
+        if (card.Pile is { Type: PileType.Hand })
+        {
+            if (NPlayerHand.Instance is { } hand && hand.GetCardHolder(card) is { } localHolder)
+            {
+                // For the local hand UI, only show play predictions in normal play mode, not selection modes.
+                return hand.CurrentMode == NPlayerHand.Mode.Play && localHolder is NHandCardHolder;
+            }
+
+            // If no local holder exists, fall back to allowing prediction. This preserves existing
+            // behavior for non-local or integration-provided hand card views.
+            return true;
+        }
+
+        return false;
     }
 }

@@ -187,7 +187,7 @@ internal static class CombatCardGenerationPrediction
 
     private static IReadOnlyList<CardModel> PredictLargesseCards(CardModel source, Rng previewRng)
     {
-        if (source.CombatState == null)
+        if (source.Owner.Creature.CombatState == null)
         {
             return [];
         }
@@ -200,7 +200,7 @@ internal static class CombatCardGenerationPrediction
 
     private static IEnumerable<Creature> GetLargesseTargets(CardModel source)
     {
-        return source.CombatState?.PlayerCreatures
+        return source.Owner.Creature.CombatState?.PlayerCreatures
             .Where(creature => IsValidLargesseTarget(source, creature)) ?? [];
     }
 
