@@ -65,7 +65,8 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        context.AddToHand(new PredictedCard(context.MutablePreviewCard.CreateClone()));
+        var copy = (CardModel)context.PreviewCard.MutableClone();
+        context.AddToHand(PredictedCard.FromGenerated(copy));
         state.WasUsedThisCombat = true;
     }
 

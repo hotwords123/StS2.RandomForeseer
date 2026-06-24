@@ -49,7 +49,7 @@ internal static class AfterShuffleHook
 
         var soot = PredictionUtils.CreateCard(ModelDb.Card<Soot>(), context.Player);
         var position = context.ShuffleRng.NextInt(context.DrawPileCards.Count + 1);
-        context.DrawPileCards.Insert(position, new PredictedCard(soot));
+        context.DrawPileCards.Insert(position, PredictedCard.FromGenerated(soot));
     }
 
     private static void HandleStratagemPower(StratagemPower power, AfterShuffleHookContext context)

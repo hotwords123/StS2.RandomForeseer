@@ -17,6 +17,11 @@ internal sealed class PredictedCard(CardModel original) : IComparable<PredictedC
         return cards.Select(card => new PredictedCard(card)).ToList();
     }
 
+    public static PredictedCard FromGenerated(CardModel card)
+    {
+        return new PredictedCard(card) { _preview = card };
+    }
+
     public int CompareTo(PredictedCard? other)
     {
         return Original.CompareTo(other?.Original);
