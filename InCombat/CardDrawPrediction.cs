@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -9,10 +8,7 @@ internal static class CardDrawPrediction
 {
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCardDrawPrediction) ||
-            !card.IsMutable ||
-            card.Pile?.Type != PileType.Hand ||
-            card.Owner.Creature.CombatState == null)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCardDrawPrediction))
         {
             return [];
         }

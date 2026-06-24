@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
@@ -21,10 +20,7 @@ internal static class PotionGenerationPrediction
 
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionGenerationPrediction) ||
-            !card.IsMutable ||
-            card.Pile?.Type != PileType.Hand ||
-            card.Owner.Creature.CombatState == null)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionGenerationPrediction))
         {
             return [];
         }

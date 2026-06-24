@@ -12,10 +12,7 @@ internal static class CombatCardSelectionPrediction
 {
     public static CombatCardSelectionPredictionResult GetPrediction(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction) ||
-            !card.IsMutable ||
-            card.Pile?.Type != PileType.Hand ||
-            card.Owner.Creature.CombatState == null)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction))
         {
             return CombatCardSelectionPredictionResult.Empty;
         }

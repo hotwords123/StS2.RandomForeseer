@@ -12,10 +12,7 @@ internal static class AutoPlayFromDrawPilePrediction
 {
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableAutoPlayFromDrawPilePrediction) ||
-            !card.IsMutable ||
-            card.Pile?.Type != PileType.Hand ||
-            card.Owner.Creature.CombatState == null)
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableAutoPlayFromDrawPilePrediction))
         {
             return [];
         }
