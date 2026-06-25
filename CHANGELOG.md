@@ -7,6 +7,9 @@
 - 战斗中支持对三选一界面的卡牌也显示预测。<br>
   Added prediction for cards shown in choose-one screens during combat.
 
+- 真理石板选项现在会同时预览后续随机升级结果，直到最后一次升级所有卡牌之前。<br>
+  Tablet of Truth options now also preview later random upgrades until before the final upgrade-all choice.
+
 ### fix
 
 - 修复单组卡牌预测顺序被错误反转的问题。<br>
