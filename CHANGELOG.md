@@ -15,6 +15,9 @@
 - 修复单组卡牌预测顺序被错误反转的问题。<br>
   Fixed single-bundle card predictions being shown in reversed order.
 
+- 修复局外变牌预测中，玩家返回重新选择时预测错误的问题。<br>
+  Fixed incorrect out-of-combat transform predictions after returning to reselect cards.
+
 ## v0.6.2
 
 ### feat

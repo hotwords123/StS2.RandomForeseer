@@ -35,7 +35,7 @@ internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview
             card,
             selectedCards,
             maxSelect,
-            _previewRng,
+            realRng,
             isInCombat: false,
             mapReplacement: replacement => PredictionUtils.ToUpgradedCardIf(replacement, upgradePreview));
     }

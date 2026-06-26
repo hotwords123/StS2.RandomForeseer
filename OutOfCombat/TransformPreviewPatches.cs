@@ -98,14 +98,9 @@ internal static class DeckTransformSelectScreenResetPredictionPatch
 {
     private static void Prefix(NDeckTransformSelectScreen __instance)
     {
-        if (__instance._cardToTransformation is not Func<CardModel, CardTransformation> predictor)
-        {
-            return;
-        }
-
         // The same selection screen delegate can be reused after canceling the preview.
         // Resetting here keeps the cloned RNG aligned with the real RNG for each preview opening.
-        (predictor.Target as TransformPreviewPredictor)?.Reset();
+        (__instance._cardToTransformation.Target as TransformPreviewPredictor)?.Reset();
     }
 }
 
