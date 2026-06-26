@@ -62,7 +62,7 @@ function Get-ChangelogSection {
     }
 
     $body = $body -replace '(?i)<br\s*/?>\r?\n([ \t]+)', "`n`$1"
-    return $body
+    return "## $Tag`n`n$body"
 }
 
 function Copy-RequiredFile {
