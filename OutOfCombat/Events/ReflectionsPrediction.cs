@@ -23,13 +23,11 @@ internal static class ReflectionsPrediction
     private static IReadOnlyList<CardModel> PredictTouchAMirror(IReadOnlyList<CardModel> deckCards, Rng realRng)
     {
         var rng = PredictionUtils.CloneRng(realRng);
-        var deckState = deckCards
-            .Select(card => (CardModel)card.MutableClone())
-            .ToList();
+        var deckState = PredictedCard.FromCards(deckCards);
         var previews = new List<CardModel>();
 
         var upgradedCards = deckState
-            .Where(card => card.IsUpgraded)
+            .Where(card => card.Preview.IsUpgraded)
             .ToList();
         for (var i = 0; i < 2 && upgradedCards.Count > 0; i++)
         {
@@ -40,12 +38,12 @@ internal static class ReflectionsPrediction
             }
 
             upgradedCards.Remove(card);
-            card.DowngradeInternal();
-            previews.Add((CardModel)card.MutableClone());
+            card.MutablePreview.DowngradeInternal();
+            previews.Add(card.Preview);
         }
 
         var upgradableCards = deckState
-            .Where(card => card.IsUpgradable)
+            .Where(card => card.Preview.IsUpgradable)
             .ToList();
         for (var i = 0; i < 4 && upgradableCards.Count > 0; i++)
         {
@@ -56,7 +54,7 @@ internal static class ReflectionsPrediction
             }
 
             upgradableCards.Remove(card);
-            previews.Add(PredictionUtils.ToUpgradedCard(card));
+            previews.Add(PredictionUtils.ToUpgradedCard(card.Preview));
         }
 
         return previews;
