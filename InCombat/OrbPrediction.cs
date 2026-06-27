@@ -36,10 +36,10 @@ internal static class OrbPrediction
                 SimulateChaos(chaos, simulator, extraTips);
                 break;
             case Chill:
-                SimulateRepeatedChannel<FrostOrb>(card, simulator, simulator.State.GetHittableOpponentsOf(card.Owner.Creature).Count);
+                simulator.OrbChannel<FrostOrb>(card.Owner, simulator.State.GetHittableOpponentsOf(card.Owner.Creature).Count);
                 break;
             case ConsumingShadow:
-                SimulateRepeatedChannel<DarkOrb>(card, simulator, card.DynamicVars.Repeat.IntValue);
+                simulator.OrbChannel<DarkOrb>(card.Owner, card.DynamicVars.Repeat.IntValue);
                 // Vanilla applies ConsumingShadowPower after channeling, which is not simulated here.
                 break;
             case Coolheaded:
@@ -50,24 +50,24 @@ internal static class OrbPrediction
                 SimulateDarkness(darkness, simulator);
                 break;
             case Dualcast:
-                SimulateRepeatedEvokeNext(card, simulator, 2);
+                simulator.OrbEvokeNext(card.Owner, repeat: 2);
                 break;
             case Fusion:
                 simulator.OrbChannel<PlasmaOrb>(card.Owner);
                 break;
             case Glacier:
                 simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
-                SimulateRepeatedChannel<FrostOrb>(card, simulator, 2);
+                simulator.OrbChannel<FrostOrb>(card.Owner, 2);
                 break;
             case Glasswork:
                 simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
                 simulator.OrbChannel<GlassOrb>(card.Owner);
                 break;
-            case MultiCast multiCast:
-                SimulateRepeatedEvokeNext(multiCast, simulator, GetXValue(multiCast) + (multiCast.IsUpgraded ? 1 : 0));
+            case MultiCast:
+                simulator.OrbEvokeNext(card.Owner, repeat: GetXValue(card) + (card.IsUpgraded ? 1 : 0));
                 break;
-            case Quadcast quadcast:
-                SimulateRepeatedEvokeNext(quadcast, simulator, quadcast.DynamicVars.Repeat.IntValue);
+            case Quadcast:
+                simulator.OrbEvokeNext(card.Owner, repeat: card.DynamicVars.Repeat.IntValue);
                 break;
             case Rainbow:
                 simulator.OrbChannel<LightningOrb>(card.Owner);
@@ -85,11 +85,11 @@ internal static class OrbPrediction
                 }
                 // Vanilla applies SpinnerPower after channeling, which is not simulated here.
                 break;
-            case Tempest tempest:
-                SimulateRepeatedChannel<LightningOrb>(tempest, simulator, GetXValue(tempest) + (tempest.IsUpgraded ? 1 : 0));
+            case Tempest:
+                simulator.OrbChannel<LightningOrb>(card.Owner, GetXValue(card) + (card.IsUpgraded ? 1 : 0));
                 break;
             case Voltaic voltaic:
-                SimulateRepeatedChannel<LightningOrb>(voltaic, simulator, GetVoltaicChannelCount(voltaic));
+                simulator.OrbChannel<LightningOrb>(voltaic.Owner, GetVoltaicChannelCount(voltaic));
                 break;
             case Zap:
                 simulator.OrbChannel<LightningOrb>(card.Owner);
@@ -118,7 +118,8 @@ internal static class OrbPrediction
         var generatedOrbs = new List<OrbModel>();
         for (var i = 0; i < chaos.DynamicVars.Repeat.IntValue; i++)
         {
-            if (simulator.OrbChannelRandom(chaos.Owner) is { } orb)
+            var orb = OrbModel.GetRandomOrb(simulator.Rng.CombatOrbGeneration).ToMutable();
+            if (simulator.OrbChannel(chaos.Owner, orb))
             {
                 generatedOrbs.Add(orb);
             }
@@ -147,34 +148,6 @@ internal static class OrbPrediction
             {
                 simulator.OrbPassive(darkOrb);
             }
-        }
-    }
-
-    private static void SimulateRepeatedEvokeNext(
-        CardModel card,
-        CombatPredictionSimulator simulator,
-        int count)
-    {
-        if (card.Owner.PlayerCombatState?.OrbQueue.Orbs.Count <= 0 || count <= 0)
-        {
-            return;
-        }
-
-        for (var i = 0; i < count; i++)
-        {
-            simulator.OrbEvokeNext(card.Owner, dequeue: i == count - 1);
-        }
-    }
-
-    private static void SimulateRepeatedChannel<T>(
-        CardModel card,
-        CombatPredictionSimulator simulator,
-        int count)
-        where T : OrbModel
-    {
-        for (var i = 0; i < count; i++)
-        {
-            simulator.OrbChannel<T>(card.Owner);
         }
     }
 
