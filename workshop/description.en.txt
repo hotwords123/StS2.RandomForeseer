@@ -67,7 +67,7 @@ Before reporting, [b]please make sure the issue still happens after disabling al
 For mod loading failures, broken functionality, conflict errors, and similar issues, please include the complete game log.
 For incorrect prediction results, please make sure you can reproduce the issue and describe the scenario and steps in full. A save file is also helpful.
 
-[b]How to find logs:[/b] Press [b]~[/b] in the game to open the console, enter [b]open log[/b] to open the log folder, and attach [b]godot.log[/b].
+[b]How to find logs:[/b] Press [b]~[/b] in the game to open the console, enter [b]open logs[/b] to open the log folder, and attach [b]godot.log[/b].
 [b]How to find saves:[/b] Press [b]~[/b] in the game to open the console, enter [b]open saves[/b] to open the save folder, and attach [b]current_run.save[/b] for singleplayer, or [b]current_run_mp.save[/b] for multiplayer if you are the host.
 
 [b]Without logs or precise information, it will be difficult to investigate the issue.[/b]
