@@ -29,25 +29,64 @@ internal static class OrbPrediction
 
         switch (card)
         {
+            // TODO: Add support for direct Channel/Evoke cards:
+            // BallLightning, ColdSnap, IceLance, Ignition, MeteorStrike, Null, Refract, Shatter.
+
             case Chaos chaos:
                 SimulateChaos(chaos, simulator, extraTips);
+                break;
+            case Chill:
+                SimulateRepeatedChannel<FrostOrb>(card, simulator, simulator.State.GetHittableOpponentsOf(card.Owner.Creature).Count);
+                break;
+            case ConsumingShadow:
+                SimulateRepeatedChannel<DarkOrb>(card, simulator, card.DynamicVars.Repeat.IntValue);
+                // Vanilla applies ConsumingShadowPower after channeling, which is not simulated here.
+                break;
+            case Coolheaded:
+                simulator.OrbChannel<FrostOrb>(card.Owner);
+                simulator.Draw(card.Owner, card.DynamicVars.Cards.IntValue);
+                break;
+            case Darkness darkness:
+                SimulateDarkness(darkness, simulator);
                 break;
             case Dualcast:
                 SimulateRepeatedEvokeNext(card, simulator, 2);
                 break;
-            case MultiCast multiCast:
-                SimulateRepeatedEvokeNext(multiCast, simulator, GetXValue(multiCast) + (multiCast.IsUpgraded ? 1 : 0));
+            case Fusion:
+                simulator.OrbChannel<PlasmaOrb>(card.Owner);
                 break;
-            case Quadcast quadcast:
-                SimulateRepeatedEvokeNext(quadcast, simulator, quadcast.DynamicVars.Repeat.IntValue);
+            case Glacier:
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block.BaseValue, card.DynamicVars.Block.Props, card);
+                SimulateRepeatedChannel<FrostOrb>(card, simulator, 2);
+                break;
+            case Glasswork:
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block.BaseValue, card.DynamicVars.Block.Props, card);
+                simulator.OrbChannel<GlassOrb>(card.Owner);
+                break;
+            case MultiCast:
+                SimulateRepeatedEvokeNext(card, simulator, GetXValue(card) + (card.IsUpgraded ? 1 : 0));
+                break;
+            case Quadcast:
+                SimulateRepeatedEvokeNext(card, simulator, card.DynamicVars.Repeat.IntValue);
                 break;
             case Rainbow:
                 simulator.OrbChannel<LightningOrb>(card.Owner);
                 simulator.OrbChannel<FrostOrb>(card.Owner);
                 simulator.OrbChannel<DarkOrb>(card.Owner);
                 break;
-            case Tempest tempest:
-                SimulateRepeatedChannel<LightningOrb>(tempest, simulator, GetXValue(tempest) + (tempest.IsUpgraded ? 1 : 0));
+            case ShadowShield:
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block.BaseValue, card.DynamicVars.Block.Props, card);
+                simulator.OrbChannel<DarkOrb>(card.Owner);
+                break;
+            case Spinner:
+                if (card.IsUpgraded)
+                {
+                    simulator.OrbChannel<GlassOrb>(card.Owner);
+                }
+                // Vanilla applies SpinnerPower after channeling, which is not simulated here.
+                break;
+            case Tempest:
+                SimulateRepeatedChannel<LightningOrb>(card, simulator, GetXValue(card) + (card.IsUpgraded ? 1 : 0));
                 break;
             case Voltaic voltaic:
                 SimulateRepeatedChannel<LightningOrb>(voltaic, simulator, GetVoltaicChannelCount(voltaic));
@@ -86,6 +125,29 @@ internal static class OrbPrediction
         }
 
         extraTips.AddRange(PredictionHoverTips.Orbs(generatedOrbs));
+    }
+
+    private static void SimulateDarkness(
+        Darkness darkness,
+        CombatPredictionSimulator simulator)
+    {
+        simulator.OrbChannel<DarkOrb>(darkness.Owner);
+
+        var triggerCount = darkness.IsUpgraded ? 2 : 1;
+        var darkOrbs = simulator.State
+            .GetPlayerCombatState(darkness.Owner)
+            .OrbQueue
+            .Orbs
+            .OfType<DarkOrb>()
+            .ToList();
+
+        foreach (var darkOrb in darkOrbs)
+        {
+            for (var i = 0; i < triggerCount; i++)
+            {
+                simulator.OrbPassive(darkOrb);
+            }
+        }
     }
 
     private static void SimulateRepeatedEvokeNext(

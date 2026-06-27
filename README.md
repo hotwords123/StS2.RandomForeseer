@@ -88,10 +88,16 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 ### 充能球效果
 
 - 混沌（Chaos）
+- 漆黑（Darkness）
 - 双重释放（Dualcast）
+- 聚变（Fusion）
+- 冰川（Glacier）
+- 玻璃工艺（Glasswork）
 - 多重释放（Multi-Cast）
 - 四重释放（Quadcast）
 - 彩虹（Rainbow）
+- 暗影之盾（Shadow Shield）
+- 旋转工艺（Spinner，升级后）
 - 暴风雨（Tempest）
 - 电流相生（Voltaic）
 - 电击（Zap）

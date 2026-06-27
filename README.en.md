@@ -88,10 +88,16 @@ Each feature can be toggled independently from the mod settings page, and predic
 ### Orb Effects
 
 - Chaos
+- Darkness
 - Dualcast
+- Fusion
+- Glacier
+- Glasswork
 - Multi-Cast
 - Quadcast
 - Rainbow
+- Shadow Shield
+- Spinner (upgraded)
 - Tempest
 - Voltaic
 - Zap
