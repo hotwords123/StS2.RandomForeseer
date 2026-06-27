@@ -42,6 +42,11 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableOrbPrediction { get; set; } = true;
 
+    public bool EnableEndTurnPrediction { get; set; } = true;
+
+    public EndTurnPredictionDisplayMode EndTurnPredictionDisplayMode { get; set; } =
+        EndTurnPredictionDisplayMode.EndTurnButtonHover;
+
     public bool EnableAutoPlayFromDrawPilePrediction { get; set; } = true;
 
     public bool EnablePotionDrawPrediction { get; set; } = true;
@@ -78,6 +83,8 @@ internal static class RandomForeseerSettings
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
     private const string EnableOrbPredictionKey = "enable_orb_prediction";
+    private const string EnableEndTurnPredictionKey = "enable_end_turn_prediction";
+    private const string EndTurnPredictionDisplayModeKey = "end_turn_prediction_display_mode";
     private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
     private const string EnablePotionDrawPredictionKey = "enable_potion_draw_prediction";
     private const string EnableCardDrawPredictionKey = "enable_card_draw_prediction";
@@ -207,6 +214,20 @@ internal static class RandomForeseerSettings
             settings => settings.EnableOrbPrediction,
             (settings, value) => settings.EnableOrbPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableEndTurnPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableEndTurnPrediction,
+            (settings, value) => settings.EnableEndTurnPrediction = value);
+
+    private static readonly IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnPredictionDisplayModeBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, EndTurnPredictionDisplayMode>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EndTurnPredictionDisplayMode,
+            (settings, value) => settings.EndTurnPredictionDisplayMode = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAutoPlayFromDrawPilePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -294,6 +315,11 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
 
     public static bool EnableOrbPrediction => EnableOrbPredictionBinding.Read();
+
+    public static bool EnableEndTurnPrediction => EnableEndTurnPredictionBinding.Read();
+
+    public static EndTurnPredictionDisplayMode EndTurnPredictionDisplayMode =>
+        EndTurnPredictionDisplayModeBinding.Read();
 
     public static bool EnableAutoPlayFromDrawPilePrediction => EnableAutoPlayFromDrawPilePredictionBinding.Read();
 
@@ -526,6 +552,30 @@ internal static class RandomForeseerSettings
                     () => true);
 
                 section.AddToggle(
+                    EnableEndTurnPredictionKey,
+                    Text("toggle.enable_end_turn_prediction.label", "Predict end-turn effects"),
+                    EnableEndTurnPredictionBinding,
+                    Text(
+                        "toggle.enable_end_turn_prediction.description",
+                        "When enabled, supported end-turn damage effects are previewed during combat."),
+                    () => true);
+
+                section.AddEnumChoice(
+                    EndTurnPredictionDisplayModeKey,
+                    Text("choice.end_turn_prediction_display_mode.label", "End-turn prediction display"),
+                    EndTurnPredictionDisplayModeBinding,
+                    value => Text(
+                        $"choice.end_turn_prediction_display_mode.option.{value}",
+                        value switch
+                        {
+                            EndTurnPredictionDisplayMode.AlwaysDuringPlayerTurn => "Always during player turn",
+                            _ => "End Turn button hover"
+                        }),
+                    Text(
+                        "choice.end_turn_prediction_display_mode.description",
+                        "Controls when end-turn damage prediction indicators are shown."));
+
+                section.AddToggle(
                     EnableAutoPlayFromDrawPilePredictionKey,
                     Text("toggle.enable_auto_play_from_draw_pile_prediction.label", "Predict draw-pile autoplay"),
                     EnableAutoPlayFromDrawPilePredictionBinding,
@@ -687,4 +737,10 @@ internal enum PredictionFairness
     Fair,
     UnfairInSingleplayer,
     UnfairInAllModes
+}
+
+internal enum EndTurnPredictionDisplayMode
+{
+    EndTurnButtonHover,
+    AlwaysDuringPlayerTurn
 }
