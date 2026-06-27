@@ -1,15 +1,22 @@
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
 
 namespace RandomForeseer.InCombat.Hooks;
 
 internal static class BlockHooks
 {
+    private static readonly HookSpec BeforeBlockGained = new(
+        nameof(AbstractModel.BeforeBlockGained),
+        [
+            typeof(Creature),
+            typeof(decimal),
+            typeof(ValueProp),
+            typeof(CardModel)
+        ]);
+
     private static readonly HookSpec AfterBlockGained = new(
         nameof(AbstractModel.AfterBlockGained),
         [
@@ -19,7 +26,13 @@ internal static class BlockHooks
             typeof(CardModel)
         ]);
 
+    private static readonly HookRegistry<BlockHookContext> BeforeBlockGainedRegistry = new(BeforeBlockGained);
     private static readonly HookRegistry<BlockHookContext> AfterBlockGainedRegistry = CreateAfterBlockGainedRegistry();
+
+    public static void RunBeforeBlockGained(BlockHookContext context)
+    {
+        BeforeBlockGainedRegistry.Run(context.CombatState.IterateHookListeners(), context);
+    }
 
     public static void RunAfterBlockGained(BlockHookContext context)
     {
@@ -66,7 +79,7 @@ internal static class BlockHooks
         {
             foreach (var teammate in teammates)
             {
-                context.Executor.GainBlock(teammate, amountToGive, ValueProp.Unpowered);
+                context.Simulator.GainBlock(teammate, amountToGive, ValueProp.Unpowered);
             }
         }
         finally
@@ -77,14 +90,19 @@ internal static class BlockHooks
 
     private static void HandleJuggernautPower(JuggernautPower power, BlockHookContext context)
     {
-        if (context.Creature != power.Owner || context.CombatState.HittableEnemies.Count == 0)
+        if (context.Creature != power.Owner || context.Amount <= 0m)
         {
             return;
         }
 
-        // Juggernaut chooses the target through CombatTargets.NextItem, which advances RNG
-        // even when only one target exists; target RNG is not mirrored here.
-        context.RiskTracker.AddCurrentSource();
+        var targets = context.State.GetHittableOpponentsOf(power.Owner);
+        var target = context.Rng.CombatTargets.NextItem(targets);
+        if (target == null)
+        {
+            return;
+        }
+
+        context.Simulator.Damage([target], power.Amount, ValueProp.Unpowered, power.Owner);
     }
 }
 
@@ -93,21 +111,9 @@ internal sealed class BeaconOfHopePredictionState
     public bool HasAlreadyBeenGivenBlock { get; set; }
 }
 
-internal sealed class BlockHookContext : IPredictionHookContext
+internal sealed class BlockHookContext : CombatPredictionHookContext
 {
-    public required PredictionRiskTracker RiskTracker { get; init; }
-
-    public required IDamageBlockExecutor Executor { get; init; }
-
-    public required PredictionStateStore StateStore { get; init; }
-
-    public required ICombatState CombatState { get; init; }
-
     public required Creature Creature { get; init; }
 
     public required decimal Amount { get; init; }
-
-    public required ValueProp Props { get; init; }
-
-    public required CardModel? Source { get; init; }
 }

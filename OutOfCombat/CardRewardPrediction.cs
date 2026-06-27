@@ -50,7 +50,6 @@ internal static class CardRewardPrediction
         var results = CreateBaseRewards(player, cardCount, options, rewardRng, rarityOdds).ToList();
         var hookContext = new CardRewardHookContext
         {
-            RiskTracker = new(),
             Player = player,
             Results = results,
             Options = options,

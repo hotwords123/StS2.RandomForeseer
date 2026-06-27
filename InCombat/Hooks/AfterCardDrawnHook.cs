@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -7,8 +6,7 @@ using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.Random;
-using RandomForeseer.Common;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common.Hooks;
 using Cards = MegaCrit.Sts2.Core.Models.Cards;
 
@@ -79,20 +77,22 @@ internal static class AfterCardDrawnHook
     {
         // Hellraiser auto-plays the drawn Strike; arbitrary auto-play command effects are
         // not mirrored here.
-        if (context.PreviewCard.Owner.Creature == power.Owner && context.PreviewCard.Tags.Contains(CardTag.Strike))
+        if (context.PreviewCard.Owner.Creature == power.Owner &&
+            context.PreviewCard.Tags.Contains(CardTag.Strike))
         {
-            context.RiskTracker.AddCurrentSource();
+            context.MarkCurrentSourceRisky();
         }
     }
 
     private static void HandleConfusedPower(ConfusedPower power, AfterCardDrawnHookContext context)
     {
-        if (context.PreviewCard.Owner != power.Owner?.Player || context.PreviewCard.EnergyCost.Canonical < 0)
+        if (context.PreviewCard.Owner != power.Owner?.Player ||
+            context.PreviewCard.EnergyCost.Canonical < 0)
         {
             return;
         }
 
-        context.MutablePreviewCard.EnergyCost.SetThisCombat(context.EnergyCostRng.NextInt(4));
+        context.MutablePreviewCard.EnergyCost.SetThisCombat(context.Rng.CombatEnergyCosts.NextInt(4));
     }
 
     private static void HandleSlither(Slither slither, AfterCardDrawnHookContext context)
@@ -102,56 +102,63 @@ internal static class AfterCardDrawnHook
             return;
         }
 
-        context.MutablePreviewCard.EnergyCost.SetThisCombat(context.EnergyCostRng.NextInt(4));
+        context.MutablePreviewCard.EnergyCost.SetThisCombat(context.Rng.CombatEnergyCosts.NextInt(4));
     }
 
     private static void HandleIterationPower(IterationPower power, AfterCardDrawnHookContext context)
     {
+        var drawState = context.State.GetPlayerCombatState(context.Player).CardDrawState;
         if (context.PreviewCard.Owner.Creature != power.Owner ||
             context.PreviewCard.Type != CardType.Status ||
-            context.State.StatusCardsDrawnThisTurn > 1)
+            drawState.StatusCardsDrawnThisTurn > 1)
         {
             return;
         }
 
-        context.Draw(power.Amount);
+        context.Simulator.Draw(context.Player, power.Amount);
     }
 
     private static void HandlePagestormPower(PagestormPower power, AfterCardDrawnHookContext context)
     {
-        if (context.PreviewCard.Owner.Creature != power.Owner || !context.PreviewCard.Keywords.Contains(CardKeyword.Ethereal))
+        if (context.PreviewCard.Owner.Creature != power.Owner ||
+            !context.PreviewCard.Keywords.Contains(CardKeyword.Ethereal))
         {
             return;
         }
 
-        context.Draw(power.Amount);
+        context.Simulator.Draw(context.Player, power.Amount);
     }
 
     private static void HandleChainsOfBindingPower(ChainsOfBindingPower power, AfterCardDrawnHookContext context)
     {
+        var drawState = context.State.GetPlayerCombatState(context.Player).CardDrawState;
         var bound = ModelDb.Affliction<Bound>();
         if (context.PreviewCard.Owner != power.Owner?.Player ||
             context.CombatState.CurrentSide != power.Owner.Side ||
             !bound.CanAfflict(context.PreviewCard) ||
-            context.State.BoundCardsAfflictedThisTurn >= power.Amount)
+            drawState.BoundCardsAfflictedThisTurn >= power.Amount)
         {
             return;
         }
 
         context.MutablePreviewCard.AfflictInternal(bound.ToMutable(), power.Amount);
-        context.State.BoundCardsAfflictedThisTurn++;
+        drawState.BoundCardsAfflictedThisTurn++;
     }
 
     private static void HandleSpeedsterPower(SpeedsterPower power, AfterCardDrawnHookContext context)
     {
-        // Speedster deals damage to all hittable enemies after a non-hand draw on the owner's
-        // turn; damage side effects are not mirrored here.
-        if (!context.FromHandDraw &&
-            context.PreviewCard.Owner.Creature == power.Owner &&
-            context.PreviewCard.Owner.Creature.CombatState?.CurrentSide == context.PreviewCard.Owner.Creature.Side)
+        if (context.FromHandDraw ||
+            context.PreviewCard.Owner.Creature != power.Owner ||
+            context.PreviewCard.Owner.Creature.Side != context.CombatState.CurrentSide)
         {
-            context.RiskTracker.AddCurrentSource();
+            return;
         }
+
+        context.Simulator.Damage(
+            context.State.GetHittableOpponentsOf(power.Owner),
+            power.Amount,
+            ValueProp.Unpowered,
+            power.Owner);
     }
 
     private static void HandleKinglyKick(KinglyKick card, AfterCardDrawnHookContext context)
@@ -171,8 +178,10 @@ internal static class AfterCardDrawnHook
             return;
         }
 
-        var previewCard = context.MutablePreviewCard;
-        previewCard.DynamicVars.Damage.BaseValue += previewCard.DynamicVars["Increase"].BaseValue;
+        var previewCard = (KinglyPunch)context.MutablePreviewCard;
+        var damageIncrease = previewCard.DynamicVars["Increase"].BaseValue;
+        previewCard.DynamicVars.Damage.BaseValue += damageIncrease;
+        previewCard.ExtraDamage += damageIncrease;
     }
 
     private static void HandleDriftRiskIfOwner(PowerModel power, AfterCardDrawnHookContext context)
@@ -181,33 +190,16 @@ internal static class AfterCardDrawnHook
         // side effects are not mirrored here.
         if (context.PreviewCard.Owner.Creature == power.Owner)
         {
-            context.RiskTracker.AddCurrentSource();
+            context.MarkCurrentSourceRisky();
         }
     }
 
 }
 
-internal sealed class AfterCardDrawnHookContext : IPredictionHookContext
+internal sealed class AfterCardDrawnHookContext : CombatCardPredictionHookContext
 {
-    public required PredictionRiskTracker RiskTracker { get; init; }
-
-    public required ICombatState CombatState { get; init; }
-
     public required Player Player { get; init; }
-
-    public required PredictedCard Card { get; init; }
-
-    public CardModel OriginalCard => Card.Original;
-
-    public CardModel PreviewCard => Card.Preview;
-
-    public CardModel MutablePreviewCard => Card.MutablePreview;
 
     public required bool FromHandDraw { get; init; }
 
-    public required Rng EnergyCostRng { get; init; }
-
-    public required DrawPilePredictionState State { get; init; }
-
-    public required Action<int> Draw { get; init; }
 }

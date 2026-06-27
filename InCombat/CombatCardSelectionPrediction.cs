@@ -28,6 +28,8 @@ internal static class CombatCardSelectionPrediction
 
     private static CombatCardSelectionPredictionResult Predict(CardModel card, Rng previewRng)
     {
+        // TODO: Move pile reads to CombatPredictionSimulator state after card selection
+        // prediction actually simulates the selected card's damage/block side effects.
         return card switch
         {
             Cinder => CombatCardSelectionPredictionResult.FromSelectedCard(

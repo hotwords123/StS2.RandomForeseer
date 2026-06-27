@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Potions;
+using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.InCombat;
 
@@ -37,38 +38,41 @@ internal static class PotionDrawPrediction
 
     private static DrawPilePredictionResult PredictGlowwaterPotion(Player player, int count)
     {
-        if (!DrawPilePrediction.TryCreate(player, out var prediction))
+        if (player.Creature.CombatState is not { } combatState)
         {
             return DrawPilePredictionResult.Empty;
         }
 
         // Mirrors GlowwaterPotion.OnUse: exhaust current hand, then draw.
-        prediction.ExhaustHand();
-        return prediction.Draw(count);
+        var simulator = new CombatPredictionSimulator(combatState);
+        simulator.ExhaustHand(player);
+        return simulator.Draw(player, count);
     }
 
     private static DrawPilePredictionResult PredictSneckoOil(Player player, int count)
     {
-        if (!DrawPilePrediction.TryCreate(player, out var prediction))
+        if (player.Creature.CombatState is not { } combatState)
         {
             return DrawPilePredictionResult.Empty;
         }
 
         // Mirrors SneckoOil.OnUse: draw first, then randomize the full hand's non-X costs.
-        prediction.Draw(count);
-        return prediction.RandomizeHandCosts();
+        var simulator = new CombatPredictionSimulator(combatState);
+        simulator.Draw(player, count);
+        return simulator.RandomizeHandCosts(player);
     }
 
     private static DrawPilePredictionResult PredictBottledPotential(Player player, int count)
     {
-        if (!DrawPilePrediction.TryCreate(player, out var prediction))
+        if (player.Creature.CombatState is not { } combatState)
         {
             return DrawPilePredictionResult.Empty;
         }
 
         // Mirrors BottledPotential.OnUse: CardPileCmd.Add(hand, Draw), CardPileCmd.Shuffle, CardPileCmd.Draw.
-        prediction.MoveHandToDrawPile();
-        prediction.Shuffle();
-        return prediction.Draw(count);
+        var simulator = new CombatPredictionSimulator(combatState);
+        simulator.MoveHandToDrawPile(player);
+        simulator.Shuffle(player);
+        return simulator.Draw(player, count);
     }
 }

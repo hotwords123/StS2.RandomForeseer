@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -36,11 +35,11 @@ internal static class AfterCardExhaustedHook
         var registry = new HookRegistry<AfterCardExhaustedHookContext>(AfterCardExhausted);
 
         registry.Register<BurningSticks>(HandleBurningSticks);
-        registry.Register<CharonsAshes>(HandleRelicDriftRiskIfOwner);
+        registry.Register<CharonsAshes>(HandleCharonsAshes);
         registry.Register<DarkEmbracePower>(HandleDarkEmbracePower);
         registry.RegisterIgnored<DrumOfBattle>();
         registry.Register<FeelNoPainPower>(HandleFeelNoPainPower);
-        registry.Register<ForgottenSoul>(HandleRelicDriftRiskIfOwner);
+        registry.Register<ForgottenSoul>(HandleForgottenSoul);
         registry.Register<JossPaper>(HandleJossPaper);
         registry.RegisterIgnored<SkillIronclad1Achievement>();
 
@@ -66,7 +65,7 @@ internal static class AfterCardExhaustedHook
         }
 
         var copy = (CardModel)context.PreviewCard.MutableClone();
-        context.AddToHand(PredictedCard.FromGenerated(copy));
+        context.Simulator.AddToHand(context.Player, PredictedCard.FromGenerated(copy));
         state.WasUsedThisCombat = true;
     }
 
@@ -79,13 +78,12 @@ internal static class AfterCardExhaustedHook
 
         if (context.CausedByEthereal)
         {
-            // Ethereal exhaust happens during end-turn cleanup; this draw/exhaust simulation
-            // does not mirror cleanup timing.
-            context.RiskTracker.AddCurrentSource();
+            // Ethereal exhaust only records the count here in vanilla; the actual draw happens
+            // later in end-turn cleanup, which this simulation path does not include.
             return;
         }
 
-        context.Draw(power.Amount);
+        context.Simulator.Draw(context.Player, power.Amount);
     }
 
     private static void HandleJossPaper(JossPaper relic, AfterCardExhaustedHookContext context)
@@ -97,9 +95,8 @@ internal static class AfterCardExhaustedHook
 
         if (context.CausedByEthereal)
         {
-            // Ethereal exhaust happens during end-turn cleanup; this draw/exhaust simulation
-            // does not mirror cleanup timing.
-            context.RiskTracker.AddCurrentSource();
+            // Ethereal exhaust only records the count here in vanilla; the actual draw happens
+            // later in end-turn cleanup, which this simulation path does not include.
             return;
         }
 
@@ -112,20 +109,43 @@ internal static class AfterCardExhaustedHook
         var threshold = relic.DynamicVars["ExhaustAmount"].IntValue;
         if (cardsExhausted >= threshold)
         {
-            context.Draw(cardsExhausted / threshold);
+            context.Simulator.Draw(context.Player, cardsExhausted / threshold);
             cardsExhausted %= threshold;
         }
 
         state.CardsExhausted = cardsExhausted;
     }
 
-    private static void HandleRelicDriftRiskIfOwner(RelicModel relic, AfterCardExhaustedHookContext context)
+    private static void HandleCharonsAshes(CharonsAshes relic, AfterCardExhaustedHookContext context)
     {
-        // CharonsAshes deals all-enemy damage. ForgottenSoul chooses a random damage target
-        // through CombatTargets.NextItem. Damage side effects and target RNG are not mirrored here.
-        if (relic.Owner == context.PreviewCard.Owner)
+        if (relic.Owner != context.PreviewCard.Owner)
         {
-            context.RiskTracker.AddCurrentSource();
+            return;
+        }
+
+        context.Simulator.Damage(
+            context.State.GetHittableOpponentsOf(relic.Owner.Creature),
+            relic.DynamicVars.Damage.BaseValue,
+            relic.DynamicVars.Damage.Props,
+            relic.Owner.Creature);
+    }
+
+    private static void HandleForgottenSoul(ForgottenSoul relic, AfterCardExhaustedHookContext context)
+    {
+        if (relic.Owner != context.PreviewCard.Owner)
+        {
+            return;
+        }
+
+        var target = context.Rng.CombatTargets.NextItem(
+            context.State.GetHittableOpponentsOf(relic.Owner.Creature));
+        if (target != null)
+        {
+            context.Simulator.Damage(
+                [target],
+                relic.DynamicVars.Damage.BaseValue,
+                relic.DynamicVars.Damage.Props,
+                relic.Owner.Creature);
         }
     }
 
@@ -136,7 +156,7 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        context.Executor.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
+        context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
     }
 
 }
@@ -151,29 +171,10 @@ internal sealed class JossPaperPredictionState
     public int CardsExhausted { get; set; }
 }
 
-internal sealed class AfterCardExhaustedHookContext : IPredictionHookContext
+internal sealed class AfterCardExhaustedHookContext : CombatCardPredictionHookContext
 {
-    public required PredictionRiskTracker RiskTracker { get; init; }
-
-    public required IDamageBlockExecutor Executor { get; init; }
-
-    public required ICombatState CombatState { get; init; }
-
     public required Player Player { get; init; }
-
-    public required PredictedCard Card { get; init; }
-
-    public CardModel OriginalCard => Card.Original;
-
-    public CardModel PreviewCard => Card.Preview;
-
-    public CardModel MutablePreviewCard => Card.MutablePreview;
 
     public required bool CausedByEthereal { get; init; }
 
-    public required PredictionStateStore StateStore { get; init; }
-
-    public required Action<int> Draw { get; init; }
-
-    public required Action<PredictedCard> AddToHand { get; init; }
 }

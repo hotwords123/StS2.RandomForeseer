@@ -1,9 +1,7 @@
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
 
 namespace RandomForeseer.InCombat.Hooks;
@@ -33,37 +31,32 @@ internal static class ShouldDrawHook
         var registry = new HookRegistry<ShouldDrawHookContext>(ShouldDraw);
 
         registry.Register<NoDrawPower>(HandleNoDrawPower);
-        registry.Register<Fiddle>(CallOriginal);
+        registry.Register<Fiddle>(HandleFiddle);
 
         return registry;
     }
 
     private static void HandleNoDrawPower(NoDrawPower power, ShouldDrawHookContext context)
     {
-        if (context.FromHandDraw || context.Player != power.Owner?.Player)
+        if (!context.FromHandDraw && context.Player == power.Owner?.Player)
         {
-            return;
+            context.Block();
         }
-
-        // NoDrawPower.ShouldDraw flashes as a side effect, so mirror the predicate instead of calling it.
-        context.Block();
     }
 
-    private static void CallOriginal(AbstractModel model, ShouldDrawHookContext context)
+    private static void HandleFiddle(Fiddle relic, ShouldDrawHookContext context)
     {
-        if (!model.ShouldDraw(context.Player, context.FromHandDraw))
+        if (!context.FromHandDraw &&
+            context.Player == relic.Owner &&
+            context.Player.Creature.Side == context.CombatState.CurrentSide)
         {
             context.Block();
         }
     }
 }
 
-internal sealed class ShouldDrawHookContext : IPredictionHookContext
+internal sealed class ShouldDrawHookContext : CombatPredictionHookContext
 {
-    public required PredictionRiskTracker RiskTracker { get; init; }
-
-    public required ICombatState CombatState { get; init; }
-
     public required Player Player { get; init; }
 
     public required bool FromHandDraw { get; init; }

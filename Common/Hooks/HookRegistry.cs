@@ -39,7 +39,7 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
         {
             var type = model.GetType();
 
-            using (context.RiskTracker.PushSource(model))
+            using (context.PushSource(model))
             {
                 if (_handlers.TryGetValue(type, out var handler))
                 {
@@ -55,7 +55,7 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
                     else
                     {
                         WarnUnsupported(type);
-                        context.RiskTracker.AddCurrentSource();
+                        context.MarkCurrentSourceRisky();
                     }
                 }
                 else
@@ -98,5 +98,7 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
 
 internal interface IPredictionHookContext
 {
-    PredictionRiskTracker RiskTracker { get; }
+    IDisposable PushSource(AbstractModel model);
+
+    void MarkCurrentSourceRisky();
 }

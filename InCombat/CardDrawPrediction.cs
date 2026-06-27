@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.InCombat;
 
@@ -28,22 +29,23 @@ internal static class CardDrawPrediction
 
     private static DrawPilePredictionResult PredictReboot(Reboot reboot)
     {
-        if (!DrawPilePrediction.TryCreate(reboot.Owner, out var prediction))
+        if (reboot.Owner.Creature.CombatState is not { } combatState)
         {
             return DrawPilePredictionResult.Empty;
         }
 
         // Mirrors Reboot.OnPlay: after the source card leaves hand, move the remaining hand
         // into the draw pile, shuffle, then draw.
-        prediction.RemoveFromHand(reboot);
-        prediction.MoveHandToDrawPile();
-        prediction.Shuffle();
-        return prediction.Draw(reboot.DynamicVars.Cards.IntValue);
+        var simulator = new CombatPredictionSimulator(combatState);
+        simulator.RemoveFromHand(reboot.Owner, reboot);
+        simulator.MoveHandToDrawPile(reboot.Owner);
+        simulator.Shuffle(reboot.Owner);
+        return simulator.Draw(reboot.Owner, reboot.DynamicVars.Cards.IntValue);
     }
 
     private static DrawPilePredictionResult PredictCalculatedGamble(CardModel source)
     {
-        if (!DrawPilePrediction.TryCreate(source.Owner, out var prediction))
+        if (source.Owner.Creature.CombatState is not { } combatState)
         {
             return DrawPilePredictionResult.Empty;
         }
@@ -51,8 +53,9 @@ internal static class CardDrawPrediction
         // Mirrors CalculatedGamble.OnPlay and CardCmd.DiscardAndDraw up to the Draw step.
         // Sly cards are auto-played after Draw in the original method; this prediction does
         // not simulate them yet.
-        prediction.RemoveFromHand(source);
-        var cardsToDraw = prediction.DiscardHand();
-        return prediction.Draw(cardsToDraw);
+        var simulator = new CombatPredictionSimulator(combatState);
+        simulator.RemoveFromHand(source.Owner, source);
+        var cardsToDraw = simulator.DiscardHand(source.Owner);
+        return simulator.Draw(source.Owner, cardsToDraw);
     }
 }

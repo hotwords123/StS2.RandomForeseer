@@ -1,8 +1,6 @@
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.Common;
 using RandomForeseer.Common.Hooks;
 
 namespace RandomForeseer.InCombat.Hooks;
@@ -28,22 +26,29 @@ internal static class AfterCardDiscardedHook
     {
         var registry = new HookRegistry<AfterCardDiscardedHookContext>(AfterCardDiscarded);
 
-        registry.Register<Tingsha>(HandleRelicDriftRiskIfOwner);
+        registry.Register<Tingsha>(HandleTingsha);
         registry.Register<ToughBandages>(HandleToughBandages);
 
         return registry;
     }
 
-    private static void HandleRelicDriftRiskIfOwner(
-        RelicModel relic,
-        AfterCardDiscardedHookContext context)
+    private static void HandleTingsha(Tingsha relic, AfterCardDiscardedHookContext context)
     {
-        // Tingsha chooses a random damage target through CombatTargets.NextItem; target RNG
-        // is not mirrored here.
-        if (relic.Owner == context.PreviewCard.Owner &&
-            relic.Owner.Creature.Side == context.CombatState.CurrentSide)
+        if (relic.Owner != context.PreviewCard.Owner ||
+            relic.Owner.Creature.Side != context.CombatState.CurrentSide)
         {
-            context.RiskTracker.AddCurrentSource();
+            return;
+        }
+
+        var target = context.Rng.CombatTargets.NextItem(
+            context.State.GetHittableOpponentsOf(relic.Owner.Creature));
+        if (target != null)
+        {
+            context.Simulator.Damage(
+                [target],
+                relic.DynamicVars.Damage.BaseValue,
+                relic.DynamicVars.Damage.Props,
+                relic.Owner.Creature);
         }
     }
 
@@ -55,24 +60,13 @@ internal static class AfterCardDiscardedHook
             return;
         }
 
-        context.Executor.GainBlock(
+        context.Simulator.GainBlock(
             relic.Owner.Creature,
             relic.DynamicVars.Block.BaseValue,
             relic.DynamicVars.Block.Props);
     }
 }
 
-internal sealed class AfterCardDiscardedHookContext : IPredictionHookContext
+internal sealed class AfterCardDiscardedHookContext : CombatCardPredictionHookContext
 {
-    public required PredictionRiskTracker RiskTracker { get; init; }
-
-    public required IDamageBlockExecutor Executor { get; init; }
-
-    public required ICombatState CombatState { get; init; }
-
-    public required PredictedCard Card { get; init; }
-
-    public CardModel OriginalCard => Card.Original;
-
-    public CardModel PreviewCard => Card.Preview;
 }

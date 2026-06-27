@@ -265,7 +265,8 @@ internal static class CardRewardHook
 
 internal sealed class CardRewardHookContext : IPredictionHookContext
 {
-    public required PredictionRiskTracker RiskTracker { get; init; }
+    private readonly PredictionSourceStack _sourceStack = new();
+    private readonly PredictionRiskTracker _riskTracker = new();
 
     public required Player Player { get; init; }
 
@@ -284,5 +285,15 @@ internal sealed class CardRewardHookContext : IPredictionHookContext
     public IEnumerable<AbstractModel> IterateModifiers()
     {
         return Player.RunState.IterateHookListeners(null).Concat(ExtraModifiers);
+    }
+
+    public IDisposable PushSource(AbstractModel model)
+    {
+        return _sourceStack.Push(model);
+    }
+
+    public void MarkCurrentSourceRisky()
+    {
+        _riskTracker.AddCurrentSources(_sourceStack);
     }
 }
