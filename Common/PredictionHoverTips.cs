@@ -136,6 +136,9 @@ internal static class PredictionHoverTips
     {
         tip.Id = $"{PredictionTextHoverTipIdPrefix}:{tip.Id}";
         tip.IsInstanced = true;
+        // Vanilla records hover tips with canonical models as discovered progress.
+        // Prediction tips are informational only, so they must not reveal cards/relics/potions in the save.
+        tip.CanonicalModel = null;
         return tip;
     }
 }
@@ -145,6 +148,9 @@ internal class PredictionCardHoverTip(CardModel card, bool isDimmed = false) : C
     public bool IsDimmed { get; } = isDimmed;
 
     bool IHoverTip.IsInstanced => true;
+
+    // Hide the canonical card from NHoverTipSet so predicted cards do not mark progress as discovered.
+    AbstractModel? IHoverTip.CanonicalModel => null;
 }
 
 internal class PredictionCardBundleHoverTip(IReadOnlyList<IReadOnlyList<CardModel>> bundles)
@@ -155,4 +161,7 @@ internal class PredictionCardBundleHoverTip(IReadOnlyList<IReadOnlyList<CardMode
     string IHoverTip.Id => string.Empty;
 
     bool IHoverTip.IsInstanced => true;
+
+    // Hide the canonical card from NHoverTipSet so predicted bundled cards do not mark progress as discovered.
+    AbstractModel? IHoverTip.CanonicalModel => null;
 }

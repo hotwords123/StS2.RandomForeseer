@@ -12,7 +12,6 @@ using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Relics;
-using MegaCrit.Sts2.Core.Saves;
 
 namespace RandomForeseer.Common;
 
@@ -169,7 +168,6 @@ internal static class PredictionCardHoverTipBundleFactory
         var node = control.GetNode<NCard>("%Card");
         node.Model = card;
         node.UpdateVisuals(PileType.Deck, CardPreviewMode.Normal);
-        SaveManager.Instance.MarkCardAsSeen(card);
         return control;
     }
 }
