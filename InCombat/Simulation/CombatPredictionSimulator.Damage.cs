@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -10,6 +11,37 @@ namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
+    // Convenience overload for Damage with a single target and a DamageVar.
+    public IReadOnlyList<DamageResult> Damage(
+        Creature target,
+        DamageVar damageVar,
+        Creature? dealer,
+        CardModel? cardSource = null)
+    {
+        return Damage([target], damageVar.BaseValue, damageVar.Props, dealer, cardSource);
+    }
+
+    // Convenience overload for Damage with a single target.
+    public IReadOnlyList<DamageResult> Damage(
+        Creature target,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer,
+        CardModel? cardSource = null)
+    {
+        return Damage([target], amount, props, dealer, cardSource);
+    }
+
+    // Convenience overload for Damage with a DamageVar.
+    public IReadOnlyList<DamageResult> Damage(
+        IReadOnlyList<Creature> targets,
+        DamageVar damageVar,
+        Creature? dealer,
+        CardModel? cardSource = null)
+    {
+        return Damage(targets, damageVar.BaseValue, damageVar.Props, dealer, cardSource);
+    }
+
     // Mirrors CreatureCmd.Damage without mutating real Creature state.
     public IReadOnlyList<DamageResult> Damage(
         IReadOnlyList<Creature> targets,

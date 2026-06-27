@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.InCombat.Hooks;
@@ -8,6 +9,12 @@ namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
+    // Convenience overload for GainBlock with a BlockVar.
+    public decimal GainBlock(Creature creature, BlockVar blockVar, CardModel? cardSource = null)
+    {
+        return GainBlock(creature, blockVar.BaseValue, blockVar.Props, cardSource);
+    }
+
     // Mirrors CreatureCmd.GainBlock without mutating real Creature state.
     public decimal GainBlock(Creature creature, decimal amount, ValueProp props, CardModel? cardSource = null)
     {

@@ -56,18 +56,18 @@ internal static class OrbPrediction
                 simulator.OrbChannel<PlasmaOrb>(card.Owner);
                 break;
             case Glacier:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block.BaseValue, card.DynamicVars.Block.Props, card);
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
                 SimulateRepeatedChannel<FrostOrb>(card, simulator, 2);
                 break;
             case Glasswork:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block.BaseValue, card.DynamicVars.Block.Props, card);
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
                 simulator.OrbChannel<GlassOrb>(card.Owner);
                 break;
-            case MultiCast:
-                SimulateRepeatedEvokeNext(card, simulator, GetXValue(card) + (card.IsUpgraded ? 1 : 0));
+            case MultiCast multiCast:
+                SimulateRepeatedEvokeNext(multiCast, simulator, GetXValue(multiCast) + (multiCast.IsUpgraded ? 1 : 0));
                 break;
-            case Quadcast:
-                SimulateRepeatedEvokeNext(card, simulator, card.DynamicVars.Repeat.IntValue);
+            case Quadcast quadcast:
+                SimulateRepeatedEvokeNext(quadcast, simulator, quadcast.DynamicVars.Repeat.IntValue);
                 break;
             case Rainbow:
                 simulator.OrbChannel<LightningOrb>(card.Owner);
@@ -75,7 +75,7 @@ internal static class OrbPrediction
                 simulator.OrbChannel<DarkOrb>(card.Owner);
                 break;
             case ShadowShield:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block.BaseValue, card.DynamicVars.Block.Props, card);
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
                 simulator.OrbChannel<DarkOrb>(card.Owner);
                 break;
             case Spinner:
@@ -85,8 +85,8 @@ internal static class OrbPrediction
                 }
                 // Vanilla applies SpinnerPower after channeling, which is not simulated here.
                 break;
-            case Tempest:
-                SimulateRepeatedChannel<LightningOrb>(card, simulator, GetXValue(card) + (card.IsUpgraded ? 1 : 0));
+            case Tempest tempest:
+                SimulateRepeatedChannel<LightningOrb>(tempest, simulator, GetXValue(tempest) + (tempest.IsUpgraded ? 1 : 0));
                 break;
             case Voltaic voltaic:
                 SimulateRepeatedChannel<LightningOrb>(voltaic, simulator, GetVoltaicChannelCount(voltaic));

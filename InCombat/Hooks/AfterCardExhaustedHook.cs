@@ -125,8 +125,7 @@ internal static class AfterCardExhaustedHook
 
         context.Simulator.Damage(
             context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-            relic.DynamicVars.Damage.BaseValue,
-            relic.DynamicVars.Damage.Props,
+            relic.DynamicVars.Damage,
             relic.Owner.Creature);
     }
 
@@ -141,11 +140,7 @@ internal static class AfterCardExhaustedHook
             context.State.GetHittableOpponentsOf(relic.Owner.Creature));
         if (target != null)
         {
-            context.Simulator.Damage(
-                [target],
-                relic.DynamicVars.Damage.BaseValue,
-                relic.DynamicVars.Damage.Props,
-                relic.Owner.Creature);
+            context.Simulator.Damage(target, relic.DynamicVars.Damage, relic.Owner.Creature);
         }
     }
 

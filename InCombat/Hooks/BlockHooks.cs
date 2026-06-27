@@ -102,7 +102,7 @@ internal static class BlockHooks
             return;
         }
 
-        context.Simulator.Damage([target], power.Amount, ValueProp.Unpowered, power.Owner);
+        context.Simulator.Damage(target, power.Amount, ValueProp.Unpowered, power.Owner);
     }
 }
 

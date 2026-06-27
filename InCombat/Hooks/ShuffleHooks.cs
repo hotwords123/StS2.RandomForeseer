@@ -105,10 +105,7 @@ internal static class ShuffleHooks
             return;
         }
 
-        context.Simulator.GainBlock(
-            relic.Owner.Creature,
-            relic.DynamicVars.Block.BaseValue,
-            relic.DynamicVars.Block.Props);
+        context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
     }
 }
 

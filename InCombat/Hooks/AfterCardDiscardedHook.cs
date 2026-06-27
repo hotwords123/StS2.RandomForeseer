@@ -44,11 +44,7 @@ internal static class AfterCardDiscardedHook
             context.State.GetHittableOpponentsOf(relic.Owner.Creature));
         if (target != null)
         {
-            context.Simulator.Damage(
-                [target],
-                relic.DynamicVars.Damage.BaseValue,
-                relic.DynamicVars.Damage.Props,
-                relic.Owner.Creature);
+            context.Simulator.Damage(target, relic.DynamicVars.Damage, relic.Owner.Creature);
         }
     }
 
@@ -60,10 +56,7 @@ internal static class AfterCardDiscardedHook
             return;
         }
 
-        context.Simulator.GainBlock(
-            relic.Owner.Creature,
-            relic.DynamicVars.Block.BaseValue,
-            relic.DynamicVars.Block.Props);
+        context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
     }
 }
 

@@ -48,7 +48,7 @@ internal static class DamageHooks
         }
 
         context.Simulator.Damage(
-            [context.Dealer],
+            context.Dealer,
             power.Amount,
             ValueProp.Unpowered | ValueProp.SkipHurtAnim,
             power.Owner);

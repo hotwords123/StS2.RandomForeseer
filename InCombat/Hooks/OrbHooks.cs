@@ -99,8 +99,7 @@ internal static class OrbHooks
         {
             context.Simulator.Damage(
                 context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-                relic.DynamicVars.Damage.BaseValue,
-                relic.DynamicVars.Damage.Props,
+                relic.DynamicVars.Damage,
                 relic.Owner.Creature);
         }
     }

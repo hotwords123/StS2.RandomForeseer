@@ -89,8 +89,8 @@ internal static class EndTurnHooks
     {
         var registry = new HookRegistry<BeforeSideTurnEndHookContext>(BeforeSideTurnEndVeryEarly);
 
-        registry.Register<Orichalcum>(HandleOrichalcumVeryEarly);
-        registry.Register<FakeOrichalcum>(HandleFakeOrichalcumVeryEarly);
+        registry.Register<Orichalcum>(HandleOrichalcumLikeVeryEarly);
+        registry.Register<FakeOrichalcum>(HandleOrichalcumLikeVeryEarly);
         registry.RegisterIgnored<AsleepPower>();
 
         return registry;
@@ -110,8 +110,8 @@ internal static class EndTurnHooks
     {
         var registry = new HookRegistry<BeforeSideTurnEndHookContext>(BeforeSideTurnEnd);
 
-        registry.Register<Orichalcum>(HandleOrichalcum);
-        registry.Register<FakeOrichalcum>(HandleFakeOrichalcum);
+        registry.Register<Orichalcum>(HandleOrichalcumLike);
+        registry.Register<FakeOrichalcum>(HandleOrichalcumLike);
         registry.Register<CloakClasp>(HandleCloakClasp);
         registry.Register<RippleBasin>(HandleRippleBasin);
         registry.Register<HailstormPower>(HandleHailstormPower);
@@ -181,28 +181,15 @@ internal static class EndTurnHooks
         }
     }
 
-    private static void HandleOrichalcumVeryEarly(Orichalcum relic, BeforeSideTurnEndHookContext context)
+    private static void HandleOrichalcumLikeVeryEarly(RelicModel relic, BeforeSideTurnEndHookContext context)
     {
-        HandleOrichalcumLikeVeryEarly(relic, relic.Owner.Creature, context);
-    }
-
-    private static void HandleFakeOrichalcumVeryEarly(FakeOrichalcum relic, BeforeSideTurnEndHookContext context)
-    {
-        HandleOrichalcumLikeVeryEarly(relic, relic.Owner.Creature, context);
-    }
-
-    private static void HandleOrichalcumLikeVeryEarly(
-        AbstractModel model,
-        Creature owner,
-        BeforeSideTurnEndHookContext context)
-    {
-        if (!context.Participants.Contains(owner) ||
-            context.State.GetCreature(owner).Block > 0)
+        if (!context.Participants.Contains(relic.Owner.Creature) ||
+            context.State.GetCreature(relic.Owner.Creature).Block > 0)
         {
             return;
         }
 
-        context.StateStore.Get<OrichalcumPredictionState>(model).ShouldTrigger = true;
+        context.StateStore.Get<OrichalcumPredictionState>(relic).ShouldTrigger = true;
     }
 
     private static void HandlePlatingPower(PlatingPower power, BeforeSideTurnEndHookContext context)
@@ -229,30 +216,16 @@ internal static class EndTurnHooks
         context.MarkCurrentSourceRisky();
     }
 
-    private static void HandleOrichalcum(Orichalcum relic, BeforeSideTurnEndHookContext context)
+    private static void HandleOrichalcumLike(RelicModel relic, BeforeSideTurnEndHookContext context)
     {
-        HandleOrichalcumLike(relic, relic.Owner.Creature, relic.DynamicVars.Block.BaseValue, context);
-    }
-
-    private static void HandleFakeOrichalcum(FakeOrichalcum relic, BeforeSideTurnEndHookContext context)
-    {
-        HandleOrichalcumLike(relic, relic.Owner.Creature, relic.DynamicVars.Block.BaseValue, context);
-    }
-
-    private static void HandleOrichalcumLike(
-        AbstractModel model,
-        Creature owner,
-        decimal block,
-        BeforeSideTurnEndHookContext context)
-    {
-        var state = context.StateStore.Get<OrichalcumPredictionState>(model);
+        var state = context.StateStore.Get<OrichalcumPredictionState>(relic);
         if (!state.ShouldTrigger)
         {
             return;
         }
 
         state.ShouldTrigger = false;
-        context.Simulator.GainBlock(owner, block, ValueProp.Unpowered);
+        context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
     }
 
     private static void HandleCloakClasp(CloakClasp relic, BeforeSideTurnEndHookContext context)
@@ -282,10 +255,7 @@ internal static class EndTurnHooks
             return;
         }
 
-        context.Simulator.GainBlock(
-            relic.Owner.Creature,
-            relic.DynamicVars.Block.BaseValue,
-            ValueProp.Unpowered);
+        context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
     }
 
     private static void HandleHailstormPower(HailstormPower power, BeforeSideTurnEndHookContext context)
@@ -315,8 +285,7 @@ internal static class EndTurnHooks
         {
             context.Simulator.Damage(
                 context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-                relic.DynamicVars.Damage.BaseValue,
-                relic.DynamicVars.Damage.Props,
+                relic.DynamicVars.Damage,
                 relic.Owner.Creature);
         }
     }
@@ -328,8 +297,7 @@ internal static class EndTurnHooks
         {
             context.Simulator.Damage(
                 context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-                relic.DynamicVars.Damage.BaseValue,
-                relic.DynamicVars.Damage.Props,
+                relic.DynamicVars.Damage,
                 relic.Owner.Creature);
         }
     }
@@ -343,8 +311,7 @@ internal static class EndTurnHooks
 
         context.Simulator.Damage(
             context.State.GetHittableOpponentsOf(power.Owner),
-            power.DynamicVars.Damage.BaseValue,
-            power.DynamicVars.Damage.Props,
+            power.DynamicVars.Damage,
             power.Owner);
     }
 
