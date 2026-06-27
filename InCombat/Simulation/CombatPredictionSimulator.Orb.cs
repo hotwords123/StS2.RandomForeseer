@@ -1,8 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Orbs;
-using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.InCombat.Hooks;
 
 namespace RandomForeseer.InCombat.Simulation;
@@ -15,11 +13,6 @@ internal sealed partial class CombatPredictionSimulator
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
         foreach (var orb in orbQueue.Orbs.ToList())
         {
-            if (player.Creature.CombatState == null)
-            {
-                return;
-            }
-
             var passiveCountContext = new OrbPassiveCountHookContext
             {
                 Simulator = this,
@@ -29,7 +22,7 @@ internal sealed partial class CombatPredictionSimulator
 
             for (var i = 0; i < triggerCount; i++)
             {
-                OrbPassive(orb);
+                OrbBehavior.BeforeTurnEndTrigger(this, orb);
             }
         }
     }
@@ -100,21 +93,7 @@ internal sealed partial class CombatPredictionSimulator
             _ = orbQueue.Remove(evokedOrb);
         }
 
-        IReadOnlyList<Creature> targets;
-        // Prediction-only instrumentation: damage mirrored during an orb evoke should be
-        // attributed to that orb in shadow history without changing vanilla control flow.
-        using (PushSource(evokedOrb))
-        {
-            targets = evokedOrb switch
-            {
-                LightningOrb lightningOrb => LightningOrbEvoke(lightningOrb),
-                FrostOrb frostOrb => FrostOrbEvoke(frostOrb),
-                DarkOrb darkOrb => DarkOrbEvoke(darkOrb),
-                GlassOrb glassOrb => GlassOrbEvoke(glassOrb),
-                PlasmaOrb plasmaOrb => PlasmaOrbEvoke(plasmaOrb),
-                _ => UnsupportedOrbEvoke(evokedOrb)
-            };
-        }
+        var targets = OrbBehavior.Evoke(this, evokedOrb);
 
         // Vanilla calls evokedOrb.RemoveInternal after AfterOrbEvoked when dequeue succeeds.
         // We only remove from the shadow queue because mutating the real orb would affect
@@ -125,149 +104,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbCmd.Passive without VFX/SFX, choice-context model stack updates, or real orb mutation.
     public void OrbPassive(OrbModel orb, Creature? target = null)
     {
-        using (PushSource(orb))
-        {
-            switch (orb)
-            {
-                case LightningOrb lightningOrb:
-                    LightningOrbPassive(lightningOrb, target);
-                    break;
-                case FrostOrb frostOrb:
-                    FrostOrbPassive(frostOrb);
-                    break;
-                case DarkOrb darkOrb:
-                    DarkOrbPassive(darkOrb);
-                    break;
-                case GlassOrb glassOrb:
-                    GlassOrbPassive(glassOrb);
-                    break;
-                case PlasmaOrb plasmaOrb:
-                    PlasmaOrbPassive(plasmaOrb);
-                    break;
-                default:
-                    UnsupportedOrbPassive(orb);
-                    break;
-            }
-        }
-    }
-
-    // Mirrors LightningOrb.Passive -> LightningOrb.ApplyLightningDamage(PassiveVal, target, choiceContext).
-    private void LightningOrbPassive(LightningOrb orb, Creature? target)
-    {
-        LightningOrbDamage(orb, orb.PassiveVal, target);
-    }
-
-    // Mirrors LightningOrb.Evoke -> LightningOrb.ApplyLightningDamage(EvokeVal, null, choiceContext).
-    private IReadOnlyList<Creature> LightningOrbEvoke(LightningOrb orb)
-    {
-        return LightningOrbDamage(orb, orb.EvokeVal, target: null);
-    }
-
-    // Mirrors LightningOrb.ApplyLightningDamage without VFX/SFX.
-    private IReadOnlyList<Creature> LightningOrbDamage(LightningOrb orb, decimal value, Creature? target)
-    {
-        var candidates = State.GetHittableOpponentsOf(orb.Owner.Creature);
-        if (candidates.Count == 0)
-        {
-            return [];
-        }
-
-        target ??= Rng.CombatTargets.NextItem(candidates);
-        if (target == null)
-        {
-            return [];
-        }
-
-        var targets = (IReadOnlyList<Creature>)[target];
-        Damage(targets, value, ValueProp.Unpowered, orb.Owner.Creature);
-        return targets;
-    }
-
-    // Mirrors FrostOrb.Passive -> CreatureCmd.GainBlock(owner, PassiveVal, Unpowered, null).
-    private void FrostOrbPassive(FrostOrb orb)
-    {
-        GainBlock(orb.Owner.Creature, orb.PassiveVal, ValueProp.Unpowered);
-    }
-
-    // Mirrors FrostOrb.Evoke -> CreatureCmd.GainBlock(owner, EvokeVal, Unpowered, null).
-    private IReadOnlyList<Creature> FrostOrbEvoke(FrostOrb orb)
-    {
-        GainBlock(orb.Owner.Creature, orb.EvokeVal, ValueProp.Unpowered);
-        return [orb.Owner.Creature];
-    }
-
-    // Mirrors DarkOrb.Passive by increasing the cloned orb's stored evoke value.
-    private void DarkOrbPassive(DarkOrb orb)
-    {
-        orb._evokeVal += orb.PassiveVal;
-    }
-
-    // Mirrors DarkOrb.Evoke -> damage the hittable enemy with the least current HP.
-    private IReadOnlyList<Creature> DarkOrbEvoke(DarkOrb orb)
-    {
-        var target = State.GetHittableOpponentsOf(orb.Owner.Creature)
-            .MinBy(creature => State.GetCreature(creature).CurrentHp);
-        if (target == null)
-        {
-            return [];
-        }
-
-        var targets = (IReadOnlyList<Creature>)[target];
-        Damage(targets, orb.EvokeVal, ValueProp.Unpowered, orb.Owner.Creature);
-        return targets;
-    }
-
-    // Mirrors GlassOrb.Passive -> damage all hittable enemies, then reduce cloned base value.
-    private void GlassOrbPassive(GlassOrb orb)
-    {
-        var targets = State.GetHittableOpponentsOf(orb.Owner.Creature);
-        var passiveVal = orb.PassiveVal;
-        if (passiveVal <= 0m)
-        {
-            return;
-        }
-
-        // We can modify the orb's passive value because the simulator uses a cloned orb queue.
-        // The real orb queue is not mutated.
-        orb._passiveVal = Math.Max(0m, orb._passiveVal - 1m);
-        Damage(targets, passiveVal, ValueProp.Unpowered, orb.Owner.Creature);
-    }
-
-    // Mirrors GlassOrb.Evoke -> damage all hittable enemies.
-    private IReadOnlyList<Creature> GlassOrbEvoke(GlassOrb orb)
-    {
-        var targets = State.GetHittableOpponentsOf(orb.Owner.Creature);
-        if (orb.EvokeVal <= 0m)
-        {
-            return [];
-        }
-
-        Damage(targets, orb.EvokeVal, ValueProp.Unpowered, orb.Owner.Creature);
-        return targets;
-    }
-
-    // Mirrors PlasmaOrb.Passive.
-    private void PlasmaOrbPassive(PlasmaOrb orb)
-    {
-        // Energy gain is not modeled in the combat prediction simulator.
-    }
-
-    // Mirrors PlasmaOrb.Evoke.
-    private IReadOnlyList<Creature> PlasmaOrbEvoke(PlasmaOrb orb)
-    {
-        // Energy gain is not modeled in the combat prediction simulator.
-        return [orb.Owner.Creature];
-    }
-
-    private IReadOnlyList<Creature> UnsupportedOrbEvoke(OrbModel orb)
-    {
-        MarkCurrentSourceRisky();
-        return [];
-    }
-
-    private void UnsupportedOrbPassive(OrbModel orb)
-    {
-        MarkCurrentSourceRisky();
+        OrbBehavior.Passive(this, orb, target);
     }
 
     // Mirrors Hook.AfterOrbChanneled as a risk-only hook scan.
