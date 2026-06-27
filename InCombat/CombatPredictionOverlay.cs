@@ -237,7 +237,6 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
     private const int ShadowOutlineSize = 0;
     private const float HorizontalPadding = 10f;
     private const float VerticalPadding = 4f;
-    private const float IconGap = 6f;
     private const float NumberGap = 6f;
     private const int FontSize = 24;
 
@@ -274,7 +273,7 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         Connect(SignalName.MouseEntered, Callable.From(OnMouseEntered));
         Connect(SignalName.MouseExited, Callable.From(OnMouseExited));
         this.AddChildSafely(_content);
-        _content.AddThemeConstantOverride("separation", (int)IconGap);
+        _content.AddThemeConstantOverride("separation", 0);
         _damageLabel.AddThemeFontOverride(ThemeConstants.Label.Font, LabelFont);
         _damageLabel.AddThemeFontSizeOverride(ThemeConstants.Label.FontSize, FontSize);
         _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontShadowColor, StsColors.quarterTransparentBlack);
@@ -296,6 +295,13 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
             }
         }
 
+        if (prediction.DamageLines.Count == 0)
+        {
+            Size = Vector2.Zero;
+            CustomMinimumSize = Vector2.Zero;
+            return;
+        }
+
         var outlineColor = GetOutlineColor(prediction);
         var sourceGroups = prediction.DamageLines
             .GroupBy(static line => line.SourceModel?.Id)
@@ -312,6 +318,12 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
                 LabelFont));
         }
 
+        _content.AddChildSafely(new Control
+        {
+            CustomMinimumSize = new Vector2(NumberGap, NCombatPredictionSourceIcon.Height),
+            MouseFilter = MouseFilterEnum.Ignore
+        });
+
         var amount = (int)prediction.TotalDamage;
         var amountText = hasWarning ? $"{amount}*" : amount.ToString();
         var labelWidth = MathF.Max(30f, amountText.Length * 16f);
@@ -322,10 +334,7 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         _content.AddChildSafely(_damageLabel);
 
         var iconCount = sourceGroups.Count;
-        var contentWidth = iconCount * NCombatPredictionSourceIcon.SlotWidth +
-            Math.Max(0, iconCount - 1) * IconGap +
-            NumberGap +
-            labelWidth;
+        var contentWidth = iconCount * NCombatPredictionSourceIcon.SlotWidth + NumberGap + labelWidth;
         Size = new Vector2(contentWidth + HorizontalPadding * 2f, NCombatPredictionSourceIcon.Height + VerticalPadding * 2f);
         CustomMinimumSize = Size;
 
