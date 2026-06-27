@@ -3,7 +3,7 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat.Hooks;
 
-internal abstract class CombatCardPredictionHookContext : CombatPredictionHookContext
+internal abstract class CombatPredictionCardHookContext : CombatPredictionHookContext
 {
     public required PredictedCard Card { get; init; }
 

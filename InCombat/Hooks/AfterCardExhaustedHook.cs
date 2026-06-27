@@ -171,7 +171,7 @@ internal sealed class JossPaperPredictionState
     public int CardsExhausted { get; set; }
 }
 
-internal sealed class AfterCardExhaustedHookContext : CombatCardPredictionHookContext
+internal sealed class AfterCardExhaustedHookContext : CombatPredictionCardHookContext
 {
     public required Player Player { get; init; }
 

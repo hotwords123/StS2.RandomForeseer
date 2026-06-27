@@ -196,7 +196,7 @@ internal static class AfterCardDrawnHook
 
 }
 
-internal sealed class AfterCardDrawnHookContext : CombatCardPredictionHookContext
+internal sealed class AfterCardDrawnHookContext : CombatPredictionCardHookContext
 {
     public required Player Player { get; init; }
 

@@ -67,6 +67,6 @@ internal static class AfterCardDiscardedHook
     }
 }
 
-internal sealed class AfterCardDiscardedHookContext : CombatCardPredictionHookContext
+internal sealed class AfterCardDiscardedHookContext : CombatPredictionCardHookContext
 {
 }
