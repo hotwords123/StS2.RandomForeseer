@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 新增充能球效果预测，支持混沌、双重释放、多重释放、四重释放、彩虹、暴风雨、电流相生和电击。<br>
+  Added orb effect prediction for Chaos, Dualcast, Multi-Cast, Quadcast, Rainbow, Tempest, Voltaic, and Zap.
+
+- 新增回合结束效果预测，会按目标显示所有结束回合玩家的支持伤害效果总计，并可设置为悬停结束回合按钮时显示或玩家回合内始终显示。<br>
+  Added end-turn effect prediction, showing aggregated supported damage for all players ending their turn, with display options for End Turn button hover or always during the player turn.
+
 ## v0.6.3
 
 ### feat

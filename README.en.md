@@ -15,6 +15,8 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
+- **Orb effect prediction**: shows targets that supported orb-triggering cards will hit during combat.
+- **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; can be shown on End Turn button hover or always during the player turn.
 - **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
 - **Potion draw prediction**: shows the cards that supported draw potions will draw, including cards after shuffle.
 - **Card draw prediction**: shows the cards that Reboot and Calculated Gamble will draw, including cards after shuffle.
@@ -82,6 +84,17 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Anointed
 - Seeker Strike (random candidates)
 - Uproar
+
+### Orb Effects
+
+- Chaos
+- Dualcast
+- Multi-Cast
+- Quadcast
+- Rainbow
+- Tempest
+- Voltaic
+- Zap
 
 ### Draw-Pile Autoplay
 
@@ -162,6 +175,9 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict potion generation | Controls whether Entropic Brew and Alchemize show predicted potions |
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
+| Predict orb effects | Controls whether supported orb-triggering cards show the targets that orb effects will hit |
+| Predict end-turn effects | Controls whether supported end-turn damage predictions are shown |
+| End-turn prediction display | Controls whether end-turn damage prediction appears on End Turn button hover or always during the player turn |
 | Predict draw-pile autoplay | Controls whether Havoc, Cascade, and Distilled Chaos show the cards that will be played from the draw pile |
 | Predict potion draw | Controls whether supported potion draw effects show predicted cards |
 | Predict card draw | Controls whether Reboot and Calculated Gamble show predicted cards |
