@@ -40,6 +40,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableCombatCardSelectionPrediction { get; set; } = true;
 
+    public bool EnableOrbPrediction { get; set; } = true;
+
     public bool EnableAutoPlayFromDrawPilePrediction { get; set; } = true;
 
     public bool EnablePotionDrawPrediction { get; set; } = true;
@@ -75,6 +77,7 @@ internal static class RandomForeseerSettings
     private const string EnablePotionGenerationPredictionKey = "enable_potion_generation_prediction";
     private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
     private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
+    private const string EnableOrbPredictionKey = "enable_orb_prediction";
     private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
     private const string EnablePotionDrawPredictionKey = "enable_potion_draw_prediction";
     private const string EnableCardDrawPredictionKey = "enable_card_draw_prediction";
@@ -197,6 +200,13 @@ internal static class RandomForeseerSettings
             settings => settings.EnableCombatCardSelectionPrediction,
             (settings, value) => settings.EnableCombatCardSelectionPrediction = value);
 
+    private static readonly IModSettingsValueBinding<bool> EnableOrbPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableOrbPrediction,
+            (settings, value) => settings.EnableOrbPrediction = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAutoPlayFromDrawPilePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -282,6 +292,8 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatCardPrediction => EnableCombatCardPredictionBinding.Read();
 
     public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
+
+    public static bool EnableOrbPrediction => EnableOrbPredictionBinding.Read();
 
     public static bool EnableAutoPlayFromDrawPilePrediction => EnableAutoPlayFromDrawPilePredictionBinding.Read();
 
@@ -502,6 +514,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_combat_card_selection_prediction.description",
                         "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select."),
+                    () => true);
+
+                section.AddToggle(
+                    EnableOrbPredictionKey,
+                    Text("toggle.enable_orb_prediction.label", "Predict orb effects"),
+                    EnableOrbPredictionBinding,
+                    Text(
+                        "toggle.enable_orb_prediction.description",
+                        "When enabled, supported orb-triggering card tooltips show the targets that orb effects will hit."),
                     () => true);
 
                 section.AddToggle(

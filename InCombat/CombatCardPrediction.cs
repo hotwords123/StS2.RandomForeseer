@@ -20,6 +20,7 @@ internal static class CombatCardPrediction
         CombatPlayPredictionProviders.Register("combat card selection", CombatCardSelectionPrediction.GetHoverTips);
         CombatPlayPredictionProviders.Register("auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetCardHoverTips);
         CombatPlayPredictionProviders.Register("card draw", CardDrawPrediction.GetCardHoverTips);
+        CombatPlayPredictionProviders.Register("orb", OrbPrediction.GetHoverTips);
 
         CombatTransformPredictionProviders.Register("combat transform selection", CombatTransformPrediction.GetCardHoverTips);
     }

@@ -62,6 +62,11 @@ internal static class PredictionHoverTips
         return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();
     }
 
+    public static IReadOnlyList<IHoverTip> Orbs(IEnumerable<OrbModel> orbs)
+    {
+        return orbs.Select(orb => (IHoverTip)CreatePredictionTextHoverTip(orb.DumbHoverTip)).ToList();
+    }
+
     public static IHoverTip DriftWarning(string key, PredictionRisk risk)
     {
         var description = PredictionLocalization.Text($"drift_warning.{key}.description");
@@ -117,6 +122,7 @@ internal static class PredictionHoverTips
                 AfflictionModel affliction => affliction.Title.GetFormattedText(),
                 EnchantmentModel enchantment => enchantment.Title.GetFormattedText(),
                 OrbModel orb => orb.Title.GetFormattedText(),
+                MonsterModel monster => monster.Title.GetFormattedText(),
                 _ => model.Id.Entry
             };
         }

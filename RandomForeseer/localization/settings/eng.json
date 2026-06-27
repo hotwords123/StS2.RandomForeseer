@@ -32,6 +32,8 @@
   "toggle.enable_combat_card_prediction.description": "When enabled, combat card tooltips show the exact random cards the current RNG will generate.",
   "toggle.enable_combat_card_selection_prediction.label": "Predict combat card selection",
   "toggle.enable_combat_card_selection_prediction.description": "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select.",
+  "toggle.enable_orb_prediction.label": "Predict orb effects",
+  "toggle.enable_orb_prediction.description": "When enabled, supported orb-triggering card tooltips show the targets that orb effects will hit.",
   "toggle.enable_auto_play_from_draw_pile_prediction.label": "Predict draw-pile autoplay",
   "toggle.enable_auto_play_from_draw_pile_prediction.description": "When enabled, Havoc, Cascade, and Distilled Chaos tooltips show the cards that will be played from the draw pile.",
   "toggle.enable_potion_draw_prediction.label": "Predict potion draw",
