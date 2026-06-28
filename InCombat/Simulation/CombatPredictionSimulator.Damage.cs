@@ -100,7 +100,7 @@ internal sealed partial class CombatPredictionSimulator
         // state in sync and is intentionally left for targeted hook mirrors.
         _ = damageModifiers;
 
-        DamageHooks.RunBeforeDamageReceived(new BeforeDamageReceivedHookContext
+        DamageReceivedHooks.RunBefore(new BeforeDamageReceivedHookContext
         {
             Simulator = this,
             Target = originalTarget,
@@ -142,7 +142,12 @@ internal sealed partial class CombatPredictionSimulator
             cardSource,
             HpLossHookPhase.AfterOsty,
             out var afterOstyModifiers);
-        _ = afterOstyModifiers;
+        DamageModifierHooks.RunAfterModifyingHpLostAfterOsty(
+            afterOstyModifiers,
+            new AfterModifyingHpLostHookContext
+            {
+                Simulator = this
+            });
 
         var unblockedDamageTargetState = State.GetCreature(unblockedDamageTarget);
         var unblockedDamageResult = unblockedDamageTargetState.LoseHp(unblockedDamage, props);
@@ -171,7 +176,12 @@ internal sealed partial class CombatPredictionSimulator
                 cardSource,
                 HpLossHookPhase.AfterOsty,
                 out var redirectedAfterOstyModifiers);
-            _ = redirectedAfterOstyModifiers;
+            DamageModifierHooks.RunAfterModifyingHpLostAfterOsty(
+                redirectedAfterOstyModifiers,
+                new AfterModifyingHpLostHookContext
+                {
+                    Simulator = this
+                });
 
             var damageResult = originalTargetDamage > 0m
                 ? originalTargetState.LoseHp(originalTargetDamage, props)
@@ -220,7 +230,17 @@ internal sealed partial class CombatPredictionSimulator
 
             if (!damageResult.WasTargetKilled || !State.GetCreature(originalTarget).IsDead)
             {
-                // TODO: Mirror Hook.AfterDamageReceived here, including its Late dispatch.
+                var context = new AfterDamageReceivedHookContext
+                {
+                    Simulator = this,
+                    Target = originalTarget,
+                    Result = damageResult,
+                    Props = damageResult.Props,
+                    Dealer = dealer,
+                    Source = cardSource
+                };
+                DamageReceivedHooks.RunAfter(context);
+                DamageReceivedHooks.RunAfterLate(context);
             }
             else
             {
