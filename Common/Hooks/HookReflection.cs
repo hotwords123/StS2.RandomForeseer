@@ -20,6 +20,11 @@ internal static class HookReflection
         return overrideMethod != null && overrideMethod.DeclaringType != typeof(AbstractModel);
     }
 
+    public static bool IsVanillaModel(Type modelType)
+    {
+        return modelType.Assembly == typeof(AbstractModel).Assembly;
+    }
+
     public static bool TryGetMod(MethodInfo overrideMethod, [NotNullWhen(true)] out Mod? mod)
     {
         var declaringAssembly = overrideMethod.DeclaringType?.Assembly;

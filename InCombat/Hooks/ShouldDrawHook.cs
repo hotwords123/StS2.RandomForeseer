@@ -20,10 +20,7 @@ internal static class ShouldDrawHook
 
     public static void Run(ShouldDrawHookContext context)
     {
-        Registry.Run(
-            context.CombatState.IterateHookListeners(),
-            context,
-            static context => !context.IsBlocked);
+        Registry.Run(context.CombatState.IterateHookListeners(), context);
     }
 
     private static HookRegistry<ShouldDrawHookContext> CreateRegistry()
@@ -62,6 +59,8 @@ internal sealed class ShouldDrawHookContext : CombatPredictionHookContext
     public required bool FromHandDraw { get; init; }
 
     public bool IsBlocked { get; private set; }
+
+    public override bool ShouldContinue => !IsBlocked;
 
     public void Block()
     {

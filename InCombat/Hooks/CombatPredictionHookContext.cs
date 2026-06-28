@@ -21,6 +21,8 @@ internal abstract class CombatPredictionHookContext : IPredictionHookContext
 
     public IRunState RunState => CombatState.RunState;
 
+    public virtual bool ShouldContinue => true;
+
     public IDisposable PushSource(AbstractModel model)
     {
         return Simulator.PushSource(model);
