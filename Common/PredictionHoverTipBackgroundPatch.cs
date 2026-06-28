@@ -43,16 +43,13 @@ internal static class PredictionHoverTipBackgroundPatch
         var textTips = __instance._textHoverTipContainer
             .GetChildren()
             .OfType<Control>()
-            .ToList();
+            .Zip(mask)
+            .Where(static pair => pair.Second)
+            .Select(static pair => pair.First);
 
-        for (var i = 0; i < Math.Min(textTips.Count, mask.Count); i++)
+        foreach (var textTip in textTips)
         {
-            if (!mask[i])
-            {
-                continue;
-            }
-
-            var background = textTips[i].GetNode<CanvasItem>("%Bg");
+            var background = textTip.GetNode<CanvasItem>("%Bg");
             background.Material = PredictionBackgroundMaterial.Value;
             background.SelfModulate = Colors.White;
         }

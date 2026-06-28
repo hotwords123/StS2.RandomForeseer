@@ -22,6 +22,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Card draw prediction**: shows the cards that Reboot and Calculated Gamble will draw, including cards after shuffle.
 - **Combat transform prediction**: shows the cards that Entropy will transform selected hand cards into during combat.
 - **Driftwood reroll prediction**: shows the cards that a card reward reroll will offer when hovering the Reroll button.
+- **Pael's Wing sacrifice prediction**: shows the relic awarded by an activating Sacrifice button.
 - **Relic pickup effect prediction**: relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup.
 - **Rest-site result prediction**: shows random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel when hovering rest-site options.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
@@ -129,6 +130,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 ### Card Rewards
 
 - Driftwood reroll
+- Pael's Wing Sacrifice rewards
 
 ### Non-Ancient Events
 
@@ -189,6 +191,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict potion draw | Controls whether supported potion draw effects show predicted cards |
 | Predict card draw | Controls whether Reboot and Calculated Gamble show predicted cards |
 | Predict Driftwood rerolls | Controls whether Driftwood card reward rerolls show predicted cards |
+| Predict Pael's Wing sacrifices | Controls whether activating Pael's Wing Sacrifice buttons show the relic that will be awarded |
 | Predict relic pickup effects | Controls whether relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup |
 | Predict rest-site results | Controls whether rest-site options show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel |
 | Predict event option results | Controls whether non-Ancient event options show immediate random results |

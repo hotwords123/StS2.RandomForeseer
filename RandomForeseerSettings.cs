@@ -22,6 +22,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableDriftwoodRerollPrediction { get; set; } = true;
 
+    public bool EnablePaelsWingSacrificePrediction { get; set; } = true;
+
     public bool EnableRelicPickupPrediction { get; set; } = true;
 
     public bool EnableRestSitePrediction { get; set; } = true;
@@ -73,6 +75,7 @@ internal static class RandomForeseerSettings
     private const string EnableDriftWarningsKey = "enable_drift_warnings";
     private const string EnableTransformPredictionKey = "enable_transform_prediction";
     private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
+    private const string EnablePaelsWingSacrificePredictionKey = "enable_paels_wing_sacrifice_prediction";
     private const string EnableRelicPickupPredictionKey = "enable_relic_pickup_prediction";
     private const string EnableRestSitePredictionKey = "enable_rest_site_prediction";
     private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
@@ -143,6 +146,13 @@ internal static class RandomForeseerSettings
             DataKey,
             settings => settings.EnableDriftwoodRerollPrediction,
             (settings, value) => settings.EnableDriftwoodRerollPrediction = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnablePaelsWingSacrificePredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnablePaelsWingSacrificePrediction,
+            (settings, value) => settings.EnablePaelsWingSacrificePrediction = value);
 
     private static readonly IModSettingsValueBinding<bool> EnableRelicPickupPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
@@ -296,6 +306,8 @@ internal static class RandomForeseerSettings
 
     public static bool EnableDriftwoodRerollPrediction => EnableDriftwoodRerollPredictionBinding.Read();
 
+    public static bool EnablePaelsWingSacrificePrediction => EnablePaelsWingSacrificePredictionBinding.Read();
+
     public static bool EnableRelicPickupPrediction => EnableRelicPickupPredictionBinding.Read();
 
     public static bool EnableRestSitePrediction => EnableRestSitePredictionBinding.Read();
@@ -448,6 +460,15 @@ internal static class RandomForeseerSettings
                     Text(
                         "toggle.enable_driftwood_reroll_prediction.description",
                         "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."),
+                    () => true);
+
+                section.AddToggle(
+                    EnablePaelsWingSacrificePredictionKey,
+                    Text("toggle.enable_paels_wing_sacrifice_prediction.label", "Predict Pael's Wing sacrifices"),
+                    EnablePaelsWingSacrificePredictionBinding,
+                    Text(
+                        "toggle.enable_paels_wing_sacrifice_prediction.description",
+                        "When enabled, Pael's Wing's Sacrifice button shows the relic awarded by the next activating sacrifice."),
                     () => true);
 
                 section.AddToggle(

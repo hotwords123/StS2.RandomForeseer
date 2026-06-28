@@ -26,7 +26,7 @@ internal static class ControlHoverTipPredictionPatch
         registry.Register("treasure room relic", TreasureRoomRelicHoverTips.GetHoverTips);
         registry.Register("rest site", RestSiteHoverTips.GetHoverTips);
         registry.Register("combat transform selected holder", CombatTransformSelectedHoverTips.GetHoverTips);
-        registry.Register("card reward reroll", CardRewardRerollButtonHoverTips.GetHoverTips);
+        registry.Register("card reward alternative", CardRewardAlternativeButtonHoverTips.GetHoverTips);
         registry.Register("lemonSpire", LemonSpireControlHoverTips.GetHoverTips);
 
         return registry;

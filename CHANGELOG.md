@@ -13,6 +13,9 @@
 - 遗物交换商事件中，交换得到的遗物现在也会显示拾起效果预测。<br>
   Relic Trader now also shows pickup effect predictions for the relic received from a trade.
 
+- 佩尔之翼的献祭按钮现在会在本次献祭触发奖励时显示将获得的遗物及其拾起效果预测。<br>
+  Pael's Wing's Sacrifice button now shows the awarded relic and pickup effect predictions when the sacrifice will trigger a reward.
+
 ## v0.6.3
 
 ### feat

@@ -50,6 +50,8 @@
   "toggle.enable_combat_transform_prediction.description": "启用后，战斗内变牌选择会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_driftwood_reroll_prediction.label": "预测浮木重掷奖励",
   "toggle.enable_driftwood_reroll_prediction.description": "启用后，浮木的卡牌奖励重掷按钮会显示重掷后将出现的确切卡牌。",
+  "toggle.enable_paels_wing_sacrifice_prediction.label": "预测佩尔之翼献祭奖励",
+  "toggle.enable_paels_wing_sacrifice_prediction.description": "启用后，佩尔之翼的献祭按钮会显示下一次触发献祭奖励时将获得的遗物。",
   "toggle.enable_relic_pickup_prediction.label": "预测遗物拾起效果",
   "toggle.enable_relic_pickup_prediction.description": "启用后，遗物提示（包括先古之民选项）会显示拾起时立即发生的随机卡牌、遗物、药水、诅咒和变牌结果。",
   "toggle.enable_rest_site_prediction.label": "预测休息处结果",
