@@ -693,6 +693,18 @@ internal static class RandomForeseerSettings
                     Text(
                         "button.open_predicted_treasure_room.description",
                         "Only works during a run. Opens a treasure room whose relic target is randomly chosen from War Paint and Whetstone. This can change game content."));
+
+                section.AddButton(
+                    "open_relic_trader_pickup_test",
+                    Text("button.open_relic_trader_pickup_test.label", "Open Relic Trader pickup test"),
+                    Text(
+                        "button.open_relic_trader_pickup_test.text",
+                        "Open"),
+                    Debug.RelicPickupDebugRewards.OpenRelicTraderPickupTest,
+                    ModSettingsButtonTone.Danger,
+                    Text(
+                        "button.open_relic_trader_pickup_test.description",
+                        "Only works during a run. Gives you a Circlet, then opens a Relic Trader event with Circlet trades for War Paint and Whetstone. This can change game content."));
             });
         }, "debug");
     }

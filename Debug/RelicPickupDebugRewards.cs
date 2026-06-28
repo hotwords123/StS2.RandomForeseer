@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Rewards;
@@ -31,6 +32,11 @@ internal static class RelicPickupDebugRewards
     public static void OpenPredictedTreasureRoom()
     {
         TaskHelper.RunSafely(OpenPredictedTreasureRoomAsync());
+    }
+
+    public static void OpenRelicTraderPickupTest()
+    {
+        TaskHelper.RunSafely(OpenRelicTraderPickupTestAsync());
     }
 
     private static async Task OfferPredictedNonAncientRelicsAsync()
@@ -91,6 +97,47 @@ internal static class RelicPickupDebugRewards
         state.SharedRelicGrabBag.LoadFromSerializable(grabBag);
         Entry.Logger.Info($"Opening debug treasure room with predicted relic target {target.Id}.");
         await RunManager.Instance.EnterRoomDebug(RoomType.Treasure, MapPointType.Treasure, showTransition: false);
+    }
+
+    private static async Task OpenRelicTraderPickupTestAsync()
+    {
+        var state = RunManager.Instance.DebugOnlyGetState();
+        if (state == null)
+        {
+            Entry.Logger.Warn("Cannot open Relic Trader pickup debug test: no active run.");
+            return;
+        }
+
+        var player = LocalContext.GetMe(state);
+        if (player == null)
+        {
+            Entry.Logger.Warn("Cannot open Relic Trader pickup debug test: no active local player.");
+            return;
+        }
+
+        var circlet = await RelicCmd.Obtain<Circlet>(player);
+        var room = new EventRoom(ModelDb.Event<RelicTrader>())
+        {
+            OnStart = eventModel =>
+            {
+                if (eventModel is RelicTrader relicTrader)
+                {
+                    relicTrader._ownedRelics =
+                    [
+                        circlet,
+                        circlet
+                    ];
+                    relicTrader._newRelics =
+                    [
+                        ModelDb.Relic<WarPaint>(),
+                        ModelDb.Relic<Whetstone>()
+                    ];
+                }
+            }
+        };
+
+        Entry.Logger.Info("Opening debug Relic Trader pickup test with Circlet trades for War Paint and Whetstone.");
+        await RunManager.Instance.EnterRoom(room);
     }
 
     private static IEnumerable<RelicModel> CreateRelics()
