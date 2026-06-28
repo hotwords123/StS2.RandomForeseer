@@ -67,6 +67,12 @@ internal static class CombatCardHoverPredictionController
         try
         {
             var prediction = OrbPrediction.Predict(card);
+            if (prediction == OrbPredictionResult.Empty)
+            {
+                CombatPredictionOverlay.Clear(card);
+                return;
+            }
+
             CombatPredictionOverlay.Show(card, prediction.OverlayContent);
         }
         catch (Exception ex)

@@ -78,11 +78,8 @@ internal static class OrbPrediction
                 simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
                 simulator.OrbChannel<DarkOrb>(card.Owner);
                 break;
-            case Spinner:
-                if (card.IsUpgraded)
-                {
-                    simulator.OrbChannel<GlassOrb>(card.Owner);
-                }
+            case Spinner { IsUpgraded: true }:
+                simulator.OrbChannel<GlassOrb>(card.Owner);
                 // Vanilla applies SpinnerPower after channeling, which is not simulated here.
                 break;
             case Tempest:
