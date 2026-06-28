@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 充能球效果和回合结束预测现在会在目标血条上以黄色段显示预测的生命值损失。<br>
+  Combat damage predictions now show actual HP loss as a yellow forecast segment on target health bars.
+
 ## v0.7.0
 
 ### feat

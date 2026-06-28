@@ -1,9 +1,9 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Rooms;
 
 namespace RandomForeseer.InCombat;
 
@@ -68,14 +68,14 @@ internal static class EndTurnPredictionController
 
     public static void Refresh()
     {
-        if (CombatPredictionOverlay.IsShowingDifferentSource(Source))
-        {
-            return;
-        }
-
         if (!ShouldShow())
         {
             CombatPredictionOverlay.Clear(Source);
+            return;
+        }
+
+        if (CombatPredictionOverlay.IsShowingDifferentSource(Source))
+        {
             return;
         }
 

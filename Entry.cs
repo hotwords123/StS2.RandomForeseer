@@ -3,6 +3,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 using RandomForeseer.Common;
+using RandomForeseer.InCombat;
 using RandomForeseer.Integrations;
 using RandomForeseer.Integrations.LemonSpire;
 using STS2RitsuLib;
@@ -39,6 +40,9 @@ public partial class Entry
 
         PredictionLocalization.Register();
         RandomForeseerSettings.Register();
+        RitsuLibFramework.RegisterHealthBarForecast<CombatPredictionHealthBarForecastSource>(
+            ModId,
+            "combat_prediction");
 
         var harmony = new Harmony($"{ModId}.Harmony");
         harmony.PatchAllUncategorized(assembly);
