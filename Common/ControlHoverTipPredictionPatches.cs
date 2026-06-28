@@ -15,17 +15,21 @@ namespace RandomForeseer.Common;
     [typeof(Control), typeof(IEnumerable<IHoverTip>), typeof(HoverTipAlignment)])]
 internal static class ControlHoverTipPredictionPatch
 {
-    private static readonly PredictionHoverTipRegistry<Control> Registry = new();
+    private static readonly PredictionHoverTipRegistry<Control> Registry = CreateRegistry();
 
-    static ControlHoverTipPredictionPatch()
+    private static PredictionHoverTipRegistry<Control> CreateRegistry()
     {
-        Registry.Register("merchant entry", MerchantEntryHoverTips.GetHoverTips);
-        Registry.Register("transform selection", TransformSelectionHoverTips.GetHoverTips);
-        Registry.Register("treasure room relic", TreasureRoomRelicHoverTips.GetHoverTips);
-        Registry.Register("rest site", RestSiteHoverTips.GetHoverTips);
-        Registry.Register("combat transform selected holder", CombatTransformSelectedHoverTips.GetHoverTips);
-        Registry.Register("card reward reroll", CardRewardRerollButtonHoverTips.GetHoverTips);
-        Registry.Register("lemonSpire", LemonSpireControlHoverTips.GetHoverTips);
+        var registry = new PredictionHoverTipRegistry<Control>();
+
+        registry.Register("merchant entry", MerchantEntryHoverTips.GetHoverTips);
+        registry.Register("transform selection", TransformSelectionHoverTips.GetHoverTips);
+        registry.Register("treasure room relic", TreasureRoomRelicHoverTips.GetHoverTips);
+        registry.Register("rest site", RestSiteHoverTips.GetHoverTips);
+        registry.Register("combat transform selected holder", CombatTransformSelectedHoverTips.GetHoverTips);
+        registry.Register("card reward reroll", CardRewardRerollButtonHoverTips.GetHoverTips);
+        registry.Register("lemonSpire", LemonSpireControlHoverTips.GetHoverTips);
+
+        return registry;
     }
 
     private static void Prefix(Control owner, ref IEnumerable<IHoverTip> hoverTips)

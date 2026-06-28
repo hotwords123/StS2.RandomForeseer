@@ -9,20 +9,20 @@ namespace RandomForeseer.InCombat;
 
 internal static class CombatCardPrediction
 {
-    private static readonly PredictionHoverTipRegistry<CardModel> CombatPlayPredictionProviders = new();
+    private static readonly PredictionHoverTipRegistry<CardModel> CombatPlayPredictionProviders = CreatePlayRegistry();
 
-    private static readonly PredictionHoverTipRegistry<CardModel> CombatTransformPredictionProviders = new();
-
-    static CombatCardPrediction()
+    private static PredictionHoverTipRegistry<CardModel> CreatePlayRegistry()
     {
-        CombatPlayPredictionProviders.Register("combat card generation", CombatCardGenerationPrediction.GetCardHoverTips);
-        CombatPlayPredictionProviders.Register("combat potion generation", PotionGenerationPrediction.GetCardHoverTips);
-        CombatPlayPredictionProviders.Register("combat card selection", CombatCardSelectionPrediction.GetHoverTips);
-        CombatPlayPredictionProviders.Register("auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetCardHoverTips);
-        CombatPlayPredictionProviders.Register("card draw", CardDrawPrediction.GetCardHoverTips);
-        CombatPlayPredictionProviders.Register("orb", OrbPrediction.GetHoverTips);
+        var registry = new PredictionHoverTipRegistry<CardModel>();
 
-        CombatTransformPredictionProviders.Register("combat transform selection", CombatTransformPrediction.GetCardHoverTips);
+        registry.Register("combat card generation", CombatCardGenerationPrediction.GetCardHoverTips);
+        registry.Register("combat potion generation", PotionGenerationPrediction.GetCardHoverTips);
+        registry.Register("combat card selection", CombatCardSelectionPrediction.GetHoverTips);
+        registry.Register("auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetCardHoverTips);
+        registry.Register("card draw", CardDrawPrediction.GetCardHoverTips);
+        registry.Register("orb", OrbPrediction.GetHoverTips);
+
+        return registry;
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
@@ -39,7 +39,14 @@ internal static class CombatCardPrediction
             predictionTips.AddRange(CombatPlayPredictionProviders.GetHoverTips(card));
         }
 
-        predictionTips.AddRange(CombatTransformPredictionProviders.GetHoverTips(card));
+        try
+        {
+            predictionTips.AddRange(CombatTransformPrediction.GetCardHoverTips(card));
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat transform prediction failed for {card.Id}: {ex}");
+        }
 
         return predictionTips;
     }

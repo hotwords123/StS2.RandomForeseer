@@ -8,53 +8,81 @@ using RandomForeseer.OutOfCombat.Events;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal static class EventOptionPrediction
+internal sealed class EventPredictionRegistry
 {
-    private static readonly Dictionary<Type, Func<EventModel, EventOption, IReadOnlyList<IHoverTip>>> Predictors = [];
+    private readonly Dictionary<Type, Func<EventModel, EventOption, IReadOnlyList<IHoverTip>>> _predictors = [];
 
-    static EventOptionPrediction()
-    {
-        Register<AromaOfChaos>(AromaOfChaosPrediction.GetHoverTips);
-        Register<BattlewornDummy>(BattlewornDummyPrediction.GetHoverTips);
-        Register<BrainLeech>(BrainLeechPrediction.GetHoverTips);
-        Register<ColorfulPhilosophers>(ColorfulPhilosophersPrediction.GetHoverTips);
-        Register<DenseVegetation>(DenseVegetationPrediction.GetHoverTips);
-        Register<DollRoom>(DollRoomPrediction.GetHoverTips);
-        Register<DoorsOfLightAndDark>(DoorsOfLightAndDarkPrediction.GetHoverTips);
-        Register<EndlessConveyor>(EndlessConveyorPrediction.GetHoverTips);
-        Register<InfestedAutomaton>(InfestedAutomatonPrediction.GetHoverTips);
-        Register<LuminousChoir>(LuminousChoirPrediction.GetHoverTips);
-        Register<MorphicGrove>(MorphicGrovePrediction.GetHoverTips);
-        Register<PotionCourier>(PotionCourierPrediction.GetHoverTips);
-        Register<PunchOff>(PunchOffPrediction.GetHoverTips);
-        Register<RanwidTheElder>(RanwidTheElderPrediction.GetHoverTips);
-        Register<Reflections>(ReflectionsPrediction.GetHoverTips);
-        Register<RoomFullOfCheese>(RoomFullOfCheesePrediction.GetHoverTips);
-        Register<RoundTeaParty>(RoundTeaPartyPrediction.GetHoverTips);
-        Register<SlipperyBridge>(SlipperyBridgePrediction.GetHoverTips);
-        Register<Symbiote>(SymbiotePrediction.GetHoverTips);
-        Register<TabletOfTruth>(TabletOfTruthPrediction.GetHoverTips);
-        Register<TheFutureOfPotions>(TheFutureOfPotionsPrediction.GetHoverTips);
-        Register<TheLegendsWereTrue>(TheLegendsWereTruePrediction.GetHoverTips);
-        Register<ThisOrThat>(ThisOrThatPrediction.GetHoverTips);
-        Register<TinkerTime>(TinkerTimePrediction.GetHoverTips);
-        Register<TrashHeap>(TrashHeapPrediction.GetHoverTips);
-        Register<Trial>(TrialPrediction.GetHoverTips);
-        Register<UnrestSite>(UnrestSitePrediction.GetHoverTips);
-        Register<WarHistorianRepy>(WarHistorianRepyPrediction.GetHoverTips);
-        Register<WelcomeToWongos>(WelcomeToWongosPrediction.GetHoverTips);
-        Register<Wellspring>(WellspringPrediction.GetHoverTips);
-        Register<WhisperingHollow>(WhisperingHollowPrediction.GetHoverTips);
-    }
-
-    private static void Register<TEvent>(Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> predictor)
+    public void Register<TEvent>(Func<TEvent, EventOption, IReadOnlyList<IHoverTip>> predictor)
         where TEvent : EventModel
     {
         var eventType = typeof(TEvent);
-        if (!Predictors.TryAdd(eventType, (eventModel, option) => predictor((TEvent)eventModel, option)))
+        if (!_predictors.TryAdd(eventType, (eventModel, option) => predictor((TEvent)eventModel, option)))
         {
             Entry.Logger.Warn($"Duplicate event option prediction registration ignored: {eventType}");
         }
+    }
+
+    public bool TryPredict(EventModel eventModel, EventOption option, out IReadOnlyList<IHoverTip> hoverTips)
+    {
+        if (_predictors.TryGetValue(eventModel.GetType(), out var predictor))
+        {
+            try
+            {
+                hoverTips = predictor(eventModel, option);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
+            }
+        }
+
+        hoverTips = [];
+        return false;
+    }
+}
+
+internal static class EventOptionPrediction
+{
+    private static readonly EventPredictionRegistry Registry = CreateRegistry();
+
+    private static EventPredictionRegistry CreateRegistry()
+    {
+        var registry = new EventPredictionRegistry();
+
+        registry.Register<AromaOfChaos>(AromaOfChaosPrediction.GetHoverTips);
+        registry.Register<BattlewornDummy>(BattlewornDummyPrediction.GetHoverTips);
+        registry.Register<BrainLeech>(BrainLeechPrediction.GetHoverTips);
+        registry.Register<ColorfulPhilosophers>(ColorfulPhilosophersPrediction.GetHoverTips);
+        registry.Register<DenseVegetation>(DenseVegetationPrediction.GetHoverTips);
+        registry.Register<DollRoom>(DollRoomPrediction.GetHoverTips);
+        registry.Register<DoorsOfLightAndDark>(DoorsOfLightAndDarkPrediction.GetHoverTips);
+        registry.Register<EndlessConveyor>(EndlessConveyorPrediction.GetHoverTips);
+        registry.Register<InfestedAutomaton>(InfestedAutomatonPrediction.GetHoverTips);
+        registry.Register<LuminousChoir>(LuminousChoirPrediction.GetHoverTips);
+        registry.Register<MorphicGrove>(MorphicGrovePrediction.GetHoverTips);
+        registry.Register<PotionCourier>(PotionCourierPrediction.GetHoverTips);
+        registry.Register<PunchOff>(PunchOffPrediction.GetHoverTips);
+        registry.Register<RanwidTheElder>(RanwidTheElderPrediction.GetHoverTips);
+        registry.Register<Reflections>(ReflectionsPrediction.GetHoverTips);
+        registry.Register<RoomFullOfCheese>(RoomFullOfCheesePrediction.GetHoverTips);
+        registry.Register<RoundTeaParty>(RoundTeaPartyPrediction.GetHoverTips);
+        registry.Register<SlipperyBridge>(SlipperyBridgePrediction.GetHoverTips);
+        registry.Register<Symbiote>(SymbiotePrediction.GetHoverTips);
+        registry.Register<TabletOfTruth>(TabletOfTruthPrediction.GetHoverTips);
+        registry.Register<TheFutureOfPotions>(TheFutureOfPotionsPrediction.GetHoverTips);
+        registry.Register<TheLegendsWereTrue>(TheLegendsWereTruePrediction.GetHoverTips);
+        registry.Register<ThisOrThat>(ThisOrThatPrediction.GetHoverTips);
+        registry.Register<TinkerTime>(TinkerTimePrediction.GetHoverTips);
+        registry.Register<TrashHeap>(TrashHeapPrediction.GetHoverTips);
+        registry.Register<Trial>(TrialPrediction.GetHoverTips);
+        registry.Register<UnrestSite>(UnrestSitePrediction.GetHoverTips);
+        registry.Register<WarHistorianRepy>(WarHistorianRepyPrediction.GetHoverTips);
+        registry.Register<WelcomeToWongos>(WelcomeToWongosPrediction.GetHoverTips);
+        registry.Register<Wellspring>(WellspringPrediction.GetHoverTips);
+        registry.Register<WhisperingHollow>(WhisperingHollowPrediction.GetHoverTips);
+
+        return registry;
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option)
@@ -72,16 +100,9 @@ internal static class EventOptionPrediction
         }
 
         if (RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEventOptionPrediction) &&
-            Predictors.TryGetValue(eventModel.GetType(), out var predictor))
+            Registry.TryPredict(eventModel, option, out var hoverTips))
         {
-            try
-            {
-                tips.AddRange(predictor(eventModel, option));
-            }
-            catch (Exception ex)
-            {
-                Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
-            }
+            tips.AddRange(hoverTips);
         }
 
         return tips;

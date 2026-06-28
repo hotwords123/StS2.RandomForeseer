@@ -7,14 +7,18 @@ namespace RandomForeseer.Common;
 
 internal static class PotionPrediction
 {
-    private static readonly PredictionHoverTipRegistry<PotionModel> PredictionProviders = new();
+    private static readonly PredictionHoverTipRegistry<PotionModel> PredictionProviders = CreateRegistry();
 
-    static PotionPrediction()
+    private static PredictionHoverTipRegistry<PotionModel> CreateRegistry()
     {
-        PredictionProviders.Register("potion card generation", CombatCardGenerationPrediction.GetPotionHoverTips);
-        PredictionProviders.Register("potion generation", PotionGenerationPrediction.GetPotionHoverTips);
-        PredictionProviders.Register("potion auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetPotionHoverTips);
-        PredictionProviders.Register("potion draw", PotionDrawPrediction.GetPotionHoverTips);
+        var registry = new PredictionHoverTipRegistry<PotionModel>();
+
+        registry.Register("potion card generation", CombatCardGenerationPrediction.GetPotionHoverTips);
+        registry.Register("potion generation", PotionGenerationPrediction.GetPotionHoverTips);
+        registry.Register("potion auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetPotionHoverTips);
+        registry.Register("potion draw", PotionDrawPrediction.GetPotionHoverTips);
+
+        return registry;
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(PotionModel potion)
