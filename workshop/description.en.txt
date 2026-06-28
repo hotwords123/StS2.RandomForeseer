@@ -31,6 +31,8 @@ You can manage each prediction feature from the settings page provided by RitsuL
 
 [h2]Credits[/h2]
 
+Special thanks: cover art by 月上猫啊 (Bilibili: @[url=https://space.bilibili.com/325913526]yuepcat[/url])
+
 Thanks to the friends who played multiplayer with me. They helped test the prototype mod and suggested many improvements.
 
 [h2]FAQ[/h2]

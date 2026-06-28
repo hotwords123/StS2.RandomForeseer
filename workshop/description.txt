@@ -31,6 +31,8 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 
 [h2]致谢[/h2]
 
+特别感谢：封面图作者 月上猫啊（B 站：@[url=https://space.bilibili.com/325913526]yuepcat[/url]）
+
 感谢和我一起玩联机的朋友们。他们帮我测试了原型 Mod，也提出了很多改进意见。
 
 [h2]FAQ[/h2]

@@ -16,6 +16,11 @@
 - 佩尔之翼的献祭按钮现在会在本次献祭触发奖励时显示将获得的遗物及其拾起效果预测。<br>
   Pael's Wing's Sacrifice button now shows the awarded relic and pickup effect predictions when the sacrifice will trigger a reward.
 
+### misc
+
+- 更新了 Mod 封面图。
+  Updated the mod cover art.
+
 ## v0.6.3
 
 ### feat
@@ -214,5 +219,5 @@
 - 支持冻结之眼，在战斗抽牌堆界面按实际抽牌顺序显示卡牌。<br>
   Added Frozen Eye support to show the combat draw pile in actual draw order.
 
-- 新增模组设置和公平模式，可单独开关各类预测并限制只显示可通过保存和读档获取的信息。<br>
+- 新增 Mod 设置和公平模式，可单独开关各类预测并限制只显示可通过保存和读档获取的信息。<br>
   Added mod settings and fair mode, including per-feature toggles and limits for information obtainable through Save & Load.
