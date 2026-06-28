@@ -10,6 +10,9 @@
 - 新增回合结束效果预测，会按目标显示所有结束回合玩家的支持伤害效果总计，并可设置为悬停结束回合按钮时显示或玩家回合内始终显示。<br>
   Added end-turn effect prediction, showing aggregated supported damage for all players ending their turn, with display options for End Turn button hover or always during the player turn.
 
+- 遗物交换商事件中，交换得到的遗物现在也会显示拾起效果预测。<br>
+  Relic Trader now also shows pickup effect predictions for the relic received from a trade.
+
 ## v0.6.3
 
 ### feat

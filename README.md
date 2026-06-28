@@ -140,6 +140,7 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 - 大锅、星系仪、芳香蘑菇、战纹涂料、磨刀石等遗物的拾起结果
 - 遗物奖励中的即时随机结果
 - 商店遗物中的即时随机结果
+- 遗物交换商事件中交换得到的遗物即时随机结果
 
 ## Integrations
 

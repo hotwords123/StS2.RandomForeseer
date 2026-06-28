@@ -140,6 +140,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Upon-pickup results for Cauldron, Orrery, Fragrant Mushroom, War Paint, Whetstone, and similar relics
 - Immediate random results from relic rewards
 - Immediate random results from merchant relics
+- Immediate random results from relics received in the Relic Trader event
 
 ## Integrations
 

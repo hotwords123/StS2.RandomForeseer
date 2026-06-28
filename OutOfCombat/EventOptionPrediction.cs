@@ -94,9 +94,9 @@ internal static class EventOptionPrediction
 
         var tips = new List<IHoverTip>();
 
-        if (option.Relic != null)
+        if (GetRelicForOption(eventModel, option) is { } relic)
         {
-            tips.AddRange(RelicPickupPrediction.GetHoverTips(eventModel.Owner, option.Relic));
+            tips.AddRange(RelicPickupPrediction.GetHoverTips(eventModel.Owner, relic));
         }
 
         if (RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEventOptionPrediction) &&
@@ -106,6 +106,21 @@ internal static class EventOptionPrediction
         }
 
         return tips;
+    }
+
+    private static RelicModel? GetRelicForOption(EventModel eventModel, EventOption option)
+    {
+        if (option.Relic != null)
+        {
+            return option.Relic;
+        }
+
+        if (eventModel is RelicTrader relicTrader)
+        {
+            return RelicTraderPrediction.GetReceivedRelic(relicTrader, option);
+        }
+
+        return null;
     }
 }
 
