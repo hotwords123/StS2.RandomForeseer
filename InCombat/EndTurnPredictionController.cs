@@ -68,13 +68,25 @@ internal static class EndTurnPredictionController
 
     public static void Refresh()
     {
-        if (!ShouldShow())
+        var shouldShowOverlay = ShouldShow(RandomForeseerSettings.EndTurnPredictionDisplayMode);
+        var shouldShowHealthBarForecast = ShouldShow(RandomForeseerSettings.EndTurnHealthBarForecastDisplayMode);
+
+        if (!shouldShowOverlay)
         {
             CombatPredictionOverlay.Clear(Source);
-            return;
         }
 
-        if (CombatPredictionOverlay.IsShowingDifferentSource(Source))
+        if (!shouldShowHealthBarForecast)
+        {
+            CombatPredictionHealthBarForecast.Clear(Source);
+        }
+
+        var canShowOverlay = shouldShowOverlay &&
+            !CombatPredictionOverlay.IsShowingDifferentSource(Source);
+        var canShowHealthBarForecast = shouldShowHealthBarForecast &&
+            !CombatPredictionHealthBarForecast.IsShowingDifferentSource(Source);
+
+        if (!canShowOverlay && !canShowHealthBarForecast)
         {
             return;
         }
@@ -84,15 +96,25 @@ internal static class EndTurnPredictionController
             if (EndTurnPrediction.Predict() is not { Targets.Count: > 0 } content)
             {
                 CombatPredictionOverlay.Clear(Source);
+                CombatPredictionHealthBarForecast.Clear(Source);
                 return;
             }
 
-            CombatPredictionOverlay.Show(Source, content);
+            if (canShowHealthBarForecast)
+            {
+                CombatPredictionHealthBarForecast.Set(Source, content);
+            }
+
+            if (canShowOverlay)
+            {
+                CombatPredictionOverlay.Show(Source, content);
+            }
         }
         catch (Exception ex)
         {
             Entry.Logger.Warn($"End-turn prediction refresh failed: {ex}");
             CombatPredictionOverlay.Clear(Source);
+            CombatPredictionHealthBarForecast.Clear(Source);
         }
     }
 
@@ -100,16 +122,17 @@ internal static class EndTurnPredictionController
     {
         _isEndTurnButtonFocused = false;
         CombatPredictionOverlay.Clear(Source);
+        CombatPredictionHealthBarForecast.Clear(Source);
     }
 
-    private static bool ShouldShow()
+    private static bool ShouldShow(EndTurnPredictionDisplayMode displayMode)
     {
         if (NCombatRoom.Instance == null || !EndTurnPrediction.ShouldPredict())
         {
             return false;
         }
 
-        return RandomForeseerSettings.EndTurnPredictionDisplayMode switch
+        return displayMode switch
         {
             EndTurnPredictionDisplayMode.EndTurnButtonHover => _isEndTurnButtonFocused,
             _ => true

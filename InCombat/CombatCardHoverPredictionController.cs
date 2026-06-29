@@ -59,6 +59,7 @@ internal static class CombatCardHoverPredictionController
     private static void ClearPredictionsForCard(CardModel card)
     {
         CombatPredictionOverlay.Clear(card);
+        CombatPredictionHealthBarForecast.Clear(card);
         CombatCardSelectionPredictionHighlight.Clear(card);
     }
 
@@ -70,15 +71,18 @@ internal static class CombatCardHoverPredictionController
             if (prediction == OrbPredictionResult.Empty)
             {
                 CombatPredictionOverlay.Clear(card);
+                CombatPredictionHealthBarForecast.Clear(card);
                 return;
             }
 
             CombatPredictionOverlay.Show(card, prediction.OverlayContent);
+            CombatPredictionHealthBarForecast.Set(card, prediction.OverlayContent);
         }
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat orb prediction overlay failed for {card.Id}: {ex}");
             CombatPredictionOverlay.Clear(card);
+            CombatPredictionHealthBarForecast.Clear(card);
             return;
         }
     }

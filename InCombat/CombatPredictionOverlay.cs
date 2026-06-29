@@ -26,7 +26,6 @@ internal static class CombatPredictionOverlay
     {
         _source = source;
         _content = content;
-        CombatPredictionHealthBarForecast.Set(content);
 
         var activeTargets = content.Targets.Select(static target => target.Target).ToHashSet();
         foreach (var (target, indicator) in Indicators.ToList())
@@ -62,7 +61,6 @@ internal static class CombatPredictionOverlay
         ClearIndicatorHoverTips();
         _source = null;
         _content = null;
-        CombatPredictionHealthBarForecast.Clear();
 
         foreach (var indicator in Indicators.Values)
         {
