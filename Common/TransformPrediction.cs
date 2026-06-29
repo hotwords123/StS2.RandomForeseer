@@ -39,7 +39,7 @@ internal static class TransformPrediction
             .Distinct()
             .ToList();
 
-        var textTips = PredictionHoverTips.Text(
+        var textTip = PredictionHoverTips.Text(
             tipKey,
             description =>
             {
@@ -54,7 +54,7 @@ internal static class TransformPrediction
                 isDimmed: index != activeIndex))
             .ToList();
 
-        return textTips.Concat(cardTips).ToList();
+        return cardTips.Prepend(textTip).ToList();
     }
 
     private static IReadOnlyList<CardModel> PredictReplacements(

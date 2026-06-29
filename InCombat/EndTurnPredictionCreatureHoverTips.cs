@@ -28,7 +28,7 @@ internal static class EndTurnPredictionCreatureHoverTips
                 continue;
             }
 
-            var tips = PredictionHoverTips.Text("end_turn_damage_details", description =>
+            var detailTip = PredictionHoverTips.Text("end_turn_damage_details", description =>
             {
                 description.Add("Creature", target.Target.Name);
                 description.Add("TotalDamage", target.TotalDamage);
@@ -36,10 +36,9 @@ internal static class EndTurnPredictionCreatureHoverTips
                 description.Add("BlockStatus", GetBlockStatus(target.TotalDamage, target.TotalUnblockedDamage));
                 description.Add("WasTargetKilled", target.WasTargetKilled);
                 description.Add("Lines", target.DamageLines.Select(FormatDamageLine).ToList());
-            }).ToList();
+            });
 
-            tips.AddRange(warningTips);
-            TipsByTarget[target.Target] = tips;
+            TipsByTarget[target.Target] = warningTips.Prepend(detailTip).ToArray();
         }
     }
 

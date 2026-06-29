@@ -123,7 +123,7 @@ internal static class EndTurnPredictionController
         if (RandomForeseerSettings.EndTurnPredictionDisplayMode == EndTurnPredictionDisplayMode.EndTurnButtonHover &&
             _focusedEndTurnButton != null)
         {
-            var hoverTips = PredictionHoverTips.Text("end_turn_prediction_indicator").ToList();
+            List<IHoverTip> hoverTips = [PredictionHoverTips.Text("end_turn_prediction_indicator")];
             PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "end_turn", prediction.Risk);
 
             EndTurnButtonHoverTipHelper.ShowHoverTips(_focusedEndTurnButton, hoverTips);

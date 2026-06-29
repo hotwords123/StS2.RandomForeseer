@@ -7,8 +7,7 @@ namespace RandomForeseer.Common;
 internal static class PredictionHoverTips
 {
     private const int MaxDriftWarningModelNames = 3;
-    private const string PredictionTextHoverTipIdPrefix = $"{Entry.ModId}:PredictionText";
-    private const string PredictionWarningHoverTipIdPrefix = $"{Entry.ModId}:PredictionWarning";
+    private const string PredictionHoverTipIdPrefix = $"{Entry.ModId}:Prediction";
 
     public static IReadOnlyList<IHoverTip> Cards(IEnumerable<CardModel> cards)
     {
@@ -32,13 +31,11 @@ internal static class PredictionHoverTips
         };
 
         return isTransform && bundleList.Count > 1
-            ? Text("transform_bundle_explanation").Concat(tips).ToList()
+            ? tips.Prepend(Text("transform_bundle_explanation")).ToList()
             : tips;
     }
 
-    public static IReadOnlyList<IHoverTip> Text(
-        string keyPrefix,
-        Action<LocString>? configureDescription = null)
+    public static HoverTip Text(string keyPrefix, Action<LocString>? configureDescription = null)
     {
         var title = PredictionLocalization.Text($"{keyPrefix}.title");
         var description = PredictionLocalization.Text($"{keyPrefix}.description");
@@ -46,74 +43,58 @@ internal static class PredictionHoverTips
 
         var tip = new HoverTip(title, description)
         {
-            Id = $"{PredictionTextHoverTipIdPrefix}:{keyPrefix}",
-            IsInstanced = true
-        };
-        return [tip];
-    }
-
-    public static IReadOnlyList<IHoverTip> Relics(IEnumerable<RelicModel> relics)
-    {
-        return relics.Select(relic => (IHoverTip)CreatePredictionTextHoverTip(relic.HoverTip)).ToList();
-    }
-
-    public static IReadOnlyList<IHoverTip> Potions(IEnumerable<PotionModel> potions)
-    {
-        return potions.Select(potion => (IHoverTip)CreatePredictionTextHoverTip(potion.HoverTip)).ToList();
-    }
-
-    public static IReadOnlyList<IHoverTip> Orbs(IEnumerable<OrbModel> orbs)
-    {
-        return orbs.Select(orb => (IHoverTip)CreatePredictionTextHoverTip(orb.DumbHoverTip)).ToList();
-    }
-
-    public static IHoverTip DriftWarning(string key, PredictionRisk risk)
-    {
-        var description = PredictionLocalization.Text($"drift_warning.{key}.description");
-        ConfigureDriftWarningDescription(description, risk);
-
-        var tip = new HoverTip(
-            PredictionLocalization.Text($"drift_warning.{key}.title"),
-            description)
-        {
-            Id = $"{PredictionWarningHoverTipIdPrefix}:Drift:{key}",
+            Id = $"{PredictionHoverTipIdPrefix}:{keyPrefix}",
             IsInstanced = true
         };
         return tip;
     }
 
+    public static IReadOnlyList<IHoverTip> Relics(IEnumerable<RelicModel> relics)
+    {
+        return relics.Select(relic => (IHoverTip)ToPredictionHoverTip(relic.HoverTip)).ToList();
+    }
+
+    public static IReadOnlyList<IHoverTip> Potions(IEnumerable<PotionModel> potions)
+    {
+        return potions.Select(potion => (IHoverTip)ToPredictionHoverTip(potion.HoverTip)).ToList();
+    }
+
+    public static IReadOnlyList<IHoverTip> Orbs(IEnumerable<OrbModel> orbs)
+    {
+        return orbs.Select(orb => (IHoverTip)ToPredictionHoverTip(orb.DumbHoverTip)).ToList();
+    }
+
+    public static HoverTip? DriftWarning(string key, PredictionRisk risk)
+    {
+        if (!risk.HasRisk || !RandomForeseerSettings.EnableDriftWarnings)
+        {
+            return null;
+        }
+
+        var tip = Text($"drift_warning.{key}", description =>
+        {
+            var modelNames = risk.Models.Select(GetModelName).Distinct().ToList();
+            var shownModelNames = modelNames.Take(MaxDriftWarningModelNames).ToList();
+            var extraModelCount = modelNames.Count - shownModelNames.Count;
+
+            description.Add("HasModels", shownModelNames.Count > 0);
+            description.Add("Models", shownModelNames);
+            description.Add("ExtraModelCount", extraModelCount);
+        });
+        return tip;
+    }
+
     public static void AddDriftWarningIfNeeded(List<IHoverTip> tips, string key, PredictionRisk risk)
     {
-        if (risk.HasRisk && RandomForeseerSettings.EnableDriftWarnings)
+        if (DriftWarning(key, risk) is { } tip)
         {
-            tips.Add(DriftWarning(key, risk));
+            tips.Add(tip);
         }
-    }
-
-    public static bool IsPredictionTextHoverTip(IHoverTip tip)
-    {
-        return tip.Id.StartsWith(PredictionTextHoverTipIdPrefix, StringComparison.Ordinal);
-    }
-
-    public static bool IsPredictionWarningHoverTip(IHoverTip tip)
-    {
-        return tip.Id.StartsWith(PredictionWarningHoverTipIdPrefix, StringComparison.Ordinal);
     }
 
     public static bool IsPredictionHoverTip(IHoverTip tip)
     {
-        return IsPredictionTextHoverTip(tip) || IsPredictionWarningHoverTip(tip);
-    }
-
-    private static void ConfigureDriftWarningDescription(LocString description, PredictionRisk risk)
-    {
-        var modelNames = risk.Models.Select(GetModelName).Distinct().ToList();
-        var shownModelNames = modelNames.Take(MaxDriftWarningModelNames).ToList();
-        var extraModelCount = modelNames.Count - shownModelNames.Count;
-
-        description.Add("HasModels", shownModelNames.Count > 0);
-        description.Add("Models", shownModelNames);
-        description.Add("ExtraModelCount", extraModelCount);
+        return tip.Id.StartsWith(PredictionHoverTipIdPrefix, StringComparison.Ordinal);
     }
 
     public static string GetModelName(AbstractModel model)
@@ -140,9 +121,9 @@ internal static class PredictionHoverTips
         }
     }
 
-    private static HoverTip CreatePredictionTextHoverTip(HoverTip tip)
+    private static HoverTip ToPredictionHoverTip(HoverTip tip)
     {
-        tip.Id = $"{PredictionTextHoverTipIdPrefix}:{tip.Id}";
+        tip.Id = $"{PredictionHoverTipIdPrefix}:{tip.Id}";
         tip.IsInstanced = true;
         // Vanilla records hover tips with canonical models as discovered progress.
         // Prediction tips are informational only, so they must not reveal cards/relics/potions in the save.
