@@ -32,13 +32,13 @@ internal static class CombatPredictionHealthBarForecast
             : [];
     }
 
-    public static void Set(object source, CombatPredictionOverlayContent content)
+    public static void Set(object source, DamagePredictionResult prediction)
     {
         _source = source;
         var staleTargets = DamageByTarget.Keys.ToArray();
         DamageByTarget.Clear();
 
-        foreach (var target in content.Targets)
+        foreach (var target in prediction.Targets)
         {
             var damage = (int)target.TotalUnblockedDamage;
             if (damage > 0)

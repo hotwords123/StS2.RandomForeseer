@@ -16,6 +16,11 @@ internal static class OrbPrediction
         return Predict(card).ExtraHoverTips;
     }
 
+    public static DamagePredictionResult PredictDamage(CardModel card)
+    {
+        return Predict(card).DamagePrediction;
+    }
+
     public static OrbPredictionResult Predict(CardModel card)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOrbPrediction) ||
@@ -95,16 +100,9 @@ internal static class OrbPrediction
                 return OrbPredictionResult.Empty;
         }
 
-        var indicatorHoverTips = new List<IHoverTip>();
-        var risk = simulator.Snapshot();
-        if (risk.HasRisk && RandomForeseerSettings.EnableDriftWarnings)
-        {
-            indicatorHoverTips.Add(PredictionHoverTips.DriftWarning("orb", risk));
-        }
-
-        return new OrbPredictionResult(
-            CombatPredictionOverlayContentFactory.FromDamageHistory(simulator, indicatorHoverTips),
-            extraTips);
+        var damagePrediction = DamagePredictionResult.FromDamageHistory(simulator);
+        PredictionHoverTips.AddDriftWarningIfNeeded(extraTips, "orb", damagePrediction.Risk);
+        return new OrbPredictionResult(damagePrediction, extraTips);
     }
 
     private static void SimulateChaos(
@@ -166,8 +164,8 @@ internal static class OrbPrediction
 }
 
 internal sealed record OrbPredictionResult(
-    CombatPredictionOverlayContent OverlayContent,
+    DamagePredictionResult DamagePrediction,
     IReadOnlyList<IHoverTip> ExtraHoverTips)
 {
-    public static OrbPredictionResult Empty { get; } = new(CombatPredictionOverlayContent.Empty, []);
+    public static OrbPredictionResult Empty { get; } = new(DamagePredictionResult.Empty, []);
 }

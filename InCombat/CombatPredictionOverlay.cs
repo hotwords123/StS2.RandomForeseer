@@ -7,7 +7,6 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
-using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat;
 
@@ -17,17 +16,20 @@ internal static class CombatPredictionOverlay
 
     private static readonly Dictionary<Creature, NCombatPredictionDamageIndicator> Indicators = [];
     private static object? _source;
-    private static CombatPredictionOverlayContent? _content;
+    private static IReadOnlyList<IHoverTip> _hoverTips = [];
     private static NCombatPredictionDamageIndicator? _activeHoverTipOwner;
 
     public static Action? AfterSourceCleared { get; set; }
 
-    public static void Show(object source, CombatPredictionOverlayContent content)
+    public static void Show(
+        object source,
+        DamagePredictionResult prediction,
+        IReadOnlyList<IHoverTip>? hoverTips = null)
     {
         _source = source;
-        _content = content;
+        _hoverTips = hoverTips ?? [];
 
-        var activeTargets = content.Targets.Select(static target => target.Target).ToHashSet();
+        var activeTargets = prediction.Targets.Select(static target => target.Target).ToHashSet();
         foreach (var (target, indicator) in Indicators.ToList())
         {
             if (!activeTargets.Contains(target))
@@ -37,10 +39,10 @@ internal static class CombatPredictionOverlay
             }
         }
 
-        foreach (var target in content.Targets)
+        foreach (var target in prediction.Targets)
         {
             var indicator = GetOrCreateIndicator(target.Target);
-            indicator?.SetPrediction(target, content.HasWarning);
+            indicator?.SetPrediction(target, prediction.HasRisk);
         }
 
         RefreshPositions();
@@ -60,7 +62,7 @@ internal static class CombatPredictionOverlay
         var hadSource = _source != null;
         ClearIndicatorHoverTips();
         _source = null;
-        _content = null;
+        _hoverTips = [];
 
         foreach (var indicator in Indicators.Values)
         {
@@ -83,15 +85,14 @@ internal static class CombatPredictionOverlay
     {
         ClearIndicatorHoverTips();
 
-        if (_content?.HoverTips is not { Count: > 0 } tips ||
-            GetHoverTipOwnerIndicator() is not { } owner)
+        if (_hoverTips.Count == 0 || GetHoverTipOwnerIndicator() is not { } owner)
         {
             return;
         }
 
         _activeHoverTipOwner = owner;
 
-        var tipSet = NHoverTipSet.CreateAndShow(owner, tips, HoverTip.GetHoverTipAlignment(owner, 0.25f));
+        var tipSet = NHoverTipSet.CreateAndShow(owner, _hoverTips, HoverTip.GetHoverTipAlignment(owner, 0.25f));
         if (tipSet != null && avoidOwner != null)
         {
             AvoidHoverTipOverlap(tipSet, avoidOwner);
@@ -204,30 +205,6 @@ internal static class CombatPredictionOverlay
     }
 }
 
-internal sealed record CombatPredictionOverlayContent(
-    IReadOnlyList<CombatPredictionTargetOverlay> Targets,
-    IReadOnlyList<IHoverTip> HoverTips)
-{
-    public static CombatPredictionOverlayContent Empty { get; } = new([], []);
-
-    public bool HasWarning => HoverTips.Any(PredictionHoverTips.IsPredictionWarningHoverTip);
-}
-
-internal sealed record CombatPredictionTargetOverlay(
-    Creature Target,
-    IReadOnlyList<CombatPredictionDamageLine> DamageLines,
-    bool IsLethal)
-{
-    public decimal TotalDamage => DamageLines.Sum(static line => line.Damage);
-
-    public decimal TotalUnblockedDamage => DamageLines.Sum(static line => line.UnblockedDamage);
-}
-
-internal sealed record CombatPredictionDamageLine(
-    decimal Damage,
-    decimal UnblockedDamage,
-    AbstractModel? SourceModel);
-
 internal sealed partial class NCombatPredictionDamageIndicator() : Control
 {
     private const string LabelFontPath = "res://themes/kreon_bold_glyph_space_one.tres";
@@ -284,7 +261,7 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         _damageLabel.AddThemeConstantOverride("shadow_outline_size", ShadowOutlineSize);
     }
 
-    public void SetPrediction(CombatPredictionTargetOverlay prediction, bool hasWarning)
+    public void SetPrediction(DamagePredictionTarget prediction, bool hasWarning)
     {
         foreach (var child in _content.GetChildren().OfType<Node>().ToList())
         {
@@ -352,14 +329,14 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         CombatPredictionOverlay.ClearIndicatorHoverTips();
     }
 
-    private static Color GetOutlineColor(CombatPredictionTargetOverlay prediction)
+    private static Color GetOutlineColor(DamagePredictionTarget prediction)
     {
         if (prediction.TotalUnblockedDamage <= 0)
         {
             return BlockedOutlineColor;
         }
 
-        return prediction.IsLethal ? LethalOutlineColor : DefaultOutlineColor;
+        return prediction.WasTargetKilled ? LethalOutlineColor : DefaultOutlineColor;
     }
 
     private static Texture2D GetIcon(AbstractModel? sourceModel)

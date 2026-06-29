@@ -67,16 +67,16 @@ internal static class CombatCardHoverPredictionController
     {
         try
         {
-            var prediction = OrbPrediction.Predict(card);
-            if (prediction == OrbPredictionResult.Empty)
+            var prediction = OrbPrediction.PredictDamage(card);
+            if (!prediction.HasTargets)
             {
                 CombatPredictionOverlay.Clear(card);
                 CombatPredictionHealthBarForecast.Clear(card);
                 return;
             }
 
-            CombatPredictionOverlay.Show(card, prediction.OverlayContent);
-            CombatPredictionHealthBarForecast.Set(card, prediction.OverlayContent);
+            CombatPredictionOverlay.Show(card, prediction);
+            CombatPredictionHealthBarForecast.Set(card, prediction);
         }
         catch (Exception ex)
         {

@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Rooms;
+using RandomForeseer.Common;
 using STS2RitsuLib.Settings;
 
 namespace RandomForeseer.InCombat;
@@ -71,6 +72,12 @@ internal static class EndTurnPredictionController
 
     public static void Refresh()
     {
+        if (NCombatRoom.Instance == null || !EndTurnPrediction.ShouldPredict())
+        {
+            Clear();
+            return;
+        }
+
         var shouldShowOverlay = ShouldShow(RandomForeseerSettings.EndTurnPredictionDisplayMode);
         var shouldShowHealthBarForecast = ShouldShow(RandomForeseerSettings.EndTurnHealthBarForecastDisplayMode);
 
@@ -89,19 +96,17 @@ internal static class EndTurnPredictionController
         var canShowHealthBarForecast = shouldShowHealthBarForecast &&
             !CombatPredictionHealthBarForecast.IsShowingDifferentSource(Source);
 
-        if (!canShowOverlay && !canShowHealthBarForecast)
-        {
-            return;
-        }
-
         try
         {
-            if (EndTurnPrediction.Predict() is not { Targets.Count: > 0 } content)
+            if (EndTurnPrediction.PredictDamage() is not { HasTargets: true } content)
             {
                 CombatPredictionOverlay.Clear(Source);
                 CombatPredictionHealthBarForecast.Clear(Source);
                 return;
             }
+
+            var hoverTips = PredictionHoverTips.Text("end_turn_prediction_indicator").ToList();
+            PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "end_turn", content.Risk);
 
             if (canShowHealthBarForecast)
             {
@@ -110,7 +115,7 @@ internal static class EndTurnPredictionController
 
             if (canShowOverlay)
             {
-                CombatPredictionOverlay.Show(Source, content);
+                CombatPredictionOverlay.Show(Source, content, hoverTips);
             }
         }
         catch (Exception ex)
@@ -130,11 +135,6 @@ internal static class EndTurnPredictionController
 
     private static bool ShouldShow(EndTurnPredictionDisplayMode displayMode)
     {
-        if (NCombatRoom.Instance == null || !EndTurnPrediction.ShouldPredict())
-        {
-            return false;
-        }
-
         return displayMode switch
         {
             EndTurnPredictionDisplayMode.EndTurnButtonHover => _isEndTurnButtonFocused,
