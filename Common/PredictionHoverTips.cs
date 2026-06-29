@@ -116,7 +116,7 @@ internal static class PredictionHoverTips
         description.Add("ExtraModelCount", extraModelCount);
     }
 
-    private static string GetModelName(AbstractModel model)
+    public static string GetModelName(AbstractModel model)
     {
         try
         {

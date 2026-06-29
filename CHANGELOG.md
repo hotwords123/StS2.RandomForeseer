@@ -10,6 +10,9 @@
 - 回合结束预测的血条显示时机现在有独立设置，默认在玩家回合内始终显示，不再跟随预测图标显示时机。<br>
   End-turn health bar forecast timing now has its own setting, defaulting to always during the player turn instead of following prediction overlay timing.
 
+- 回合结束预测现在会在悬停目标生物或预测图标时显示逐条伤害来源详情。<br>
+  End-turn prediction now shows per-hit damage source details when hovering a target creature or prediction indicator.
+
 ## v0.7.0
 
 ### feat

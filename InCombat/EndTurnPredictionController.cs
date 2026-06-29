@@ -70,6 +70,7 @@ internal static class EndTurnPredictionController
     {
         if (_isCardDamageOverrideActive)
         {
+            EndTurnPredictionCreatureHoverTips.Clear();
             EndTurnButtonHoverTipHelper.HideHoverTips();
             return;
         }
@@ -99,12 +100,11 @@ internal static class EndTurnPredictionController
             return;
         }
 
-        var hoverTips = PredictionHoverTips.Text("end_turn_prediction_indicator").ToList();
-        PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "end_turn", prediction.Risk);
+        EndTurnPredictionCreatureHoverTips.Set(prediction);
 
         if (ShouldShow(RandomForeseerSettings.EndTurnPredictionDisplayMode))
         {
-            CombatPredictionOverlay.Show(prediction, _ => hoverTips);
+            CombatPredictionOverlay.Show(prediction, EndTurnPredictionCreatureHoverTips.GetHoverTips);
         }
         else
         {
@@ -123,6 +123,9 @@ internal static class EndTurnPredictionController
         if (RandomForeseerSettings.EndTurnPredictionDisplayMode == EndTurnPredictionDisplayMode.EndTurnButtonHover &&
             _focusedEndTurnButton != null)
         {
+            var hoverTips = PredictionHoverTips.Text("end_turn_prediction_indicator").ToList();
+            PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "end_turn", prediction.Risk);
+
             EndTurnButtonHoverTipHelper.ShowHoverTips(_focusedEndTurnButton, hoverTips);
         }
         else
@@ -133,6 +136,7 @@ internal static class EndTurnPredictionController
 
     public static void Clear()
     {
+        EndTurnPredictionCreatureHoverTips.Clear();
         CombatPredictionOverlay.Clear();
         CombatPredictionHealthBarForecast.Clear();
         EndTurnButtonHoverTipHelper.HideHoverTips();

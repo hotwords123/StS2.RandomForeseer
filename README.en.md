@@ -16,7 +16,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
 - **Orb effect prediction**: shows targets that supported orb-triggering cards will hit during combat.
-- **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; overlay indicators and health bar forecasts can be configured separately for End Turn button hover or always during the player turn.
+- **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; overlay indicators and health bar forecasts can be configured separately for End Turn button hover or always during the player turn; hovering a target creature or prediction indicator shows per-hit damage source details.
 - **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
 - **Potion draw prediction**: shows the cards that supported draw potions will draw, including cards after shuffle.
 - **Card draw prediction**: shows the cards that Reboot and Calculated Gamble will draw, including cards after shuffle.
