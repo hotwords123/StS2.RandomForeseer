@@ -6,7 +6,7 @@ using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat;
 
-internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview)
+internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview = false)
 {
     private Rng _previewRng = PredictionUtils.CloneRng(realRng);
 
@@ -21,7 +21,7 @@ internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview
             return null;
         }
 
-        return new TransformPreviewPredictor(realRng, upgradePreview).Predict;
+        return new TransformPreviewPredictor(realRng, upgradePreview).PredictNext;
     }
 
     public void Reset()
@@ -40,7 +40,7 @@ internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview
             mapReplacement: replacement => PredictionUtils.ToUpgradedCardIf(replacement, upgradePreview));
     }
 
-    public CardTransformation Predict(CardModel original)
+    private CardTransformation PredictNext(CardModel original)
     {
         var predicted = PredictionUtils.PredictTransformResult(original, _previewRng, isInCombat: false);
 
