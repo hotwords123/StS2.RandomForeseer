@@ -82,6 +82,14 @@ internal static class PredictionHoverTips
         return tip;
     }
 
+    public static void AddDriftWarningIfNeeded(List<IHoverTip> tips, string key, PredictionRisk risk)
+    {
+        if (risk.HasRisk && RandomForeseerSettings.EnableDriftWarnings)
+        {
+            tips.Add(DriftWarning(key, risk));
+        }
+    }
+
     public static bool IsPredictionTextHoverTip(IHoverTip tip)
     {
         return tip.Id.StartsWith(PredictionTextHoverTipIdPrefix, StringComparison.Ordinal);

@@ -159,8 +159,6 @@ internal sealed record CombatCardSelectionPredictionResult(
     IReadOnlyList<CardModel> SelectedCards,
     PredictionRisk Risk)
 {
-    public bool HasDriftRisk => Risk is { HasRisk: true };
-
     public static CombatCardSelectionPredictionResult FromSelectedCards(IReadOnlyList<CardModel> selectedCards, PredictionRisk risk)
     {
         return selectedCards.Count > 0
@@ -180,11 +178,7 @@ internal sealed record CombatCardSelectionPredictionResult(
     public IReadOnlyList<IHoverTip> ToHoverTips()
     {
         var tips = PredictionHoverTips.Cards(SelectedCards).ToList();
-        if (HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
-        {
-            tips.Add(PredictionHoverTips.DriftWarning("card_selection", Risk));
-        }
-
+        PredictionHoverTips.AddDriftWarningIfNeeded(tips, "card_selection", Risk);
         return tips;
     }
 }

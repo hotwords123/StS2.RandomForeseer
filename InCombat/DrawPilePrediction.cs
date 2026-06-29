@@ -47,8 +47,6 @@ internal static class DrawPilePrediction
 
 internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, PredictionRisk Risk)
 {
-    public bool HasDriftRisk => Risk.HasRisk;
-
     public static DrawPilePredictionResult Empty { get; } = new([], PredictionRisk.None);
 
     public static DrawPilePredictionResult FromPredictedCards(IEnumerable<PredictedCard> cards, PredictionRisk risk)
@@ -59,11 +57,7 @@ internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, 
     public IReadOnlyList<IHoverTip> ToHoverTips()
     {
         var tips = PredictionHoverTips.Cards(Cards).ToList();
-        if (HasDriftRisk && RandomForeseerSettings.EnableDriftWarnings)
-        {
-            tips.Add(PredictionHoverTips.DriftWarning("draw_pile", Risk));
-        }
-
+        PredictionHoverTips.AddDriftWarningIfNeeded(tips, "draw_pile", Risk);
         return tips;
     }
 }
