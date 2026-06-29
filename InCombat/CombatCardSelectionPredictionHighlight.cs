@@ -9,28 +9,18 @@ namespace RandomForeseer.InCombat;
 internal static class CombatCardSelectionPredictionHighlight
 {
     private static readonly Color PredictionHighlightColor = new(1f, 0.36f, 0f, 0.98f);
-    private static CardModel? _sourceCard;
     private static HashSet<CardModel> _highlightedCards = [];
 
-    public static void Show(CardModel? source, IReadOnlyList<CardModel> cards)
+    public static void Show(IReadOnlyList<CardModel> cards)
     {
-        var cardsToRefresh = _highlightedCards
-            .Concat(cards)
-            .Distinct()
-            .ToList();
-
-        _sourceCard = source;
+        var cardsToRefresh = _highlightedCards.Concat(cards).Distinct().ToArray();
         _highlightedCards = cards.ToHashSet();
-
         RefreshHandCards(cardsToRefresh);
     }
 
-    public static void Clear(CardModel? source)
+    public static void Clear()
     {
-        if (source != null && ReferenceEquals(source, _sourceCard))
-        {
-            Show(null, []);
-        }
+        Show([]);
     }
 
     public static void ApplyHighlightToHolder(NHandCardHolder holder)

@@ -11,6 +11,10 @@ internal static class CombatCardHoverPredictionController
 {
     private static readonly ConditionalWeakTable<NHandCardHolder, CardModel> CardPlaySources = [];
 
+    private static CardModel? _sourceCard;
+
+    private static bool _hasDamagePrediction;
+
     public static void OnCardHover(NHandCardHolder holder, bool isHovered)
     {
         if (holder.CardModel is not { } card)
@@ -52,53 +56,81 @@ internal static class CombatCardHoverPredictionController
 
     private static void UpdatePredictionsForCard(CardModel card)
     {
-        UpdateOrbOverlay(card);
-        UpdateSelectionHighlight(card);
+        _sourceCard = card;
+
+        ShowDamagePrediction(card);
+        ShowSelectionHighlight(card);
+
+        // Card damage predictions share the same display surfaces as end-turn prediction.
+        EndTurnPredictionController.SetCardDamageOverride(_hasDamagePrediction);
     }
 
     private static void ClearPredictionsForCard(CardModel card)
     {
-        CombatPredictionOverlay.Clear(card);
-        CombatPredictionHealthBarForecast.Clear(card);
-        CombatCardSelectionPredictionHighlight.Clear(card);
+        if (!ReferenceEquals(_sourceCard, card))
+        {
+            return;
+        }
+
+        _sourceCard = null;
+
+        ClearDamagePrediction();
+        CombatCardSelectionPredictionHighlight.Clear();
+
+        // Refresh end-turn prediction in case the card hover was taking precedence over it.
+        EndTurnPredictionController.SetCardDamageOverride(false);
     }
 
-    private static void UpdateOrbOverlay(CardModel card)
+    private static void ShowDamagePrediction(CardModel card)
     {
+        DamagePredictionResult prediction;
+
         try
         {
-            var prediction = OrbPrediction.PredictDamage(card);
-            if (!prediction.HasTargets)
-            {
-                CombatPredictionOverlay.Clear(card);
-                CombatPredictionHealthBarForecast.Clear(card);
-                return;
-            }
-
-            CombatPredictionOverlay.Show(card, prediction);
-            CombatPredictionHealthBarForecast.Set(card, prediction);
+            prediction = OrbPrediction.PredictDamage(card);
         }
         catch (Exception ex)
         {
-            Entry.Logger.Warn($"Combat orb prediction overlay failed for {card.Id}: {ex}");
-            CombatPredictionOverlay.Clear(card);
-            CombatPredictionHealthBarForecast.Clear(card);
+            Entry.Logger.Warn($"Combat orb prediction failed for {card.Id}: {ex}");
+            ClearDamagePrediction();
             return;
         }
+
+        if (!prediction.HasTargets)
+        {
+            ClearDamagePrediction();
+            return;
+        }
+
+        CombatPredictionOverlay.Show(prediction);
+        CombatPredictionHealthBarForecast.Set(prediction);
+        _hasDamagePrediction = true;
     }
 
-    private static void UpdateSelectionHighlight(CardModel card)
+    private static void ShowSelectionHighlight(CardModel card)
     {
+        CombatCardSelectionPredictionResult prediction;
+
         try
         {
-            var prediction = CombatCardSelectionPrediction.GetPrediction(card);
-            CombatCardSelectionPredictionHighlight.Show(card, prediction.SelectedCards);
+            prediction = CombatCardSelectionPrediction.GetPrediction(card);
         }
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat card selection hand highlight prediction failed for {card.Id}: {ex}");
-            CombatCardSelectionPredictionHighlight.Clear(card);
             return;
+        }
+
+        CombatCardSelectionPredictionHighlight.Show(prediction.SelectedCards);
+    }
+
+    private static void ClearDamagePrediction()
+    {
+        if (_hasDamagePrediction)
+        {
+            CombatPredictionOverlay.Clear();
+            CombatPredictionHealthBarForecast.Clear();
+            _hasDamagePrediction = false;
         }
     }
 }

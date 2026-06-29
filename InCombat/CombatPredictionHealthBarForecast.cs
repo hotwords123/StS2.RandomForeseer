@@ -19,7 +19,6 @@ internal static class CombatPredictionHealthBarForecast
 {
     private static readonly Color ForecastColor = new("E8C91A");
     private static readonly Dictionary<Creature, int> DamageByTarget = [];
-    private static object? _source;
 
     public static IEnumerable<HealthBarForecastSegment> GetSegments(HealthBarForecastContext context)
     {
@@ -32,9 +31,8 @@ internal static class CombatPredictionHealthBarForecast
             : [];
     }
 
-    public static void Set(object source, DamagePredictionResult prediction)
+    public static void Set(DamagePredictionResult prediction)
     {
-        _source = source;
         var staleTargets = DamageByTarget.Keys.ToArray();
         DamageByTarget.Clear();
 
@@ -50,15 +48,8 @@ internal static class CombatPredictionHealthBarForecast
         RefreshHealthBars(staleTargets.Concat(DamageByTarget.Keys));
     }
 
-    public static void Clear(object? source)
+    public static void Clear()
     {
-        if (source != null && !ReferenceEquals(_source, source))
-        {
-            return;
-        }
-
-        _source = null;
-
         if (DamageByTarget.Count == 0)
         {
             return;
@@ -67,11 +58,6 @@ internal static class CombatPredictionHealthBarForecast
         var staleTargets = DamageByTarget.Keys.ToList();
         DamageByTarget.Clear();
         RefreshHealthBars(staleTargets);
-    }
-
-    public static bool IsShowingDifferentSource(object source)
-    {
-        return _source != null && !ReferenceEquals(_source, source);
     }
 
     private static void RefreshHealthBars(IEnumerable<Creature> targets)

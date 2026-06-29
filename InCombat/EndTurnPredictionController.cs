@@ -1,7 +1,10 @@
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Rooms;
 using RandomForeseer.Common;
@@ -11,10 +14,9 @@ namespace RandomForeseer.InCombat;
 
 internal static class EndTurnPredictionController
 {
-    private static readonly object Source = new();
-
     private static bool _isSubscribed;
-    private static bool _isEndTurnButtonFocused;
+    private static bool _isCardDamageOverrideActive;
+    private static NEndTurnButton? _focusedEndTurnButton;
 
     public static void Subscribe()
     {
@@ -28,7 +30,6 @@ internal static class EndTurnPredictionController
         CombatManager.Instance.PlayerUnendedTurn += OnPlayerUnendedTurn;
         CombatManager.Instance.CombatEnded += OnCombatEnded;
         CombatManager.Instance.StateTracker.CombatStateChanged += OnCombatStateChanged;
-        CombatPredictionOverlay.AfterSourceCleared += Refresh;
         ModSettingsBindingWriteEvents.ValueWritten += OnSettingsValueWritten;
 
         _isSubscribed = true;
@@ -47,97 +48,118 @@ internal static class EndTurnPredictionController
         CombatManager.Instance.PlayerUnendedTurn -= OnPlayerUnendedTurn;
         CombatManager.Instance.CombatEnded -= OnCombatEnded;
         CombatManager.Instance.StateTracker.CombatStateChanged -= OnCombatStateChanged;
-        CombatPredictionOverlay.AfterSourceCleared -= Refresh;
         ModSettingsBindingWriteEvents.ValueWritten -= OnSettingsValueWritten;
 
         _isSubscribed = false;
-        Clear();
+        Cleanup();
     }
 
     public static void OnEndTurnButtonFocused(NEndTurnButton endTurnButton)
     {
-        _isEndTurnButtonFocused = true;
+        _focusedEndTurnButton = endTurnButton;
         Refresh();
-        if (RandomForeseerSettings.EndTurnPredictionDisplayMode == EndTurnPredictionDisplayMode.EndTurnButtonHover)
-        {
-            CombatPredictionOverlay.ShowIndicatorHoverTips(endTurnButton);
-        }
     }
 
     public static void OnEndTurnButtonUnfocused()
     {
-        _isEndTurnButtonFocused = false;
+        _focusedEndTurnButton = null;
         Refresh();
     }
 
     public static void Refresh()
     {
+        if (_isCardDamageOverrideActive)
+        {
+            EndTurnButtonHoverTipHelper.HideHoverTips();
+            return;
+        }
+
         if (NCombatRoom.Instance == null || !EndTurnPrediction.ShouldPredict())
+        {
+            Cleanup();
+            return;
+        }
+
+        DamagePredictionResult prediction;
+
+        try
+        {
+            prediction = EndTurnPrediction.PredictDamage();
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"End-turn prediction refresh failed: {ex}");
+            Clear();
+            return;
+        }
+
+        if (!prediction.HasTargets)
         {
             Clear();
             return;
         }
 
-        var shouldShowOverlay = ShouldShow(RandomForeseerSettings.EndTurnPredictionDisplayMode);
-        var shouldShowHealthBarForecast = ShouldShow(RandomForeseerSettings.EndTurnHealthBarForecastDisplayMode);
+        var hoverTips = PredictionHoverTips.Text("end_turn_prediction_indicator").ToList();
+        PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "end_turn", prediction.Risk);
 
-        if (!shouldShowOverlay)
+        if (ShouldShow(RandomForeseerSettings.EndTurnPredictionDisplayMode))
         {
-            CombatPredictionOverlay.Clear(Source);
+            CombatPredictionOverlay.Show(prediction, _ => hoverTips);
+        }
+        else
+        {
+            CombatPredictionOverlay.Clear();
         }
 
-        if (!shouldShowHealthBarForecast)
+        if (ShouldShow(RandomForeseerSettings.EndTurnHealthBarForecastDisplayMode))
         {
-            CombatPredictionHealthBarForecast.Clear(Source);
+            CombatPredictionHealthBarForecast.Set(prediction);
+        }
+        else
+        {
+            CombatPredictionHealthBarForecast.Clear();
         }
 
-        var canShowOverlay = shouldShowOverlay &&
-            !CombatPredictionOverlay.IsShowingDifferentSource(Source);
-        var canShowHealthBarForecast = shouldShowHealthBarForecast &&
-            !CombatPredictionHealthBarForecast.IsShowingDifferentSource(Source);
-
-        try
+        if (RandomForeseerSettings.EndTurnPredictionDisplayMode == EndTurnPredictionDisplayMode.EndTurnButtonHover &&
+            _focusedEndTurnButton != null)
         {
-            if (EndTurnPrediction.PredictDamage() is not { HasTargets: true } content)
-            {
-                CombatPredictionOverlay.Clear(Source);
-                CombatPredictionHealthBarForecast.Clear(Source);
-                return;
-            }
-
-            var hoverTips = PredictionHoverTips.Text("end_turn_prediction_indicator").ToList();
-            PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "end_turn", content.Risk);
-
-            if (canShowHealthBarForecast)
-            {
-                CombatPredictionHealthBarForecast.Set(Source, content);
-            }
-
-            if (canShowOverlay)
-            {
-                CombatPredictionOverlay.Show(Source, content, hoverTips);
-            }
+            EndTurnButtonHoverTipHelper.ShowHoverTips(_focusedEndTurnButton, hoverTips);
         }
-        catch (Exception ex)
+        else
         {
-            Entry.Logger.Warn($"End-turn prediction refresh failed: {ex}");
-            CombatPredictionOverlay.Clear(Source);
-            CombatPredictionHealthBarForecast.Clear(Source);
+            EndTurnButtonHoverTipHelper.HideHoverTips();
         }
     }
 
     public static void Clear()
     {
-        _isEndTurnButtonFocused = false;
-        CombatPredictionOverlay.Clear(Source);
-        CombatPredictionHealthBarForecast.Clear(Source);
+        CombatPredictionOverlay.Clear();
+        CombatPredictionHealthBarForecast.Clear();
+        EndTurnButtonHoverTipHelper.HideHoverTips();
+    }
+
+    public static void Cleanup()
+    {
+        _focusedEndTurnButton = null;
+        Clear();
+    }
+
+    public static void SetCardDamageOverride(bool active)
+    {
+        var wasActive = _isCardDamageOverrideActive;
+        _isCardDamageOverrideActive = active;
+
+        if (wasActive && !active)
+        {
+            Refresh();
+        }
     }
 
     private static bool ShouldShow(EndTurnPredictionDisplayMode displayMode)
     {
         return displayMode switch
         {
-            EndTurnPredictionDisplayMode.EndTurnButtonHover => _isEndTurnButtonFocused,
+            EndTurnPredictionDisplayMode.EndTurnButtonHover => _focusedEndTurnButton != null,
             _ => true
         };
     }
@@ -159,7 +181,7 @@ internal static class EndTurnPredictionController
 
     private static void OnCombatEnded(CombatRoom _)
     {
-        Clear();
+        Cleanup();
     }
 
     private static void OnCombatStateChanged(CombatState _)
@@ -173,6 +195,81 @@ internal static class EndTurnPredictionController
         {
             Refresh();
         }
+    }
+}
+
+internal static class EndTurnButtonHoverTipHelper
+{
+    private static Control? _hoverTipOwner;
+
+    public static void ShowHoverTips(NEndTurnButton endTurnButton, IEnumerable<IHoverTip> hoverTips)
+    {
+        HideHoverTips();
+
+        var owner = CombatPredictionOverlay.ActiveIndicators
+            .MinBy(static indicator => indicator.GetGlobalRect().Position.X);
+        if (owner == null)
+        {
+            return;
+        }
+
+        var tipSet = NHoverTipSet.CreateAndShow(owner, hoverTips, HoverTip.GetHoverTipAlignment(owner, 0.5f));
+        if (tipSet != null)
+        {
+            _hoverTipOwner = owner;
+            AvoidHoverTipOverlap(tipSet, endTurnButton);
+        }
+    }
+
+    public static void HideHoverTips()
+    {
+        if (_hoverTipOwner != null)
+        {
+            NHoverTipSet.Remove(_hoverTipOwner);
+            _hoverTipOwner = null;
+        }
+    }
+
+    private static void AvoidHoverTipOverlap(NHoverTipSet tipSet, Control avoidOwner)
+    {
+        if (!NHoverTipSet._activeHoverTips.TryGetValue(avoidOwner, out var avoidTipSet))
+        {
+            return;
+        }
+
+        var ourRect = GetHoverTipSetRect(tipSet);
+        var avoidRect = GetHoverTipSetRect(avoidTipSet);
+        if (!ourRect.HasArea() || !avoidRect.HasArea() || !ourRect.Intersects(avoidRect))
+        {
+            return;
+        }
+
+        var offset = ourRect.End.X - avoidRect.Position.X + 8f;
+        if (offset <= 0f)
+        {
+            return;
+        }
+
+        MoveHoverTipSet(tipSet, Vector2.Left * offset);
+    }
+
+    private static Rect2 GetHoverTipSetRect(NHoverTipSet tipSet)
+    {
+        var textRect = tipSet._textHoverTipContainer.GetGlobalRect();
+        var cardRect = tipSet._cardHoverTipContainer.GetGlobalRect();
+
+        return textRect.HasArea() switch
+        {
+            true when cardRect.HasArea() => textRect.Merge(cardRect),
+            true => textRect,
+            _ => cardRect
+        };
+    }
+
+    private static void MoveHoverTipSet(NHoverTipSet tipSet, Vector2 offset)
+    {
+        tipSet._textHoverTipContainer.GlobalPosition += offset;
+        tipSet._cardHoverTipContainer.GlobalPosition += offset;
     }
 }
 

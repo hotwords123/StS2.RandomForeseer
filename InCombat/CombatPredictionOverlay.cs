@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
 
@@ -15,20 +14,14 @@ internal static class CombatPredictionOverlay
     private const float IntentGap = 6f;
 
     private static readonly Dictionary<Creature, NCombatPredictionDamageIndicator> Indicators = [];
-    private static object? _source;
-    private static IReadOnlyList<IHoverTip> _hoverTips = [];
-    private static NCombatPredictionDamageIndicator? _activeHoverTipOwner;
 
-    public static Action? AfterSourceCleared { get; set; }
+    public static IReadOnlyList<Control> ActiveIndicators =>
+        Indicators.Values.Where(static indicator => indicator.IsInsideTree()).ToList();
 
     public static void Show(
-        object source,
         DamagePredictionResult prediction,
-        IReadOnlyList<IHoverTip>? hoverTips = null)
+        Func<Creature, IEnumerable<IHoverTip>>? getHoverTips = null)
     {
-        _source = source;
-        _hoverTips = hoverTips ?? [];
-
         var activeTargets = prediction.Targets.Select(static target => target.Target).ToHashSet();
         foreach (var (target, indicator) in Indicators.ToList())
         {
@@ -43,78 +36,26 @@ internal static class CombatPredictionOverlay
         {
             var indicator = GetOrCreateIndicator(target.Target);
             indicator?.SetPrediction(target, prediction.HasRisk);
+            indicator?.SetHoverTips(getHoverTips?.Invoke(target.Target) ?? []);
         }
 
         RefreshPositions();
-        if (_activeHoverTipOwner != null)
-        {
-            ShowIndicatorHoverTips();
-        }
     }
 
-    public static void Clear(object? source)
+    public static void Clear()
     {
-        if (source != null && !ReferenceEquals(_source, source))
-        {
-            return;
-        }
-
-        var hadSource = _source != null;
-        ClearIndicatorHoverTips();
-        _source = null;
-        _hoverTips = [];
-
         foreach (var indicator in Indicators.Values)
         {
             indicator.QueueFreeSafely();
         }
         Indicators.Clear();
-
-        if (hadSource)
-        {
-            AfterSourceCleared?.Invoke();
-        }
-    }
-
-    public static bool IsShowingDifferentSource(object source)
-    {
-        return _source != null && !ReferenceEquals(_source, source);
-    }
-
-    public static void ShowIndicatorHoverTips(Control? avoidOwner = null)
-    {
-        ClearIndicatorHoverTips();
-
-        if (_hoverTips.Count == 0 || GetHoverTipOwnerIndicator() is not { } owner)
-        {
-            return;
-        }
-
-        _activeHoverTipOwner = owner;
-
-        var tipSet = NHoverTipSet.CreateAndShow(owner, _hoverTips, HoverTip.GetHoverTipAlignment(owner, 0.25f));
-        if (tipSet != null && avoidOwner != null)
-        {
-            AvoidHoverTipOverlap(tipSet, avoidOwner);
-        }
-    }
-
-    public static void ClearIndicatorHoverTips()
-    {
-        if (_activeHoverTipOwner == null)
-        {
-            return;
-        }
-
-        NHoverTipSet.Remove(_activeHoverTipOwner);
-        _activeHoverTipOwner = null;
     }
 
     public static void RefreshPositions()
     {
         if (NCombatRoom.Instance == null)
         {
-            Clear(null);
+            Clear();
             return;
         }
 
@@ -149,63 +90,14 @@ internal static class CombatPredictionOverlay
             return null;
         }
 
-        var indicator = new NCombatPredictionDamageIndicator();
+        var indicator = new NCombatPredictionDamageIndicator(target);
         parent.AddChildSafely(indicator);
         Indicators[target] = indicator;
         return indicator;
     }
-
-    private static NCombatPredictionDamageIndicator? GetHoverTipOwnerIndicator()
-    {
-        return Indicators.Values
-            .Where(static indicator => indicator.IsInsideTree())
-            .MinBy(static indicator => indicator.GetGlobalRect().Position.X);
-    }
-
-    private static void AvoidHoverTipOverlap(NHoverTipSet tipSet, Control avoidOwner)
-    {
-        if (!NHoverTipSet._activeHoverTips.TryGetValue(avoidOwner, out var avoidTipSet))
-        {
-            return;
-        }
-
-        var ourRect = GetHoverTipSetRect(tipSet);
-        var avoidRect = GetHoverTipSetRect(avoidTipSet);
-        if (!ourRect.HasArea() || !avoidRect.HasArea() || !ourRect.Intersects(avoidRect))
-        {
-            return;
-        }
-
-        var offset = ourRect.End.X - avoidRect.Position.X + 8f;
-        if (offset <= 0f)
-        {
-            return;
-        }
-
-        MoveHoverTipSet(tipSet, Vector2.Left * offset);
-    }
-
-    private static Rect2 GetHoverTipSetRect(NHoverTipSet tipSet)
-    {
-        var textRect = tipSet._textHoverTipContainer.GetGlobalRect();
-        var cardRect = tipSet._cardHoverTipContainer.GetGlobalRect();
-
-        return textRect.HasArea() switch
-        {
-            true when cardRect.HasArea() => textRect.Merge(cardRect),
-            true => textRect,
-            _ => cardRect
-        };
-    }
-
-    private static void MoveHoverTipSet(NHoverTipSet tipSet, Vector2 offset)
-    {
-        tipSet._textHoverTipContainer.GlobalPosition += offset;
-        tipSet._cardHoverTipContainer.GlobalPosition += offset;
-    }
 }
 
-internal sealed partial class NCombatPredictionDamageIndicator() : Control
+internal sealed partial class NCombatPredictionDamageIndicator(Creature target) : Control
 {
     private const string LabelFontPath = "res://themes/kreon_bold_glyph_space_one.tres";
     private const int ShadowOffsetX = 6;
@@ -241,6 +133,9 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         VerticalAlignment = VerticalAlignment.Center
     };
 
+    private IReadOnlyList<IHoverTip> _hoverTips = [];
+    private bool _isHovering;
+
     public override void _Ready()
     {
         MouseFilter = MouseFilterEnum.Stop;
@@ -261,7 +156,7 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         _damageLabel.AddThemeConstantOverride("shadow_outline_size", ShadowOutlineSize);
     }
 
-    public void SetPrediction(DamagePredictionTarget prediction, bool hasWarning)
+    public void SetPrediction(DamagePredictionTarget prediction, bool hasRisk)
     {
         foreach (var child in _content.GetChildren().OfType<Node>().ToList())
         {
@@ -302,7 +197,7 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         });
 
         var amount = (int)prediction.TotalDamage;
-        var amountText = hasWarning ? $"{amount}*" : amount.ToString();
+        var amountText = hasRisk ? $"{amount}*" : amount.ToString();
         var labelWidth = MathF.Max(30f, amountText.Length * 16f);
         _damageLabel.CustomMinimumSize = new Vector2(labelWidth, NCombatPredictionSourceIcon.Height);
         _damageLabel.Size = _damageLabel.CustomMinimumSize;
@@ -319,14 +214,30 @@ internal sealed partial class NCombatPredictionDamageIndicator() : Control
         _content.Size = new Vector2(contentWidth, NCombatPredictionSourceIcon.Height);
     }
 
+    public void SetHoverTips(IEnumerable<IHoverTip> hoverTips)
+    {
+        _hoverTips = hoverTips.ToArray();
+        if (_isHovering)
+        {
+            ShowHoverTips();
+        }
+    }
+
+    private void ShowHoverTips()
+    {
+        NCombatRoom.Instance?.GetCreatureNode(target)?.ShowHoverTips(_hoverTips);
+    }
+
     private void OnMouseEntered()
     {
-        CombatPredictionOverlay.ShowIndicatorHoverTips();
+        _isHovering = true;
+        ShowHoverTips();
     }
 
     private void OnMouseExited()
     {
-        CombatPredictionOverlay.ClearIndicatorHoverTips();
+        _isHovering = false;
+        NCombatRoom.Instance?.GetCreatureNode(target)?.HideHoverTips();
     }
 
     private static Color GetOutlineColor(DamagePredictionTarget prediction)
