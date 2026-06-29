@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Rooms;
+using STS2RitsuLib.Settings;
 
 namespace RandomForeseer.InCombat;
 
@@ -27,6 +28,7 @@ internal static class EndTurnPredictionController
         CombatManager.Instance.CombatEnded += OnCombatEnded;
         CombatManager.Instance.StateTracker.CombatStateChanged += OnCombatStateChanged;
         CombatPredictionOverlay.AfterSourceCleared += Refresh;
+        ModSettingsBindingWriteEvents.ValueWritten += OnSettingsValueWritten;
 
         _isSubscribed = true;
         Refresh();
@@ -45,6 +47,7 @@ internal static class EndTurnPredictionController
         CombatManager.Instance.CombatEnded -= OnCombatEnded;
         CombatManager.Instance.StateTracker.CombatStateChanged -= OnCombatStateChanged;
         CombatPredictionOverlay.AfterSourceCleared -= Refresh;
+        ModSettingsBindingWriteEvents.ValueWritten -= OnSettingsValueWritten;
 
         _isSubscribed = false;
         Clear();
@@ -162,6 +165,14 @@ internal static class EndTurnPredictionController
     private static void OnCombatStateChanged(CombatState _)
     {
         Refresh();
+    }
+
+    private static void OnSettingsValueWritten(IModSettingsBinding binding)
+    {
+        if (RandomForeseerSettings.IsEndTurnPredictionRefreshBinding(binding))
+        {
+            Refresh();
+        }
     }
 }
 

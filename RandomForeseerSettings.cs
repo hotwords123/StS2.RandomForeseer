@@ -364,6 +364,13 @@ internal static class RandomForeseerSettings
 
     public static bool EnableAncientEventDebugReroll => EnableAncientEventDebugRerollBinding.Read();
 
+    public static bool IsEndTurnPredictionRefreshBinding(IModSettingsBinding binding)
+    {
+        return ReferenceEquals(binding, EnableEndTurnPredictionBinding) ||
+            ReferenceEquals(binding, EndTurnPredictionDisplayModeBinding) ||
+            ReferenceEquals(binding, EndTurnHealthBarForecastDisplayModeBinding);
+    }
+
     public static bool IsPredictionFeatureEnabled(bool featureEnabled)
     {
         if (!featureEnabled)
