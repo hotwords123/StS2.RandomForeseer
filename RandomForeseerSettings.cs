@@ -72,33 +72,6 @@ internal sealed class RandomForeseerSettingsData
 internal static class RandomForeseerSettings
 {
     private const string DataKey = "settings";
-    private const string EnableSingleplayerPredictionKey = "enable_singleplayer_prediction";
-    private const string EnableMultiplayerPredictionKey = "enable_multiplayer_prediction";
-    private const string EnableFairModeKey = "enable_fair_mode";
-    private const string EnableDriftWarningsKey = "enable_drift_warnings";
-    private const string EnableTransformPredictionKey = "enable_transform_prediction";
-    private const string EnableDriftwoodRerollPredictionKey = "enable_driftwood_reroll_prediction";
-    private const string EnablePaelsWingSacrificePredictionKey = "enable_paels_wing_sacrifice_prediction";
-    private const string EnableRelicPickupPredictionKey = "enable_relic_pickup_prediction";
-    private const string EnableRestSitePredictionKey = "enable_rest_site_prediction";
-    private const string EnableEventOptionPredictionKey = "enable_event_option_prediction";
-    private const string EnableCrystalSphereClairvoyanceKey = "enable_crystal_sphere_clairvoyance";
-    private const string SlipperyBridgeRerollPreviewCountKey = "slippery_bridge_reroll_preview_count";
-    private const string EnablePotionCardPredictionKey = "enable_potion_card_prediction";
-    private const string EnablePotionGenerationPredictionKey = "enable_potion_generation_prediction";
-    private const string EnableCombatCardPredictionKey = "enable_combat_card_prediction";
-    private const string EnableCombatCardSelectionPredictionKey = "enable_combat_card_selection_prediction";
-    private const string EnableOrbPredictionKey = "enable_orb_prediction";
-    private const string EnableEndTurnPredictionKey = "enable_end_turn_prediction";
-    private const string EndTurnPredictionDisplayModeKey = "end_turn_prediction_display_mode";
-    private const string EndTurnHealthBarForecastDisplayModeKey = "end_turn_health_bar_forecast_display_mode";
-    private const string EnableAutoPlayFromDrawPilePredictionKey = "enable_auto_play_from_draw_pile_prediction";
-    private const string EnablePotionDrawPredictionKey = "enable_potion_draw_prediction";
-    private const string EnableCardDrawPredictionKey = "enable_card_draw_prediction";
-    private const string EnableCombatTransformPredictionKey = "enable_combat_transform_prediction";
-    private const string EnableFrozenEyeKey = "enable_frozen_eye";
-    private const string EnableShufflePredictionKey = "enable_shuffle_prediction";
-    private const string EnableAncientEventDebugRerollKey = "enable_ancient_event_debug_reroll";
 
     private static bool _isDataRegistered;
 
@@ -423,7 +396,7 @@ internal static class RandomForeseerSettings
                     "Controls prediction availability across game modes."));
 
                 section.AddToggle(
-                    EnableSingleplayerPredictionKey,
+                    "enable_singleplayer_prediction",
                     Text("toggle.enable_singleplayer_prediction.label", "Enable singleplayer prediction"),
                     EnableSingleplayerPredictionBinding,
                     Text(
@@ -431,7 +404,7 @@ internal static class RandomForeseerSettings
                         "When disabled, prediction features do not take effect in singleplayer even if their individual settings are enabled."));
 
                 section.AddToggle(
-                    EnableMultiplayerPredictionKey,
+                    "enable_multiplayer_prediction",
                     Text("toggle.enable_multiplayer_prediction.label", "Enable multiplayer prediction"),
                     EnableMultiplayerPredictionBinding,
                     Text(
@@ -439,7 +412,7 @@ internal static class RandomForeseerSettings
                         "When disabled, prediction features do not take effect in multiplayer even if their individual settings are enabled."));
 
                 section.AddToggle(
-                    EnableFairModeKey,
+                    "enable_fair_mode",
                     Text("toggle.enable_fair_mode.label", "Enable fair mode"),
                     EnableFairModeBinding,
                     Text(
@@ -447,7 +420,7 @@ internal static class RandomForeseerSettings
                         "When enabled, prediction is limited to information that can be obtained through Save & Load."));
 
                 section.AddToggle(
-                    EnableDriftWarningsKey,
+                    "enable_drift_warnings",
                     Text("toggle.enable_drift_warnings.label", "Show prediction drift warnings"),
                     EnableDriftWarningsBinding,
                     Text(
@@ -463,7 +436,7 @@ internal static class RandomForeseerSettings
                     "Controls random outcomes shown outside combat."));
 
                 section.AddToggle(
-                    EnableTransformPredictionKey,
+                    "enable_transform_prediction",
                     Text("toggle.enable_transform_prediction.label", "Predict transform results"),
                     EnableTransformPredictionBinding,
                     Text(
@@ -471,7 +444,7 @@ internal static class RandomForeseerSettings
                         "When enabled, deck transform confirmation previews show the exact card the current RNG will produce."));
 
                 section.AddToggle(
-                    EnableDriftwoodRerollPredictionKey,
+                    "enable_driftwood_reroll_prediction",
                     Text("toggle.enable_driftwood_reroll_prediction.label", "Predict Driftwood rerolls"),
                     EnableDriftwoodRerollPredictionBinding,
                     Text(
@@ -479,7 +452,7 @@ internal static class RandomForeseerSettings
                         "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."));
 
                 section.AddToggle(
-                    EnablePaelsWingSacrificePredictionKey,
+                    "enable_paels_wing_sacrifice_prediction",
                     Text("toggle.enable_paels_wing_sacrifice_prediction.label", "Predict Pael's Wing sacrifices"),
                     EnablePaelsWingSacrificePredictionBinding,
                     Text(
@@ -487,7 +460,7 @@ internal static class RandomForeseerSettings
                         "When enabled, Pael's Wing's Sacrifice button shows the relic awarded by the next activating sacrifice."));
 
                 section.AddToggle(
-                    EnableRelicPickupPredictionKey,
+                    "enable_relic_pickup_prediction",
                     Text("toggle.enable_relic_pickup_prediction.label", "Predict relic pickup effects"),
                     EnableRelicPickupPredictionBinding,
                     Text(
@@ -495,7 +468,7 @@ internal static class RandomForeseerSettings
                         "When enabled, relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup."));
 
                 section.AddToggle(
-                    EnableRestSitePredictionKey,
+                    "enable_rest_site_prediction",
                     Text("toggle.enable_rest_site_prediction.label", "Predict rest-site results"),
                     EnableRestSitePredictionBinding,
                     Text(
@@ -503,7 +476,7 @@ internal static class RandomForeseerSettings
                         "When enabled, rest-site option tooltips show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel."));
 
                 section.AddToggle(
-                    EnableEventOptionPredictionKey,
+                    "enable_event_option_prediction",
                     Text("toggle.enable_event_option_prediction.label", "Predict event option results"),
                     EnableEventOptionPredictionBinding,
                     Text(
@@ -511,7 +484,7 @@ internal static class RandomForeseerSettings
                         "When enabled, non-Ancient event option tooltips show immediate random results such as rewards, upgrades, and offered follow-up choices."));
 
                 section.AddToggle(
-                    EnableCrystalSphereClairvoyanceKey,
+                    "enable_crystal_sphere_clairvoyance",
                     Text("toggle.enable_crystal_sphere_clairvoyance.label", "Enable Crystal Sphere clairvoyance"),
                     EnableCrystalSphereClairvoyanceBinding,
                     Text(
@@ -519,7 +492,7 @@ internal static class RandomForeseerSettings
                         "When enabled, the Crystal Sphere minigame shows items through unrevealed fog."));
 
                 section.AddIntSlider(
-                    SlipperyBridgeRerollPreviewCountKey,
+                    "slippery_bridge_reroll_preview_count",
                     Text("slider.slippery_bridge_reroll_preview_count.label", "Slippery Bridge reroll previews"),
                     SlipperyBridgeRerollPreviewCountBinding,
                     1,
@@ -539,7 +512,7 @@ internal static class RandomForeseerSettings
                     "Controls random outcomes shown during combat."));
 
                 section.AddToggle(
-                    EnablePotionCardPredictionKey,
+                    "enable_potion_card_prediction",
                     Text("toggle.enable_potion_card_prediction.label", "Predict potion card results"),
                     EnablePotionCardPredictionBinding,
                     Text(
@@ -547,7 +520,7 @@ internal static class RandomForeseerSettings
                         "When enabled, random-card potion tooltips show the exact cards the current RNG will produce."));
 
                 section.AddToggle(
-                    EnablePotionGenerationPredictionKey,
+                    "enable_potion_generation_prediction",
                     Text("toggle.enable_potion_generation_prediction.label", "Predict potion generation"),
                     EnablePotionGenerationPredictionBinding,
                     Text(
@@ -555,7 +528,7 @@ internal static class RandomForeseerSettings
                         "When enabled, Entropic Brew and Alchemize tooltips show the exact potions the current RNG will produce."));
 
                 section.AddToggle(
-                    EnableCombatCardPredictionKey,
+                    "enable_combat_card_prediction",
                     Text("toggle.enable_combat_card_prediction.label", "Predict combat card generation"),
                     EnableCombatCardPredictionBinding,
                     Text(
@@ -563,7 +536,7 @@ internal static class RandomForeseerSettings
                         "When enabled, combat card tooltips show the exact random cards the current RNG will generate."));
 
                 section.AddToggle(
-                    EnableCombatCardSelectionPredictionKey,
+                    "enable_combat_card_selection_prediction",
                     Text("toggle.enable_combat_card_selection_prediction.label", "Predict combat card selection"),
                     EnableCombatCardSelectionPredictionBinding,
                     Text(
@@ -571,7 +544,7 @@ internal static class RandomForeseerSettings
                         "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select."));
 
                 section.AddToggle(
-                    EnableOrbPredictionKey,
+                    "enable_orb_prediction",
                     Text("toggle.enable_orb_prediction.label", "Predict orb effects"),
                     EnableOrbPredictionBinding,
                     Text(
@@ -579,7 +552,7 @@ internal static class RandomForeseerSettings
                         "When enabled, supported orb-triggering card tooltips show the targets that orb effects will hit."));
 
                 section.AddToggle(
-                    EnableEndTurnPredictionKey,
+                    "enable_end_turn_prediction",
                     Text("toggle.enable_end_turn_prediction.label", "Predict end-turn effects"),
                     EnableEndTurnPredictionBinding,
                     Text(
@@ -587,7 +560,7 @@ internal static class RandomForeseerSettings
                         "When enabled, supported end-turn damage effects are previewed during combat."));
 
                 section.AddEnumChoice(
-                    EndTurnPredictionDisplayModeKey,
+                    "end_turn_prediction_display_mode",
                     Text("choice.end_turn_prediction_display_mode.label", "End-turn prediction overlay display"),
                     EndTurnPredictionDisplayModeBinding,
                     value => Text(
@@ -603,7 +576,7 @@ internal static class RandomForeseerSettings
                     ModSettingsChoicePresentation.Dropdown);
 
                 section.AddEnumChoice(
-                    EndTurnHealthBarForecastDisplayModeKey,
+                    "end_turn_health_bar_forecast_display_mode",
                     Text(
                         "choice.end_turn_health_bar_forecast_display_mode.label",
                         "End-turn health bar forecast display"),
@@ -621,7 +594,7 @@ internal static class RandomForeseerSettings
                     ModSettingsChoicePresentation.Dropdown);
 
                 section.AddToggle(
-                    EnableAutoPlayFromDrawPilePredictionKey,
+                    "enable_auto_play_from_draw_pile_prediction",
                     Text("toggle.enable_auto_play_from_draw_pile_prediction.label", "Predict draw-pile autoplay"),
                     EnableAutoPlayFromDrawPilePredictionBinding,
                     Text(
@@ -629,7 +602,7 @@ internal static class RandomForeseerSettings
                         "When enabled, Havoc, Cascade, and Distilled Chaos tooltips show the cards that will be played from the draw pile."));
 
                 section.AddToggle(
-                    EnablePotionDrawPredictionKey,
+                    "enable_potion_draw_prediction",
                     Text("toggle.enable_potion_draw_prediction.label", "Predict potion draw"),
                     EnablePotionDrawPredictionBinding,
                     Text(
@@ -637,7 +610,7 @@ internal static class RandomForeseerSettings
                         "When enabled, supported draw potions show the cards that will be drawn, including cards after shuffle."));
 
                 section.AddToggle(
-                    EnableCardDrawPredictionKey,
+                    "enable_card_draw_prediction",
                     Text("toggle.enable_card_draw_prediction.label", "Predict card draw"),
                     EnableCardDrawPredictionBinding,
                     Text(
@@ -645,7 +618,7 @@ internal static class RandomForeseerSettings
                         "When enabled, Reboot and Calculated Gamble show the cards that will be drawn, including cards after shuffle."));
 
                 section.AddToggle(
-                    EnableCombatTransformPredictionKey,
+                    "enable_combat_transform_prediction",
                     Text("toggle.enable_combat_transform_prediction.label", "Predict combat transform results"),
                     EnableCombatTransformPredictionBinding,
                     Text(
@@ -653,7 +626,7 @@ internal static class RandomForeseerSettings
                         "When enabled, combat transform selections show the exact card the current RNG will produce."));
 
                 section.AddToggle(
-                    EnableFrozenEyeKey,
+                    "enable_frozen_eye",
                     Text("toggle.enable_frozen_eye.label", "Enable Frozen Eye"),
                     EnableFrozenEyeBinding,
                     Text(
@@ -661,7 +634,7 @@ internal static class RandomForeseerSettings
                         "When enabled, the combat draw pile view shows cards in draw order."));
 
                 section.AddToggle(
-                    EnableShufflePredictionKey,
+                    "enable_shuffle_prediction",
                     Text("toggle.enable_shuffle_prediction.label", "Predict shuffle order"),
                     EnableShufflePredictionBinding,
                     Text(
@@ -693,7 +666,7 @@ internal static class RandomForeseerSettings
                     "Debug tools for Ancient event pages."));
 
                 section.AddToggle(
-                    EnableAncientEventDebugRerollKey,
+                    "enable_ancient_event_debug_reroll",
                     Text("toggle.enable_ancient_event_debug_reroll.label", "Enable Ancient event debug reroll"),
                     EnableAncientEventDebugRerollBinding,
                     Text(
