@@ -599,7 +599,8 @@ internal static class RandomForeseerSettings
                         }),
                     Text(
                         "choice.end_turn_prediction_display_mode.description",
-                        "Controls when end-turn damage prediction overlay indicators are shown."));
+                        "Controls when end-turn damage prediction overlay indicators are shown."),
+                    ModSettingsChoicePresentation.Dropdown);
 
                 section.AddEnumChoice(
                     EndTurnHealthBarForecastDisplayModeKey,
@@ -616,7 +617,8 @@ internal static class RandomForeseerSettings
                         }),
                     Text(
                         "choice.end_turn_health_bar_forecast_display_mode.description",
-                        "Controls when end-turn damage prediction is shown on target health bars."));
+                        "Controls when end-turn damage prediction is shown on target health bars."),
+                    ModSettingsChoicePresentation.Dropdown);
 
                 section.AddToggle(
                     EnableAutoPlayFromDrawPilePredictionKey,
