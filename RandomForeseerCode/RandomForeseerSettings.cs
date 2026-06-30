@@ -446,285 +446,205 @@ internal static class RandomForeseerSettings
 
         RitsuLibFramework.RegisterModSettings(Entry.ModId, page =>
         {
-            page.WithModDisplayName(Text("mod.name", "Random Foreseer"));
-            page.WithTitle(Text("page.title", "Random Foreseer"));
+            page.WithModDisplayName(Text("mod.name"));
+            page.WithTitle(Text("page.title"));
             page.WithSortOrder(0);
-            page.WithDescription(Text(
-                "page.description",
-                "Configure prediction features for random outcomes. Some settings may require Save & Load to take effect."));
+            page.WithDescription(Text("page.description"));
 
             page.AddSection("general_prediction", section =>
             {
-                section.WithTitle(Text("section.general_prediction.title", "General settings"));
-                section.WithDescription(Text(
-                    "section.general_prediction.description",
-                    "Controls prediction availability across game modes."));
+                section.WithTitle(Text("section.general_prediction.title"));
+                section.WithDescription(Text("section.general_prediction.description"));
 
                 section.AddToggle(
                     "enable_singleplayer_prediction",
-                    Text("toggle.enable_singleplayer_prediction.label", "Enable singleplayer prediction"),
+                    Text("toggle.enable_singleplayer_prediction.label"),
                     EnableSingleplayerPredictionBinding,
-                    Text(
-                        "toggle.enable_singleplayer_prediction.description",
-                        "When disabled, prediction features do not take effect in singleplayer even if their individual settings are enabled."));
+                    Text("toggle.enable_singleplayer_prediction.description"));
 
                 section.AddToggle(
                     "enable_multiplayer_prediction",
-                    Text("toggle.enable_multiplayer_prediction.label", "Enable multiplayer prediction"),
+                    Text("toggle.enable_multiplayer_prediction.label"),
                     EnableMultiplayerPredictionBinding,
-                    Text(
-                        "toggle.enable_multiplayer_prediction.description",
-                        "When disabled, prediction features do not take effect in multiplayer even if their individual settings are enabled."));
+                    Text("toggle.enable_multiplayer_prediction.description"));
 
                 section.AddToggle(
                     "enable_fair_mode",
-                    Text("toggle.enable_fair_mode.label", "Enable fair mode"),
+                    Text("toggle.enable_fair_mode.label"),
                     EnableFairModeBinding,
-                    Text(
-                        "toggle.enable_fair_mode.description",
-                        "When enabled, prediction is limited to information that can be obtained through Save & Load."));
+                    Text("toggle.enable_fair_mode.description"));
 
                 section.AddToggle(
                     "enable_drift_warnings",
-                    Text("toggle.enable_drift_warnings.label", "Show prediction drift warnings"),
+                    Text("toggle.enable_drift_warnings.label"),
                     EnableDriftWarningsBinding,
-                    Text(
-                        "toggle.enable_drift_warnings.description",
-                        "When enabled, predictions that may be shifted by side effects show a warning tooltip."));
+                    Text("toggle.enable_drift_warnings.description"));
             });
 
             page.AddSection("out_of_combat_prediction", section =>
             {
-                section.WithTitle(Text("section.out_of_combat_prediction.title", "Out-of-combat prediction"));
-                section.WithDescription(Text(
-                    "section.out_of_combat_prediction.description",
-                    "Controls random outcomes shown outside combat."));
+                section.WithTitle(Text("section.out_of_combat_prediction.title"));
+                section.WithDescription(Text("section.out_of_combat_prediction.description"));
 
                 section.AddToggle(
                     "enable_transform_prediction",
-                    Text("toggle.enable_transform_prediction.label", "Predict transform results"),
+                    Text("toggle.enable_transform_prediction.label"),
                     EnableTransformPredictionBinding,
-                    Text(
-                        "toggle.enable_transform_prediction.description",
-                        "When enabled, deck transform confirmation previews show the exact card the current RNG will produce."));
+                    Text("toggle.enable_transform_prediction.description"));
 
                 section.AddToggle(
                     "enable_driftwood_reroll_prediction",
-                    Text("toggle.enable_driftwood_reroll_prediction.label", "Predict Driftwood rerolls"),
+                    Text("toggle.enable_driftwood_reroll_prediction.label"),
                     EnableDriftwoodRerollPredictionBinding,
-                    Text(
-                        "toggle.enable_driftwood_reroll_prediction.description",
-                        "When enabled, Driftwood's card reward reroll button shows the exact cards the reroll will offer."));
+                    Text("toggle.enable_driftwood_reroll_prediction.description"));
 
                 section.AddToggle(
                     "enable_paels_wing_sacrifice_prediction",
-                    Text("toggle.enable_paels_wing_sacrifice_prediction.label", "Predict Pael's Wing sacrifices"),
+                    Text("toggle.enable_paels_wing_sacrifice_prediction.label"),
                     EnablePaelsWingSacrificePredictionBinding,
-                    Text(
-                        "toggle.enable_paels_wing_sacrifice_prediction.description",
-                        "When enabled, Pael's Wing's Sacrifice button shows the relic awarded by the next activating sacrifice."));
+                    Text("toggle.enable_paels_wing_sacrifice_prediction.description"));
 
                 section.AddToggle(
                     "enable_relic_pickup_prediction",
-                    Text("toggle.enable_relic_pickup_prediction.label", "Predict relic pickup effects"),
+                    Text("toggle.enable_relic_pickup_prediction.label"),
                     EnableRelicPickupPredictionBinding,
-                    Text(
-                        "toggle.enable_relic_pickup_prediction.description",
-                        "When enabled, relic tooltips (including Ancient options) show random cards, relics, potions, curses, and transform results that happen immediately on pickup."));
+                    Text("toggle.enable_relic_pickup_prediction.description"));
 
                 section.AddToggle(
                     "enable_rest_site_prediction",
-                    Text("toggle.enable_rest_site_prediction.label", "Predict rest-site results"),
+                    Text("toggle.enable_rest_site_prediction.label"),
                     EnableRestSitePredictionBinding,
-                    Text(
-                        "toggle.enable_rest_site_prediction.description",
-                        "When enabled, rest-site option tooltips show immediate random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel."));
+                    Text("toggle.enable_rest_site_prediction.description"));
 
                 section.AddToggle(
                     "enable_event_option_prediction",
-                    Text("toggle.enable_event_option_prediction.label", "Predict event option results"),
+                    Text("toggle.enable_event_option_prediction.label"),
                     EnableEventOptionPredictionBinding,
-                    Text(
-                        "toggle.enable_event_option_prediction.description",
-                        "When enabled, non-Ancient event option tooltips show immediate random results such as rewards, upgrades, and offered follow-up choices."));
+                    Text("toggle.enable_event_option_prediction.description"));
 
                 section.AddToggle(
                     "enable_crystal_sphere_clairvoyance",
-                    Text("toggle.enable_crystal_sphere_clairvoyance.label", "Enable Crystal Sphere clairvoyance"),
+                    Text("toggle.enable_crystal_sphere_clairvoyance.label"),
                     EnableCrystalSphereClairvoyanceBinding,
-                    Text(
-                        "toggle.enable_crystal_sphere_clairvoyance.description",
-                        "When enabled, the Crystal Sphere minigame shows items through unrevealed fog."));
+                    Text("toggle.enable_crystal_sphere_clairvoyance.description"));
 
                 section.AddIntSlider(
                     "slippery_bridge_reroll_preview_count",
-                    Text("slider.slippery_bridge_reroll_preview_count.label", "Slippery Bridge reroll previews"),
+                    Text("slider.slippery_bridge_reroll_preview_count.label"),
                     SlipperyBridgeRerollPreviewCountBinding,
                     1,
                     10,
                     1,
                     value => value.ToString(),
-                    Text(
-                        "slider.slippery_bridge_reroll_preview_count.description",
-                        "How many future Hold On rerolls to preview for Slippery Bridge."));
+                    Text("slider.slippery_bridge_reroll_preview_count.description"));
 
                 section.AddToggle(
                     "enable_next_act_prediction",
-                    Text("toggle.enable_next_act_prediction.label", "Predict next Act start and boss"),
+                    Text("toggle.enable_next_act_prediction.label"),
                     EnableNextActPredictionBinding,
-                    Text(
-                        "toggle.enable_next_act_prediction.description",
-                        "When enabled, the top bar shows the next Act's Ancient and boss while viewing boss rewards."));
+                    Text("toggle.enable_next_act_prediction.description"));
             });
 
             page.AddSection("in_combat_prediction", section =>
             {
-                section.WithTitle(Text("section.in_combat_prediction.title", "In-combat prediction"));
-                section.WithDescription(Text(
-                    "section.in_combat_prediction.description",
-                    "Controls random outcomes shown during combat."));
+                section.WithTitle(Text("section.in_combat_prediction.title"));
+                section.WithDescription(Text("section.in_combat_prediction.description"));
 
                 section.AddToggle(
                     "enable_potion_card_prediction",
-                    Text("toggle.enable_potion_card_prediction.label", "Predict potion card results"),
+                    Text("toggle.enable_potion_card_prediction.label"),
                     EnablePotionCardPredictionBinding,
-                    Text(
-                        "toggle.enable_potion_card_prediction.description",
-                        "When enabled, random-card potion tooltips show the exact cards the current RNG will produce."));
+                    Text("toggle.enable_potion_card_prediction.description"));
 
                 section.AddToggle(
                     "enable_potion_generation_prediction",
-                    Text("toggle.enable_potion_generation_prediction.label", "Predict potion generation"),
+                    Text("toggle.enable_potion_generation_prediction.label"),
                     EnablePotionGenerationPredictionBinding,
-                    Text(
-                        "toggle.enable_potion_generation_prediction.description",
-                        "When enabled, Entropic Brew and Alchemize tooltips show the exact potions the current RNG will produce."));
+                    Text("toggle.enable_potion_generation_prediction.description"));
 
                 section.AddToggle(
                     "enable_combat_card_prediction",
-                    Text("toggle.enable_combat_card_prediction.label", "Predict combat card generation"),
+                    Text("toggle.enable_combat_card_prediction.label"),
                     EnableCombatCardPredictionBinding,
-                    Text(
-                        "toggle.enable_combat_card_prediction.description",
-                        "When enabled, combat card tooltips show the exact random cards the current RNG will generate."));
+                    Text("toggle.enable_combat_card_prediction.description"));
 
                 section.AddToggle(
                     "enable_combat_card_selection_prediction",
-                    Text("toggle.enable_combat_card_selection_prediction.label", "Predict combat card selection"),
+                    Text("toggle.enable_combat_card_selection_prediction.label"),
                     EnableCombatCardSelectionPredictionBinding,
-                    Text(
-                        "toggle.enable_combat_card_selection_prediction.description",
-                        "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select."));
+                    Text("toggle.enable_combat_card_selection_prediction.description"));
 
                 section.AddToggle(
                     "enable_orb_prediction",
-                    Text("toggle.enable_orb_prediction.label", "Predict orb effects"),
+                    Text("toggle.enable_orb_prediction.label"),
                     EnableOrbPredictionBinding,
-                    Text(
-                        "toggle.enable_orb_prediction.description",
-                        "When enabled, supported orb-triggering card tooltips show the targets that orb effects will hit."));
+                    Text("toggle.enable_orb_prediction.description"));
 
                 section.AddToggle(
                     "enable_end_turn_prediction",
-                    Text("toggle.enable_end_turn_prediction.label", "Predict end-turn effects"),
+                    Text("toggle.enable_end_turn_prediction.label"),
                     EnableEndTurnPredictionBinding,
-                    Text(
-                        "toggle.enable_end_turn_prediction.description",
-                        "When enabled, supported end-turn damage effects are previewed during combat."));
+                    Text("toggle.enable_end_turn_prediction.description"));
 
                 section.AddEnumChoice(
                     "end_turn_prediction_display_mode",
-                    Text("choice.end_turn_prediction_display_mode.label", "End-turn prediction overlay display"),
+                    Text("choice.end_turn_prediction_display_mode.label"),
                     EndTurnPredictionDisplayModeBinding,
-                    value => Text(
-                        $"choice.end_turn_prediction_display_mode.option.{value}",
-                        value switch
-                        {
-                            EndTurnPredictionDisplayMode.AlwaysDuringPlayerTurn => "Always during player turn",
-                            _ => "End Turn button hover"
-                        }),
-                    Text(
-                        "choice.end_turn_prediction_display_mode.description",
-                        "Controls when end-turn damage prediction overlay indicators are shown."),
+                    value => Text($"choice.end_turn_prediction_display_mode.option.{value}"),
+                    Text("choice.end_turn_prediction_display_mode.description"),
                     ModSettingsChoicePresentation.Dropdown);
 
                 section.AddEnumChoice(
                     "end_turn_health_bar_forecast_display_mode",
-                    Text(
-                        "choice.end_turn_health_bar_forecast_display_mode.label",
-                        "End-turn health bar forecast display"),
+                    Text("choice.end_turn_health_bar_forecast_display_mode.label"),
                     EndTurnHealthBarForecastDisplayModeBinding,
-                    value => Text(
-                        $"choice.end_turn_health_bar_forecast_display_mode.option.{value}",
-                        value switch
-                        {
-                            EndTurnPredictionDisplayMode.AlwaysDuringPlayerTurn => "Always during player turn",
-                            _ => "End Turn button hover"
-                        }),
-                    Text(
-                        "choice.end_turn_health_bar_forecast_display_mode.description",
-                        "Controls when end-turn damage prediction is shown on target health bars."),
+                    value => Text($"choice.end_turn_health_bar_forecast_display_mode.option.{value}"),
+                    Text("choice.end_turn_health_bar_forecast_display_mode.description"),
                     ModSettingsChoicePresentation.Dropdown);
 
                 section.AddColor(
                     "damage_prediction_health_bar_color",
-                    Text(
-                        "color.damage_prediction_health_bar_color.label",
-                        "Damage prediction health bar color"),
+                    Text("color.damage_prediction_health_bar_color.label"),
                     DamagePredictionHealthBarColorBinding,
-                    Text(
-                        "color.damage_prediction_health_bar_color.description",
-                        "Controls the health bar forecast segment color for damage predictions."),
+                    Text("color.damage_prediction_health_bar_color.description"),
                     editAlpha: true,
                     editIntensity: false);
 
                 section.AddToggle(
                     "enable_auto_play_from_draw_pile_prediction",
-                    Text("toggle.enable_auto_play_from_draw_pile_prediction.label", "Predict draw-pile autoplay"),
+                    Text("toggle.enable_auto_play_from_draw_pile_prediction.label"),
                     EnableAutoPlayFromDrawPilePredictionBinding,
-                    Text(
-                        "toggle.enable_auto_play_from_draw_pile_prediction.description",
-                        "When enabled, Havoc, Cascade, and Distilled Chaos tooltips show the cards that will be played from the draw pile."));
+                    Text("toggle.enable_auto_play_from_draw_pile_prediction.description"));
 
                 section.AddToggle(
                     "enable_potion_draw_prediction",
-                    Text("toggle.enable_potion_draw_prediction.label", "Predict potion draw"),
+                    Text("toggle.enable_potion_draw_prediction.label"),
                     EnablePotionDrawPredictionBinding,
-                    Text(
-                        "toggle.enable_potion_draw_prediction.description",
-                        "When enabled, supported draw potions show the cards that will be drawn, including cards after shuffle."));
+                    Text("toggle.enable_potion_draw_prediction.description"));
 
                 section.AddToggle(
                     "enable_card_draw_prediction",
-                    Text("toggle.enable_card_draw_prediction.label", "Predict card draw"),
+                    Text("toggle.enable_card_draw_prediction.label"),
                     EnableCardDrawPredictionBinding,
-                    Text(
-                        "toggle.enable_card_draw_prediction.description",
-                        "When enabled, Reboot and Calculated Gamble show the cards that will be drawn, including cards after shuffle."));
+                    Text("toggle.enable_card_draw_prediction.description"));
 
                 section.AddToggle(
                     "enable_combat_transform_prediction",
-                    Text("toggle.enable_combat_transform_prediction.label", "Predict combat transform results"),
+                    Text("toggle.enable_combat_transform_prediction.label"),
                     EnableCombatTransformPredictionBinding,
-                    Text(
-                        "toggle.enable_combat_transform_prediction.description",
-                        "When enabled, combat transform selections show the exact card the current RNG will produce."));
+                    Text("toggle.enable_combat_transform_prediction.description"));
 
                 section.AddToggle(
                     "enable_frozen_eye",
-                    Text("toggle.enable_frozen_eye.label", "Enable Frozen Eye"),
+                    Text("toggle.enable_frozen_eye.label"),
                     EnableFrozenEyeBinding,
-                    Text(
-                        "toggle.enable_frozen_eye.description",
-                        "When enabled, the combat draw pile view shows cards in draw order."));
+                    Text("toggle.enable_frozen_eye.description"));
 
                 section.AddToggle(
                     "enable_shuffle_prediction",
-                    Text("toggle.enable_shuffle_prediction.label", "Predict shuffle order"),
+                    Text("toggle.enable_shuffle_prediction.label"),
                     EnableShufflePredictionBinding,
-                    Text(
-                        "toggle.enable_shuffle_prediction.description",
-                        "When enabled, the Frozen Eye draw pile view previews the order in which the discard pile will be shuffled into the draw pile."));
+                    Text("toggle.enable_shuffle_prediction.description"));
             });
 
         });
@@ -736,71 +656,51 @@ internal static class RandomForeseerSettings
 
         RitsuLibFramework.RegisterModSettings(Entry.ModId, page =>
         {
-            page.WithModDisplayName(Text("mod.name", "Random Foreseer"));
-            page.WithTitle(Text("page.debug.title", "Debug"));
+            page.WithModDisplayName(Text("mod.name"));
+            page.WithTitle(Text("page.debug.title"));
             page.WithSortOrder(1);
-            page.WithDescription(Text(
-                "page.debug.description",
-                "Controls tools intended for development and verification."));
+            page.WithDescription(Text("page.debug.description"));
 
             page.AddSection("ancient_event_debug", section =>
             {
-                section.WithTitle(Text("section.ancient_event_debug.title", "Ancient events"));
-                section.WithDescription(Text(
-                    "section.ancient_event_debug.description",
-                    "Debug tools for Ancient event pages."));
+                section.WithTitle(Text("section.ancient_event_debug.title"));
+                section.WithDescription(Text("section.ancient_event_debug.description"));
 
                 section.AddToggle(
                     "enable_ancient_event_debug_reroll",
-                    Text("toggle.enable_ancient_event_debug_reroll.label", "Enable Ancient event debug reroll"),
+                    Text("toggle.enable_ancient_event_debug_reroll.label"),
                     EnableAncientEventDebugRerollBinding,
-                    Text(
-                        "toggle.enable_ancient_event_debug_reroll.description",
-                        "When enabled, Ancient event pages show a debug Reroll button that regenerates the current option set."));
+                    Text("toggle.enable_ancient_event_debug_reroll.description"));
             });
 
             page.AddSection("relic_pickup_debug", section =>
             {
-                section.WithTitle(Text("section.relic_pickup_debug.title", "Relic pickup prediction"));
-                section.WithDescription(Text(
-                    "section.relic_pickup_debug.description",
-                    "Debug tools for relic pickup prediction."));
+                section.WithTitle(Text("section.relic_pickup_debug.title"));
+                section.WithDescription(Text("section.relic_pickup_debug.description"));
 
                 section.AddButton(
                     "offer_predicted_non_ancient_relics",
-                    Text("button.offer_predicted_non_ancient_relics.label", "Offer predicted non-Ancient relics"),
-                    Text(
-                        "button.offer_predicted_non_ancient_relics.text",
-                        "Offer"),
+                    Text("button.offer_predicted_non_ancient_relics.label"),
+                    Text("button.offer_predicted_non_ancient_relics.text"),
                     Debug.RelicPickupDebugRewards.OfferPredictedNonAncientRelics,
                     ModSettingsButtonTone.Danger,
-                    Text(
-                        "button.offer_predicted_non_ancient_relics.description",
-                        "Only works during a run. Opens a reward screen with the non-Ancient relics covered by pickup prediction. This can change game content."));
+                    Text("button.offer_predicted_non_ancient_relics.description"));
 
                 section.AddButton(
                     "open_predicted_treasure_room",
-                    Text("button.open_predicted_treasure_room.label", "Open predicted treasure room"),
-                    Text(
-                        "button.open_predicted_treasure_room.text",
-                        "Open"),
+                    Text("button.open_predicted_treasure_room.label"),
+                    Text("button.open_predicted_treasure_room.text"),
                     Debug.RelicPickupDebugRewards.OpenPredictedTreasureRoom,
                     ModSettingsButtonTone.Danger,
-                    Text(
-                        "button.open_predicted_treasure_room.description",
-                        "Only works during a run. Opens a treasure room whose relic target is randomly chosen from War Paint and Whetstone. This can change game content."));
+                    Text("button.open_predicted_treasure_room.description"));
 
                 section.AddButton(
                     "open_relic_trader_pickup_test",
-                    Text("button.open_relic_trader_pickup_test.label", "Open Relic Trader pickup test"),
-                    Text(
-                        "button.open_relic_trader_pickup_test.text",
-                        "Open"),
+                    Text("button.open_relic_trader_pickup_test.label"),
+                    Text("button.open_relic_trader_pickup_test.text"),
                     Debug.RelicPickupDebugRewards.OpenRelicTraderPickupTest,
                     ModSettingsButtonTone.Danger,
-                    Text(
-                        "button.open_relic_trader_pickup_test.description",
-                        "Only works during a run. Gives you a Circlet, then opens a Relic Trader event with Circlet trades for War Paint and Whetstone. This can change game content."));
+                    Text("button.open_relic_trader_pickup_test.description"));
             });
         }, "debug");
     }
@@ -827,9 +727,9 @@ internal static class RandomForeseerSettings
         _isDataRegistered = true;
     }
 
-    private static ModSettingsText Text(string key, string fallback)
+    private static ModSettingsText Text(string key)
     {
-        return ModSettingsText.I18N(SettingsLocalization, key, fallback);
+        return ModSettingsText.I18N(SettingsLocalization, key, key);
     }
 
     private static NetGameType GetCurrentNetGameType()
