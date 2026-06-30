@@ -10,10 +10,11 @@ Most features show predictions when you hover the relevant item, including but n
 
 [list]
 [*]In combat, predicts random results for card generation effects (potions and card effects), card selection effects ([b]True Grit[/b], [b]Thrash[/b]), draw-pile autoplay effects ([b]Havoc[/b], [b]Distilled Chaos[/b]), and transform effects ([b]Entropy[/b]).
-[*]In combat, predicts random orb targets, including cards played during the turn ([b]Dualcast[/b], [b]Tempest[/b]) and passive effects at end of turn (shown by default when hovering the End Turn button, with a setting to always show them).
+[*]In combat, predicts random orb targets, including cards played during the turn ([b]Dualcast[/b], [b]Tempest[/b]) and passive effects at end of turn, showing damage sources and numbers above creatures (shown by default when hovering the End Turn button) and damage forecasts on health bars (shown by default). Hover a creature to inspect each predicted damage line and source.
 [*]In events and Ancients, predicts random option results, such as Neow relics ([b]New Leaf[/b], [b]Neow's Bones[/b]) and card choices from the [b]Colorful Philosophers[/b] event.
 [*]Predicts transform results from events ([b]Morphic Grove[/b], [b]The Trial[/b]) and relics ([b]New Leaf[/b], [b]Orrery[/b]), showing what each card in your deck would transform into.
 [*]Predicts random results from [b]Driftwood[/b] rerolls, [b]Pael's Wing[/b] sacrifices, relics ([b]Whetstone[/b], [b]Orrery[/b]), and rest-site options ([b]Dream Catcher[/b], [b]Shovel[/b]).
+[*]On the first two Acts' boss reward screens, predicts the next Act's Ancient and boss, shown on the top bar.
 [*]When viewing the draw pile, shows cards in actual draw order and previews the order after an in-turn shuffle.
 [*]When [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747548124]Lemon Spire 2[/url] is installed, selected teammate hand, relic, and shop predictions are also supported.
 [/list]

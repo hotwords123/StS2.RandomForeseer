@@ -15,7 +15,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
-- **Orb effect prediction**: shows targets that supported orb-triggering cards will hit during combat.
+- **Orb effect prediction**: shows targets that supported orb-triggering cards will hit during combat, with health bar forecasts.
 - **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; overlay indicators and health bar forecasts can be configured separately for End Turn button hover or always during the player turn; hovering a target creature or prediction indicator shows per-hit damage source details.
 - **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
 - **Potion draw prediction**: shows the cards that supported draw potions will draw, including cards after shuffle.
@@ -27,7 +27,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Rest-site result prediction**: shows random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel when hovering rest-site options.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
 - **Crystal Sphere clairvoyance**: shows item locations and types through unrevealed fog in the Crystal Sphere minigame.
-- **Next Act Ancient and boss prediction**: boss reward top bars in the first two Acts show the next Act's starting Ancient and ending boss.
+- **Next Act Ancient and boss prediction**: the top bar on boss reward screens in the first two Acts shows the next Act's starting Ancient and ending boss.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened, and previews the discard pile order after shuffle during the player's turn.
 
 Each feature can be toggled independently from the mod settings page, and predictions can also be disabled globally for singleplayer or multiplayer. Fair mode is enabled by default and limits predictions to information obtainable through Save & Load.
@@ -165,7 +165,7 @@ Current manifest targets:
 
 | Item | Value |
 |---|---|
-| Current version | `0.7.0` |
+| Current version | `0.8.0` |
 | Minimum game version | `0.107.1` |
 | RitsuLib dependency | `0.4.9` |
 
@@ -200,7 +200,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict event option results | Controls whether non-Ancient event options show immediate random results |
 | Enable Crystal Sphere clairvoyance | Controls whether the Crystal Sphere minigame shows items through unrevealed fog |
 | Slippery Bridge reroll previews | Controls how many future Hold On rerolls are previewed for Slippery Bridge, default 5 |
-| Predict next Act Ancient and boss | Controls whether boss reward top bars show the next Act's Ancient and boss |
+| Predict next Act Ancient and boss | Controls whether the top bar on boss reward screens shows the next Act's Ancient and boss |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 | Predict shuffle order | Controls whether the Frozen Eye draw pile screen previews the discard pile order after shuffle |
 

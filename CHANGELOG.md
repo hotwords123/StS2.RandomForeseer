@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.8.0
 
 ### feat
 
@@ -14,7 +14,7 @@
   End-turn prediction now shows per-hit damage source details when hovering a target creature or prediction indicator.
 
 - Boss 奖励界面的状态栏现在会预测下一阶段起点的先古之民和终点 Boss。<br>
-  Boss reward top bars now predict the next Act's starting Ancient and ending boss.
+  The top bar on boss reward screens now predicts the next Act's starting Ancient and ending boss.
 
 ## v0.7.0
 
