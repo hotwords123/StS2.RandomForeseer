@@ -69,6 +69,7 @@ internal sealed class PredictionCardHoverTipSourceRect(
 
 internal static class PredictionCardHoverTipBundleFactory
 {
+    private const string CardHoverTipScenePath = "res://scenes/ui/card_hover_tip.tscn";
     private const float Padding = 4f;
     private const float BundleCardScale = 1f;
     private const float BundleCardSeparation = 45f;
@@ -159,9 +160,7 @@ internal static class PredictionCardHoverTipBundleFactory
     private static Control CreateAndAddCardTipControl(Control parent, CardModel card)
     {
 #pragma warning disable RITSU013
-        var scenePath = "res://scenes/ui/" + "card_hover_tip.tscn";
-        var control = PreloadManager.Cache.GetScene(scenePath)
-            .Instantiate<Control>(PackedScene.GenEditState.Disabled);
+        var control = PreloadManager.Cache.GetScene(CardHoverTipScenePath).Instantiate<Control>();
 #pragma warning restore RITSU013
         parent.AddChildSafely(control);
 
