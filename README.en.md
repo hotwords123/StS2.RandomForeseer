@@ -189,6 +189,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict end-turn effects | Controls whether supported end-turn damage predictions are shown |
 | End-turn prediction overlay display | Controls whether end-turn damage prediction indicators appear on End Turn button hover or always during the player turn |
 | End-turn health bar forecast display | Controls when end-turn damage is shown on target health bars, default always during the player turn |
+| Damage prediction health bar color | Controls the color used for damage prediction segments on target health bars, default yellow |
 | Predict draw-pile autoplay | Controls whether Havoc, Cascade, and Distilled Chaos show the cards that will be played from the draw pile |
 | Predict potion draw | Controls whether supported potion draw effects show predicted cards |
 | Predict card draw | Controls whether Reboot and Calculated Gamble show predicted cards |

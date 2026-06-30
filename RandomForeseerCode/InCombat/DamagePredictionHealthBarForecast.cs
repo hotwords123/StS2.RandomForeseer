@@ -1,4 +1,3 @@
-using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Nodes.Combat;
@@ -7,17 +6,16 @@ using STS2RitsuLib.Combat.HealthBars;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
-internal sealed class CombatPredictionHealthBarForecastSource : IHealthBarForecastSource
+internal sealed class DamagePredictionHealthBarForecastSource : IHealthBarForecastSource
 {
     public IEnumerable<HealthBarForecastSegment> GetHealthBarForecastSegments(HealthBarForecastContext context)
     {
-        return CombatPredictionHealthBarForecast.GetSegments(context);
+        return DamagePredictionHealthBarForecast.GetSegments(context);
     }
 }
 
-internal static class CombatPredictionHealthBarForecast
+internal static class DamagePredictionHealthBarForecast
 {
-    private static readonly Color ForecastColor = new("E8C91A");
     private static readonly Dictionary<Creature, int> DamageByTarget = [];
 
     public static IEnumerable<HealthBarForecastSegment> GetSegments(HealthBarForecastContext context)
@@ -25,7 +23,7 @@ internal static class CombatPredictionHealthBarForecast
         return DamageByTarget.TryGetValue(context.Creature, out var amount) && amount > 0
             ? [new HealthBarForecastSegment(
                 amount,
-                ForecastColor,
+                RandomForeseerSettings.DamagePredictionHealthBarColor,
                 HealthBarForecastGrowthDirection.FromRight,
                 HealthBarForecastOrder.ForSideTurnEnd(context.Creature, CombatSide.Player))]
             : [];
@@ -58,6 +56,11 @@ internal static class CombatPredictionHealthBarForecast
         var staleTargets = DamageByTarget.Keys.ToList();
         DamageByTarget.Clear();
         RefreshHealthBars(staleTargets);
+    }
+
+    public static void RefreshActiveForecasts()
+    {
+        RefreshHealthBars(DamageByTarget.Keys);
     }
 
     private static void RefreshHealthBars(IEnumerable<Creature> targets)

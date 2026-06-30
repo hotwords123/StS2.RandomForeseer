@@ -113,11 +113,11 @@ internal static class EndTurnPredictionController
 
         if (ShouldShow(RandomForeseerSettings.EndTurnHealthBarForecastDisplayMode))
         {
-            CombatPredictionHealthBarForecast.Set(prediction);
+            DamagePredictionHealthBarForecast.Set(prediction);
         }
         else
         {
-            CombatPredictionHealthBarForecast.Clear();
+            DamagePredictionHealthBarForecast.Clear();
         }
 
         if (RandomForeseerSettings.EndTurnPredictionDisplayMode == EndTurnPredictionDisplayMode.EndTurnButtonHover &&
@@ -138,7 +138,7 @@ internal static class EndTurnPredictionController
     {
         EndTurnPredictionCreatureHoverTips.Clear();
         CombatPredictionOverlay.Clear();
-        CombatPredictionHealthBarForecast.Clear();
+        DamagePredictionHealthBarForecast.Clear();
         EndTurnButtonHoverTipHelper.HideHoverTips();
     }
 
@@ -195,7 +195,11 @@ internal static class EndTurnPredictionController
 
     private static void OnSettingsValueWritten(IModSettingsBinding binding)
     {
-        if (RandomForeseerSettings.IsEndTurnPredictionRefreshBinding(binding))
+        if (RandomForeseerSettings.IsDamagePredictionHealthBarColorBinding(binding))
+        {
+            DamagePredictionHealthBarForecast.RefreshActiveForecasts();
+        }
+        else if (RandomForeseerSettings.IsEndTurnPredictionRefreshBinding(binding))
         {
             Refresh();
         }

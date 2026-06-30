@@ -1,4 +1,5 @@
 using System.Reflection;
+using Godot;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Runs;
 using STS2RitsuLib;
@@ -53,6 +54,8 @@ internal sealed class RandomForeseerSettingsData
 
     public EndTurnPredictionDisplayMode EndTurnHealthBarForecastDisplayMode { get; set; } =
         EndTurnPredictionDisplayMode.AlwaysDuringPlayerTurn;
+
+    public string DamagePredictionHealthBarColor { get; set; } = "#E8C91A";
 
     public bool EnableAutoPlayFromDrawPilePrediction { get; set; } = true;
 
@@ -232,6 +235,13 @@ internal static class RandomForeseerSettings
                 settings => settings.EndTurnHealthBarForecastDisplayMode,
                 (settings, value) => settings.EndTurnHealthBarForecastDisplayMode = value);
 
+    private static readonly IModSettingsValueBinding<string> DamagePredictionHealthBarColorBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, string>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.DamagePredictionHealthBarColor,
+            (settings, value) => settings.DamagePredictionHealthBarColor = value);
+
     private static readonly IModSettingsValueBinding<bool> EnableAutoPlayFromDrawPilePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -332,6 +342,13 @@ internal static class RandomForeseerSettings
     public static EndTurnPredictionDisplayMode EndTurnHealthBarForecastDisplayMode =>
         EndTurnHealthBarForecastDisplayModeBinding.Read();
 
+    public static Color DamagePredictionHealthBarColor =>
+        ModSettingsColorControl.TryDeserializeColorForSettings(
+            DamagePredictionHealthBarColorBinding.Read(),
+            out var color)
+            ? color
+            : new("E8C91A");
+
     public static bool EnableAutoPlayFromDrawPilePrediction => EnableAutoPlayFromDrawPilePredictionBinding.Read();
 
     public static bool EnablePotionDrawPrediction => EnablePotionDrawPredictionBinding.Read();
@@ -353,6 +370,11 @@ internal static class RandomForeseerSettings
         return ReferenceEquals(binding, EnableEndTurnPredictionBinding) ||
             ReferenceEquals(binding, EndTurnPredictionDisplayModeBinding) ||
             ReferenceEquals(binding, EndTurnHealthBarForecastDisplayModeBinding);
+    }
+
+    public static bool IsDamagePredictionHealthBarColorBinding(IModSettingsBinding binding)
+    {
+        return ReferenceEquals(binding, DamagePredictionHealthBarColorBinding);
     }
 
     public static bool IsPredictionFeatureEnabled(bool featureEnabled)
@@ -611,6 +633,18 @@ internal static class RandomForeseerSettings
                         "choice.end_turn_health_bar_forecast_display_mode.description",
                         "Controls when end-turn damage prediction is shown on target health bars."),
                     ModSettingsChoicePresentation.Dropdown);
+
+                section.AddColor(
+                    "damage_prediction_health_bar_color",
+                    Text(
+                        "color.damage_prediction_health_bar_color.label",
+                        "Damage prediction health bar color"),
+                    DamagePredictionHealthBarColorBinding,
+                    Text(
+                        "color.damage_prediction_health_bar_color.description",
+                        "Controls the health bar forecast segment color for damage predictions."),
+                    editAlpha: true,
+                    editIntensity: false);
 
                 section.AddToggle(
                     "enable_auto_play_from_draw_pile_prediction",

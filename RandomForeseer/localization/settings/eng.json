@@ -44,6 +44,8 @@
   "choice.end_turn_health_bar_forecast_display_mode.description": "Controls when end-turn damage prediction is shown on target health bars.",
   "choice.end_turn_health_bar_forecast_display_mode.option.EndTurnButtonHover": "End Turn button hover",
   "choice.end_turn_health_bar_forecast_display_mode.option.AlwaysDuringPlayerTurn": "Always during player turn",
+  "color.damage_prediction_health_bar_color.label": "Damage prediction health bar color",
+  "color.damage_prediction_health_bar_color.description": "Controls the color shown on target health bars for damage predictions.",
   "toggle.enable_auto_play_from_draw_pile_prediction.label": "Predict draw-pile autoplay",
   "toggle.enable_auto_play_from_draw_pile_prediction.description": "When enabled, Havoc, Cascade, and Distilled Chaos tooltips show the cards that will be played from the draw pile.",
   "toggle.enable_potion_draw_prediction.label": "Predict potion draw",

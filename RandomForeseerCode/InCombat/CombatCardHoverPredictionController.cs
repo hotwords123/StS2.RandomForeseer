@@ -103,7 +103,7 @@ internal static class CombatCardHoverPredictionController
         }
 
         CombatPredictionOverlay.Show(prediction);
-        CombatPredictionHealthBarForecast.Set(prediction);
+        DamagePredictionHealthBarForecast.Set(prediction);
         _hasDamagePrediction = true;
     }
 
@@ -129,7 +129,7 @@ internal static class CombatCardHoverPredictionController
         if (_hasDamagePrediction)
         {
             CombatPredictionOverlay.Clear();
-            CombatPredictionHealthBarForecast.Clear();
+            DamagePredictionHealthBarForecast.Clear();
             _hasDamagePrediction = false;
         }
     }

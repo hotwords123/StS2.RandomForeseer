@@ -44,6 +44,8 @@
   "choice.end_turn_health_bar_forecast_display_mode.description": "控制在目标血条上显示回合结束伤害预测的时机。",
   "choice.end_turn_health_bar_forecast_display_mode.option.EndTurnButtonHover": "悬浮结束回合按钮",
   "choice.end_turn_health_bar_forecast_display_mode.option.AlwaysDuringPlayerTurn": "玩家回合内始终显示",
+  "color.damage_prediction_health_bar_color.label": "伤害预测血条颜色",
+  "color.damage_prediction_health_bar_color.description": "控制伤害预测显示在目标血条上的颜色。",
   "toggle.enable_auto_play_from_draw_pile_prediction.label": "预测抽牌堆自动出牌",
   "toggle.enable_auto_play_from_draw_pile_prediction.description": "启用后，破灭、倾泻和精炼混沌的提示会显示将从抽牌堆打出的牌。",
   "toggle.enable_potion_draw_prediction.label": "预测药水抽牌",
