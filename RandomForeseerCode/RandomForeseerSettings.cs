@@ -80,6 +80,8 @@ internal static class RandomForeseerSettings
 
     private static bool _isDataRegistered;
 
+    private static readonly RandomForeseerSettingsData Default = new();
+
     private static readonly I18N SettingsLocalization =
         RitsuLibFramework.CreateModLocalization(
             Entry.ModId,
@@ -92,140 +94,160 @@ internal static class RandomForeseerSettings
             Entry.ModId,
             DataKey,
             settings => settings.EnableSingleplayerPrediction,
-            (settings, value) => settings.EnableSingleplayerPrediction = value);
+            (settings, value) => settings.EnableSingleplayerPrediction = value)
+        .WithDefault(() => Default.EnableSingleplayerPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableMultiplayerPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableMultiplayerPrediction,
-            (settings, value) => settings.EnableMultiplayerPrediction = value);
+            (settings, value) => settings.EnableMultiplayerPrediction = value)
+        .WithDefault(() => Default.EnableMultiplayerPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableFairModeBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableFairMode,
-            (settings, value) => settings.EnableFairMode = value);
+            (settings, value) => settings.EnableFairMode = value)
+        .WithDefault(() => Default.EnableFairMode);
 
     private static readonly IModSettingsValueBinding<bool> EnableDriftWarningsBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableDriftWarnings,
-            (settings, value) => settings.EnableDriftWarnings = value);
+            (settings, value) => settings.EnableDriftWarnings = value)
+        .WithDefault(() => Default.EnableDriftWarnings);
 
     private static readonly IModSettingsValueBinding<bool> EnableTransformPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableTransformPrediction,
-            (settings, value) => settings.EnableTransformPrediction = value);
+            (settings, value) => settings.EnableTransformPrediction = value)
+        .WithDefault(() => Default.EnableTransformPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableDriftwoodRerollPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableDriftwoodRerollPrediction,
-            (settings, value) => settings.EnableDriftwoodRerollPrediction = value);
+            (settings, value) => settings.EnableDriftwoodRerollPrediction = value)
+        .WithDefault(() => Default.EnableDriftwoodRerollPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnablePaelsWingSacrificePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnablePaelsWingSacrificePrediction,
-            (settings, value) => settings.EnablePaelsWingSacrificePrediction = value);
+            (settings, value) => settings.EnablePaelsWingSacrificePrediction = value)
+        .WithDefault(() => Default.EnablePaelsWingSacrificePrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableRelicPickupPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableRelicPickupPrediction,
-            (settings, value) => settings.EnableRelicPickupPrediction = value);
+            (settings, value) => settings.EnableRelicPickupPrediction = value)
+        .WithDefault(() => Default.EnableRelicPickupPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableRestSitePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableRestSitePrediction,
-            (settings, value) => settings.EnableRestSitePrediction = value);
+            (settings, value) => settings.EnableRestSitePrediction = value)
+        .WithDefault(() => Default.EnableRestSitePrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableEventOptionPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableEventOptionPrediction,
-            (settings, value) => settings.EnableEventOptionPrediction = value);
+            (settings, value) => settings.EnableEventOptionPrediction = value)
+        .WithDefault(() => Default.EnableEventOptionPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableCrystalSphereClairvoyanceBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableCrystalSphereClairvoyance,
-            (settings, value) => settings.EnableCrystalSphereClairvoyance = value);
+            (settings, value) => settings.EnableCrystalSphereClairvoyance = value)
+        .WithDefault(() => Default.EnableCrystalSphereClairvoyance);
 
     private static readonly IModSettingsValueBinding<bool> EnableNextActPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableNextActPrediction,
-            (settings, value) => settings.EnableNextActPrediction = value);
+            (settings, value) => settings.EnableNextActPrediction = value)
+        .WithDefault(() => Default.EnableNextActPrediction);
 
     private static readonly IModSettingsValueBinding<int> SlipperyBridgeRerollPreviewCountBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, int>(
             Entry.ModId,
             DataKey,
             settings => settings.SlipperyBridgeRerollPreviewCount,
-            (settings, value) => settings.SlipperyBridgeRerollPreviewCount = value);
+            (settings, value) => settings.SlipperyBridgeRerollPreviewCount = value)
+        .WithDefault(() => Default.SlipperyBridgeRerollPreviewCount);
 
     private static readonly IModSettingsValueBinding<bool> EnablePotionCardPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnablePotionCardPrediction,
-            (settings, value) => settings.EnablePotionCardPrediction = value);
+            (settings, value) => settings.EnablePotionCardPrediction = value)
+        .WithDefault(() => Default.EnablePotionCardPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnablePotionGenerationPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnablePotionGenerationPrediction,
-            (settings, value) => settings.EnablePotionGenerationPrediction = value);
+            (settings, value) => settings.EnablePotionGenerationPrediction = value)
+        .WithDefault(() => Default.EnablePotionGenerationPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableCombatCardPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableCombatCardPrediction,
-            (settings, value) => settings.EnableCombatCardPrediction = value);
+            (settings, value) => settings.EnableCombatCardPrediction = value)
+        .WithDefault(() => Default.EnableCombatCardPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableCombatCardSelectionPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableCombatCardSelectionPrediction,
-            (settings, value) => settings.EnableCombatCardSelectionPrediction = value);
+            (settings, value) => settings.EnableCombatCardSelectionPrediction = value)
+        .WithDefault(() => Default.EnableCombatCardSelectionPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableOrbPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableOrbPrediction,
-            (settings, value) => settings.EnableOrbPrediction = value);
+            (settings, value) => settings.EnableOrbPrediction = value)
+        .WithDefault(() => Default.EnableOrbPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableEndTurnPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableEndTurnPrediction,
-            (settings, value) => settings.EnableEndTurnPrediction = value);
+            (settings, value) => settings.EnableEndTurnPrediction = value)
+        .WithDefault(() => Default.EnableEndTurnPrediction);
 
     private static readonly IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnPredictionDisplayModeBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, EndTurnPredictionDisplayMode>(
             Entry.ModId,
             DataKey,
             settings => settings.EndTurnPredictionDisplayMode,
-            (settings, value) => settings.EndTurnPredictionDisplayMode = value);
+            (settings, value) => settings.EndTurnPredictionDisplayMode = value)
+        .WithDefault(() => Default.EndTurnPredictionDisplayMode);
 
     private static readonly IModSettingsValueBinding<EndTurnPredictionDisplayMode>
         EndTurnHealthBarForecastDisplayModeBinding =
@@ -233,70 +255,80 @@ internal static class RandomForeseerSettings
                 Entry.ModId,
                 DataKey,
                 settings => settings.EndTurnHealthBarForecastDisplayMode,
-                (settings, value) => settings.EndTurnHealthBarForecastDisplayMode = value);
+                (settings, value) => settings.EndTurnHealthBarForecastDisplayMode = value)
+            .WithDefault(() => Default.EndTurnHealthBarForecastDisplayMode);
 
     private static readonly IModSettingsValueBinding<string> DamagePredictionHealthBarColorBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, string>(
             Entry.ModId,
             DataKey,
             settings => settings.DamagePredictionHealthBarColor,
-            (settings, value) => settings.DamagePredictionHealthBarColor = value);
+            (settings, value) => settings.DamagePredictionHealthBarColor = value)
+        .WithDefault(() => Default.DamagePredictionHealthBarColor);
 
     private static readonly IModSettingsValueBinding<bool> EnableAutoPlayFromDrawPilePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableAutoPlayFromDrawPilePrediction,
-            (settings, value) => settings.EnableAutoPlayFromDrawPilePrediction = value);
+            (settings, value) => settings.EnableAutoPlayFromDrawPilePrediction = value)
+        .WithDefault(() => Default.EnableAutoPlayFromDrawPilePrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnablePotionDrawPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnablePotionDrawPrediction,
-            (settings, value) => settings.EnablePotionDrawPrediction = value);
+            (settings, value) => settings.EnablePotionDrawPrediction = value)
+        .WithDefault(() => Default.EnablePotionDrawPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableCardDrawPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableCardDrawPrediction,
-            (settings, value) => settings.EnableCardDrawPrediction = value);
+            (settings, value) => settings.EnableCardDrawPrediction = value)
+        .WithDefault(() => Default.EnableCardDrawPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableCombatTransformPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableCombatTransformPrediction,
-            (settings, value) => settings.EnableCombatTransformPrediction = value);
+            (settings, value) => settings.EnableCombatTransformPrediction = value)
+        .WithDefault(() => Default.EnableCombatTransformPrediction);
 
     private static readonly IModSettingsValueBinding<bool> EnableFrozenEyeBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableFrozenEye,
-            (settings, value) => settings.EnableFrozenEye = value);
+            (settings, value) => settings.EnableFrozenEye = value)
+        .WithDefault(() => Default.EnableFrozenEye);
 
     private static readonly IModSettingsValueBinding<bool> EnableShufflePredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableShufflePrediction,
-            (settings, value) => settings.EnableShufflePrediction = value);
+            (settings, value) => settings.EnableShufflePrediction = value)
+        .WithDefault(() => Default.EnableShufflePrediction);
 
     private static readonly IModSettingsValueBinding<bool> ShowDebugSettingsPageBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.ShowDebugSettingsPage,
-            (settings, value) => settings.ShowDebugSettingsPage = value);
+            (settings, value) => settings.ShowDebugSettingsPage = value)
+        .WithDefault(() => Default.ShowDebugSettingsPage);
 
     private static readonly IModSettingsValueBinding<bool> EnableAncientEventDebugRerollBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
             DataKey,
             settings => settings.EnableAncientEventDebugReroll,
-            (settings, value) => settings.EnableAncientEventDebugReroll = value);
+            (settings, value) => settings.EnableAncientEventDebugReroll = value)
+        .WithDefault(() => Default.EnableAncientEventDebugReroll);
 
     public static bool EnableSingleplayerPrediction => EnableSingleplayerPredictionBinding.Read();
 
@@ -805,6 +837,16 @@ internal static class RandomForeseerSettings
         return RunManager.Instance.IsInProgress
             ? RunManager.Instance.NetService.Type
             : NetGameType.None;
+    }
+}
+
+internal static class ModSettingsBindingExtensions
+{
+    public static DefaultModSettingsValueBinding<TValue> WithDefault<TValue>(
+        this IModSettingsValueBinding<TValue> binding,
+        Func<TValue> defaultValueFactory)
+    {
+        return ModSettingsBindings.WithDefault(binding, defaultValueFactory);
     }
 }
 
