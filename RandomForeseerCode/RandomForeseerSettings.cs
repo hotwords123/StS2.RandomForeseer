@@ -32,6 +32,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableCrystalSphereClairvoyance { get; set; } = true;
 
+    public bool EnableNextActPrediction { get; set; } = true;
+
     public int SlipperyBridgeRerollPreviewCount { get; set; } = 5;
 
     public bool EnablePotionCardPrediction { get; set; } = true;
@@ -158,6 +160,13 @@ internal static class RandomForeseerSettings
             DataKey,
             settings => settings.EnableCrystalSphereClairvoyance,
             (settings, value) => settings.EnableCrystalSphereClairvoyance = value);
+
+    private static readonly IModSettingsValueBinding<bool> EnableNextActPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableNextActPrediction,
+            (settings, value) => settings.EnableNextActPrediction = value);
 
     private static readonly IModSettingsValueBinding<int> SlipperyBridgeRerollPreviewCountBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, int>(
@@ -300,6 +309,8 @@ internal static class RandomForeseerSettings
     public static bool EnableEventOptionPrediction => EnableEventOptionPredictionBinding.Read();
 
     public static bool EnableCrystalSphereClairvoyance => EnableCrystalSphereClairvoyanceBinding.Read();
+
+    public static bool EnableNextActPrediction => EnableNextActPredictionBinding.Read();
 
     public static int SlipperyBridgeRerollPreviewCount => Math.Clamp(SlipperyBridgeRerollPreviewCountBinding.Read(), 1, 10);
 
@@ -502,6 +513,14 @@ internal static class RandomForeseerSettings
                     Text(
                         "slider.slippery_bridge_reroll_preview_count.description",
                         "How many future Hold On rerolls to preview for Slippery Bridge."));
+
+                section.AddToggle(
+                    "enable_next_act_prediction",
+                    Text("toggle.enable_next_act_prediction.label", "Predict next Act start and boss"),
+                    EnableNextActPredictionBinding,
+                    Text(
+                        "toggle.enable_next_act_prediction.description",
+                        "When enabled, the top bar shows the next Act's Ancient and boss while viewing boss rewards."));
             });
 
             page.AddSection("in_combat_prediction", section =>

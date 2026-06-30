@@ -64,6 +64,8 @@
   "toggle.enable_event_option_prediction.description": "When enabled, non-Ancient event option tooltips show immediate random rewards, upgrades, and follow-up choices.",
   "toggle.enable_crystal_sphere_clairvoyance.label": "Enable Crystal Sphere clairvoyance",
   "toggle.enable_crystal_sphere_clairvoyance.description": "When enabled, the Crystal Sphere minigame shows items through unrevealed fog.",
+  "toggle.enable_next_act_prediction.label": "Predict next Act Ancient and boss",
+  "toggle.enable_next_act_prediction.description": "When enabled, the top bar shows the next Act's Ancient and boss on boss reward screens.",
   "slider.slippery_bridge_reroll_preview_count.label": "Slippery Bridge reroll previews",
   "slider.slippery_bridge_reroll_preview_count.description": "Controls how many future randomized cards to preview for Slippery Bridge's Hold On option.",
   "toggle.enable_ancient_event_debug_reroll.label": "Enable Ancient event debug reroll",

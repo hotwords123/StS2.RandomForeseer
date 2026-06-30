@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://RandomForeseerCode/OutOfCombat/Nodes/NNextActPredictionIcon.cs" id="1_script"]
+
+[node name="NextActPredictionIcon" type="MarginContainer"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = -4
+theme_override_constants/margin_right = 0
+script = ExtResource("1_script")
+
+[node name="Icon" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Outline" type="TextureRect" parent="Icon"]
+modulate = Color(0, 0, 0, 0.176471)
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

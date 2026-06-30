@@ -27,6 +27,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Rest-site result prediction**: shows random results from relics such as Dream Catcher, Tiny Mailbox, and Shovel when hovering rest-site options.
 - **Event option prediction**: shows immediate random rewards, random upgrades/downgrades, and random follow-up options when hovering non-Ancient event options.
 - **Crystal Sphere clairvoyance**: shows item locations and types through unrevealed fog in the Crystal Sphere minigame.
+- **Next Act Ancient and boss prediction**: boss reward top bars in the first two Acts show the next Act's starting Ancient and ending boss.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened, and previews the discard pile order after shuffle during the player's turn.
 
 Each feature can be toggled independently from the mod settings page, and predictions can also be disabled globally for singleplayer or multiplayer. Fair mode is enabled by default and limits predictions to information obtainable through Save & Load.
@@ -198,6 +199,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict event option results | Controls whether non-Ancient event options show immediate random results |
 | Enable Crystal Sphere clairvoyance | Controls whether the Crystal Sphere minigame shows items through unrevealed fog |
 | Slippery Bridge reroll previews | Controls how many future Hold On rerolls are previewed for Slippery Bridge, default 5 |
+| Predict next Act Ancient and boss | Controls whether boss reward top bars show the next Act's Ancient and boss |
 | Enable Frozen Eye | Controls whether the draw pile screen shows cards in actual draw order |
 | Predict shuffle order | Controls whether the Frozen Eye draw pile screen previews the discard pile order after shuffle |
 
