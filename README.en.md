@@ -235,17 +235,18 @@ A full build deploys the DLL, manifest, and PCK to `$(Sts2Dir)/mods/RandomForese
 ## Project Layout
 
 ```text
-Common/                             Shared prediction HoverTip, RNG, and localization utilities
-InCombat/                           In-combat card, potion, and Frozen Eye predictions
-OutOfCombat/                        Out-of-combat event, reward, merchant, rest-site, and transform predictions
-OutOfCombat/Events/                 Non-Ancient event option predictions
-Integrations/                       Optional integration patches for other mods
-Debug/                              Debug entry points and test reward screens
-RandomForeseer/localization/        Mod settings and UI localization resources
-Entry.cs                            Mod entry point and Harmony patch registration
-RandomForeseerSettings.cs           Setting definitions, persistence, and feature gates
-RandomForeseer.csproj               C# project and build configuration
-RandomForeseer.json                 Mod manifest
-project.godot                       Godot project used for PCK export
-scripts/release.ps1                 Local build, packaging, and release script
+RandomForeseer.csproj - C# project and build configuration
+RandomForeseer.json - Mod manifest
+RandomForeseer/localization/ - Mod settings and UI localization resources
+RandomForeseerCode/ - C# source code
+RandomForeseerCode/Common/ - Shared prediction HoverTip, RNG, and localization utilities
+RandomForeseerCode/Debug/ - Debug entry points and test reward screens
+RandomForeseerCode/Entry.cs - Mod entry point and Harmony patch registration
+RandomForeseerCode/InCombat/ - In-combat card, potion, and Frozen Eye predictions
+RandomForeseerCode/Integrations/ - Optional integration patches for other mods
+RandomForeseerCode/OutOfCombat/ - Out-of-combat event, reward, merchant, rest-site, and transform predictions
+RandomForeseerCode/OutOfCombat/Events/ - Non-Ancient event option predictions
+RandomForeseerCode/RandomForeseerSettings.cs - Setting definitions, persistence, and feature gates
+project.godot - Godot project used for PCK export
+scripts/release.ps1 - Local build, packaging, and release script
 ```

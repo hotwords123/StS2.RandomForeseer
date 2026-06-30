@@ -235,17 +235,18 @@ dotnet build .\RandomForeseer.csproj /p:RunPckExport=false /p:CopyModOnBuild=fal
 ## 项目结构
 
 ```text
-Common/                             通用预测 HoverTip、RNG 和本地化工具
-InCombat/                           战斗内卡牌、药水和冻结之眼预测
-OutOfCombat/                        战斗外事件、奖励、商店、休息处和变牌预测
-OutOfCombat/Events/                 非先古之民事件选项预测
-Integrations/                       与其它模组的可选联动补丁
-Debug/                              调试入口和测试用奖励界面
-RandomForeseer/localization/        模组设置和界面本地化资源
-Entry.cs                            模组入口与 Harmony patch 注册
-RandomForeseerSettings.cs           设置项定义、持久化和功能开关
-RandomForeseer.csproj               C# 项目与构建配置
-RandomForeseer.json                 Mod manifest
-project.godot                       PCK 导出用 Godot 项目
-scripts/release.ps1                 本地构建、打包和发版脚本
+RandomForeseer.csproj - C# 项目与构建配置
+RandomForeseer.json - Mod manifest
+RandomForeseer/localization/ - 模组设置和界面本地化资源
+RandomForeseerCode/ - C# 源码
+RandomForeseerCode/Common/ - 通用预测 HoverTip、RNG 和本地化工具
+RandomForeseerCode/Debug/ - 调试入口和测试用奖励界面
+RandomForeseerCode/Entry.cs - 模组入口与 Harmony patch 注册
+RandomForeseerCode/InCombat/ - 战斗内卡牌、药水和冻结之眼预测
+RandomForeseerCode/Integrations/ - 与其它模组的可选联动补丁
+RandomForeseerCode/OutOfCombat/ - 战斗外事件、奖励、商店、休息处和变牌预测
+RandomForeseerCode/OutOfCombat/Events/ - 非先古之民事件选项预测
+RandomForeseerCode/RandomForeseerSettings.cs - 设置项定义、持久化和功能开关
+project.godot - PCK 导出用 Godot 项目
+scripts/release.ps1 - 本地构建、打包和发版脚本
 ```
