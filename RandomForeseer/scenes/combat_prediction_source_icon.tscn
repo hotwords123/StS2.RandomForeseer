@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://RandomForeseerCode/InCombat/Nodes/NCombatPredictionSourceIcon.cs" id="1_script"]
+[ext_resource type="Script" path="res://RandomForeseerCode/Common/Nodes/NMegaLabel.cs" id="2_mega_label"]
+
+[node name="CombatPredictionSourceIcon" type="Control"]
+custom_minimum_size = Vector2(48, 40)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 48.0
+offset_bottom = 40.0
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+pivot_offset = Vector2(20, 20)
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 4
+
+[node name="AmountLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = -56.0
+offset_top = 21.0
+offset_right = 44.0
+offset_bottom = 44.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.188235)
+theme_override_colors/font_outline_color = Color(0.12, 0.10208, 0.0816, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 10
+theme_override_constants/shadow_outline_size = 0
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 2
+vertical_alignment = 1
+script = ExtResource("2_mega_label")
+AutoSizeEnabled = false
+MaxFontSize = 18
