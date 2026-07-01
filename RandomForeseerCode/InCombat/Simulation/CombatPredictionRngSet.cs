@@ -4,13 +4,23 @@ using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal sealed class CombatPredictionRngSet(RunRngSet rng)
+internal sealed class CombatPredictionRngSet
 {
-    public Rng Shuffle { get; init; } = PredictionUtils.CloneRng(rng.Shuffle);
+    public required Rng Shuffle { get; init; }
+    public required Rng CombatCardSelection { get; init; }
+    public required Rng CombatEnergyCosts { get; init; }
+    public required Rng CombatTargets { get; init; }
+    public required Rng CombatOrbGeneration { get; init; }
 
-    public Rng CombatEnergyCosts { get; init; } = PredictionUtils.CloneRng(rng.CombatEnergyCosts);
-
-    public Rng CombatTargets { get; init; } = PredictionUtils.CloneRng(rng.CombatTargets);
-
-    public Rng CombatOrbGeneration { get; init; } = PredictionUtils.CloneRng(rng.CombatOrbGeneration);
+    public static CombatPredictionRngSet From(RunRngSet rng)
+    {
+        return new CombatPredictionRngSet
+        {
+            Shuffle = PredictionUtils.CloneRng(rng.Shuffle),
+            CombatCardSelection = PredictionUtils.CloneRng(rng.CombatCardSelection),
+            CombatEnergyCosts = PredictionUtils.CloneRng(rng.CombatEnergyCosts),
+            CombatTargets = PredictionUtils.CloneRng(rng.CombatTargets),
+            CombatOrbGeneration = PredictionUtils.CloneRng(rng.CombatOrbGeneration)
+        };
+    }
 }

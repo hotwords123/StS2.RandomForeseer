@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -21,43 +20,58 @@ internal sealed partial class CombatPredictionSimulator
         }
     }
 
-    // Mirrors CardPileCmd.AutoPlayFromDrawPile only as a risk marker for now. It records the
-    // cards that are currently visible from the requested draw-pile edge. If the real command
-    // would need a shuffle or random selection, record the triggering source as uncertain.
-    public void AutoPlayFromDrawPile(
+    // Mirrors CardPileCmd.AutoPlayFromDrawPile through selecting cards and moving them to
+    // the play pile. Actual card autoplay is still a risk marker in AutoPlay.
+    public IReadOnlyList<PredictedCard> AutoPlayFromDrawPile(
         Player player,
         int count,
         CardPilePosition position,
-        bool forceExhaust,
-        AbstractModel source)
+        bool forceExhaust)
     {
-        _ = forceExhaust;
-
-        if (count <= 0)
-        {
-            return;
-        }
-
-        var drawPileCards = State.GetPlayerCombatState(player).DrawPileCards;
-        var cards = position switch
-        {
-            CardPilePosition.Top => drawPileCards.Take(count).ToList(),
-            CardPilePosition.Bottom => Enumerable.Reverse(drawPileCards).Take(count).ToList(),
-            CardPilePosition.Random => [],
-            _ => []
-        };
-
-        if (cards.Count < count || position == CardPilePosition.Random)
-        {
-            using (PushSource(source))
-            {
-                MarkCurrentSourceRisky();
-            }
-        }
+        var cards = MoveCardsForAutoPlay(player, count, position);
 
         foreach (var card in cards)
         {
+            if (State.GetCreature(card.Original.Owner.Creature).IsDead)
+            {
+                break;
+            }
+
+            card.MutablePreview.ExhaustOnNextPlay = forceExhaust;
             AutoPlay(card);
         }
+
+        return cards;
+    }
+
+    private IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(Player player, int count, CardPilePosition position)
+    {
+        var cards = new List<PredictedCard>(count);
+        var playerCombatState = State.GetPlayerCombatState(player);
+        var drawPile = playerCombatState.DrawPile;
+
+        for (int i = 0; i < count; i++)
+        {
+            ShuffleIfNecessary(player);
+            var card = position switch
+            {
+                CardPilePosition.Top => drawPile.TopCard,
+                CardPilePosition.Bottom => drawPile.BottomCard,
+                CardPilePosition.Random => Rng.CombatCardSelection.NextItem(drawPile.Cards),
+                _ => null
+            };
+
+            if (card == null)
+            {
+                break;
+            }
+
+            cards.Add(card);
+            // TODO: streamline this with CardPileCmd.Add mirror
+            drawPile.Remove(card);
+            playerCombatState.PlayPile.Add(card);
+        }
+
+        return cards;
     }
 }

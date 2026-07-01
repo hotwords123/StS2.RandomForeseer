@@ -22,32 +22,13 @@ internal sealed partial class CombatPredictionSimulator
             return DrawPilePredictionResult.Empty;
         }
 
-        count = Math.Min(count, MaxSimulatedDraws);
-        var state = State.GetPlayerCombatState(player);
-        var predictedCards = new List<PredictedCard>();
-
-        for (var i = 0; i < count; i++)
+        if (count > MaxSimulatedDraws)
         {
-            if (state.DrawPileCards.Count == 0)
-            {
-                if (state.DiscardPileCards.Count == 0)
-                {
-                    break;
-                }
-
-                ShuffleIfNecessary(player);
-            }
-
-            if (state.DrawPileCards.Count == 0)
-            {
-                break;
-            }
-
-            var card = state.DrawPileCards[0];
-            state.DrawPileCards.RemoveAt(0);
-            predictedCards.Add(card);
+            count = MaxSimulatedDraws;
+            _riskTracker.AddUnknown();
         }
 
+        var predictedCards = MoveCardsForAutoPlay(player, count, CardPilePosition.Top);
         return DrawPilePredictionResult.FromPredictedCards(predictedCards, Snapshot());
     }
 
@@ -65,14 +46,14 @@ internal sealed partial class CombatPredictionSimulator
     public DrawPilePredictionResult ShuffleAfterDrawPileDepleted(Player player)
     {
         var state = State.GetPlayerCombatState(player);
-        if (state.DiscardPileCards.Count == 0)
+        if (state.DiscardPile.IsEmpty)
         {
             return DrawPilePredictionResult.Empty;
         }
 
-        state.DrawPileCards.Clear();
+        state.DrawPile.Clear();
         Shuffle(player);
-        return DrawPilePredictionResult.FromPredictedCards(state.DrawPileCards, Snapshot());
+        return DrawPilePredictionResult.FromPredictedCards(state.DrawPile.Cards, Snapshot());
     }
 
     private void DrawInternal(Player player, int drawCount)
@@ -95,9 +76,11 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
+        var hand = State.GetPlayerCombatState(player).Hand;
+
         for (var i = 0; i < drawCount; i++)
         {
-            if (State.GetPlayerCombatState(player).HandCards.Count >= CardPile.MaxCardsInHand || !DrawOne(player))
+            if (hand.Cards.Count >= CardPile.MaxCardsInHand || !DrawOne(player))
             {
                 break;
             }
@@ -116,14 +99,14 @@ internal sealed partial class CombatPredictionSimulator
         ShuffleIfNecessary(player);
 
         var state = State.GetPlayerCombatState(player);
-        if (state.DrawPileCards.Count == 0)
+        if (state.DrawPile.IsEmpty)
         {
             return false;
         }
 
-        var predictedCard = state.DrawPileCards[0];
-        state.DrawPileCards.RemoveAt(0);
-        state.HandCards.Add(predictedCard);
+        var predictedCard = state.DrawPile.Cards[0];
+        state.DrawPile.Remove(predictedCard);
+        state.Hand.Add(predictedCard);
         _predictedCards.Add(predictedCard);
         RecordCardDrawnHistory(player, predictedCard);
 
@@ -139,37 +122,41 @@ internal sealed partial class CombatPredictionSimulator
     public void MoveHandToDrawPile(Player player)
     {
         var state = State.GetPlayerCombatState(player);
-        state.DrawPileCards.AddRange(state.HandCards);
-        state.HandCards.Clear();
+        state.DrawPile.AddRange(state.Hand.Cards);
+        state.Hand.Clear();
     }
 
     public void RemoveFromHand(Player player, CardModel card)
     {
-        State.GetPlayerCombatState(player).HandCards.RemoveAll(predictedCard => predictedCard.Original == card);
+        var hand = State.GetPlayerCombatState(player).Hand;
+        if (hand.Find(card) is { } predictedCard)
+        {
+            hand.Remove(predictedCard);
+        }
     }
 
     public int DiscardHand(Player player)
     {
         var state = State.GetPlayerCombatState(player);
-        var count = state.HandCards.Count;
-        foreach (var card in state.HandCards.ToList())
+        var cards = state.Hand.Cards.ToList();
+        foreach (var card in cards)
         {
-            state.HandCards.Remove(card);
-            state.DiscardPileCards.Add(card);
+            state.Hand.Remove(card);
+            state.DiscardPile.Add(card);
             RunAfterCardDiscardedHooks(card);
         }
 
-        return count;
+        return cards.Count;
     }
 
     public void ExhaustHand(Player player)
     {
         var state = State.GetPlayerCombatState(player);
-        var exhaustedCards = state.HandCards.ToList();
-        foreach (var card in exhaustedCards)
+        var cards = state.Hand.Cards.ToList();
+        foreach (var card in cards)
         {
-            state.HandCards.Remove(card);
-            state.ExhaustPileCards.Add(card);
+            state.Hand.Remove(card);
+            state.ExhaustPile.Add(card);
             RunAfterCardExhaustedHooks(player, card, causedByEthereal: false);
         }
     }
@@ -177,7 +164,7 @@ internal sealed partial class CombatPredictionSimulator
     public DrawPilePredictionResult RandomizeHandCosts(Player player)
     {
         var state = State.GetPlayerCombatState(player);
-        foreach (var card in state.HandCards)
+        foreach (var card in state.Hand.Cards)
         {
             if (card.Preview.EnergyCost.CostsX ||
                 card.Preview.EnergyCost.GetWithModifiers(CostModifiers.None) < 0)
@@ -188,7 +175,7 @@ internal sealed partial class CombatPredictionSimulator
             card.MutablePreview.EnergyCost.SetThisTurnOrUntilPlayed(Rng.CombatEnergyCosts.NextInt(4));
         }
 
-        return DrawPilePredictionResult.FromPredictedCards(state.HandCards, Snapshot());
+        return DrawPilePredictionResult.FromPredictedCards(state.Hand.Cards, Snapshot());
     }
 
     public void Shuffle(Player player)
@@ -196,12 +183,12 @@ internal sealed partial class CombatPredictionSimulator
         // Mirrors CardPileCmd.Shuffle: merge discard cards with current draw-pile cards,
         // shuffle the combined list, then place all cards back into the draw pile.
         var state = State.GetPlayerCombatState(player);
-        var shuffledCards = state.DiscardPileCards.ToList();
+        var shuffledCards = state.DiscardPile.Cards.ToList();
 
         // The original code adds draw-pile cards through ToHashSet(), relying on the current
         // implementation's iteration order; card piles do not contain duplicates, so the preview
         // uses the source order directly instead of modeling that implementation detail.
-        shuffledCards.AddRange(state.DrawPileCards);
+        shuffledCards.AddRange(state.DrawPile.Cards);
         shuffledCards.StableShuffle(Rng.Shuffle);
 
         ShuffleHooks.RunModifyShuffleOrder(new ModifyShuffleOrderHookContext
@@ -219,15 +206,15 @@ internal sealed partial class CombatPredictionSimulator
             DrawPileCards = shuffledCards
         });
 
-        state.DrawPileCards.Clear();
-        state.DrawPileCards.AddRange(shuffledCards);
-        state.DiscardPileCards.Clear();
+        state.DrawPile.Clear();
+        state.DrawPile.AddRange(shuffledCards);
+        state.DiscardPile.Clear();
     }
 
     private void ShuffleIfNecessary(Player player)
     {
         var state = State.GetPlayerCombatState(player);
-        if (state.DrawPileCards.Count > 0 || state.DiscardPileCards.Count == 0)
+        if (!state.DrawPile.IsEmpty || state.DiscardPile.IsEmpty)
         {
             return;
         }
@@ -276,14 +263,14 @@ internal sealed partial class CombatPredictionSimulator
     public void AddToHand(Player player, PredictedCard card)
     {
         var state = State.GetPlayerCombatState(player);
-        if (state.HandCards.Count < CardPile.MaxCardsInHand)
+        if (state.Hand.Cards.Count < CardPile.MaxCardsInHand)
         {
-            state.HandCards.Add(card);
+            state.Hand.Add(card);
             _predictedCards.Add(card);
         }
         else
         {
-            state.DiscardPileCards.Add(card);
+            state.DiscardPile.Add(card);
         }
     }
 }

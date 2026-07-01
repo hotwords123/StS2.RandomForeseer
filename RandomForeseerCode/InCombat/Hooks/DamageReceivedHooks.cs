@@ -219,10 +219,10 @@ internal static class DamageReceivedHooks
                 for (int i = 0; i < power.Amount; i++)
                 {
                     // TODO: Streamline this with the BiiigHug shuffle logic in ShuffleHooks.cs
-                    var dazed = PredictionUtils.CreateCard(ModelDb.Card<Dazed>(), player);
-                    var drawPileCards = context.State.GetPlayerCombatState(player).DrawPileCards;
-                    var position = context.Rng.Shuffle.NextInt(drawPileCards.Count + 1);
-                    drawPileCards.Insert(position, PredictedCard.FromGenerated(dazed));
+                    var dazed = PredictedCard.Create(ModelDb.Card<Dazed>(), player);
+                    var drawPile = context.State.GetPlayerCombatState(player).DrawPile;
+                    var position = context.Rng.Shuffle.NextInt(drawPile.Cards.Count + 1);
+                    drawPile.Insert(position, dazed);
                 }
             }
         }

@@ -11,7 +11,7 @@ internal sealed partial class CombatPredictionSimulator(ICombatState combatState
     private readonly PredictionRiskTracker _riskTracker = new();
     public CombatPredictionState State { get; } = new(combatState);
 
-    public CombatPredictionRngSet Rng { get; } = new(combatState.RunState.Rng);
+    public CombatPredictionRngSet Rng { get; } = CombatPredictionRngSet.From(combatState.RunState.Rng);
 
     public PredictionStateStore StateStore { get; } = new();
 

@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 
 namespace RandomForeseer.RandomForeseerCode.Common;
@@ -20,6 +21,11 @@ internal sealed class PredictedCard(CardModel original) : IComparable<PredictedC
     public static PredictedCard FromGenerated(CardModel card)
     {
         return new PredictedCard(card) { _preview = card };
+    }
+
+    public static PredictedCard Create(CardModel canonicalCard, Player player)
+    {
+        return FromGenerated(PredictionUtils.CreateCard(canonicalCard, player));
     }
 
     public bool References(CardModel card)

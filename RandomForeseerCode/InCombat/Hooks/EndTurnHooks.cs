@@ -133,8 +133,8 @@ internal static class EndTurnHooks
     {
         if (context.Player == card.Owner)
         {
-            var exhaustPile = context.State.GetPlayerCombatState(card.Owner).ExhaustPileCards;
-            if (exhaustPile.FirstOrDefault(c => c.References(card)) is { } predictedCard)
+            var exhaustPile = context.State.GetPlayerCombatState(card.Owner).ExhaustPile;
+            if (exhaustPile.Find(card) is { } predictedCard)
             {
                 context.Simulator.AutoPlay(predictedCard);
             }
@@ -148,15 +148,10 @@ internal static class EndTurnHooks
             return;
         }
 
-        var drawPile = context.State.GetPlayerCombatState(card.Owner).DrawPileCards;
-        if (drawPile.FirstOrDefault()?.Original == card)
+        var drawPile = context.State.GetPlayerCombatState(card.Owner).DrawPile;
+        if (drawPile.TopCard?.References(card) is true)
         {
-            context.Simulator.AutoPlayFromDrawPile(
-                card.Owner,
-                1,
-                CardPilePosition.Top,
-                forceExhaust: false,
-                card);
+            context.Simulator.AutoPlayFromDrawPile(card.Owner, 1, CardPilePosition.Top, forceExhaust: false);
         }
     }
 
@@ -169,7 +164,7 @@ internal static class EndTurnHooks
             return;
         }
 
-        var candidates = context.State.GetPlayerCombatState(player).HandCards
+        var candidates = context.State.GetPlayerCombatState(player).Hand.Cards
             .Where(static card =>
                 card.Preview.Type == CardType.Attack &&
                 !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
@@ -240,7 +235,7 @@ internal static class EndTurnHooks
             return;
         }
 
-        var cardsInHand = context.State.GetPlayerCombatState(relic.Owner).HandCards.Count;
+        var cardsInHand = context.State.GetPlayerCombatState(relic.Owner).Hand.Cards.Count;
         if (cardsInHand <= 0)
         {
             return;
@@ -286,7 +281,7 @@ internal static class EndTurnHooks
     private static void HandleScreamingFlagon(ScreamingFlagon relic, BeforeSideTurnEndHookContext context)
     {
         if (context.Participants.Contains(relic.Owner.Creature) &&
-            context.State.GetPlayerCombatState(relic.Owner).HandCards.Count == 0)
+            context.State.GetPlayerCombatState(relic.Owner).Hand.IsEmpty)
         {
             context.Simulator.Damage(
                 context.State.GetHittableOpponentsOf(relic.Owner.Creature),
@@ -349,9 +344,9 @@ internal static class EndTurnHooks
         }
 
         var playerState = context.State.GetPlayerCombatState(player);
-        ClearBoundAfflictions(playerState.HandCards);
-        ClearBoundAfflictions(playerState.DrawPileCards);
-        ClearBoundAfflictions(playerState.DiscardPileCards);
+        ClearBoundAfflictions(playerState.Hand.Cards);
+        ClearBoundAfflictions(playerState.DrawPile.Cards);
+        ClearBoundAfflictions(playerState.DiscardPile.Cards);
     }
 
     private static void ClearBoundAfflictions(IEnumerable<PredictedCard> cards)

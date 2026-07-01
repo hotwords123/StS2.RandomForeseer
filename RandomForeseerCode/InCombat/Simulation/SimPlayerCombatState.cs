@@ -12,33 +12,24 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
 {
     public SimOrbQueue OrbQueue { get; } = new(player);
 
-    private List<PredictedCard>? _handCards;
-    private List<PredictedCard>? _drawPileCards;
-    private List<PredictedCard>? _discardPileCards;
-    private List<PredictedCard>? _exhaustPileCards;
-    private List<PredictedCard>? _playPileCards;
+    private SimCardPile? _hand;
+    private SimCardPile? _drawPile;
+    private SimCardPile? _discardPile;
+    private SimCardPile? _exhaustPile;
+    private SimCardPile? _playPile;
 
-    public List<PredictedCard> HandCards =>
-        _handCards ??= PredictedCard.FromCards(PileType.Hand.GetPile(player).Cards);
+    public SimCardPile Hand => _hand ??= SimCardPile.FromPlayerPile(PileType.Hand, player);
 
-    public List<PredictedCard> DrawPileCards =>
-        _drawPileCards ??= PredictedCard.FromCards(PileType.Draw.GetPile(player).Cards);
+    public SimCardPile DrawPile => _drawPile ??= SimCardPile.FromPlayerPile(PileType.Draw, player);
 
-    public List<PredictedCard> DiscardPileCards =>
-        _discardPileCards ??= PredictedCard.FromCards(PileType.Discard.GetPile(player).Cards);
+    public SimCardPile DiscardPile => _discardPile ??= SimCardPile.FromPlayerPile(PileType.Discard, player);
 
-    public List<PredictedCard> ExhaustPileCards =>
-        _exhaustPileCards ??= PredictedCard.FromCards(PileType.Exhaust.GetPile(player).Cards);
+    public SimCardPile ExhaustPile => _exhaustPile ??= SimCardPile.FromPlayerPile(PileType.Exhaust, player);
 
-    public List<PredictedCard> PlayPileCards =>
-        _playPileCards ??= PredictedCard.FromCards(PileType.Play.GetPile(player).Cards);
+    public SimCardPile PlayPile => _playPile ??= SimCardPile.FromPlayerPile(PileType.Play, player);
 
     public IEnumerable<PredictedCard> AllCards =>
-        HandCards
-            .Concat(DrawPileCards)
-            .Concat(DiscardPileCards)
-            .Concat(ExhaustPileCards)
-            .Concat(PlayPileCards);
+        GetCards(PileType.Hand, PileType.Draw, PileType.Discard, PileType.Exhaust, PileType.Play);
 
     public CombatCardDrawPredictionState CardDrawState { get; } = new()
     {
@@ -49,6 +40,26 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
     public PredictedCard? FindCard(CardModel card)
     {
         return AllCards.FirstOrDefault(predicted => predicted.References(card));
+    }
+
+    public SimCardPile? GetCardPile(PileType type)
+    {
+        return type switch
+        {
+            PileType.None => null,
+            PileType.Draw => DrawPile,
+            PileType.Hand => Hand,
+            PileType.Discard => DiscardPile,
+            PileType.Exhaust => ExhaustPile,
+            PileType.Play => PlayPile,
+            PileType.Deck => throw new ArgumentOutOfRangeException(nameof(type), type, "Deck is not a combat pile."),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, $"Unknown pile type: {type}.")
+        };
+    }
+
+    public IEnumerable<PredictedCard> GetCards(params PileType[] piles)
+    {
+        return piles.SelectMany(type => GetCardPile(type)?.Cards ?? []);
     }
 
     private static int CountStatusCardsDrawnThisTurn(ICombatState combatState, Player player)
@@ -69,6 +80,54 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
                 entry.HappenedThisTurn(combatState) &&
                 entry.Actor == player.Creature &&
                 entry.Affliction is Bound);
+    }
+}
+
+internal sealed class SimCardPile(PileType type, List<PredictedCard> cards)
+{
+    public PileType Type => type;
+
+    public IReadOnlyList<PredictedCard> Cards => cards;
+
+    public bool IsEmpty => cards.Count == 0;
+
+    public PredictedCard? TopCard => IsEmpty ? null : cards[0];
+
+    public PredictedCard? BottomCard => IsEmpty ? null : cards[^1];
+
+    public static SimCardPile FromPlayerPile(PileType type, Player player)
+    {
+        return new(type, PredictedCard.FromCards(type.GetPile(player).Cards));
+    }
+
+    public void Add(PredictedCard card)
+    {
+        cards.Add(card);
+    }
+
+    public void Insert(int index, PredictedCard card)
+    {
+        cards.Insert(index, card);
+    }
+
+    public void AddRange(IEnumerable<PredictedCard> cardsToAdd)
+    {
+        cards.AddRange(cardsToAdd);
+    }
+
+    public bool Remove(PredictedCard card)
+    {
+        return cards.Remove(card);
+    }
+
+    public void Clear()
+    {
+        cards.Clear();
+    }
+
+    public PredictedCard? Find(CardModel card)
+    {
+        return cards.FirstOrDefault(predicted => predicted.References(card));
     }
 }
 
