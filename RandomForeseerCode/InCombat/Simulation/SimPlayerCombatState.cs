@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using RandomForeseer.RandomForeseerCode.Common;
 
@@ -44,6 +45,11 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
         StatusCardsDrawnThisTurn = CountStatusCardsDrawnThisTurn(combatState, player),
         BoundCardsAfflictedThisTurn = CountBoundCardsAfflictedThisTurn(combatState, player)
     };
+
+    public PredictedCard? FindCard(CardModel card)
+    {
+        return AllCards.FirstOrDefault(predicted => predicted.References(card));
+    }
 
     private static int CountStatusCardsDrawnThisTurn(ICombatState combatState, Player player)
     {

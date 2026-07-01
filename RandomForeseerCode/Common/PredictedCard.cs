@@ -22,6 +22,11 @@ internal sealed class PredictedCard(CardModel original) : IComparable<PredictedC
         return new PredictedCard(card) { _preview = card };
     }
 
+    public bool References(CardModel card)
+    {
+        return ReferenceEquals(Original, card) || ReferenceEquals(_preview, card);
+    }
+
     public int CompareTo(PredictedCard? other)
     {
         return Original.CompareTo(other?.Original);

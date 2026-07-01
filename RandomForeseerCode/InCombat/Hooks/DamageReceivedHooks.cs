@@ -110,7 +110,7 @@ internal static class DamageReceivedHooks
     {
         if (context.Target == power.Owner &&
             context.Dealer != null &&
-            (context.Props.IsPoweredAttack() || context.Source is Omnislice))
+            (context.Props.IsPoweredAttack() || context.Source?.Original is Omnislice))
         {
             context.Simulator.Damage(
                 context.Dealer,
@@ -292,7 +292,7 @@ internal sealed class BeforeDamageReceivedHookContext : CombatPredictionHookCont
 
     public required Creature? Dealer { get; init; }
 
-    public required CardModel? Source { get; init; }
+    public required PredictedCard? Source { get; init; }
 }
 
 internal sealed class AfterDamageReceivedHookContext : CombatPredictionHookContext
@@ -305,5 +305,5 @@ internal sealed class AfterDamageReceivedHookContext : CombatPredictionHookConte
 
     public required Creature? Dealer { get; init; }
 
-    public required CardModel? Source { get; init; }
+    public required PredictedCard? Source { get; init; }
 }

@@ -61,11 +61,11 @@ internal static class OrbPrediction
                 simulator.OrbChannel<PlasmaOrb>(card.Owner);
                 break;
             case Glacier:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
                 simulator.OrbChannel<FrostOrb>(card.Owner, 2);
                 break;
             case Glasswork:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
                 simulator.OrbChannel<GlassOrb>(card.Owner);
                 break;
             case MultiCast:
@@ -80,7 +80,7 @@ internal static class OrbPrediction
                 simulator.OrbChannel<DarkOrb>(card.Owner);
                 break;
             case ShadowShield:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, card);
+                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
                 simulator.OrbChannel<DarkOrb>(card.Owner);
                 break;
             case Spinner { IsUpgraded: true }:

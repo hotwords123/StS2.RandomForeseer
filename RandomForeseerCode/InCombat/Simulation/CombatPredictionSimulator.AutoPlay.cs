@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -10,11 +11,11 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CardCmd.AutoPlay only as a risk marker for now. Real autoplay can move cards,
     // capture resources, run ShouldPlay/BeforeCardAutoPlayed, execute arbitrary OnPlay logic,
     // and change result piles; none of that is simulated yet.
-    public void AutoPlay(CardModel card, Creature? target = null, AutoPlayType type = AutoPlayType.Default)
+    public void AutoPlay(PredictedCard card, Creature? target = null, AutoPlayType type = AutoPlayType.Default)
     {
         _ = target;
         _ = type;
-        using (PushSource(card))
+        using (PushSource(card.Original))
         {
             MarkCurrentSourceRisky();
         }
@@ -56,7 +57,7 @@ internal sealed partial class CombatPredictionSimulator
 
         foreach (var card in cards)
         {
-            AutoPlay(card.Preview);
+            AutoPlay(card);
         }
     }
 }

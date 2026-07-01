@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -10,13 +10,13 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 internal sealed partial class CombatPredictionSimulator
 {
     // Convenience overload for GainBlock with a BlockVar.
-    public decimal GainBlock(Creature creature, BlockVar blockVar, CardModel? cardSource = null)
+    public decimal GainBlock(Creature creature, BlockVar blockVar, PredictedCard? cardSource = null)
     {
         return GainBlock(creature, blockVar.BaseValue, blockVar.Props, cardSource);
     }
 
     // Mirrors CreatureCmd.GainBlock without mutating real Creature state.
-    public decimal GainBlock(Creature creature, decimal amount, ValueProp props, CardModel? cardSource = null)
+    public decimal GainBlock(Creature creature, decimal amount, ValueProp props, PredictedCard? cardSource = null)
     {
         if (amount <= 0m)
         {
@@ -38,7 +38,7 @@ internal sealed partial class CombatPredictionSimulator
             creature,
             amount,
             props,
-            cardSource,
+            cardSource?.Preview,
             null,
             out var modifiers);
         // Hook.ModifyBlock is used by vanilla card previews, so it is treated as a safe

@@ -131,9 +131,13 @@ internal static class EndTurnHooks
 
     private static void HandleHowlFromBeyond(HowlFromBeyond card, AfterAutoPostPlayHookContext context)
     {
-        if (context.Player == card.Owner && card.Pile?.Type == PileType.Exhaust)
+        if (context.Player == card.Owner)
         {
-            context.Simulator.AutoPlay(card);
+            var exhaustPile = context.State.GetPlayerCombatState(card.Owner).ExhaustPileCards;
+            if (exhaustPile.FirstOrDefault(c => c.References(card)) is { } predictedCard)
+            {
+                context.Simulator.AutoPlay(predictedCard);
+            }
         }
     }
 
@@ -166,8 +170,9 @@ internal static class EndTurnHooks
         }
 
         var candidates = context.State.GetPlayerCombatState(player).HandCards
-            .Select(static card => card.Preview)
-            .Where(static card => card.Type == CardType.Attack && !card.Keywords.Contains(CardKeyword.Unplayable))
+            .Where(static card =>
+                card.Preview.Type == CardType.Attack &&
+                !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
             .ToList();
         if (candidates.Count == 0)
         {

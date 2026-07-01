@@ -15,7 +15,7 @@ internal static class DamageBlockRiskDetector
         }
 
         var simulator = new CombatPredictionSimulator(combatState);
-        simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, cardSource: card);
+        simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
         return simulator.Snapshot();
     }
 

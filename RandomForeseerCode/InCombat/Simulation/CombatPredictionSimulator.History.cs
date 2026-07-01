@@ -17,14 +17,14 @@ internal sealed partial class CombatPredictionSimulator
 
     public IReadOnlyList<CombatPredictionCardDrawnHistoryEntry> CardDrawnHistory => _cardDrawnHistory;
 
-    private void RecordDamageHistory(DamageResult result, Creature? dealer, CardModel? cardSource)
+    private void RecordDamageHistory(DamageResult result, Creature? dealer, PredictedCard? cardSource)
     {
         _damageHistory.Add(new CombatPredictionDamageHistoryEntry(
             result.Receiver,
             result,
             dealer,
             cardSource,
-            _sourceStack.Current ?? cardSource));
+            _sourceStack.Current ?? cardSource?.Original));
     }
 
     private void RecordOrbChanneledHistory(OrbModel orb)
@@ -42,7 +42,7 @@ internal sealed record CombatPredictionDamageHistoryEntry(
     Creature Receiver,
     DamageResult Result,
     Creature? Dealer,
-    CardModel? CardSource,
+    PredictedCard? CardSource,
     AbstractModel? SourceModel);
 
 internal sealed record CombatPredictionOrbChanneledHistoryEntry(OrbModel Orb);

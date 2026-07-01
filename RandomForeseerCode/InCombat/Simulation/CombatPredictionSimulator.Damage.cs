@@ -2,9 +2,9 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -16,7 +16,7 @@ internal sealed partial class CombatPredictionSimulator
         Creature target,
         DamageVar damageVar,
         Creature? dealer,
-        CardModel? cardSource = null)
+        PredictedCard? cardSource = null)
     {
         return Damage([target], damageVar.BaseValue, damageVar.Props, dealer, cardSource);
     }
@@ -27,7 +27,7 @@ internal sealed partial class CombatPredictionSimulator
         decimal amount,
         ValueProp props,
         Creature? dealer,
-        CardModel? cardSource = null)
+        PredictedCard? cardSource = null)
     {
         return Damage([target], amount, props, dealer, cardSource);
     }
@@ -37,7 +37,7 @@ internal sealed partial class CombatPredictionSimulator
         IReadOnlyList<Creature> targets,
         DamageVar damageVar,
         Creature? dealer,
-        CardModel? cardSource = null)
+        PredictedCard? cardSource = null)
     {
         return Damage(targets, damageVar.BaseValue, damageVar.Props, dealer, cardSource);
     }
@@ -48,7 +48,7 @@ internal sealed partial class CombatPredictionSimulator
         decimal amount,
         ValueProp props,
         Creature? dealer,
-        CardModel? cardSource = null)
+        PredictedCard? cardSource = null)
     {
         if (dealer?.IsDead == true || targets.Count == 0)
         {
@@ -75,7 +75,7 @@ internal sealed partial class CombatPredictionSimulator
         decimal amount,
         ValueProp props,
         Creature? dealer,
-        CardModel? cardSource,
+        PredictedCard? cardSource,
         IRunState runState)
     {
         var originalTargetState = State.GetCreature(originalTarget);
@@ -91,7 +91,7 @@ internal sealed partial class CombatPredictionSimulator
             dealer,
             amount,
             props,
-            cardSource,
+            cardSource?.Preview,
             ModifyDamageHookType.All,
             CardPreviewMode.None,
             out var damageModifiers);
@@ -120,7 +120,7 @@ internal sealed partial class CombatPredictionSimulator
             Math.Max(modifiedAmount - blockedDamage, 0m),
             props,
             dealer,
-            cardSource,
+            cardSource?.Preview,
             HpLossHookPhase.BeforeOsty,
             out var beforeOstyModifiers);
         _ = beforeOstyModifiers;
@@ -139,7 +139,7 @@ internal sealed partial class CombatPredictionSimulator
             unblockedDamage,
             props,
             dealer,
-            cardSource,
+            cardSource?.Preview,
             HpLossHookPhase.AfterOsty,
             out var afterOstyModifiers);
         DamageModifierHooks.RunAfterModifyingHpLostAfterOsty(
@@ -173,7 +173,7 @@ internal sealed partial class CombatPredictionSimulator
                 unblockedDamageResult.OverkillDamage,
                 props,
                 dealer,
-                cardSource,
+                cardSource?.Preview,
                 HpLossHookPhase.AfterOsty,
                 out var redirectedAfterOstyModifiers);
             DamageModifierHooks.RunAfterModifyingHpLostAfterOsty(
@@ -200,7 +200,7 @@ internal sealed partial class CombatPredictionSimulator
         IEnumerable<DamageResult> results,
         IRunState runState,
         Creature? dealer,
-        CardModel? cardSource)
+        PredictedCard? cardSource)
     {
         var killedCreatures = new List<Creature>();
         foreach (var damageResult in results)
