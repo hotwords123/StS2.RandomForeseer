@@ -13,7 +13,6 @@ using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
-using MegaCrit.Sts2.Core.TestSupport;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
@@ -39,7 +38,9 @@ internal static class RelicPickupPrediction
                 HeftyTablet => PredictionHoverTips.Cards(PredictRareCharacterCards(player, 3)),
                 Kaleidoscope => PredictionHoverTips.CardBundles(PredictKaleidoscopeBundles(player)),
                 LargeCapsule when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, relic.DynamicVars["Relics"].IntValue)),
+                    PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(
+                        player,
+                        relic.DynamicVars["Relics"].IntValue)),
                 LeadPaperweight => PredictionHoverTips.Cards(PredictColorlessCards(player, 2)),
                 LeafyPoultice when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictLeafyPoultice(player)),
@@ -64,11 +65,9 @@ internal static class RelicPickupPrediction
                 // Darv
                 Astrolabe when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.CardBundles(PredictAstrolabeBundles(player), isTransform: true),
-                CallingBell => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(player, [
-                    RelicRarity.Common,
-                    RelicRarity.Uncommon,
-                    RelicRarity.Rare
-                ])),
+                CallingBell => PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(
+                    player,
+                    [RelicRarity.Common, RelicRarity.Uncommon, RelicRarity.Rare])),
                 PandorasBox when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictPandorasBox(player)),
 
@@ -147,8 +146,8 @@ internal static class RelicPickupPrediction
     private static IReadOnlyList<CardModel> PredictMultiplayerCards(Player player, int count)
     {
         var customCardPool = PredictionUtils.GetUnlockedColorlessCards(player)
-                .Concat(PredictionUtils.GetUnlockedCharacterCards(player))
-                .Where(card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
+            .Concat(PredictionUtils.GetUnlockedCharacterCards(player))
+            .Where(card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
         var options = new CardCreationOptions(customCardPool, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
 
         return CardRewardPrediction.PredictCards(player, count, options);
@@ -369,7 +368,7 @@ internal static class RelicPickupPrediction
     {
         var rewards = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var isDefect = player.Character is Defect;
-        var cardPool = GetScrollBoxesCardPool(player.Character);
+        var cardPool = player.Character.CardPool;
         var commonOptions = CardCreationOptions
             .ForNonCombatWithUniformOdds([cardPool], card => card.Rarity == CardRarity.Common)
             .WithFlags(CardCreationFlags.NoRarityModification);
@@ -420,16 +419,6 @@ internal static class RelicPickupPrediction
         }
 
         return bundles;
-    }
-
-    private static CardPoolModel GetScrollBoxesCardPool(CharacterModel character)
-    {
-        if (TestMode.IsOn && character is Deprived)
-        {
-            return ModelDb.Character<Ironclad>().CardPool;
-        }
-
-        return character.CardPool;
     }
 
     private static IReadOnlyList<RelicModel> PredictToyBoxRelics(Player player, int count)
