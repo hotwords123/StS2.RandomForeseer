@@ -1,8 +1,5 @@
-using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
@@ -10,94 +7,67 @@ namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 internal static class CombatEndEffectPrediction
 {
     public static void FastForwardMonsterRoomCombatEndHooks(
-        Player targetPlayer,
-        Rng? rewardRng = null,
-        Rng? nicheRng = null,
-        IList<CardModel>? targetPlayerDeckState = null)
+        RunPredictionContext context)
     {
         // Known deterministic AfterCombatEnd consumers that can affect out-of-combat predictions:
-        // Fishing Rod consumes Niche and may upgrade a deck card; Pael's Tooth consumes the target
-        // player's Rewards RNG and may add an upgraded card to their deck before event rewards resolve.
-        var targetRewardRng = rewardRng
-            ?? (targetPlayerDeckState != null ? PredictionUtils.CloneRng(targetPlayer.PlayerRng.Rewards) : null);
-        foreach (var runPlayer in targetPlayer.RunState.Players)
+        // Fishing Rod consumes run-level Niche and may upgrade a deck card; Pael's Tooth consumes
+        // each owner's Rewards RNG and may add an upgraded card to their deck before rewards resolve.
+        foreach (var runPlayer in context.RunState.Players)
         {
-            FastForwardPlayerMonsterRoomCombatEndHooks(
-                runPlayer,
-                runPlayer == targetPlayer ? targetRewardRng : null,
-                nicheRng,
-                runPlayer == targetPlayer ? targetPlayerDeckState : null);
-        }
-    }
-
-    private static void FastForwardPlayerMonsterRoomCombatEndHooks(
-        Player player,
-        Rng? rewardRng,
-        Rng? nicheRng,
-        IList<CardModel>? deckState)
-    {
-        if (!player.IsActiveForHooks)
-        {
-            return;
-        }
-
-        foreach (var relic in player.Relics.Where(relic => !relic.IsMelted))
-        {
-            switch (relic)
+            if (!runPlayer.IsActiveForHooks)
             {
-                case FishingRod fishingRod:
-                    FastForwardFishingRodAfterCombatEnd(player, fishingRod, nicheRng, deckState);
-                    break;
-                case PaelsTooth paelsTooth when rewardRng != null:
-                    FastForwardPaelsToothAfterCombatEnd(player, paelsTooth, rewardRng, deckState);
-                    break;
+                continue;
+            }
+
+            var playerContext = context.ForPlayer(runPlayer);
+
+            foreach (var relic in runPlayer.Relics.Where(relic => !relic.IsMelted))
+            {
+                switch (relic)
+                {
+                    case FishingRod fishingRod:
+                        FastForwardFishingRodAfterCombatEnd(playerContext, fishingRod);
+                        break;
+                    case PaelsTooth paelsTooth:
+                        FastForwardPaelsToothAfterCombatEnd(playerContext, paelsTooth);
+                        break;
+                }
             }
         }
     }
 
     private static void FastForwardFishingRodAfterCombatEnd(
-        Player player,
-        FishingRod fishingRod,
-        Rng? nicheRng,
-        IList<CardModel>? deckState)
+        RunPredictionContext context,
+        FishingRod fishingRod)
     {
-        if (nicheRng == null ||
-            (fishingRod.CombatsSeen + 1) % fishingRod.DynamicVars["Combats"].IntValue != 0)
+        if ((fishingRod.CombatsSeen + 1) % fishingRod.DynamicVars["Combats"].IntValue != 0)
         {
             return;
         }
 
-        IEnumerable<CardModel> deckCards = deckState != null
-            ? deckState
-            : PileType.Deck.GetPile(player).Cards;
-        var candidates = deckCards.Where(card => card.IsUpgradable).ToList();
-        var card = nicheRng.NextItem(candidates);
-        if (card != null && deckState != null)
-        {
-            PredictionUtils.UpgradeCardInPlace(card);
-        }
+        var candidates = context.Deck.Cards
+            .Where(card => card.Preview.IsUpgradable)
+            .ToList();
+        context.SharedRng.Niche.NextItem(candidates)?.Upgrade();
     }
 
     private static void FastForwardPaelsToothAfterCombatEnd(
-        Player player,
-        PaelsTooth paelsTooth,
-        Rng rewardRng,
-        IList<CardModel>? deckState)
+        RunPredictionContext context,
+        PaelsTooth paelsTooth)
     {
-        if (player.Creature.IsDead || paelsTooth.SerializableCards.Count == 0)
+        if (context.Player.Creature.IsDead || paelsTooth.SerializableCards.Count == 0)
         {
             return;
         }
 
-        var serializableCard = rewardRng.NextItem(paelsTooth.SerializableCards);
-        if (serializableCard == null || deckState == null)
+        var serializableCard = context.Rng.Rewards.NextItem(paelsTooth.SerializableCards);
+        if (serializableCard == null)
         {
             return;
         }
 
         var card = CardModel.FromSerializable(serializableCard);
-        card.Owner = player;
-        PredictionUtils.UpgradeCardInPlace(card);
-        deckState.Add(card);
+        card.Owner = context.Player;
+        context.Deck.Add(PredictedCard.FromGenerated(card).Upgrade());
     }
 }

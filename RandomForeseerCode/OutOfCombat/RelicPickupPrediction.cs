@@ -168,7 +168,7 @@ internal static class RelicPickupPrediction
             var pools = context.Player.UnlockState.CharacterCardPools
                 .Where(pool => pool != context.Player.Character.CardPool)
                 .ToList()
-                .StableShuffle(context.Rng.Niche)
+                .StableShuffle(context.SharedRng.Niche)
                 .Take(3);
 
             foreach (var pool in pools)
@@ -309,7 +309,7 @@ internal static class RelicPickupPrediction
 
         for (var i = 0; i < count; i++)
         {
-            var card = context.Rng.Niche.NextItem(availableCurses);
+            var card = context.SharedRng.Niche.NextItem(availableCurses);
             if (card == null)
             {
                 break;
@@ -364,14 +364,14 @@ internal static class RelicPickupPrediction
                     context.Player,
                     relic.DynamicVars.Cards.IntValue,
                     card => card.Type == CardType.Skill && card.IsUpgradable,
-                    context.Rng.Niche);
+                    context.SharedRng.Niche);
                 break;
             case Whetstone:
                 OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
                     context.Player,
                     relic.DynamicVars.Cards.IntValue,
                     card => card.Type == CardType.Attack && card.IsUpgradable,
-                    context.Rng.Niche);
+                    context.SharedRng.Niche);
                 break;
         }
     }
@@ -393,7 +393,7 @@ internal static class RelicPickupPrediction
             .ForRoom(context.Player, RoomType.Monster)
             .WithFlags(CardCreationFlags.IsCardReward);
 
-        OutOfCombatPredictionUtils.FastForwardBeforeFirstMonsterCardReward(context);
+        OutOfCombatPredictionUtils.FastForwardBeforeMonsterCardReward(context);
 
         var cards = CardRewardPrediction.PredictCards(
             context,

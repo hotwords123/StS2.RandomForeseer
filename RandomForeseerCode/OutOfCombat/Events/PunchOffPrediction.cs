@@ -2,10 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Encounters;
 using MegaCrit.Sts2.Core.Models.Events;
-using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
@@ -35,51 +32,30 @@ internal static class PunchOffPrediction
             return [];
         }
 
-        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        CombatEndEffectPrediction.FastForwardMonsterRoomCombatEndHooks(player, rewardRng, nicheRng);
-        FastForwardPunchOffMonsterRewardsBeforePlayer(player, nicheRng);
-        FastForwardPunchOffMonsterRewards(player, rewardRng, nicheRng);
+        var context = new RunPredictionContext(player);
 
-        var relic = OutOfCombatPredictionUtils.PredictRelicRewards(player, 1, rewardRng)[0];
-        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
+        // Punch Off is a combat-layout event, so its monsters and unique HP Niche rolls
+        // are already generated when the event room opens. Choosing Fight reuses that
+        // internal combat state and does not consume another monster HP roll here.
+        CombatEndEffectPrediction.FastForwardMonsterRoomCombatEndHooks(context);
 
-        var tips = OutOfCombatPredictionUtils.RelicTipsWithPickup(player, [relic]).ToList();
-        tips.AddRange(PredictionHoverTips.Potions([potion]));
-        return tips;
-    }
-
-    private static void FastForwardPunchOffMonsterRewardsBeforePlayer(Player player, Rng nicheRng)
-    {
-        foreach (var runPlayer in player.RunState.Players)
+        foreach (var runPlayer in context.RunState.Players)
         {
-            if (runPlayer == player)
+            // Punch Off creates rewards for every player in run order. Prior players use their
+            // own Rewards RNG while sharing the same run-level Niche sequence.
+            OutOfCombatPredictionUtils.FastForwardMonsterRoomRewards(context.ForPlayer(runPlayer));
+
+            if (runPlayer == context.Player)
             {
                 break;
             }
-
-            // Prior players use their own Rewards RNG, but share this prediction's Niche RNG
-            // because Punch Off resolves earlier players' monster rewards in the same run-level sequence.
-            var rewardRng = PredictionUtils.CloneRng(runPlayer.PlayerRng.Rewards);
-            FastForwardPunchOffMonsterRewards(runPlayer, rewardRng, nicheRng);
         }
-    }
 
-    private static void FastForwardPunchOffMonsterRewards(Player player, Rng rewardRng, Rng nicheRng)
-    {
-        var encounter = ModelDb.Encounter<PunchOffEventEncounter>();
-        // TODO: Migrate Punch Off prediction to pass RunPredictionContext through this helper directly.
-        // This local context only adapts to the context-based FastForwardMonsterRoomRewards API.
-        var context = new RunPredictionContext(
-            player,
-            new RunPredictionRngSet
-            {
-                Rewards = rewardRng,
-                Niche = nicheRng
-            });
-        OutOfCombatPredictionUtils.FastForwardMonsterRoomRewards(
-            context,
-            encounter.MinGoldReward,
-            encounter.MaxGoldReward);
+        var relics = OutOfCombatPredictionUtils.PredictRelicRewards(context, 1);
+        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, context.Rng.Rewards);
+
+        var tips = OutOfCombatPredictionUtils.RelicTipsWithPickup(player, relics).ToList();
+        tips.AddRange(PredictionHoverTips.Potions([potion]));
+        return tips;
     }
 }

@@ -3,7 +3,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.PotionPools;
@@ -65,7 +64,7 @@ internal static class OutOfCombatPredictionUtils
             transformCount,
             PileType.Deck.GetPile(context.Player).Cards
                 .Count(card => card.Type != CardType.Quest && card.IsTransformable));
-        context.Rng.Niche.FastForwardCounter(context.Rng.Niche.Counter + transformCount);
+        context.SharedRng.Niche.FastForwardCounter(context.SharedRng.Niche.Counter + transformCount);
     }
 
     public static CardCreationOptions CreateCharacterCardRewardOptions(Player player)
@@ -241,45 +240,34 @@ internal static class OutOfCombatPredictionUtils
         var tips = PredictionHoverTips.Relics(relics).ToList();
         foreach (var relic in relics)
         {
+            // TODO: Add a context-based overload once relic pickup prediction is fully
+            // migrated to RunPredictionContext, so callers with advanced prediction state
+            // can preserve Rewards/Niche/odds/deck changes through pickup effects.
             tips.AddRange(RelicPickupPrediction.GetHoverTips(player, relic));
         }
 
         return tips;
     }
 
-    public static void FastForwardBeforeFirstMonsterCardReward(RunPredictionContext context)
-    {
-        FastForwardBeforeMonsterCardReward(
-            context,
-            GoldReward.defaultMinGoldAmount,
-            GoldReward.defaultMaxGoldAmount);
-    }
-
-    public static void FastForwardMonsterRoomRewards(
-        RunPredictionContext context,
-        int minGoldReward,
-        int maxGoldReward)
+    public static void FastForwardMonsterRoomRewards(RunPredictionContext context)
     {
         // Normal monster rewards are generated before event-specific follow-up rewards.
         // Mirrors RewardsSet.AddRewardsTo plus RewardsSet.RollForPotionAndAddTo before the CardReward.
-        FastForwardBeforeMonsterCardReward(context, minGoldReward, maxGoldReward);
+        FastForwardBeforeMonsterCardReward(context);
 
         var options = CardCreationOptions.ForRoom(context.Player, RoomType.Monster)
             .WithFlags(CardCreationFlags.IsCardReward);
         _ = CardRewardPrediction.PredictCards(context, 3, options);
     }
 
-    private static void FastForwardBeforeMonsterCardReward(
-        RunPredictionContext context,
-        int minGoldReward,
-        int maxGoldReward)
+    public static void FastForwardBeforeMonsterCardReward(RunPredictionContext context)
     {
         var shouldAddPotionReward = context.PotionRewardOdds.Roll(
             context.Player,
             RunManager.Instance.AscensionManager,
             RoomType.Monster);
 
-        _ = context.Rng.Rewards.NextInt(minGoldReward, maxGoldReward + 1);
+        _ = context.Rng.Rewards.NextInt(1);
         if (shouldAddPotionReward)
         {
             _ = PotionFactory.CreateRandomPotionOutOfCombat(context.Player, context.Rng.Rewards);

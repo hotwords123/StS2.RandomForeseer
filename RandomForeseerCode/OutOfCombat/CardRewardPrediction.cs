@@ -92,7 +92,7 @@ internal static class CardRewardPrediction
             Results = results,
             Options = options,
             RewardRng = context.Rng.Rewards,
-            NicheRng = context.Rng.Niche,
+            NicheRng = context.SharedRng.Niche,
             RarityOdds = context.CardRarityOdds,
             ExtraModifiers = extraResultModifiers?.ToList() ?? []
         };

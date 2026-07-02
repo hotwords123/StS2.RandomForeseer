@@ -1,11 +1,8 @@
-using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
-using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
@@ -36,38 +33,25 @@ internal static class BattlewornDummyPrediction
     {
         var player = battlewornDummy.Owner!;
         var eventRng = PredictionUtils.CloneRng(battlewornDummy.Rng);
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        var deckState = PileType.Deck.GetPile(player).Cards
-            .Select(card => (CardModel)card.MutableClone())
-            .ToList();
+        var context = new RunPredictionContext(player);
 
-        FastForwardBeforeBattlewornDummyRewards(player, nicheRng, deckState);
-
-        // v0.107.0 moved the final Setting 2 upgrade shuffle to the event-local RNG.
-        return deckState
-            .Where(card => card.IsUpgradable)
-            .ToList()
-            .StableShuffle(eventRng)
-            .Take(2)
-            .Select(PredictionUtils.ToUpgradedCard)
-            .ToList();
-    }
-
-    private static void FastForwardBeforeBattlewornDummyRewards(
-        Player player,
-        Rng nicheRng,
-        IList<CardModel> currentPlayerDeckState)
-    {
         // Battleworn Dummy Setting 2 rolls after the event combat ends, not when the option is chosen.
         // Known vanilla RNG consumers between option hover and BattlewornDummy.Resume:
         // 1. CombatState.CreateCreature -> Creature.SetUniqueMonsterHpValue consumes one roll even for
         //    fixed-HP monsters, because the single HP value is still selected with NextItem from Niche.
         // 2. CombatEndEffectPrediction handles predictable combat-end effects before the parent event resumes.
-        nicheRng.NextInt(1);
+        context.SharedRng.Niche.NextInt(1);
 
-        CombatEndEffectPrediction.FastForwardMonsterRoomCombatEndHooks(
-            player,
-            nicheRng: nicheRng,
-            targetPlayerDeckState: currentPlayerDeckState);
+        CombatEndEffectPrediction.FastForwardMonsterRoomCombatEndHooks(context);
+
+        // v0.107.0 moved the final Setting 2 upgrade shuffle to the event-local RNG.
+        // TODO: streamline this with OutOfCombatPredictionUtils.PredictUpgradedDeckCards
+        return context.Deck.Cards
+            .Where(card => card.Preview.IsUpgradable)
+            .ToList()
+            .StableShuffle(eventRng)
+            .Take(2)
+            .Select(card => card.Upgrade().Preview)
+            .ToList();
     }
 }
