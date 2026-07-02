@@ -107,7 +107,7 @@ internal static class RelicPickupPrediction
                     player,
                     relic.DynamicVars.Cards.IntValue,
                     3,
-                    OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player))),
+                    () => OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player))),
                 WarPaint => PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
                     player,
                     relic.DynamicVars.Cards.IntValue,

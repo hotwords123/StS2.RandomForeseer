@@ -80,15 +80,16 @@ internal static class OutOfCombatPredictionUtils
         Player player,
         int rewardCount,
         int optionCount,
-        CardCreationOptions options)
+        Func<CardCreationOptions> optionsFactory)
     {
         // TODO: Migrate this to accept RunPredictionContext as a parameter.
         var context = new RunPredictionContext(player);
-        var rewardOptions = CardRewardPrediction.CloneOptions(options)
-            .WithFlags(CardCreationFlags.IsCardReward);
 
         return Enumerable.Range(0, rewardCount)
-            .Select(_ => CardRewardPrediction.PredictCards(context, optionCount, rewardOptions))
+            .Select(_ => CardRewardPrediction.PredictCards(
+                context,
+                optionCount,
+                optionsFactory().WithFlags(CardCreationFlags.IsCardReward)))
             .ToList();
     }
 

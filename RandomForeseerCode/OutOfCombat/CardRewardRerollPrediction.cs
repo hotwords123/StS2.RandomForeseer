@@ -22,7 +22,7 @@ internal static class CardRewardRerollPrediction
         var cards = CardRewardPrediction.PredictCards(
             player,
             reward.OptionCount,
-            reward.RerollOptions,
+            CardRewardPrediction.CloneOptions(reward.RerollOptions),
             AfterGeneratedField(reward));
 
         return PredictionHoverTips.Cards(cards);

@@ -23,7 +23,7 @@ internal static class TrialPrediction
                     player,
                     2,
                     3,
-                    CardCreationOptions.ForNonCombatWithDefaultOdds([player.Character.CardPool]))),
+                    () => CardCreationOptions.ForNonCombatWithDefaultOdds([player.Character.CardPool]))),
             "TRIAL.pages.NONDESCRIPT.options.INNOCENT" =>
                 PredictionHoverTips.CardBundles(PredictNondescriptInnocent(trial), isTransform: true),
             _ => []

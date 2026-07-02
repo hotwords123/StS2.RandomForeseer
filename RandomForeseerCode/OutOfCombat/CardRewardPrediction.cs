@@ -19,6 +19,8 @@ internal static class CardRewardPrediction
     private static readonly HashSet<MethodInfo> WarnedUnsupportedAfterGeneratedHandlers = [];
 
     // Convenience wrapper with freshly cloned prediction state; mirrors a standalone CardFactory.CreateForReward call.
+    // CardCreationOptions is mutable and may be modified by vanilla hooks during prediction. Callers must pass
+    // a caller-owned options instance for each PredictCards call and must not reuse it across predictions.
     public static IReadOnlyList<CardModel> PredictCards(
         Player player,
         int cardCount,
@@ -38,7 +40,8 @@ internal static class CardRewardPrediction
     // 1. Direct CardFactory.CreateForReward calls, which use the caller's CardCreationOptions as-is.
     // 2. CardReward.Populate for new CardReward(options, ...), where CardReward first adds IsCardReward.
     // Callers must mirror their vanilla shape and add IsCardReward before calling this helper when needed.
-    // CardCreationOptions is cloned so helper callers can safely pass options that may also be used elsewhere.
+    // CardCreationOptions is mutable and may be modified by vanilla hooks during prediction. Callers must pass
+    // a caller-owned options instance for each PredictCards call and must not reuse it across predictions.
     public static IReadOnlyList<CardModel> PredictCards(
         RunPredictionContext context,
         int cardCount,
@@ -46,8 +49,6 @@ internal static class CardRewardPrediction
         Action? afterGenerated = null,
         IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
-        options = CloneOptions(options);
-
         var results = CreateBaseRewards(
                 context.Player,
                 cardCount,
@@ -63,6 +64,8 @@ internal static class CardRewardPrediction
 
     // Mirrors the manually-set CardReward.Populate branch, such as new CardReward(cardsToOffer, ...):
     // the cards already exist, so only the card reward option modifier pass is applied.
+    // CardCreationOptions is mutable and may be modified by vanilla hooks during prediction. Callers must pass
+    // a caller-owned options instance for each call and must not reuse it across predictions.
     public static IReadOnlyList<CardModel> ApplyRewardModifiersToExistingCards(
         RunPredictionContext context,
         IEnumerable<CardModel> cards,
@@ -71,7 +74,6 @@ internal static class CardRewardPrediction
         IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
         var results = cards.Select(card => new CardCreationResult(card)).ToList();
-        options = CloneOptions(options);
         ApplyRewardModifiers(context, results, options, afterGenerated, extraResultModifiers);
         return results.Select(result => result.Card).ToList();
     }
@@ -102,8 +104,8 @@ internal static class CardRewardPrediction
         ApplyKnownAfterGeneratedModifiers(afterGenerated, results);
     }
 
-    // Defensive copy for prediction helpers. Vanilla CardReward often mutates a fresh local
-    // CardCreationOptions via WithFlags, but shared prediction helpers should not mutate caller-owned options.
+    // Creates a CardCreationOptions copy for callers that need to adapt an existing
+    // vanilla-owned options instance before passing it into a prediction method.
     public static CardCreationOptions CloneOptions(CardCreationOptions options)
     {
         var clone = options.CustomCardPool != null
@@ -120,6 +122,7 @@ internal static class CardRewardPrediction
     }
 
     // Mirrors the public CardFactory.CreateForReward loop before Hook.TryModifyCardRewardOptions.
+    // The supplied CardCreationOptions follows the containing prediction call's fresh-instance contract.
     internal static IEnumerable<CardCreationResult> CreateBaseRewards(
         Player player,
         int cardCount,

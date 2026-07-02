@@ -25,7 +25,7 @@ internal static class BrainLeechPrediction
                     player,
                     brainLeech.DynamicVars["RewardCount"].IntValue,
                     3,
-                    CardCreationOptions.ForNonCombatWithDefaultOdds([ModelDb.CardPool<ColorlessCardPool>()])
+                    () => CardCreationOptions.ForNonCombatWithDefaultOdds([ModelDb.CardPool<ColorlessCardPool>()])
                         .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications))),
             _ => []
         };
