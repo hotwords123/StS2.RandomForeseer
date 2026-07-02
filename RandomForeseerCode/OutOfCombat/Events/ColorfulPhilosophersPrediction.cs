@@ -25,16 +25,15 @@ internal static class ColorfulPhilosophersPrediction
             return [];
         }
 
-        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+        var context = new RunPredictionContext(player);
         var bundles = new[] { CardRarity.Common, CardRarity.Uncommon, CardRarity.Rare }
             .Select(rarity => CardRewardPrediction.PredictCards(
-                player,
+                context,
                 colorfulPhilosophers.DynamicVars.Cards.IntValue,
                 new CardCreationOptions([pool], CardCreationSource.Other, CardRarityOddsType.Uniform, card => card.Rarity == rarity)
-                    .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications),
-                rewardRng,
-                nicheRng))
+                    .WithFlags(CardCreationFlags.NoRarityModification |
+                        CardCreationFlags.NoCardPoolModifications |
+                        CardCreationFlags.IsCardReward)))
             .ToList();
 
         return PredictionHoverTips.CardBundles(bundles);

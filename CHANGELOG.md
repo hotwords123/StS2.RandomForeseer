@@ -7,6 +7,9 @@
 - 修复涅奥骨骰预测随机诅咒时，没有先模拟拾起随机涅奥遗物造成的随机数推进，导致部分遗物组合预测错误的问题；当两件遗物的拾起顺序会影响诅咒时，现在会分别显示两种结果。<br>
   Fixed Neow's Bones curse prediction not accounting for RNG consumed by picking up the random Neow relics first; when relic pickup order changes the curses, both outcomes are now shown.
 
+- 修复部分卡牌奖励预测没有触发原版 CardReward 修饰效果的问题，包括万花筒和部分事件/遗物卡牌奖励。<br>
+  Fixed some card reward predictions missing vanilla CardReward modifiers, including Kaleidoscope and some event/relic card rewards.
+
 ## v0.8.0
 
 ### feat

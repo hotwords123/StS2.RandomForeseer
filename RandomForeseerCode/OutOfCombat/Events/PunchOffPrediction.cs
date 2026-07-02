@@ -58,6 +58,8 @@ internal static class PunchOffPrediction
                 break;
             }
 
+            // Prior players use their own Rewards RNG, but share this prediction's Niche RNG
+            // because Punch Off resolves earlier players' monster rewards in the same run-level sequence.
             var rewardRng = PredictionUtils.CloneRng(runPlayer.PlayerRng.Rewards);
             FastForwardPunchOffMonsterRewards(runPlayer, rewardRng, nicheRng);
         }
@@ -66,10 +68,17 @@ internal static class PunchOffPrediction
     private static void FastForwardPunchOffMonsterRewards(Player player, Rng rewardRng, Rng nicheRng)
     {
         var encounter = ModelDb.Encounter<PunchOffEventEncounter>();
-        OutOfCombatPredictionUtils.FastForwardMonsterRoomRewards(
+        // TODO: Migrate Punch Off prediction to pass RunPredictionContext through this helper directly.
+        // This local context only adapts to the context-based FastForwardMonsterRoomRewards API.
+        var context = new RunPredictionContext(
             player,
-            rewardRng,
-            nicheRng,
+            new RunPredictionRngSet
+            {
+                Rewards = rewardRng,
+                Niche = nicheRng
+            });
+        OutOfCombatPredictionUtils.FastForwardMonsterRoomRewards(
+            context,
             encounter.MinGoldReward,
             encounter.MaxGoldReward);
     }

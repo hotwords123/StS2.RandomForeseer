@@ -18,14 +18,7 @@ internal static class CardRewardPrediction
 {
     private static readonly HashSet<MethodInfo> WarnedUnsupportedAfterGeneratedHandlers = [];
 
-    public static IReadOnlyList<CardModel> PredictCards(
-        RunPredictionContext context,
-        int cardCount,
-        CardCreationOptions options)
-    {
-        return PredictCards(context.Player, cardCount, options, context.Rng.Rewards, context.Rng.Niche);
-    }
-
+    // Convenience wrapper with freshly cloned prediction state; mirrors a standalone CardFactory.CreateForReward call.
     public static IReadOnlyList<CardModel> PredictCards(
         Player player,
         int cardCount,
@@ -34,46 +27,83 @@ internal static class CardRewardPrediction
         IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
         return PredictCards(
-            player,
+            new RunPredictionContext(player),
             cardCount,
             options,
-            PredictionUtils.CloneRng(player.PlayerRng.Rewards),
-            PredictionUtils.CloneRng(player.RunState.Rng.Niche),
             afterGenerated,
             extraResultModifiers);
     }
 
+    // Mirrors the shared generation body used by two vanilla call shapes:
+    // 1. Direct CardFactory.CreateForReward calls, which use the caller's CardCreationOptions as-is.
+    // 2. CardReward.Populate for new CardReward(options, ...), where CardReward first adds IsCardReward.
+    // Callers must mirror their vanilla shape and add IsCardReward before calling this helper when needed.
+    // CardCreationOptions is cloned so helper callers can safely pass options that may also be used elsewhere.
     public static IReadOnlyList<CardModel> PredictCards(
-        Player player,
+        RunPredictionContext context,
         int cardCount,
         CardCreationOptions options,
-        Rng rewardRng,
-        Rng nicheRng,
         Action? afterGenerated = null,
         IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
-        var rarityOdds = new CardRarityOdds(player.PlayerOdds.CardRarity.CurrentValue, rewardRng);
         options = CloneOptions(options);
 
-        var results = CreateBaseRewards(player, cardCount, options, rewardRng, rarityOdds).ToList();
+        var results = CreateBaseRewards(
+                context.Player,
+                cardCount,
+                options,
+                context.Rng.Rewards,
+                context.CardRarityOdds)
+            .ToList();
+
+        ApplyRewardModifiers(context, results, options, afterGenerated, extraResultModifiers);
+
+        return results.Select(result => result.Card).ToList();
+    }
+
+    // Mirrors the manually-set CardReward.Populate branch, such as new CardReward(cardsToOffer, ...):
+    // the cards already exist, so only the card reward option modifier pass is applied.
+    public static IReadOnlyList<CardModel> ApplyRewardModifiersToExistingCards(
+        RunPredictionContext context,
+        IEnumerable<CardModel> cards,
+        CardCreationOptions options,
+        Action? afterGenerated = null,
+        IEnumerable<AbstractModel>? extraResultModifiers = null)
+    {
+        var results = cards.Select(card => new CardCreationResult(card)).ToList();
+        options = CloneOptions(options);
+        ApplyRewardModifiers(context, results, options, afterGenerated, extraResultModifiers);
+        return results.Select(result => result.Card).ToList();
+    }
+
+    // Mirrors Hook.TryModifyCardRewardOptions plus known CardReward.AfterGenerated handlers.
+    // It currently does not mirror Hook.AfterModifyingCardRewardOptions yet; one-shot/usage state
+    // such as Silken Tress and Silver Crucible needs a fuller prediction context.
+    private static void ApplyRewardModifiers(
+        RunPredictionContext context,
+        List<CardCreationResult> results,
+        CardCreationOptions options,
+        Action? afterGenerated = null,
+        IEnumerable<AbstractModel>? extraResultModifiers = null)
+    {
         var hookContext = new CardRewardHookContext
         {
-            Player = player,
+            Player = context.Player,
             Results = results,
             Options = options,
-            RewardRng = rewardRng,
-            NicheRng = nicheRng,
-            RarityOdds = rarityOdds,
+            RewardRng = context.Rng.Rewards,
+            NicheRng = context.Rng.Niche,
+            RarityOdds = context.CardRarityOdds,
             ExtraModifiers = extraResultModifiers?.ToList() ?? []
         };
 
         CardRewardHook.RunEarly(hookContext);
         CardRewardHook.RunLate(hookContext);
         ApplyKnownAfterGeneratedModifiers(afterGenerated, results);
-
-        return results.Select(result => result.Card).ToList();
     }
 
+    // Defensive copy for prediction helpers. Vanilla CardReward often mutates a fresh local
+    // CardCreationOptions via WithFlags, but shared prediction helpers should not mutate caller-owned options.
     public static CardCreationOptions CloneOptions(CardCreationOptions options)
     {
         var clone = options.CustomCardPool != null
@@ -89,6 +119,7 @@ internal static class CardRewardPrediction
         return clone;
     }
 
+    // Mirrors the public CardFactory.CreateForReward loop before Hook.TryModifyCardRewardOptions.
     internal static IEnumerable<CardCreationResult> CreateBaseRewards(
         Player player,
         int cardCount,
@@ -112,6 +143,8 @@ internal static class CardRewardPrediction
         }
     }
 
+    // Mirrors CardFactory.CreateForReward's private single-card helper, using PredictionUtils.CreateCard
+    // instead of RunState.CreateCard so previews do not enter run state.
     private static CardModel CreateForReward(
         Player player,
         IEnumerable<CardModel> blacklist,
@@ -160,6 +193,8 @@ internal static class CardRewardPrediction
         return PredictionUtils.CreateCard(canonical, player);
     }
 
+    // Mirrors CardFactory.RollForRarity, including the encounter/ForceRarityOddsChange cases
+    // that advance the shared CardRarityOdds state.
     private static CardRarity RollForRarity(
         CardRarityOdds rarityOdds,
         CardRarityOddsType rollMethod,
@@ -178,6 +213,7 @@ internal static class CardRewardPrediction
         return GetNextAllowedRarity(rarity, allowedRarities.Contains);
     }
 
+    // Mirrors CardFactory.GetNextAllowedRarity.
     private static CardRarity GetNextAllowedRarity(CardRarity rarity, Func<CardRarity, bool> isAllowed)
     {
         var firstRarity = rarity;
@@ -193,6 +229,7 @@ internal static class CardRewardPrediction
         return rarity;
     }
 
+    // Mirrors CardFactory.RollForUpgrade, mutating only the preview card.
     private static void RollForUpgrade(Player player, CardModel card, decimal baseChance, Rng rng)
     {
         var roll = (decimal)rng.NextFloat();
@@ -215,6 +252,8 @@ internal static class CardRewardPrediction
         }
     }
 
+    // Mirrors known CardReward.AfterGenerated callbacks. Currently only TheFutureOfPotions' local
+    // UpgradeCardsInReward handler is safe to identify and reproduce.
     private static void ApplyKnownAfterGeneratedModifiers(Action? afterGenerated, List<CardCreationResult> results)
     {
         if (afterGenerated == null)
@@ -236,6 +275,7 @@ internal static class CardRewardPrediction
         }
     }
 
+    // Identifies TheFutureOfPotions.Trade's local UpgradeCardsInReward handler without depending on compiler names.
     private static bool IsTheFutureOfPotionsUpgradeCardsInReward(Delegate handler)
     {
         var declaringTypeName = handler.Method.DeclaringType?.FullName ?? string.Empty;
@@ -246,6 +286,7 @@ internal static class CardRewardPrediction
                 targetTypeName.Contains("TheFutureOfPotions", StringComparison.Ordinal));
     }
 
+    // Mirrors TheFutureOfPotions' UpgradeCardsInReward callback.
     private static void UpgradeAllValidCards(List<CardCreationResult> results)
     {
         foreach (var result in results)

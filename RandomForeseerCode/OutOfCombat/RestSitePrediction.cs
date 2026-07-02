@@ -28,8 +28,7 @@ internal static class RestSitePrediction
 
     public static IReadOnlyList<IHoverTip> PredictRestTips(Player player)
     {
-        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+        var context = new RunPredictionContext(player);
         var tips = new List<IHoverTip>();
 
         foreach (var relic in player.Relics.Where(relic => !relic.IsMelted))
@@ -38,18 +37,14 @@ internal static class RestSitePrediction
             {
                 case DreamCatcher:
                 {
-                    var cards = CardRewardPrediction.PredictCards(
-                        player,
-                        3,
-                        CardCreationOptions.ForRoom(player, RoomType.Monster).WithFlags(CardCreationFlags.IsCardReward),
-                        rewardRng,
-                        nicheRng);
-                    tips.AddRange(PredictionHoverTips.Cards(cards));
+                    var options = CardCreationOptions.ForRoom(player, RoomType.Monster)
+                        .WithFlags(CardCreationFlags.IsCardReward);
+                    tips.AddRange(PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(context, 3, options)));
                     break;
                 }
                 case TinyMailbox:
                 {
-                    var potions = PredictionUtils.PredictPotionRewards(player, 2, rewardRng);
+                    var potions = PredictionUtils.PredictPotionRewards(player, 2, context.Rng.Rewards);
                     tips.AddRange(PredictionHoverTips.Potions(potions));
                     break;
                 }

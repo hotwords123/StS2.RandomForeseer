@@ -34,7 +34,9 @@ internal static class TheFutureOfPotionsPrediction
         };
         var options = CardCreationOptions
             .ForNonCombatWithUniformOdds([player.Character.CardPool], card => card.Rarity == targetRarity && card.Type == cardType)
-            .WithFlags(CardCreationFlags.NoRarityModification | CardCreationFlags.NoCardPoolModifications);
+            .WithFlags(CardCreationFlags.NoRarityModification |
+                CardCreationFlags.NoCardPoolModifications |
+                CardCreationFlags.IsCardReward);
         var cards = CardRewardPrediction.PredictCards(player, 3, options)
             .Select(PredictionUtils.ToUpgradedCard)
             .ToList();
