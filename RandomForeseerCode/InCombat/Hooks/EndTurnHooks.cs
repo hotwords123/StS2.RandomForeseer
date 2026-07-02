@@ -157,27 +157,26 @@ internal static class EndTurnHooks
 
     private static void HandleStampedePower(StampedePower power, AfterAutoPostPlayHookContext context)
     {
-        if (context.Player.Creature != power.Owner ||
-            power.Amount <= 0m ||
-            power.Owner.Player is not { } player)
+        if (context.Player.Creature != power.Owner)
         {
             return;
         }
 
-        var candidates = context.State.GetPlayerCombatState(player).Hand.Cards
-            .Where(static card =>
-                card.Preview.Type == CardType.Attack &&
-                !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
-            .ToList();
-        if (candidates.Count == 0)
-        {
-            return;
-        }
+        var hand = context.State.GetPlayerCombatState(context.Player).Hand;
 
-        context.MarkCurrentSourceRisky();
-        foreach (var card in candidates)
+        for (var i = 0; i < power.Amount; i++)
         {
-            context.Simulator.AutoPlay(card);
+            var candidates = hand.Cards
+                .Where(static card =>
+                    card.Preview.Type == CardType.Attack &&
+                    !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
+                .ToArray();
+            var card = context.Rng.Shuffle.NextItem(candidates);
+
+            if (card != null)
+            {
+                context.Simulator.AutoPlay(card);
+            }
         }
     }
 
