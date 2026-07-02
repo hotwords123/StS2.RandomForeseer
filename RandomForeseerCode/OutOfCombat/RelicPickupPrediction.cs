@@ -30,23 +30,26 @@ internal static class RelicPickupPrediction
 
         try
         {
+            var context = new RunPredictionContext(player);
+
             return relic switch
             {
                 // Neow
                 ArcaneScroll when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Cards(PredictRareCharacterCards(player, 1)),
-                HeftyTablet => PredictionHoverTips.Cards(PredictRareCharacterCards(player, 3)),
-                Kaleidoscope => PredictionHoverTips.CardBundles(PredictKaleidoscopeBundles(player)),
+                    PredictionHoverTips.Cards(PredictRareCharacterCards(context, 1)),
+                HeftyTablet => PredictionHoverTips.Cards(PredictRareCharacterCards(context, 3)),
+                Kaleidoscope =>
+                    PredictionHoverTips.CardBundles(PredictKaleidoscopeBundles(context)),
                 LargeCapsule when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(
                         player,
                         relic.DynamicVars["Relics"].IntValue)),
-                LeadPaperweight => PredictionHoverTips.Cards(PredictColorlessCards(player, 2)),
+                LeadPaperweight => PredictionHoverTips.Cards(PredictColorlessCards(context, 2)),
                 LeafyPoultice when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictLeafyPoultice(player)),
-                LostCoffer => PredictLostCofferTips(player),
-                MassiveScroll => PredictionHoverTips.Cards(PredictMultiplayerCards(player, 3)),
-                NeowsBones => PredictNeowsBonesTips(player, relic),
+                LostCoffer => PredictLostCofferTips(context),
+                MassiveScroll => PredictionHoverTips.Cards(PredictMultiplayerCards(context, 3)),
+                NeowsBones => PredictNeowsBonesTips(context, relic),
                 NewLeaf when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictNewLeaf(player)),
                 PhialHolster when IsSingleplayerUnfairPredictionAllowed() =>
@@ -54,7 +57,8 @@ internal static class RelicPickupPrediction
                         player,
                         relic.DynamicVars["Potions"].IntValue,
                         PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))),
-                ScrollBoxes => PredictionHoverTips.CardBundles(PredictScrollBoxes(player), isVanillaCardBundle: true),
+                ScrollBoxes =>
+                    PredictionHoverTips.CardBundles(PredictScrollBoxes(context), isVanillaCardBundle: true),
                 SilkenTress silkenTress when IsAllModesUnfairPredictionAllowed() =>
                     RewardPagePredictionContext.HasOtherPendingRelicReward(silkenTress)
                         ? [PredictionHoverTips.Text("silken_tress_reward_offset")]
@@ -121,51 +125,49 @@ internal static class RelicPickupPrediction
         }
     }
 
-    private static IReadOnlyList<CardModel> PredictRareCharacterCards(Player player, int count)
+    private static IReadOnlyList<CardModel> PredictRareCharacterCards(RunPredictionContext context, int count)
     {
         var options = new CardCreationOptions(
-                [player.Character.CardPool],
+                [context.Player.Character.CardPool],
                 CardCreationSource.Other,
                 CardRarityOddsType.Uniform,
                 card => card.Rarity == CardRarity.Rare)
             .WithFlags(CardCreationFlags.NoUpgradeRoll);
 
-        return CardRewardPrediction.PredictCards(player, count, options);
+        return CardRewardPrediction.PredictCards(context, count, options);
     }
 
-    private static IReadOnlyList<CardModel> PredictColorlessCards(Player player, int count)
+    private static IReadOnlyList<CardModel> PredictColorlessCards(RunPredictionContext context, int count)
     {
         var options = new CardCreationOptions(
             [ModelDb.CardPool<ColorlessCardPool>()],
             CardCreationSource.Other,
             CardRarityOddsType.RegularEncounter);
 
-        return CardRewardPrediction.PredictCards(player, count, options);
+        return CardRewardPrediction.PredictCards(context, count, options);
     }
 
-    private static IReadOnlyList<CardModel> PredictMultiplayerCards(Player player, int count)
+    private static IReadOnlyList<CardModel> PredictMultiplayerCards(RunPredictionContext context, int count)
     {
-        var customCardPool = PredictionUtils.GetUnlockedColorlessCards(player)
-            .Concat(PredictionUtils.GetUnlockedCharacterCards(player))
+        var customCardPool = PredictionUtils.GetUnlockedColorlessCards(context.Player)
+            .Concat(PredictionUtils.GetUnlockedCharacterCards(context.Player))
             .Where(card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
         var options = new CardCreationOptions(customCardPool, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
 
-        return CardRewardPrediction.PredictCards(player, count, options);
+        return CardRewardPrediction.PredictCards(context, count, options);
     }
 
-    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictKaleidoscopeBundles(Player player)
+    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictKaleidoscopeBundles(RunPredictionContext context)
     {
-        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
         var bundles = new List<IReadOnlyList<CardModel>>();
 
         for (var i = 0; i < 2; i++)
         {
             var bundle = new List<CardModel>();
-            var pools = player.UnlockState.CharacterCardPools
-                .Where(pool => pool != player.Character.CardPool)
+            var pools = context.Player.UnlockState.CharacterCardPools
+                .Where(pool => pool != context.Player.Character.CardPool)
                 .ToList()
-                .StableShuffle(nicheRng)
+                .StableShuffle(context.Rng.Niche)
                 .Take(3);
 
             foreach (var pool in pools)
@@ -175,7 +177,7 @@ internal static class RelicPickupPrediction
                         CardCreationSource.Other,
                         CardRarityOddsType.RegularEncounter)
                     .WithFlags(CardCreationFlags.NoCardPoolModifications);
-                bundle.AddRange(CardRewardPrediction.PredictCards(player, 1, options, rewardRng, nicheRng));
+                bundle.AddRange(CardRewardPrediction.PredictCards(context, 1, options));
             }
 
             bundles.Add(bundle);
@@ -240,48 +242,73 @@ internal static class RelicPickupPrediction
             .ToList();
     }
 
-    private static IReadOnlyList<IHoverTip> PredictLostCofferTips(Player player)
+    private static IReadOnlyList<IHoverTip> PredictLostCofferTips(RunPredictionContext context)
     {
-        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        var options = OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(player);
-        var tips = PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(player, 3, options, rewardRng, nicheRng)).ToList();
+        var options = OutOfCombatPredictionUtils.CreateCharacterCardRewardOptions(context.Player);
+        var tips = PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(context, 3, options));
 
-        var potion = PotionFactory.CreateRandomPotionOutOfCombat(player, rewardRng);
-        tips.AddRange(PredictionHoverTips.Potions([potion]));
+        var potion = PotionFactory.CreateRandomPotionOutOfCombat(context.Player, context.Rng.Rewards);
+        tips = tips.Concat(PredictionHoverTips.Potions([potion])).ToList();
         return tips;
     }
 
-    private static IReadOnlyList<IHoverTip> PredictNeowsBonesTips(Player player, RelicModel relic)
+    private static IReadOnlyList<IHoverTip> PredictNeowsBonesTips(RunPredictionContext context, RelicModel relic)
     {
-        var rewardRng = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
         var validRelics = ModelDb.Event<Neow>().AllPossibleOptions
-            .Where(option => option.Relic != null && option.Relic.IsAllowedAtNeow(player) && option.Relic is not NeowsBones)
-            .Select(option => option.Relic!)
+            .Select(option => option.Relic)
+            .OfType<RelicModel>()
+            .Where(relic => relic.IsAllowedAtNeow(context.Player) && relic is not NeowsBones)
             .ToList();
-        rewardRng.Shuffle(validRelics);
+        context.Rng.Rewards.Shuffle(validRelics);
 
-        var tips = PredictionHoverTips.Relics(validRelics.Take(relic.DynamicVars["Relics"].IntValue)).ToList();
-        if (IsSingleplayerUnfairPredictionAllowed())
+        var predictedRelics = validRelics.Take(relic.DynamicVars["Relics"].IntValue).ToList();
+        var tips = PredictionHoverTips.Relics(predictedRelics).ToList();
+
+        if (IsSingleplayerUnfairPredictionAllowed() && predictedRelics is [var firstRelic, var secondRelic])
         {
-            tips.AddRange(PredictionHoverTips.Cards(PredictNeowsBonesCurses(player, relic.DynamicVars["Curses"].IntValue)));
+            var curseCount = relic.DynamicVars["Curses"].IntValue;
+            var clonedContext = context.Clone();
+
+            FastForwardRelicPickup(context, firstRelic);
+            FastForwardRelicPickup(context, secondRelic);
+            var firstCurses = PredictCurses(context, curseCount);
+
+            FastForwardRelicPickup(clonedContext, secondRelic);
+            FastForwardRelicPickup(clonedContext, firstRelic);
+            var secondCurses = PredictCurses(clonedContext, curseCount);
+
+            if (firstCurses.SequenceEqual(secondCurses))
+            {
+                tips.AddRange(PredictionHoverTips.Cards(firstCurses));
+            }
+            else
+            {
+                tips.Add(PredictionHoverTips.Text("neows_bones_pickup_order", description =>
+                {
+                    description.Add("FirstRelic", firstRelic.Title.GetFormattedText());
+                    description.Add("SecondRelic", secondRelic.Title.GetFormattedText());
+                    description.Add("NeowsBones", relic.Title.GetFormattedText());
+                    description.Add("Curses", curseCount);
+                    description.Add("FirstCurses", firstCurses.Select(card => card.Title).ToList());
+                    description.Add("SecondCurses", secondCurses.Select(card => card.Title).ToList());
+                }));
+            }
         }
 
         return tips;
     }
 
-    private static IReadOnlyList<CardModel> PredictNeowsBonesCurses(Player player, int count)
+    private static IReadOnlyList<CardModel> PredictCurses(RunPredictionContext context, int count)
     {
-        var nicheRng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
-        var availableCurses = PredictionUtils.GetUnlockedCards(player, ModelDb.CardPool<CurseCardPool>())
+        var availableCurses = PredictionUtils.GetUnlockedCards(context.Player, ModelDb.CardPool<CurseCardPool>())
             .Where(card => card.CanBeGeneratedByModifiers)
             .OrderBy(card => card.Id)
             .ToList();
-        var curses = new List<CardModel>();
+        var curses = new List<CardModel>(count);
 
         for (var i = 0; i < count; i++)
         {
-            var card = nicheRng.NextItem(availableCurses);
+            var card = context.Rng.Niche.NextItem(availableCurses);
             if (card == null)
             {
                 break;
@@ -292,6 +319,69 @@ internal static class RelicPickupPrediction
         }
 
         return curses;
+    }
+
+    private static void FastForwardRelicPickup(RunPredictionContext context, RelicModel relic)
+    {
+        // Mirrors only immediate pickup RNG that can occur before NeowsBones adds curses.
+        // TODO: Streamline this with generic relic pickup prediction logic using RunPredictionContext
+        switch (relic)
+        {
+            case ArcaneScroll:
+                PredictRareCharacterCards(context, relic.DynamicVars.Cards.IntValue);
+                break;
+            case HeftyTablet:
+                PredictRareCharacterCards(context, relic.DynamicVars.Cards.IntValue);
+                break;
+            case Kaleidoscope:
+                PredictKaleidoscopeBundles(context);
+                break;
+            case LeadPaperweight:
+                PredictColorlessCards(context, 2);
+                break;
+            case LostCoffer:
+                PredictLostCofferTips(context);
+                break;
+            case MassiveScroll:
+                PredictMultiplayerCards(context, 3);
+                break;
+            case NewLeaf:
+                OutOfCombatPredictionUtils.FastForwardDeckTransforms(context, relic.DynamicVars.Cards.IntValue);
+                break;
+            case ScrollBoxes:
+                PredictScrollBoxes(context);
+                break;
+            case LargeCapsule:
+                FastForwardRelicRewardsPickup(context, relic.DynamicVars["Relics"].IntValue);
+                break;
+            case SmallCapsule:
+                // Small Capsule's offered relic can technically be skipped; forecast the normal path where it is taken.
+                FastForwardRelicRewardsPickup(context, 1);
+                break;
+            case WarPaint:
+                OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
+                    context.Player,
+                    relic.DynamicVars.Cards.IntValue,
+                    card => card.Type == CardType.Skill && card.IsUpgradable,
+                    context.Rng.Niche);
+                break;
+            case Whetstone:
+                OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
+                    context.Player,
+                    relic.DynamicVars.Cards.IntValue,
+                    card => card.Type == CardType.Attack && card.IsUpgradable,
+                    context.Rng.Niche);
+                break;
+        }
+    }
+
+    private static void FastForwardRelicRewardsPickup(RunPredictionContext context, int count)
+    {
+        var relics = OutOfCombatPredictionUtils.PredictRelicRewards(context, count);
+        foreach (var relic in relics)
+        {
+            FastForwardRelicPickup(context, relic);
+        }
     }
 
     private static IReadOnlyList<IHoverTip> PredictSilkenTressRewardTips(Player player, SilkenTress relic)
@@ -338,7 +428,7 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<CardModel> PredictSereTalon(Player player, RelicModel relic)
     {
-        return PredictNeowsBonesCurses(player, relic.DynamicVars["Curses"].IntValue);
+        return PredictCurses(new RunPredictionContext(player), relic.DynamicVars["Curses"].IntValue);
     }
 
     private static IReadOnlyList<CardModel> PredictLeafyPoultice(Player player)
@@ -364,9 +454,9 @@ internal static class RelicPickupPrediction
         return cards;
     }
 
-    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictScrollBoxes(Player player)
+    private static IReadOnlyList<IReadOnlyList<CardModel>> PredictScrollBoxes(RunPredictionContext context)
     {
-        var rewards = PredictionUtils.CloneRng(player.PlayerRng.Rewards);
+        var player = context.Player;
         var isDefect = player.Character is Defect;
         var cardPool = player.Character.CardPool;
         var commonOptions = CardCreationOptions
@@ -385,7 +475,7 @@ internal static class RelicPickupPrediction
 
         for (var bundleIndex = 0; bundleIndex < 2; bundleIndex++)
         {
-            if (isDefect && rewards.NextInt(100) < 1)
+            if (isDefect && context.Rng.Rewards.NextInt(100) < 1)
             {
                 var claw = ModelDb.Card<Claw>();
                 bundles.Add([claw, claw, claw]);
@@ -396,7 +486,7 @@ internal static class RelicPickupPrediction
             var availableCommon = commonCards.Where(card => !usedCardIds.Contains(card.Id)).ToList();
             for (var i = 0; i < 2; i++)
             {
-                var common = rewards.NextItem(availableCommon);
+                var common = context.Rng.Rewards.NextItem(availableCommon);
                 if (common == null)
                 {
                     break;
@@ -408,7 +498,7 @@ internal static class RelicPickupPrediction
             }
 
             var availableUncommon = uncommonCards.Where(card => !usedCardIds.Contains(card.Id)).ToList();
-            var uncommon = rewards.NextItem(availableUncommon);
+            var uncommon = context.Rng.Rewards.NextItem(availableUncommon);
             if (uncommon != null)
             {
                 bundle.Add(uncommon);

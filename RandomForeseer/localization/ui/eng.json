@@ -20,6 +20,8 @@
   "next_act_ancient_prediction.description": "At the beginning of the next Act, you will meet [gold]{Ancient}[/gold].",
   "next_act_boss_prediction.title": "Prediction",
   "next_act_boss_prediction.description": "At the end of the next Act, you will fight {BossNames:[gold]{}[/gold]|, |, and | and }.",
+  "neows_bones_pickup_order.title": "Prediction",
+  "neows_bones_pickup_order.description": "The pickup order of [gold]{FirstRelic}[/gold] and [gold]{SecondRelic}[/gold] affects the random [red]{Curses:plural:Curse|Curses}[/red] added by [gold]{NeowsBones}[/gold].\n ·[gold]{FirstRelic}[/gold] first: {FirstCurses:[red]{}[/red]|, |, and | and }\n ·[gold]{SecondRelic}[/gold] first: {SecondCurses:[red]{}[/red]|, |, and | and }.",
   "silken_tress_reward_offset.title": "Notice",
   "silken_tress_reward_offset.description": "This reward screen still has another relic. Taking another relic first may change the RNG used by this prediction.\nTake the other relics first, then return to this relic to view the prediction.",
   "transform_bundle_explanation.title": "Prediction",

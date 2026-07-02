@@ -19,6 +19,14 @@ internal static class CardRewardPrediction
     private static readonly HashSet<MethodInfo> WarnedUnsupportedAfterGeneratedHandlers = [];
 
     public static IReadOnlyList<CardModel> PredictCards(
+        RunPredictionContext context,
+        int cardCount,
+        CardCreationOptions options)
+    {
+        return PredictCards(context.Player, cardCount, options, context.Rng.Rewards, context.Rng.Niche);
+    }
+
+    public static IReadOnlyList<CardModel> PredictCards(
         Player player,
         int cardCount,
         CardCreationOptions options,

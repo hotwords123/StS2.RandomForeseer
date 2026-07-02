@@ -59,6 +59,15 @@ internal static class OutOfCombatPredictionUtils
             .ToList();
     }
 
+    public static void FastForwardDeckTransforms(RunPredictionContext context, int transformCount)
+    {
+        transformCount = Math.Min(
+            transformCount,
+            PileType.Deck.GetPile(context.Player).Cards
+                .Count(card => card.Type != CardType.Quest && card.IsTransformable));
+        context.Rng.Niche.FastForwardCounter(context.Rng.Niche.Counter + transformCount);
+    }
+
     public static CardCreationOptions CreateCharacterCardRewardOptions(Player player)
     {
         return new CardCreationOptions(
@@ -190,7 +199,7 @@ internal static class OutOfCombatPredictionUtils
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count, Rng rng)
     {
-        var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
+        var grabBag = player.RelicGrabBag.Clone();
         var relics = new List<RelicModel>();
 
         for (var i = 0; i < count; i++)
@@ -207,11 +216,22 @@ internal static class OutOfCombatPredictionUtils
         IEnumerable<RelicRarity> rarities,
         Func<RelicModel, bool>? filter = null)
     {
-
-        var grabBag = RelicGrabBag.FromSerializable(player.RelicGrabBag.ToSerializable());
+        var grabBag = player.RelicGrabBag.Clone();
         return rarities
             .Select(rarity => grabBag.PullFromFront(rarity, filter ?? (_ => true), player.RunState) ?? RelicFactory.FallbackRelic)
             .ToList();
+    }
+
+    public static IReadOnlyList<RelicModel> PredictRelicRewards(RunPredictionContext context, int count)
+    {
+        var relics = new List<RelicModel>(count);
+        for (var i = 0; i < count; i++)
+        {
+            var rarity = RelicFactory.RollRarity(context.Rng.Rewards);
+            relics.Add(context.RelicGrabBag.PullFromFront(rarity, context.RunState) ?? RelicFactory.FallbackRelic);
+        }
+
+        return relics;
     }
 
     public static IReadOnlyList<IHoverTip> RelicTipsWithPickup(Player player, IReadOnlyList<RelicModel> relics)
