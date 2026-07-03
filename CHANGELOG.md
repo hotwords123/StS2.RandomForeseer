@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复 v0.108.0 后灾厄对玩家在 AfterSideTurnEnd 触发、对敌人在 BeforeSideTurnEnd 触发导致回合结束预测的判定条件问题。<br>
+  Fixed end-turn prediction criteria for Doom after v0.108.0, where it triggers on AfterSideTurnEnd for the player and BeforeSideTurnEnd for enemies.
+
 ## v0.8.2
 
 ### fix

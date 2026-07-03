@@ -327,7 +327,7 @@ internal static class EndTurnHooks
 
     private static void HandleDoomPower(DoomPower power, BeforeSideTurnEndHookContext context)
     {
-        if (power.Owner.Side != context.Side ||
+        if (context.Side == CombatSide.Player ||
             !context.Participants.Contains(power.Owner) ||
             !context.State.GetCreature(power.Owner).IsAlive)
         {
