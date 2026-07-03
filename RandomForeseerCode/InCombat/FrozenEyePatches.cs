@@ -87,8 +87,16 @@ internal static class FrozenEyeDrawPileView
             return false;
         }
 
-        prediction = DrawPilePrediction.PredictShuffleAfterDrawPileDepleted(player);
-        return prediction.Cards.Count > 0;
+        try
+        {
+            prediction = DrawPilePrediction.PredictShuffleAfterDrawPileDepleted(player);
+            return prediction.Cards.Count > 0;
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Failed to predict draw pile shuffle for {player.Creature.Name}: {ex}");
+            return false;
+        }
     }
 }
 
