@@ -1,0 +1,58 @@
+# Hook mirror overview
+
+## Guidelines
+
+- Prefer original read-only value hooks when vanilla already uses them for previews. Current examples: `Hook.ModifyBlock`, `Hook.ModifyDamage`, `Hook.ModifyHpLost`, card reward creation options, and card reward upgrade odds.
+- Mirror only side effects that can change prediction output: draw order, hand/discard/exhaust piles, preview card cost/dynamic vars, block, damage, death/liveness, orb counts, and RNG consumption.
+- Combat predictions are scoped to outcomes that can still affect the current player turn. Do not mark risk only because vanilla would mutate state for an enemy turn, a later player turn, room-end rewards, or future reward screens, unless that state can feed back into a prediction surfaced before the current player turn finishes.
+- Do not simulate VFX, SFX, waits, achievement unlocks, or effects that cannot occur during the current player-turn prediction surface.
+- Currently, ignore energy gain/loss since they do not affect the prediction surface. This may change if energy gain/loss is used to gate other prediction-relevant effects.
+- Treat Apply Power, Remove Power, summon, revive, monster move/state changes, combat removal, player death, max HP mutation, and generalized healing as unsupported until the simulator owns those state domains.
+- Use `PredictionStateStore` for model-local counters/flags instead of mutating live model fields.
+- Use exact model-type registrations. A derived model with the same base hook should be reviewed separately.
+- If a listener has any unmodeled prediction-relevant side effect, mark the current source risky instead of silently ignoring it.
+- Keep Mock models out of implementation/ignore registries; list them only in docs.
+
+## Currently implementable but not implemented
+
+These need additional simulator state or cross-system plumbing before they can be mirrored without mutating live game models. Existing hook-dispatch listeners from the earlier list have been implemented where the current simulator can express the side effect.
+
+### AfterCurrentHpChanged
+
+| Model | 中文名 | Missing effect |
+| --- | --- | --- |
+| `NecroMasteryPower` | 亡灵精通 | Damage enemies when owner's Osty loses HP. |
+
+## Current implementation may differ from vanilla
+
+| Area | Model | 中文名 | Difference |
+| --- | --- | --- | --- |
+| Damage modifier after hooks | `BufferPower` | 缓冲 | `ModifyHpLostAfterOstyLate` is applied, but `AfterModifyingHpLostAfterOsty` cannot shadow-decrement the live Buffer stack; affected predictions are marked risky. |
+| Damage post hooks | All damage callers | - | `AfterDamageGiven` and `AfterDamageReceived` have targeted mirrors, trigger-scoped risk marking, and current-scope ignored registrations. `AfterBlockBroken` and `AfterCurrentHpChanged` are still mostly not mirrored. |
+| Damage modifier live-state reads | `LethalityPower`, `PhantomBladesPower`, `PenNib`, `VigorPower`, `GigantificationPower` | 致死性 / 幻影之刃 / 钢笔尖 / 活力 / 超巨化 | The simulator calls original value hooks, so these listeners read live combat history or live attack/card-play state instead of simulator shadow history/state. StS2 v0.108.0 added `CardPlay?` to these hooks; current forecasts pass `null` like vanilla previews. |
+| Damage modifier `CardPlay?` preview semantics | `OneForAllPower` | 一心化万 | Original hook is used. Real card execution checks actual energy spent, while forecasts pass `null` like vanilla previews and check current modified cost until full card-play state is mirrored. |
+| Frost orb Hibernate block | `FrostOrb`, `HibernatePower` | 冰霜 / 休眠 | StS2 v0.108.0 gives Frost passive/evoke block to all players while Hibernate is active. The simulator mirrors block recipients and evoke targets, but any new all-player block hook side effects still need exact registrations. |
+| Autoplay | `HowlFromBeyond`, `IAmInvincible`, `StampedePower`, `HellraiserPower` | 彼岸咆哮 / 所向无敌 / 惊逃 / 地狱狂徒 | Simulator `AutoPlay`/`AutoPlayFromDrawPile` are risk placeholders, not full card-play mirrors. |
+| Ethereal exhaust | `DarkEmbracePower`, `JossPaper` | 黑暗之拥 / 金纸 | Ethereal hook calls only record delayed counts in vanilla; actual draw timing is end-turn cleanup, outside this simulation path, so the mirror intentionally does not mark risk here. |
+| Death processing | Many death listeners | - | Simulator does not remove creatures, remove powers, revive, clear orbs, or process full player/monster death structure. |
+| Extra-turn scheduling | `PaelsEye` | 佩尔之眼 | Immediate hand exhaust is mirrored, but the later extra-turn flow is still outside the simulator. |
+| Death reward return | `HeistPower`, `SwipePower` | 盗窃 / 顺走 | Ignored by scope: they only return stolen combat rewards/deck cards. |
+| End-turn healing | `RegenPower` | 再生 | StS2 v0.108.0 resolves Regen in `BeforeSideTurnEndEarly`, before normal `DoomPower` checks. The mirror marks matching cases risky but does not yet model healing or power decrement. |
+| End-turn ignored listeners | `Regret`, `DiamondDiadem` | 悔恨 / 钻石头冠 | Acceptable for current scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. |
+| Card reward state commit | `SilverCrucible`, `SilkenTress` | 白银熔炉 / 华美发束 | Result modifiers are mirrored, but `Hook.AfterModifyingCardRewardOptions` is not. Chained previews can reuse live usage state until prediction owns a transaction-local state commit. |
+| Card reward risk surfacing | Unsupported card reward listeners | - | `CardRewardHookContext` records risk internally but callers do not consume a risk snapshot. |
+
+## Related docs
+
+- `after-card-drawn.md`
+- `after-card-discarded.md`
+- `after-card-exhausted.md`
+- `should-draw.md`
+- `block-hooks.md`
+- `damage-modifier-hooks.md`
+- `damage-hooks.md`
+- `death-hooks.md`
+- `end-turn-hooks.md`
+- `orb-hooks.md`
+- `shuffle-hooks.md`
+- `card-reward-hooks.md`
