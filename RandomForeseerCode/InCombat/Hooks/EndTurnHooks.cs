@@ -101,6 +101,7 @@ internal static class EndTurnHooks
         var registry = new HookRegistry<BeforeSideTurnEndHookContext>(BeforeSideTurnEndEarly);
 
         registry.Register<PlatingPower>(HandlePlatingPower);
+        registry.Register<RegenPower>(HandleRegenPower);
         registry.Register<PaelsEye>(HandlePaelsEye);
 
         return registry;
@@ -196,6 +197,16 @@ internal static class EndTurnHooks
         if (context.Participants.Contains(power.Owner))
         {
             context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
+        }
+    }
+
+    private static void HandleRegenPower(RegenPower power, BeforeSideTurnEndHookContext context)
+    {
+        if (context.Participants.Contains(power.Owner) && context.State.GetCreature(power.Owner).IsAlive)
+        {
+            // StS2 v0.108.0 moved Regen healing to BeforeSideTurnEndEarly, before Doom's
+            // normal end-turn kill check. TODO: mirror Heal and power decrement in shadow state.
+            context.MarkCurrentSourceRisky();
         }
     }
 

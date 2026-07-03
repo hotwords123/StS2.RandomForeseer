@@ -92,6 +92,9 @@ internal sealed partial class CombatPredictionSimulator
             amount,
             props,
             cardSource?.Preview,
+            // StS2 v0.108.0 passes CardPlay into damage modifiers during real card execution.
+            // Forecast damage uses the same no-CardPlay shape as vanilla preview calculations.
+            null,
             ModifyDamageHookType.All,
             CardPreviewMode.None,
             out var damageModifiers);
@@ -223,10 +226,15 @@ internal sealed partial class CombatPredictionSimulator
                 // TODO: Mirror Hook.AfterCurrentHpChanged here.
             }
 
-            if (State.CombatState != null)
+            DamageGivenHooks.Run(new AfterDamageGivenHookContext
             {
-                // TODO: Mirror Hook.AfterDamageGiven here.
-            }
+                Simulator = this,
+                Target = originalTarget,
+                Result = damageResult,
+                Props = damageResult.Props,
+                Dealer = dealer,
+                Source = cardSource
+            });
 
             if (!damageResult.WasTargetKilled || !State.GetCreature(originalTarget).IsDead)
             {

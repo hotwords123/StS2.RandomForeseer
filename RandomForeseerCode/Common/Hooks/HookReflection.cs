@@ -7,8 +7,6 @@ namespace RandomForeseer.RandomForeseerCode.Common.Hooks;
 
 internal static class HookReflection
 {
-    private static readonly Dictionary<Assembly, Mod?> _modByAssembly = [];
-
     // Publicizer excludes virtual members, so reflection remains the safest way to distinguish
     // inherited no-op hooks from model-specific overrides.
     public static bool TryGetOverride(HookSpec hook, Type modelType, [NotNullWhen(true)] out MethodInfo? overrideMethod)
@@ -34,14 +32,9 @@ internal static class HookReflection
             return false;
         }
 
-        if (_modByAssembly.TryGetValue(declaringAssembly, out mod))
-        {
-            return mod != null;
-        }
-
-        mod = ModManager.GetLoadedMods().FirstOrDefault(mod => mod.assembly == declaringAssembly);
-        _modByAssembly[declaringAssembly] = mod;
-        return mod != null;
+        // StS2 v0.108.0 initializes AssemblyInfo after mod loading and maintains a
+        // direct assembly-to-mod map, including additional assemblies associated by mods.
+        return AssemblyInfo.ModMap!.TryGetValue(declaringAssembly, out mod);
     }
 
     public static bool IsNonGameplayMod(Mod mod)

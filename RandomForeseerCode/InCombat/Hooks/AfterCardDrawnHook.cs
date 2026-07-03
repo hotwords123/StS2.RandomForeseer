@@ -64,6 +64,7 @@ internal static class AfterCardDrawnHook
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
         registry.Register<CorrosiveWavePower>(HandleDriftRiskIfOwner);
         registry.Register<SpeedsterPower>(HandleSpeedsterPower);
+        registry.Register<CacophonyPower>(HandleCacophonyPower);
         registry.Register<KinglyKick>(HandleKinglyKick);
         registry.Register<KinglyPunch>(HandleKinglyPunch);
 
@@ -161,6 +162,28 @@ internal static class AfterCardDrawnHook
             power.Owner);
     }
 
+    private static void HandleCacophonyPower(CacophonyPower power, AfterCardDrawnHookContext context)
+    {
+        var state = context.StateStore.Get(power, () => new CacophonyPredictionState
+        {
+            CardsDrawn = power.DynamicVars.Cards.IntValue
+        });
+        state.CardsDrawn--;
+
+        if (state.CardsDrawn <= 0)
+        {
+            var target = context.Rng.CombatTargets.NextItem(context.State.GetHittableOpponentsOf(power.Owner));
+
+            if (target != null)
+            {
+                context.Simulator.Damage(target, power.Amount, ValueProp.Unpowered, power.Owner);
+            }
+
+            // Use the canonical value to avoid hard-coding the number threshold in case it changes in the future.
+            state.CardsDrawn = power.CanonicalInstance.DynamicVars.Cards.IntValue;
+        }
+    }
+
     private static void HandleKinglyKick(KinglyKick card, AfterCardDrawnHookContext context)
     {
         if (context.OriginalCard != card)
@@ -193,7 +216,11 @@ internal static class AfterCardDrawnHook
             context.MarkCurrentSourceRisky();
         }
     }
+}
 
+internal sealed class CacophonyPredictionState
+{
+    public int CardsDrawn { get; set; }
 }
 
 internal sealed class AfterCardDrawnHookContext : CombatPredictionCardHookContext

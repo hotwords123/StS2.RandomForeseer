@@ -36,6 +36,8 @@ internal static class BattlewornDummyPrediction
         var context = new RunPredictionContext(player);
 
         // Battleworn Dummy Setting 2 rolls after the event combat ends, not when the option is chosen.
+        // StS2 v0.108.0 split the dummy into V1/V2/V3 no-reward encounters and moved rewards
+        // into Resume; the V2 combat still creates one fixed-HP monster before the upgrade roll.
         // Known vanilla RNG consumers between option hover and BattlewornDummy.Resume:
         // 1. CombatState.CreateCreature -> Creature.SetUniqueMonsterHpValue consumes one roll even for
         //    fixed-HP monsters, because the single HP value is still selected with NextItem from Niche.

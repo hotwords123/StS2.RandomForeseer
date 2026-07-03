@@ -76,6 +76,13 @@ internal static class OutOfCombatPredictionUtils
             .WithFlags(CardCreationFlags.IsCardReward);
     }
 
+    public static CardCreationOptions CreateMonsterCombatCardRewardOptions(Player player)
+    {
+        // StS2 v0.108.0 marks generated combat card rewards with IsFromCombat; Lasting Candy now gates on it.
+        return CardCreationOptions.ForRoom(player, RoomType.Monster)
+            .WithFlags(CardCreationFlags.IsCardReward | CardCreationFlags.IsFromCombat);
+    }
+
     public static IReadOnlyList<IReadOnlyList<CardModel>> PredictCardRewardBundles(
         Player player,
         int rewardCount,
@@ -253,19 +260,21 @@ internal static class OutOfCombatPredictionUtils
     public static void FastForwardMonsterRoomRewards(RunPredictionContext context)
     {
         // Normal monster rewards are generated before event-specific follow-up rewards.
-        // Mirrors RewardsSet.AddRewardsTo plus RewardsSet.RollForPotionAndAddTo before the CardReward.
+        // Mirrors RewardsSet.GenerateWithoutOffering up through the normal CardReward.
         FastForwardBeforeMonsterCardReward(context);
 
-        var options = CardCreationOptions.ForRoom(context.Player, RoomType.Monster)
-            .WithFlags(CardCreationFlags.IsCardReward);
+        var options = CreateMonsterCombatCardRewardOptions(context.Player);
         _ = CardRewardPrediction.PredictCards(context, 3, options);
     }
 
     public static void FastForwardBeforeMonsterCardReward(RunPredictionContext context)
     {
+        // Mirrors the pre-card part of RewardsSet.GenerateWithoutOffering for a monster room:
+        // GoldReward.Populate, PotionRewardOdds.Roll, and optional PotionReward.Populate.
+        // StS2 v0.108.0 made forced potion rewards return from Roll before consuming odds RNG;
+        // PotionRewardOdds.Roll owns that branch, while the NextInt below is still the gold roll.
         var shouldAddPotionReward = context.PotionRewardOdds.Roll(
             context.Player,
-            RunManager.Instance.AscensionManager,
             RoomType.Monster);
 
         _ = context.Rng.Rewards.NextInt(1);

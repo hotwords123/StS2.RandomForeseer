@@ -150,10 +150,13 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<CardModel> PredictMultiplayerCards(RunPredictionContext context, int count)
     {
-        var customCardPool = PredictionUtils.GetUnlockedColorlessCards(context.Player)
-            .Concat(PredictionUtils.GetUnlockedCharacterCards(context.Player))
-            .Where(card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
-        var options = new CardCreationOptions(customCardPool, CardCreationSource.Other, CardRarityOddsType.RegularEncounter);
+        // StS2 v0.108.0 replaced custom CardCreationOptions card lists with card pools plus filters.
+        // This mirrors MassiveScroll.AfterObtained so Prismatic-style pool modifiers can still see the pools.
+        var options = new CardCreationOptions(
+            [context.Player.Character.CardPool, ModelDb.CardPool<ColorlessCardPool>()],
+            CardCreationSource.Other,
+            CardRarityOddsType.RegularEncounter,
+            card => card.MultiplayerConstraint == CardMultiplayerConstraint.MultiplayerOnly);
 
         return CardRewardPrediction.PredictCards(context, count, options);
     }
@@ -389,9 +392,7 @@ internal static class RelicPickupPrediction
     {
         var previewRelic = PredictionUtils.CreateRelic(relic.CanonicalInstance, context.Player);
 
-        var options = CardCreationOptions
-            .ForRoom(context.Player, RoomType.Monster)
-            .WithFlags(CardCreationFlags.IsCardReward);
+        var options = OutOfCombatPredictionUtils.CreateMonsterCombatCardRewardOptions(context.Player);
 
         OutOfCombatPredictionUtils.FastForwardBeforeMonsterCardReward(context);
 

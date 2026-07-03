@@ -76,30 +76,42 @@ internal static class CardRewardHook
 
     private static void HandleLastingCandy(LastingCandy relic, CardRewardHookContext context)
     {
+        // StS2 v0.108.0 changed Lasting Candy from counting ended combats to counting combat
+        // card rewards seen, and it now requires the IsFromCombat card-creation flag.
         if (relic.Owner != context.Player ||
             context.Options.Source != CardCreationSource.Encounter ||
-            relic.CombatsSeen <= 0 ||
-            relic.CombatsSeen % 2 != 0)
+            relic.CombatRewardsSeen <= 0 ||
+            relic.CombatRewardsSeen % 2 != 1 ||
+            !context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward) ||
+            !context.Options.Flags.HasFlag(CardCreationFlags.IsFromCombat))
         {
             return;
         }
 
-        var candidates = context.Options.GetPossibleCards(context.Player)
-            .Where(card => card.Type == CardType.Power && context.Results.TrueForAll(result => result.originalCard.Id != card.Id))
-            .ToList();
-        if (candidates.Count == 0)
+
+        var possibleCards = context.Options.GetPossibleCards(context.Player).ToList();
+        var allowDupes = false;
+
+        bool IsLastingCandyCandidate(CardModel card) =>
+            card.Type == CardType.Power &&
+            (allowDupes || context.Results.All(result => result.originalCard.Id != card.Id));
+
+        if (!possibleCards.Any(IsLastingCandyCandidate))
         {
-            candidates = context.Options.GetPossibleCards(context.Player)
-                .Where(card => card.Type == CardType.Power)
-                .ToList();
+            allowDupes = true;
+
+            if (!possibleCards.Any(IsLastingCandyCandidate))
+            {
+                return;
+            }
         }
 
-        if (candidates.Count == 0)
-        {
-            return;
-        }
-
-        var candyOptions = new CardCreationOptions(candidates, CardCreationSource.Other, context.Options.RarityOdds)
+        var parentFilter = context.Options.CardPoolFilter;
+        var candyOptions = new CardCreationOptions(
+                context.Options.CardPools,
+                CardCreationSource.Other,
+                context.Options.RarityOdds,
+                card => (parentFilter == null || parentFilter(card)) && IsLastingCandyCandidate(card))
             .WithFlags(CardCreationFlags.NoModifyHooks | CardCreationFlags.NoCardPoolModifications);
         var card = CardRewardPrediction.CreateBaseRewards(
             context.Player,

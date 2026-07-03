@@ -41,8 +41,9 @@ internal static class PunchOffPrediction
 
         foreach (var runPlayer in context.RunState.Players)
         {
-            // Punch Off creates rewards for every player in run order. Prior players use their
-            // own Rewards RNG while sharing the same run-level Niche sequence.
+            // CombatRoom.OfferRoomEndRewards still generates normal combat rewards for every
+            // player in run order. StS2 v0.108.0 changed Punch Off's extra relic + potion to
+            // owner-only rewards, so those are predicted after this owner's normal CardReward.
             OutOfCombatPredictionUtils.FastForwardMonsterRoomRewards(context.ForPlayer(runPlayer));
 
             if (runPlayer == context.Player)

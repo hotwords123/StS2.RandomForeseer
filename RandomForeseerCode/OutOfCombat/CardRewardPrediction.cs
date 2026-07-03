@@ -108,9 +108,13 @@ internal static class CardRewardPrediction
     // vanilla-owned options instance before passing it into a prediction method.
     public static CardCreationOptions CloneOptions(CardCreationOptions options)
     {
-        var clone = options.CustomCardPool != null
-            ? new CardCreationOptions(options.CustomCardPool.ToArray(), options.Source, options.RarityOdds)
-            : new CardCreationOptions(options.CardPools.ToArray(), options.Source, options.RarityOdds, options.CardPoolFilter);
+        // StS2 v0.108.0 removed custom card pools from CardCreationOptions. Vanilla now represents
+        // all narrowed pools as source card pools plus a CardPoolFilter so later pool modifiers can still apply.
+        var clone = new CardCreationOptions(
+            options.CardPools.ToArray(),
+            options.Source,
+            options.RarityOdds,
+            options.CardPoolFilter);
 
         clone.WithFlags(options.Flags);
         if (options.RngOverride != null)

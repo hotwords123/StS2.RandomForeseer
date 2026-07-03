@@ -41,6 +41,7 @@ internal static class AfterCardExhaustedHook
         registry.Register<FeelNoPainPower>(HandleFeelNoPainPower);
         registry.Register<ForgottenSoul>(HandleForgottenSoul);
         registry.Register<JossPaper>(HandleJossPaper);
+        registry.Register<Midnight>(HandleMidnight);
         registry.RegisterIgnored<SkillIronclad1Achievement>();
 
         return registry;
@@ -152,6 +153,15 @@ internal static class AfterCardExhaustedHook
         }
 
         context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
+    }
+
+    private static void HandleMidnight(Midnight card, AfterCardExhaustedHookContext context)
+    {
+        // StS2 v0.108.0 added Midnight's global exhaust listener; mutate only the predicted instance.
+        if (context.State.GetPlayerCombatState(card.Owner).FindCard(card) is { } midnight)
+        {
+            midnight.MutablePreview.EnergyCost.AddThisCombat(-1);
+        }
     }
 
 }

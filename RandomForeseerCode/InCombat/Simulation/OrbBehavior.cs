@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Orbs;
+using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -108,20 +109,46 @@ internal static class OrbBehavior
             return [];
         }
 
-        var targets = (IReadOnlyList<Creature>)[target];
+        IReadOnlyList<Creature> targets = [target];
         simulator.Damage(targets, value, ValueProp.Unpowered, orb.Owner.Creature);
         return targets;
     }
 
     private static void FrostOrbPassive(CombatPredictionSimulator simulator, FrostOrb orb)
     {
-        simulator.GainBlock(orb.Owner.Creature, orb.PassiveVal, ValueProp.Unpowered);
+        FrostOrbBlock(simulator, orb, orb.PassiveVal);
     }
 
     private static IReadOnlyList<Creature> FrostOrbEvoke(CombatPredictionSimulator simulator, FrostOrb orb)
     {
-        simulator.GainBlock(orb.Owner.Creature, orb.EvokeVal, ValueProp.Unpowered);
-        return [orb.Owner.Creature];
+        return FrostOrbBlock(simulator, orb, orb.EvokeVal);
+    }
+
+    private static IReadOnlyList<Creature> FrostOrbBlock(
+        CombatPredictionSimulator simulator,
+        FrostOrb orb,
+        decimal value)
+    {
+        simulator.GainBlock(orb.Owner.Creature, value, ValueProp.Unpowered);
+
+        if (!orb.Owner.Creature.HasPower<HibernatePower>())
+        {
+            return [orb.Owner.Creature];
+        }
+
+        // StS2 v0.108.0 made Frost orbs grant the same block to all players while
+        // Hibernate is on the owner; vanilla still grants the owner block first.
+        var allPlayers = simulator.State.CombatState.Players;
+
+        foreach (var player in allPlayers)
+        {
+            if (player != orb.Owner)
+            {
+                simulator.GainBlock(player.Creature, value, ValueProp.Unpowered);
+            }
+        }
+
+        return allPlayers.Select(player => player.Creature).ToArray();
     }
 
     private static void DarkOrbPassive(CombatPredictionSimulator simulator, DarkOrb orb)
@@ -140,7 +167,7 @@ internal static class OrbBehavior
             return [];
         }
 
-        var targets = (IReadOnlyList<Creature>)[target];
+        IReadOnlyList<Creature> targets = [target];
         simulator.Damage(targets, orb.EvokeVal, ValueProp.Unpowered, orb.Owner.Creature);
         return targets;
     }
