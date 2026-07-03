@@ -2,6 +2,13 @@ This mod predicts random outcomes across combat, events, Ancients, and other gam
 
 This mod supports both [b]singleplayer[/b] and [b]multiplayer[/b], and [b]not everyone[/b] in a multiplayer run needs to install it. By default, it only shows information that can be obtained through Save & Load. Each prediction feature can be toggled independently in the RitsuLib settings page.
 
+This mod supports both the [b]public[/b] branch and the [b]public-beta[/b] branch, but some new features may only be available on the beta branch.
+Currently supported game versions:
+[list]
+[*]public: [b]v0.107.1[/b] (mod version [b]v0.8.1[/b])
+[*]public-beta: [b]v0.108.0[/b] (mod version [b]v0.8.2[/b])
+[/list]
+
 GitHub: [url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
 
 [h2]Features[/h2]
@@ -48,10 +55,13 @@ Here are some common questions. [b]Please try these solutions before reporting a
 [b]A:[/b] Vanilla saves and modded saves are separate. You can use another mod, such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700]Better Save Slots[/url], to import vanilla saves. You only need to import them once when first installing mods, then you can continue playing from the modded save.
 
 [b]Q:[/b] Where is the mod settings page?
-[b]A:[/b] Open [b]Game Settings[/b], scroll to the bottom, open [b]Mod Settings (RitsuLib)[/b], then find [b]Random Foreseer[/b] in the list on the left after it finishes loading. All settings are available there.
+[b]A:[/b] Click the RitsuLib icon in the top-right corner of the main menu, or open [b]Game Settings[/b], scroll to the bottom, open [b]Mod Settings (RitsuLib)[/b], then find [b]Random Foreseer[/b] in the list on the left after it finishes loading. All settings are available there.
 
 [b]Q:[/b] I installed the mod, but I still cannot see predictions.
 [b]A:[/b] First, make sure the required RitsuLib dependency is installed and enabled. You can confirm this from the settings page mentioned above. Then try temporarily disabling other mods, except RitsuLib, to rule out mod conflicts. If the issue remains, please follow the reporting instructions below.
+
+[b]Q:[/b] After a game update, the mod fails to load and says the game version does not match or is unsupported.
+[b]A:[/b] A common cause is Steam not automatically updating Workshop mods. Try unsubscribing from this mod and the required RitsuLib dependency, then subscribe to them again. This should solve most cases.
 
 [b]Q:[/b] Why does a prediction differ from the actual result?
 [b]A:[/b] There are many possible causes, including but not limited to: mods that change vanilla content, teammates advancing RNG first in multiplayer, secondary effects from some cards advancing RNG, or game updates breaking predictions. If you can reproduce a specific issue, please report it. Please read the reporting instructions below first.
