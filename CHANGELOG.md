@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.8.2
+
+### fix
+
+- 适配《杀戮尖塔 2》0.108.0。<br>
+  Adapted to Slay the Spire 2 0.108.0.
+
+### misc
+
+- 更新 RitsuLib 依赖到 0.4.47。<br>
+  Updated the RitsuLib dependency to 0.4.47.
+
 ## v0.8.1
 
 ### fix
