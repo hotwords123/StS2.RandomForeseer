@@ -9,13 +9,13 @@ internal static class HookReflection
 {
     // Publicizer excludes virtual members, so reflection remains the safest way to distinguish
     // inherited no-op hooks from model-specific overrides.
-    public static bool TryGetOverride(HookSpec hook, Type modelType, [NotNullWhen(true)] out MethodInfo? overrideMethod)
+    public static MethodInfo? GetOverride(HookSpec hook, Type modelType)
     {
-        overrideMethod = modelType.GetMethod(
+        var method = modelType.GetMethod(
             hook.Name,
             BindingFlags.Instance | BindingFlags.Public,
             hook.ParameterTypes);
-        return overrideMethod != null && overrideMethod.DeclaringType != typeof(AbstractModel);
+        return method != null && method.DeclaringType != typeof(AbstractModel) ? method : null;
     }
 
     public static bool IsVanillaModel(Type modelType)

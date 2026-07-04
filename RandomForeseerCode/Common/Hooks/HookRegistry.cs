@@ -1,5 +1,6 @@
+using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Modding;
 
 namespace RandomForeseer.RandomForeseerCode.Common.Hooks;
 
@@ -16,8 +17,9 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
 {
     private readonly Dictionary<Type, HookHandler<TContext>> _handlers = [];
     private readonly List<GenericHookHandler<TContext>> _genericHandlers = [];
-    private readonly HashSet<Type> _warnedIgnoredUnsupportedTypes = [];
-    private readonly HashSet<Type> _warnedUnsupportedTypes = [];
+
+    private readonly Dictionary<Type, MethodInfo?> _overrideCache = [];
+    private readonly Dictionary<Type, UnsupportedHandling> _unsupportedCache = [];
 
     public void Register<TModel>(Action<TModel, TContext> handler)
         where TModel : AbstractModel
@@ -65,7 +67,7 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
     {
         var type = model.GetType();
 
-        if (!HookReflection.TryGetOverride(hook, type, out var overrideMethod))
+        if (!TryGetOverride(type, out var overrideMethod))
         {
             return false;
         }
@@ -84,42 +86,48 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
             }
         }
 
-        if (HookReflection.TryGetMod(overrideMethod, out var mod) &&
-            HookReflection.IsNonGameplayMod(mod))
+        if (!_unsupportedCache.TryGetValue(type, out var unsupportedHandling))
         {
-            WarnIgnoredUnsupported(type, mod);
+            if (HookReflection.TryGetMod(overrideMethod, out var mod) &&
+                HookReflection.IsNonGameplayMod(mod))
+            {
+                unsupportedHandling = UnsupportedHandling.Ignore;
+                Entry.Logger.Warn(
+                    $"Mirror for {hook.Name} ignored unsupported {type.FullName} from non-gameplay mod {mod.manifest?.id}.");
+            }
+            else
+            {
+                unsupportedHandling = UnsupportedHandling.MarkRisky;
+                Entry.Logger.Warn(
+                    $"Mirror for {hook.Name} does not safely handle {type.FullName}; preview may omit that modifier.");
+            }
+
+            _unsupportedCache[type] = unsupportedHandling;
         }
-        else
+
+        if (unsupportedHandling == UnsupportedHandling.MarkRisky)
         {
-            WarnUnsupported(type);
             context.MarkCurrentSourceRisky();
         }
 
         return false;
     }
 
-    private void WarnIgnoredUnsupported(Type modelType, Mod mod)
+    private bool TryGetOverride(Type type, [NotNullWhen(true)] out MethodInfo? overrideMethod)
     {
-        // Log each ignored model type once per registry so recurring hover previews do not flood the log.
-        if (!_warnedIgnoredUnsupportedTypes.Add(modelType))
+        if (!_overrideCache.TryGetValue(type, out overrideMethod))
         {
-            return;
+            overrideMethod = HookReflection.GetOverride(hook, type);
+            _overrideCache[type] = overrideMethod;
         }
 
-        Entry.Logger.Warn(
-            $"Mirror for {hook.Name} ignored unsupported {modelType.FullName} from non-gameplay mod {mod.manifest?.id}.");
+        return overrideMethod != null;
     }
 
-    private void WarnUnsupported(Type modelType)
+    private enum UnsupportedHandling
     {
-        // Log each unsupported model type once per registry so recurring hover previews do not flood the log.
-        if (!_warnedUnsupportedTypes.Add(modelType))
-        {
-            return;
-        }
-
-        Entry.Logger.Warn(
-            $"Mirror for {hook.Name} does not safely handle {modelType.FullName}; preview may omit that modifier.");
+        Ignore,
+        MarkRisky
     }
 }
 
