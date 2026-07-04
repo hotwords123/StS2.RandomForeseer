@@ -126,9 +126,10 @@ internal sealed partial class CombatPredictionSimulator
         state.Hand.Clear();
     }
 
-    public void RemoveFromHand(Player player, CardModel card)
+    // TODO: Use something like AddCardToPile(card, PileType.Play) instead
+    public void RemoveFromHand(CardModel card)
     {
-        var hand = State.GetPlayerCombatState(player).Hand;
+        var hand = State.GetPlayerCombatState(card.Owner).Hand;
         if (hand.Find(card) is { } predictedCard)
         {
             hand.Remove(predictedCard);

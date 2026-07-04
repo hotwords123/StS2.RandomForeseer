@@ -37,7 +37,7 @@ internal static class CardDrawPrediction
         // Mirrors Reboot.OnPlay: after the source card leaves hand, move the remaining hand
         // into the draw pile, shuffle, then draw.
         var simulator = new CombatPredictionSimulator(combatState);
-        simulator.RemoveFromHand(reboot.Owner, reboot);
+        simulator.RemoveFromHand(reboot);
         simulator.MoveHandToDrawPile(reboot.Owner);
         simulator.Shuffle(reboot.Owner);
         return simulator.Draw(reboot.Owner, reboot.DynamicVars.Cards.IntValue);
@@ -54,7 +54,7 @@ internal static class CardDrawPrediction
         // Sly cards are auto-played after Draw in the original method; this prediction does
         // not simulate them yet.
         var simulator = new CombatPredictionSimulator(combatState);
-        simulator.RemoveFromHand(source.Owner, source);
+        simulator.RemoveFromHand(source);
         var cardsToDraw = simulator.DiscardHand(source.Owner);
         return simulator.Draw(source.Owner, cardsToDraw);
     }
