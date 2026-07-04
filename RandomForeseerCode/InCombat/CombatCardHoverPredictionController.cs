@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using MegaCrit.Sts2.Core.Nodes.Rooms;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -161,16 +160,5 @@ internal static class CombatCardHoverPredictionCardPlayCleanupPatch
     private static void Postfix(NCardPlay __instance)
     {
         CombatCardHoverPredictionController.OnCardPlayCleanedUp(__instance.Holder);
-    }
-}
-
-[HarmonyPatch(typeof(NCombatRoom))]
-internal static class CombatPredictionOverlayCombatRoomPatches
-{
-    [HarmonyPatch("RemoveCreatureNode")]
-    [HarmonyPostfix]
-    private static void RefreshOverlayAfterCreatureRemoved()
-    {
-        CombatPredictionOverlay.RefreshPositions();
     }
 }
