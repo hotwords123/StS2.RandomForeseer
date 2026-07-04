@@ -8,10 +8,13 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 internal sealed partial class CombatPredictionSimulator
 {
     private readonly List<CombatPredictionDamageHistoryEntry> _damageHistory = [];
+    private readonly List<CombatPredictionAttackHistoryEntry> _attackHistory = [];
     private readonly List<CombatPredictionOrbChanneledHistoryEntry> _orbChanneledHistory = [];
     private readonly List<CombatPredictionCardDrawnHistoryEntry> _cardDrawnHistory = [];
 
     public IReadOnlyList<CombatPredictionDamageHistoryEntry> DamageHistory => _damageHistory;
+
+    public IReadOnlyList<CombatPredictionAttackHistoryEntry> AttackHistory => _attackHistory;
 
     public IReadOnlyList<CombatPredictionOrbChanneledHistoryEntry> OrbChanneledHistory => _orbChanneledHistory;
 
@@ -25,6 +28,14 @@ internal sealed partial class CombatPredictionSimulator
             dealer,
             cardSource,
             _sourceStack.Current ?? cardSource?.Original));
+    }
+
+    private void RecordAttackHistory(
+        Creature attacker,
+        AbstractModel? source,
+        IReadOnlyList<DamageResult> hitResults)
+    {
+        _attackHistory.Add(new CombatPredictionAttackHistoryEntry(attacker, source, hitResults));
     }
 
     private void RecordOrbChanneledHistory(OrbModel orb)
@@ -44,6 +55,11 @@ internal sealed record CombatPredictionDamageHistoryEntry(
     Creature? Dealer,
     PredictedCard? CardSource,
     AbstractModel? SourceModel);
+
+internal sealed record CombatPredictionAttackHistoryEntry(
+    Creature Attacker,
+    AbstractModel? SourceModel,
+    IReadOnlyList<DamageResult> HitResults);
 
 internal sealed record CombatPredictionOrbChanneledHistoryEntry(OrbModel Orb);
 

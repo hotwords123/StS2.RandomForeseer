@@ -27,12 +27,15 @@ internal static class DamageBlockRiskDetector
         }
 
         var simulator = new CombatPredictionSimulator(combatState);
-        simulator.Execute(
-            DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
-                // StS2 v0.108.0 added CardPlay to AttackCommand.FromCard; risk detection
-                // runs from hover preview, so it intentionally has no live CardPlay.
-                .FromCard(card, null)
-                .WithHitCount(hitCount));
+        using (simulator.PushSource(card))
+        {
+            simulator.ExecuteAttack(
+                DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
+                    // StS2 v0.108.0 added CardPlay to AttackCommand.FromCard; risk detection
+                    // runs from hover preview, so it intentionally has no live CardPlay.
+                    .FromCard(card, null)
+                    .WithHitCount(hitCount));
+        }
         return simulator.Snapshot();
     }
 }

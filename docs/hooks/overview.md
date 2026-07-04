@@ -21,6 +21,7 @@
 | Damage post hooks | All damage callers | - | `AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterDamageReceived` have targeted mirrors, trigger-scoped risk marking, and current-scope ignored registrations. `AfterBlockBroken` is still mostly not mirrored. |
 | Damage modifier live-state reads | `LethalityPower`, `PhantomBladesPower`, `PenNib`, `VigorPower`, `GigantificationPower` | 致死性 / 幻影之刃 / 钢笔尖 / 活力 / 超巨化 | The simulator calls original value hooks, so these listeners read live combat history or live attack/card-play state instead of simulator shadow history/state. StS2 v0.108.0 added `CardPlay?` to these hooks; current forecasts pass `null` like vanilla previews. |
 | Damage modifier `CardPlay?` preview semantics | `OneForAllPower` | 一心化万 | Original hook is used. Real card execution checks actual energy spent, while forecasts pass `null` like vanilla previews and check current modified cost until full card-play state is mirrored. |
+| Attack command lifecycle | `VigorPower`, `GigantificationPower`, `BoneFlute`, `Flatten`, `PainfulStabsPower`, `SkittishPower`, `SuckPower` | 活力 / 超巨化 / 骨笛 / 重压 / 疼痛戳刺 / 胆小 / 吮吸 | `CombatPredictionSimulator.Execute(AttackCommand)` mirrors the target loop, cloned random targeting, attack hook dispatch, grouped hit results, shadow attack history, and supported `AfterAttack` side effects. Power application/removal remains risk-marked; reviewed vanilla command-local callbacks are ignored as cosmetic-only. Direct `Damage` calls still bypass the attack lifecycle. See `attack-hooks.md`. |
 | Frost orb Hibernate block | `FrostOrb`, `HibernatePower` | 冰霜 / 休眠 | StS2 v0.108.0 gives Frost passive/evoke block to all players while Hibernate is active. The simulator mirrors block recipients and evoke targets, but any new all-player block hook side effects still need exact registrations. |
 | Autoplay | `HowlFromBeyond`, `IAmInvincible`, `StampedePower`, `HellraiserPower` | 彼岸咆哮 / 所向无敌 / 惊逃 / 地狱狂徒 | Simulator `AutoPlay`/`AutoPlayFromDrawPile` are risk placeholders, not full card-play mirrors. |
 | Ethereal exhaust | `DarkEmbracePower`, `JossPaper` | 黑暗之拥 / 金纸 | Ethereal hook calls only record delayed counts in vanilla; actual draw timing is end-turn cleanup, outside this simulation path, so the mirror intentionally does not mark risk here. |
@@ -37,6 +38,7 @@
 - `after-card-drawn.md`
 - `after-card-discarded.md`
 - `after-card-exhausted.md`
+- `attack-hooks.md`
 - `should-draw.md`
 - `block-hooks.md`
 - `damage-modifier-hooks.md`

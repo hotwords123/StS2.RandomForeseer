@@ -14,6 +14,8 @@ internal sealed class CombatPredictionState(ICombatState combatState)
 
     private readonly Dictionary<Player, SimPlayerCombatState> _playerCombatStates = [];
 
+    public IReadOnlyList<Creature> PlayerCreatures => CombatState.PlayerCreatures;
+
     public SimCreatureState GetCreature(Creature creature)
     {
         if (!_creatures.TryGetValue(creature, out var state))
@@ -27,6 +29,7 @@ internal sealed class CombatPredictionState(ICombatState combatState)
 
     public IReadOnlyList<Creature> GetOpponentsOf(Creature creature)
     {
+        // TODO: Make this align with the real CombatState's GetOpponentsOf
         return CombatState.GetOpponentsOf(creature)
             .Where(opponent => GetCreature(opponent).IsAlive)
             .ToList();
@@ -41,6 +44,7 @@ internal sealed class CombatPredictionState(ICombatState combatState)
 
     public IReadOnlyList<Creature> GetCreaturesOnSide(CombatSide side)
     {
+        // TODO: Make this align with the real CombatState's GetCreaturesOnSide
         return CombatState.GetCreaturesOnSide(side)
             .Where(creature => GetCreature(creature).IsAlive)
             .ToList();
