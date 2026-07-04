@@ -54,6 +54,16 @@ internal sealed class SimCreatureState(Creature creature)
         Block = (int)Math.Min(Block + amount, 999999999m);
     }
 
+    public void Heal(decimal amount)
+    {
+        if (amount < 0m)
+        {
+            throw new ArgumentException("amount must be positive.", nameof(amount));
+        }
+
+        CurrentHp = (int)Math.Min(CurrentHp + amount, MaxHp);
+    }
+
     public void PreventDeath()
     {
         if (CurrentHp <= 0)

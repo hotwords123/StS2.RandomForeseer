@@ -204,9 +204,10 @@ internal static class EndTurnHooks
     {
         if (context.Participants.Contains(power.Owner) && context.State.GetCreature(power.Owner).IsAlive)
         {
-            // StS2 v0.108.0 moved Regen healing to BeforeSideTurnEndEarly, before Doom's
-            // normal end-turn kill check. TODO: mirror Heal and power decrement in shadow state.
-            context.MarkCurrentSourceRisky();
+            // Mirrors RegenPower.BeforeSideTurnEndEarly's CreatureCmd.Heal call before Doom's
+            // normal end-turn kill check. PowerCmd.Decrement is not persisted in prediction state
+            // because no later hook in this simulation consumes Regen's decremented amount.
+            context.Simulator.Heal(power.Owner, power.Amount);
         }
     }
 

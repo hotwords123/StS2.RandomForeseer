@@ -161,7 +161,15 @@ internal static class DamageReceivedHooks
             context.Target == relic.Owner.Creature &&
             context.Result.UnblockedDamage > 0)
         {
-            context.MarkCurrentSourceRisky();
+            var state = context.StateStore.Get(relic, () => new DemonTonguePredictionState
+            {
+                TriggeredThisTurn = relic._triggeredThisTurn
+            });
+            if (!state.TriggeredThisTurn)
+            {
+                state.TriggeredThisTurn = true;
+                context.Simulator.Heal(relic.Owner.Creature, context.Result.UnblockedDamage);
+            }
         }
     }
 
@@ -282,6 +290,11 @@ internal static class DamageReceivedHooks
 internal sealed class CentennialPuzzlePredictionState
 {
     public bool UsedThisCombat { get; set; }
+}
+
+internal sealed class DemonTonguePredictionState
+{
+    public bool TriggeredThisTurn { get; set; }
 }
 
 internal sealed class BeforeDamageReceivedHookContext : CombatPredictionHookContext

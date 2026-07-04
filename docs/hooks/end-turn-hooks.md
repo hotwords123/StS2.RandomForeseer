@@ -30,7 +30,7 @@ Mirror file: `InCombat/Hooks/EndTurnHooks.cs`.
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
 | `PlatingPower` | 覆甲 | Owner gains block before damage effects. | Implemented via `GainBlock`. |
-| `RegenPower` | 再生 | If the owner is a living participant, heals owner by amount and decrements Regen. | Risk only. Heal and power decrement are TODO; StS2 v0.108.0 places this before normal side-turn-end effects such as Doom, so end-turn death/HP forecasts can drift when Regen is present. |
+| `RegenPower` | 再生 | If the owner is a living participant, heals owner by amount and decrements Regen. | Healing implemented via simulator `Heal` before normal side-turn-end effects such as Doom. Regen amount decrement is not persisted because no later hook in this simulation consumes it. |
 | `PaelsEye` | 佩尔之眼 | If owner played no cards, exhausts all cards in hand before granting an extra turn. | Implemented for immediate hand exhaust and exhaust hooks; still marks risk because extra-turn scheduling is not modeled. |
 
 ## BeforeSideTurnEnd listeners
@@ -62,7 +62,7 @@ Mirror file: `InCombat/Hooks/EndTurnHooks.cs`.
 - Damage handlers inherit current `Damage` post-hook omissions.
 - Autoplay handlers are intentionally incomplete and should stay marked risky until `CombatPredictionSimulator.Execute/AutoPlay` can mirror real card play effects.
 - Current ignored registrations for `Regret` and `DiamondDiadem` are acceptable for the present scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. They should be revisited if prediction expands across that boundary.
-- `RegenPower` is a v0.108.0 ordering-sensitive listener: it now heals in `BeforeSideTurnEndEarly`, before `DoomPower`'s normal `BeforeSideTurnEnd` kill check. The current mirror marks matching cases risky and has a code TODO for shadow healing and power decrement.
+- `RegenPower` is a v0.108.0 ordering-sensitive listener: it heals in `BeforeSideTurnEndEarly`, before `DoomPower`'s normal `BeforeSideTurnEnd` kill check, and the mirror now applies that shadow HP change before Doom is evaluated.
 
 ## Mock model list
 

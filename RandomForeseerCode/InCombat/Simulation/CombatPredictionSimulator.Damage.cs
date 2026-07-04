@@ -223,7 +223,12 @@ internal sealed partial class CombatPredictionSimulator
 
             if (damageResult.UnblockedDamage > 0)
             {
-                // TODO: Mirror Hook.AfterCurrentHpChanged here.
+                AfterCurrentHpChangedHook.Run(new AfterCurrentHpChangedHookContext
+                {
+                    Simulator = this,
+                    Creature = originalTarget,
+                    Delta = -damageResult.UnblockedDamage
+                });
             }
 
             DamageGivenHooks.Run(new AfterDamageGivenHookContext
