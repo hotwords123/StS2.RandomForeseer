@@ -88,7 +88,7 @@ internal static class DeathHooks
             return;
         }
 
-        var predictedCard = context.State.GetPlayerCombatState(card.Owner).FindCard(card);
+        var predictedCard = context.State.FindCard(card);
         predictedCard?.MutablePreview.EnergyCost.AddThisCombat(-card.DynamicVars.Energy.IntValue);
     }
 }

@@ -1,6 +1,8 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -53,5 +55,10 @@ internal sealed class CombatPredictionState(ICombatState combatState)
         }
 
         return state;
+    }
+
+    public PredictedCard? FindCard(CardModel card)
+    {
+        return GetPlayerCombatState(card.Owner).FindCard(card);
     }
 }
