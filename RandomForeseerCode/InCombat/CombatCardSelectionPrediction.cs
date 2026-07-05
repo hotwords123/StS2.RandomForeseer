@@ -1,157 +1,212 @@
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
-using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
-internal static class CombatCardSelectionPrediction
+internal sealed class CombatCardSelectionPrediction(
+    CombatPredictionSimulator simulator,
+    SimPlayerCombatState playerCombatState,
+    PredictedCard source,
+    Creature? target)
 {
-    public static CombatCardSelectionPredictionResult GetPrediction(CardModel card)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction))
+        // TODO: This should also show when the card is dragged to play
+        return Predict(card, target: null).ToHoverTips();
+    }
+
+    public static IReadOnlyList<CardModel> PredictSelectedCards(CardModel card, Creature? target)
+    {
+        return Predict(card, target).SelectedCards;
+    }
+
+    public static CombatCardSelectionPredictionResult Predict(CardModel card, Creature? target)
+    {
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction) ||
+            card.Owner.Creature.CombatState is not { } combatState)
         {
             return CombatCardSelectionPredictionResult.Empty;
         }
 
-        var previewRng = PredictionUtils.CloneRng(card.Owner.RunState.Rng.CombatCardSelection);
-        return Predict(card, previewRng);
-    }
+        var simulator = new CombatPredictionSimulator(combatState);
 
-    public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
-    {
-        return GetPrediction(card).ToHoverTips();
-    }
+        var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
+        var predictedCard = playerCombatState.FindCard(card) ?? new PredictedCard(card);
+        playerCombatState.Hand.Remove(predictedCard);
+        playerCombatState.PlayPile.Add(predictedCard);
 
-    private static CombatCardSelectionPredictionResult Predict(CardModel card, Rng previewRng)
-    {
-        // TODO: Move pile reads to CombatPredictionSimulator state after card selection
-        // prediction actually simulates the selected card's damage/block side effects.
+        var predictor = new CombatCardSelectionPrediction(simulator, playerCombatState, predictedCard, target);
+
+        using var _ = simulator.PushSource(card);
+
         return card switch
         {
-            Cinder => CombatCardSelectionPredictionResult.FromSelectedCard(
-                PredictHandCard(card, _ => true, previewRng),
-                DamageBlockRiskDetector.DetectAttack(card)),
-            HiddenGem => CombatCardSelectionPredictionResult.FromSelectedCard(
-                PredictHiddenGem(card, previewRng),
-                PredictionRisk.None),
-            Thrash => CombatCardSelectionPredictionResult.FromSelectedCard(
-                PredictHandCard(card, c => c.Type == CardType.Attack, previewRng),
-                DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
-            TrueGrit { IsUpgraded: false } => CombatCardSelectionPredictionResult.FromSelectedCard(
-                PredictHandCard(card, _ => true, previewRng),
-                DamageBlockRiskDetector.DetectGainBlock(card)),
-            Uproar => CombatCardSelectionPredictionResult.FromSelectedCard(
-                PredictUproar(card),
-                DamageBlockRiskDetector.DetectAttack(card, hitCount: 2)),
-
-            Anointed => CombatCardSelectionPredictionResult.FromSelectedCards(
-                PredictAnointed(card, previewRng),
-                PredictionRisk.None),
-            DrainPower => CombatCardSelectionPredictionResult.FromSelectedCards(
-                PredictDrainPower(card, previewRng),
-                DamageBlockRiskDetector.DetectAttack(card)),
-            SeekerStrike => CombatCardSelectionPredictionResult.FromSelectedCards(
-                PredictSeekerStrike(card, previewRng),
-                DamageBlockRiskDetector.DetectAttack(card)),
-
+            Anointed => predictor.PredictAnointed(),
+            Cinder => predictor.PredictCinder(),
+            DrainPower => predictor.PredictDrainPower(),
+            HiddenGem => predictor.PredictHiddenGem(),
+            SeekerStrike => predictor.PredictSeekerStrike(),
+            Thrash => predictor.PredictThrash(),
+            TrueGrit { IsUpgraded: false } => predictor.PredictTrueGrit(),
+            Uproar => predictor.PredictUproar(),
             _ => CombatCardSelectionPredictionResult.Empty
         };
     }
 
-    private static CardModel? PredictHandCard(
-        CardModel source,
-        Func<CardModel, bool> filter,
-        Rng previewRng)
+    private CombatCardSelectionPredictionResult PredictHandCard(Func<CardModel, bool> filter)
     {
-        var candidates = PileType.Hand.GetPile(source.Owner).Cards
-            .Where(card => card != source && filter(card));
-
-        return previewRng.NextItem(candidates);
+        var candidates = playerCombatState.Hand.Cards
+            .Select(predictedCard => predictedCard.Preview)
+            .Where(filter);
+        var selectedCard = simulator.Rng.CombatCardSelection.NextItem(candidates);
+        return new(selectedCard, simulator.Snapshot());
     }
 
-    private static CardModel? PredictHiddenGem(CardModel source, Rng previewRng)
+    private bool TrySimulateTargetedAttack(int hitCount = 1)
     {
-        var drawPileCards = PileType.Draw.GetPile(source.Owner).Cards.ToList();
-        if (drawPileCards.Count == 0)
+        if (target is null || !source.Preview.CanPlayTargeting(target))
         {
-            return null;
+            return false;
         }
 
-        var eligibleCards = drawPileCards
-            .Where(card =>
-                !card.Keywords.Contains(CardKeyword.Unplayable) &&
-                card.Type is not CardType.Status and not CardType.Curse &&
-                card.GetEnchantedReplayCount() < 1)
-            .ToList();
-        var preferredCards = eligibleCards
-            .Where(card => card.Type is CardType.Attack or CardType.Skill or CardType.Power)
-            .ToList();
+        DamageCmd.Attack(source.Preview.DynamicVars.Damage.BaseValue)
+            .FromCard(source.Preview, null)
+            .WithHitCount(hitCount)
+            .Targeting(target)
+            .Simulate(simulator);
 
-        var predicted = previewRng.NextItem(preferredCards.Count == 0 ? eligibleCards : preferredCards);
-        if (predicted == null)
-        {
-            return null;
-        }
-
-        var preview = (CardModel)predicted.MutableClone();
-        preview.BaseReplayCount += source.DynamicVars["Replay"].IntValue;
-        return preview;
+        return true;
     }
 
-    private static IReadOnlyList<CardModel> PredictDrainPower(CardModel source, Rng previewRng)
+    private CombatCardSelectionPredictionResult PredictAnointed()
     {
-        return PileType.Discard.GetPile(source.Owner).Cards
-            .Where(card => card.IsUpgradable)
-            .TakeRandom(source.DynamicVars.Cards.IntValue, previewRng)
-            .Select(PredictionUtils.ToUpgradedCard)
-            .ToList();
-    }
-
-    private static IReadOnlyList<CardModel> PredictAnointed(CardModel source, Rng previewRng)
-    {
-        var cardsInHandAfterPlay = PileType.Hand.GetPile(source.Owner).Cards.Count(card => card != source);
+        var cardsInHandAfterPlay = playerCombatState.Hand.Cards.Count;
         var count = CardPile.MaxCardsInHand - cardsInHandAfterPlay;
         if (count <= 0)
         {
-            return [];
+            return CombatCardSelectionPredictionResult.Empty;
         }
 
-        return PileType.Draw.GetPile(source.Owner).Cards
-            .Where(card => card.Rarity == CardRarity.Rare)
-            .TakeRandom(count, previewRng)
+        var selectedCards = playerCombatState.DrawPile.Cards
+            .Where(card => card.Preview.Rarity == CardRarity.Rare)
+            .TakeRandom(count, simulator.Rng.CombatCardSelection)
+            .Select(card => card.Preview)
             .ToList();
+
+        return new(selectedCards, simulator.Snapshot());
     }
 
-    private static IReadOnlyList<CardModel> PredictSeekerStrike(CardModel source, Rng previewRng)
+    private CombatCardSelectionPredictionResult PredictCinder()
     {
-        return PileType.Draw.GetPile(source.Owner).Cards
-            .ToList()
-            .StableShuffle(previewRng)
-            .Take(source.DynamicVars.Cards.IntValue)
-            .ToList();
+        return TrySimulateTargetedAttack()
+            ? PredictHandCard(_ => true)
+            : CombatCardSelectionPredictionResult.Empty;
     }
 
-    private static CardModel? PredictUproar(CardModel source)
+    private CombatCardSelectionPredictionResult PredictDrainPower()
     {
-        var previewRng = PredictionUtils.CloneRng(source.Owner.RunState.Rng.Shuffle);
-        var drawPileCards = PileType.Draw.GetPile(source.Owner).Cards;
-        var predicted = drawPileCards
-            .Where(card => card.Type == CardType.Attack && !card.Keywords.Contains(CardKeyword.Unplayable))
+        if (!TrySimulateTargetedAttack())
+        {
+            return CombatCardSelectionPredictionResult.Empty;
+        }
+
+        var selectedCards = playerCombatState.DiscardPile.Cards
+            .Where(card => card.Preview.IsUpgradable)
+            .TakeRandom(source.Preview.DynamicVars.Cards.IntValue, simulator.Rng.CombatCardSelection)
+            .Select(card => card.Upgrade().Preview)
+            .ToList();
+
+        return new(selectedCards, simulator.Snapshot());
+    }
+
+    private CombatCardSelectionPredictionResult PredictHiddenGem()
+    {
+        var drawPile = playerCombatState.DrawPile;
+        if (drawPile.IsEmpty)
+        {
+            return CombatCardSelectionPredictionResult.Empty;
+        }
+
+        var eligibleCards = drawPile.Cards
+            .Where(card =>
+                !card.Preview.Keywords.Contains(CardKeyword.Unplayable) &&
+                card.Preview.Type is not CardType.Status and not CardType.Curse &&
+                card.Preview.GetEnchantedReplayCount() < 1)
+            .ToList();
+        var preferredCards = eligibleCards
+            .Where(card => card.Preview.Type is CardType.Attack or CardType.Skill or CardType.Power)
+            .ToList();
+
+        var predicted = simulator.Rng.CombatCardSelection.NextItem(
+            preferredCards.Count == 0 ? eligibleCards : preferredCards);
+        if (predicted == null)
+        {
+            return CombatCardSelectionPredictionResult.Empty;
+        }
+
+        predicted.MutablePreview.BaseReplayCount += source.Preview.DynamicVars["Replay"].IntValue;
+        return new(predicted.Preview, PredictionRisk.None);
+    }
+
+    private CombatCardSelectionPredictionResult PredictSeekerStrike()
+    {
+        if (!TrySimulateTargetedAttack())
+        {
+            return CombatCardSelectionPredictionResult.Empty;
+        }
+
+        var selectedCards = playerCombatState.DrawPile.Cards
             .ToList()
-            .StableShuffle(previewRng)
+            .StableShuffle(simulator.Rng.CombatCardSelection)
+            .Take(source.Preview.DynamicVars.Cards.IntValue)
+            .Select(card => card.Preview)
+            .ToList();
+
+        return new(selectedCards, simulator.Snapshot());
+    }
+
+    private CombatCardSelectionPredictionResult PredictThrash()
+    {
+        return TrySimulateTargetedAttack(hitCount: 2)
+            ? PredictHandCard(card => card.Type == CardType.Attack)
+            : CombatCardSelectionPredictionResult.Empty;
+    }
+
+    private CombatCardSelectionPredictionResult PredictTrueGrit()
+    {
+        simulator.GainBlock(source.Preview.Owner.Creature, source.Preview.DynamicVars.Block, source);
+        return PredictHandCard(_ => true);
+    }
+
+    private CombatCardSelectionPredictionResult PredictUproar()
+    {
+        if (!TrySimulateTargetedAttack(hitCount: 2))
+        {
+            return CombatCardSelectionPredictionResult.Empty;
+        }
+
+        var attackCards = playerCombatState.DrawPile.Cards
+            .Where(card => card.Preview.Type == CardType.Attack)
+            .ToList();
+
+        var predicted = attackCards
+            .Where(card => !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
+            .ToList()
+            .StableShuffle(simulator.Rng.Shuffle)
             .FirstOrDefault();
 
-        predicted ??= drawPileCards
-            .Where(card => card.Type == CardType.Attack)
-            .ToList()
-            .StableShuffle(previewRng)
+        predicted ??= attackCards
+            .StableShuffle(simulator.Rng.Shuffle)
             .FirstOrDefault();
 
-        return predicted;
+        return new(predicted?.Preview, simulator.Snapshot());
     }
 }
 
@@ -159,24 +214,19 @@ internal sealed record CombatCardSelectionPredictionResult(
     IReadOnlyList<CardModel> SelectedCards,
     PredictionRisk Risk)
 {
-    public static CombatCardSelectionPredictionResult FromSelectedCards(IReadOnlyList<CardModel> selectedCards, PredictionRisk risk)
-    {
-        return selectedCards.Count > 0
-            ? new(selectedCards, risk)
-            : Empty;
-    }
-
-    public static CombatCardSelectionPredictionResult FromSelectedCard(CardModel? selectedCard, PredictionRisk risk)
-    {
-        return selectedCard != null
-            ? new([selectedCard], risk)
-            : Empty;
-    }
+    public CombatCardSelectionPredictionResult(CardModel? selectedCard, PredictionRisk risk)
+        : this(selectedCard != null ? [selectedCard] : [], risk)
+    { }
 
     public static CombatCardSelectionPredictionResult Empty { get; } = new([], PredictionRisk.None);
 
     public IReadOnlyList<IHoverTip> ToHoverTips()
     {
+        if (SelectedCards.Count == 0)
+        {
+            return [];
+        }
+
         var tips = PredictionHoverTips.Cards(SelectedCards).ToList();
         PredictionHoverTips.AddDriftWarningIfNeeded(tips, "card_selection", Risk);
         return tips;
