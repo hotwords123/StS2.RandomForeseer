@@ -77,6 +77,7 @@ internal sealed class OrbPrediction(
             Shatter => SimulateShatter(),
             Spinner { IsUpgraded: true } => SimulateSpinner(),
             Tempest => SimulateTempest(),
+            TeslaCoil => SimulateTeslaCoil(),
             Voltaic => SimulateVoltaic(),
             Zap => SimulateZap(),
             _ => false
@@ -310,6 +311,27 @@ internal sealed class OrbPrediction(
         simulator.OrbChannel<LightningOrb>(
             source.Preview.Owner,
             GetXValue() + (source.Preview.IsUpgraded ? 1 : 0));
+        return true;
+    }
+
+    private bool SimulateTeslaCoil()
+    {
+        if (!TrySimulateTargetedAttack())
+        {
+            return false;
+        }
+
+        var triggerCount = source.Preview.IsUpgraded ? 2 : 1;
+        var lightningOrbs = playerCombatState.OrbQueue.Orbs.OfType<LightningOrb>().ToArray();
+
+        foreach (var lightningOrb in lightningOrbs)
+        {
+            for (var i = 0; i < triggerCount; i++)
+            {
+                simulator.OrbPassive(lightningOrb, target);
+            }
+        }
+
         return true;
     }
 

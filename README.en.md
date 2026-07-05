@@ -109,6 +109,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Shatter
 - Spinner (upgraded)
 - Tempest
+- Tesla Coil
 - Voltaic
 - Zap
 

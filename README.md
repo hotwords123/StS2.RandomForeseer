@@ -109,6 +109,7 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 - 打碎（Shatter）
 - 旋转工艺（Spinner，升级后）
 - 暴风雨（Tempest）
+- 特斯拉线圈（Tesla Coil）
 - 电流相生（Voltaic）
 - 电击（Zap）
 
