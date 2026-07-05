@@ -32,12 +32,16 @@
 | End-turn ignored listeners | `Regret`, `DiamondDiadem` | 悔恨 / 钻石头冠 | Acceptable for current scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. |
 | Card reward state commit | `SilverCrucible`, `SilkenTress` | 白银熔炉 / 华美发束 | Result modifiers are mirrored, but `Hook.AfterModifyingCardRewardOptions` is not. Chained previews can reuse live usage state until prediction owns a transaction-local state commit. |
 | Card reward risk surfacing | Unsupported card reward listeners | - | `CardRewardHookContext` records risk internally but callers do not consume a risk snapshot. |
+| Card pile hook dispatch | Generated combat pile additions | - | Simulator generated-card helpers mirror supported `AfterCardGeneratedForCombat` listeners, but still skip `AfterCardEnteredCombat` and `AfterCardChangedPiles` by current scope. See the dedicated card-pile hook docs. |
 
 ## Related docs
 
-- `after-card-drawn.md`
+- `after-card-changed-piles.md`
 - `after-card-discarded.md`
+- `after-card-drawn.md`
+- `after-card-entered-combat.md`
 - `after-card-exhausted.md`
+- `after-card-generated-for-combat.md`
 - `attack-hooks.md`
 - `should-draw.md`
 - `block-hooks.md`

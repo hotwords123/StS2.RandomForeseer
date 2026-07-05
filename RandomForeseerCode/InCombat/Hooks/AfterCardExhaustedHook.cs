@@ -186,10 +186,7 @@ internal static class AfterCardExhaustedHook
     private static void HandleMidnight(Midnight card, AfterCardExhaustedHookContext context)
     {
         // StS2 v0.108.0 added Midnight's global exhaust listener; mutate only the predicted instance.
-        if (context.State.FindCard(card) is { } midnight)
-        {
-            midnight.MutablePreview.EnergyCost.AddThisCombat(-1);
-        }
+        context.State.FindCard(card)?.MutablePreview.EnergyCost.AddThisCombat(-1);
     }
 
 }

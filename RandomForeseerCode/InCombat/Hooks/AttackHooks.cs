@@ -114,8 +114,7 @@ internal static class AttackHooks
             return;
         }
 
-        var predictedCard = context.State.FindCard(card);
-        predictedCard?.MutablePreview.EnergyCost.SetThisTurn(0);
+        context.State.FindCard(card)?.MutablePreview.EnergyCost.SetThisTurn(0);
     }
 
     private static void HandleGigantificationAfterAttack(

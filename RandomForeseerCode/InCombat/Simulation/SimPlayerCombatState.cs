@@ -32,8 +32,9 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
 
     public int Stars { get; private set; } = player.PlayerCombatState?.Stars ?? 0;
 
-    public IEnumerable<PredictedCard> AllCards =>
-        GetCards(PileType.Hand, PileType.Draw, PileType.Discard, PileType.Exhaust, PileType.Play);
+    public IReadOnlyList<SimCardPile> AllPiles => [Hand, DrawPile, DiscardPile, ExhaustPile, PlayPile];
+
+    public IEnumerable<PredictedCard> AllCards => AllPiles.SelectMany(pile => pile.Cards);
 
     public CombatCardDrawPredictionState CardDrawState { get; } = new()
     {
@@ -59,11 +60,6 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
             PileType.Deck => throw new ArgumentOutOfRangeException(nameof(type), type, "Deck is not a combat pile."),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, $"Unknown pile type: {type}.")
         };
-    }
-
-    public IEnumerable<PredictedCard> GetCards(params PileType[] piles)
-    {
-        return piles.SelectMany(type => GetCardPile(type)?.Cards ?? []);
     }
 
     public void GainEnergy(decimal amount)

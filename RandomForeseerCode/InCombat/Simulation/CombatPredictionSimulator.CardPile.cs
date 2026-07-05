@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Models;
@@ -274,4 +275,187 @@ internal sealed partial class CombatPredictionSimulator
             state.DiscardPile.Add(card);
         }
     }
+
+    // Mirrors CardPileCmd.AddToCombatAndPreview<T>(Creature, PileType, int, Player?, CardPilePosition)
+    // up to card creation and AddGeneratedCardToCombat dispatch. Preview animation is UI-only.
+    public void AddToCombat<TCard>(
+        Creature target,
+        PileType pileType,
+        int count,
+        Player? creator,
+        CardPilePosition position = CardPilePosition.Bottom)
+        where TCard : CardModel
+    {
+        var player = target.Player ?? target.PetOwner;
+        if (player is null || State.GetCreature(player.Creature).IsDead)
+        {
+            return;
+        }
+
+        List<PredictedCard> cards = [];
+        for (var i = 0; i < count; i++)
+        {
+            cards.Add(PredictedCard.Create(ModelDb.Card<TCard>(), player));
+        }
+
+        AddGeneratedCardsToCombat(cards, pileType, creator, position);
+    }
+
+    // Convenience overload for AddGeneratedCardsToCombat with a single card.
+    public SimCardPileAddResult AddGeneratedCardToCombat(
+        PredictedCard card,
+        PileType newPileType,
+        Player? creator,
+        CardPilePosition position = CardPilePosition.Bottom)
+    {
+        return AddGeneratedCardsToCombat([card], newPileType, creator, position)[0];
+    }
+
+    // Mirrors CardPileCmd.AddGeneratedCardsToCombat for combat piles.
+    public IReadOnlyList<SimCardPileAddResult> AddGeneratedCardsToCombat(
+        IReadOnlyList<PredictedCard> cards,
+        PileType newPileType,
+        Player? creator,
+        CardPilePosition position = CardPilePosition.Bottom)
+    {
+        if (cards.Count == 0)
+        {
+            return [];
+        }
+
+        if (!newPileType.IsCombatPile())
+        {
+            throw new InvalidOperationException("Generated combat cards can only be added to combat piles.");
+        }
+
+        if (cards.Any(card => card.GetPile(State) is not null))
+        {
+            throw new InvalidOperationException("Generated combat cards cannot already be in a pile.");
+        }
+
+        List<SimCardPileAddResult> results = [];
+
+        foreach (var card in cards)
+        {
+            // Vanilla records CombatManager.Instance.History.CardGenerated here. The simulator
+            // does not currently consume generated-card history, so this is intentionally omitted.
+
+            results.Add(AddToPile(card, newPileType, position));
+
+            AfterCardGeneratedForCombatHook.Run(new AfterCardGeneratedForCombatHookContext
+            {
+                Simulator = this,
+                Card = card,
+                Creator = creator
+            });
+        }
+
+        return results;
+    }
+
+    // Convenience overload for AddToPile with a single card.
+    public SimCardPileAddResult AddToPile(
+        PredictedCard card,
+        PileType newPileType,
+        CardPilePosition position = CardPilePosition.Bottom)
+    {
+        return AddToPile([card], newPileType, position)[0];
+    }
+
+    // Mirrors the combat-pile branch of CardPileCmd.Add(IEnumerable<CardModel>, CardPile, ...).
+    public IReadOnlyList<SimCardPileAddResult> AddToPile(
+        IReadOnlyList<PredictedCard> cards,
+        PileType newPileType,
+        CardPilePosition position = CardPilePosition.Bottom)
+    {
+        if (!newPileType.IsCombatPile())
+        {
+            throw new InvalidOperationException($"Cannot add card to non-combat pile {newPileType}.");
+        }
+
+        if (cards.Count == 0)
+        {
+            return [];
+        }
+
+        var owner = cards[0].Preview.Owner
+            ?? throw new InvalidOperationException($"Cannot add cards with no owner to a pile.");
+        var playerCombatState = State.GetPlayerCombatState(owner);
+
+        List<SimCardPileAddResult> results = [];
+
+        foreach (var card in cards)
+        {
+            if (card.Preview.Owner != owner)
+            {
+                throw new InvalidOperationException("Cannot add cards with different owners to the same pile.");
+            }
+
+            var oldPile = card.GetPile(playerCombatState);
+            var oldPileType = oldPile?.Type ?? PileType.None;
+
+            if (card.Original.HasBeenRemovedFromState ||
+                card.Preview.HasBeenRemovedFromState ||
+                State.GetCreature(owner.Creature).IsDead ||
+                (oldPileType != PileType.None && !oldPileType.IsCombatPile()))
+            {
+                results.Add(new SimCardPileAddResult(false, card, oldPileType));
+                continue;
+            }
+
+            // Vanilla checks for card.UpgradePreviewType.IsPreview() here and throws if true.
+            // The simulator does not currently support preview cards, so this is intentionally omitted.
+
+            results.Add(new SimCardPileAddResult(true, card, oldPileType));
+        }
+
+        foreach (var result in results)
+        {
+            if (!result.Success)
+            {
+                continue;
+            }
+
+            var card = result.CardAdded;
+
+            var targetPile = playerCombatState.GetCardPile(newPileType)
+                ?? throw new InvalidOperationException($"Cannot find combat pile {newPileType} for player {owner}.");
+            if (targetPile.Type == PileType.Hand && targetPile.Cards.Count >= CardPile.MaxCardsInHand)
+            {
+                targetPile = playerCombatState.DiscardPile;
+            }
+
+            card.GetPile(playerCombatState)?.Remove(card);
+
+            var index = position switch
+            {
+                CardPilePosition.Bottom => targetPile.Cards.Count,
+                CardPilePosition.Top => 0,
+                CardPilePosition.Random => Rng.Shuffle.NextInt(targetPile.Cards.Count + 1),
+                _ => throw new ArgumentOutOfRangeException(nameof(position), position, null)
+            };
+            targetPile.Insert(index, card);
+
+            // Vanilla CardPile.AddInternal updates CombatManager.StateTracker and raises pile UI events.
+            // Prediction piles are plain model mirrors, and those UI-facing side effects are ignored.
+
+            if (result.OldPileType == PileType.None)
+            {
+                // Vanilla dispatches Hook.AfterCardEnteredCombat here. Current reviewed vanilla
+                // implementations only mutate the entering card, and this is low-impact for current
+                // prediction surfaces, so the mirror intentionally skips it for now.
+            }
+        }
+
+        // Vanilla dispatches Hook.AfterCardChangedPiles after visuals finish. Current vanilla
+        // listeners are deck-only or VFX/music-only for combat piles, so this is intentionally
+        // skipped until a prediction-relevant combat-pile listener appears.
+
+        return results;
+    }
 }
+
+internal readonly record struct SimCardPileAddResult(
+    bool Success,
+    PredictedCard CardAdded,
+    PileType OldPileType);
