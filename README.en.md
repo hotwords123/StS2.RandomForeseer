@@ -89,16 +89,24 @@ Each feature can be toggled independently from the mod settings page, and predic
 
 ### Orb Effects
 
+- Ball Lightning
 - Chaos
+- Cold Snap
 - Darkness
 - Dualcast
 - Fusion
 - Glacier
 - Glasswork
+- Ice Lance
+- Ignition
+- Meteor Strike
 - Multi-Cast
+- Null
 - Quadcast
 - Rainbow
+- Refract
 - Shadow Shield
+- Shatter
 - Spinner (upgraded)
 - Tempest
 - Voltaic

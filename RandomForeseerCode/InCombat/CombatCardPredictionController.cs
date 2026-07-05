@@ -51,7 +51,7 @@ internal static class CombatCardPredictionController
 
         _activePrediction = new ActiveCardPrediction(source, holder, card, target);
 
-        ShowDamagePrediction(card);
+        ShowDamagePrediction(card, target);
         ShowSelectionHighlight(card, target);
 
         // Card damage predictions share the same display surfaces as end-turn prediction.
@@ -96,13 +96,13 @@ internal static class CombatCardPredictionController
             ReferenceEquals(activePrediction.Holder, holder);
     }
 
-    private static void ShowDamagePrediction(CardModel card)
+    private static void ShowDamagePrediction(CardModel card, Creature? target)
     {
         DamagePredictionResult prediction;
 
         try
         {
-            prediction = OrbPrediction.PredictDamage(card);
+            prediction = OrbPrediction.PredictDamage(card, target);
         }
         catch (Exception ex)
         {

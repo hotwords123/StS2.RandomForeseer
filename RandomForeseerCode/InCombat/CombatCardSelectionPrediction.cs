@@ -71,18 +71,7 @@ internal sealed class CombatCardSelectionPrediction(
 
     private bool TrySimulateTargetedAttack(int hitCount = 1)
     {
-        if (target is null || !source.Preview.CanPlayTargeting(target))
-        {
-            return false;
-        }
-
-        DamageCmd.Attack(source.Preview.DynamicVars.Damage.BaseValue)
-            .FromCard(source.Preview, null)
-            .WithHitCount(hitCount)
-            .Targeting(target)
-            .Simulate(simulator);
-
-        return true;
+        return simulator.TrySimulateTargetedAttack(source, target, hitCount);
     }
 
     private CombatCardSelectionPredictionResult PredictAnointed()

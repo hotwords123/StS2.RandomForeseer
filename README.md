@@ -89,16 +89,24 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 
 ### 充能球效果
 
+- 球状闪电（Ball Lightning）
 - 混沌（Chaos）
+- 寒流（Cold Snap）
 - 漆黑（Darkness）
 - 双重释放（Dualcast）
 - 聚变（Fusion）
 - 冰川（Glacier）
 - 玻璃工艺（Glasswork）
+- 冰之长枪（Ice Lance）
+- 引火（Ignition）
+- 陨石打击（Meteor Strike）
 - 多重释放（Multi-Cast）
+- 空值（Null）
 - 四重释放（Quadcast）
 - 彩虹（Rainbow）
+- 折射（Refract）
 - 暗影之盾（Shadow Shield）
+- 打碎（Shatter）
 - 旋转工艺（Spinner，升级后）
 - 暴风雨（Tempest）
 - 电流相生（Voltaic）

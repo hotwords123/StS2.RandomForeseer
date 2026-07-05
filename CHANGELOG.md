@@ -4,6 +4,9 @@
 
 ### feat
 
+- 充能球效果预测现在支持球状闪电、寒流、冰之长枪、引火、陨石打击、空值、折射和打碎。<br>
+  Orb effect prediction now supports Ball Lightning, Cold Snap, Ice Lance, Ignition, Meteor Strike, Null, Refract, and Shatter.
+
 - 战斗随机选牌预测现在会在拖拽攻击牌并指向目标时模拟攻击结算后的随机选牌结果。<br>
   Combat random card selection prediction now simulates target-dependent attack resolution while dragging attack cards over a target.
 

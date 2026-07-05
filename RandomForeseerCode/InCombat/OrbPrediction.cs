@@ -1,3 +1,5 @@
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -9,19 +11,25 @@ using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
-internal static class OrbPrediction
+internal sealed class OrbPrediction(
+    CombatPredictionSimulator simulator,
+    SimPlayerCombatState playerCombatState,
+    PredictedCard source,
+    Creature? target,
+    List<IHoverTip> extraTips)
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        return Predict(card).ExtraHoverTips;
+        // TODO: This should also show when the card is dragged to play
+        return Predict(card, target: null).ExtraHoverTips;
     }
 
-    public static DamagePredictionResult PredictDamage(CardModel card)
+    public static DamagePredictionResult PredictDamage(CardModel card, Creature? target)
     {
-        return Predict(card).DamagePrediction;
+        return Predict(card, target).DamagePrediction;
     }
 
-    public static OrbPredictionResult Predict(CardModel card)
+    public static OrbPredictionResult Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOrbPrediction) ||
             card.Owner.Creature.CombatState is not { } combatState)
@@ -30,74 +38,19 @@ internal static class OrbPrediction
         }
 
         var simulator = new CombatPredictionSimulator(combatState);
+
+        var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
+        var predictedCard = playerCombatState.FindCard(card) ?? new PredictedCard(card);
+
         var extraTips = new List<IHoverTip>();
+        var predictor = new OrbPrediction(simulator, playerCombatState, predictedCard, target, extraTips);
 
-        switch (card)
+        using (simulator.PushSource(card))
         {
-            // TODO: Add support for direct Channel/Evoke cards:
-            // BallLightning, ColdSnap, IceLance, Ignition, MeteorStrike, Null, Refract, Shatter.
-
-            case Chaos chaos:
-                SimulateChaos(chaos, simulator, extraTips);
-                break;
-            case Chill:
-                simulator.OrbChannel<FrostOrb>(card.Owner, simulator.State.GetHittableOpponentsOf(card.Owner.Creature).Count);
-                break;
-            case ConsumingShadow:
-                simulator.OrbChannel<DarkOrb>(card.Owner, card.DynamicVars.Repeat.IntValue);
-                // Vanilla applies ConsumingShadowPower after channeling, which is not simulated here.
-                break;
-            case Coolheaded:
-                simulator.OrbChannel<FrostOrb>(card.Owner);
-                simulator.Draw(card.Owner, card.DynamicVars.Cards.IntValue);
-                break;
-            case Darkness darkness:
-                SimulateDarkness(darkness, simulator);
-                break;
-            case Dualcast:
-                simulator.OrbEvokeNext(card.Owner, repeat: 2);
-                break;
-            case Fusion:
-                simulator.OrbChannel<PlasmaOrb>(card.Owner);
-                break;
-            case Glacier:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
-                simulator.OrbChannel<FrostOrb>(card.Owner, 2);
-                break;
-            case Glasswork:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
-                simulator.OrbChannel<GlassOrb>(card.Owner);
-                break;
-            case MultiCast:
-                simulator.OrbEvokeNext(card.Owner, repeat: GetXValue(card) + (card.IsUpgraded ? 1 : 0));
-                break;
-            case Quadcast:
-                simulator.OrbEvokeNext(card.Owner, repeat: card.DynamicVars.Repeat.IntValue);
-                break;
-            case Rainbow:
-                simulator.OrbChannel<LightningOrb>(card.Owner);
-                simulator.OrbChannel<FrostOrb>(card.Owner);
-                simulator.OrbChannel<DarkOrb>(card.Owner);
-                break;
-            case ShadowShield:
-                simulator.GainBlock(card.Owner.Creature, card.DynamicVars.Block, new PredictedCard(card));
-                simulator.OrbChannel<DarkOrb>(card.Owner);
-                break;
-            case Spinner { IsUpgraded: true }:
-                simulator.OrbChannel<GlassOrb>(card.Owner);
-                // Vanilla applies SpinnerPower after channeling, which is not simulated here.
-                break;
-            case Tempest:
-                simulator.OrbChannel<LightningOrb>(card.Owner, GetXValue(card) + (card.IsUpgraded ? 1 : 0));
-                break;
-            case Voltaic voltaic:
-                simulator.OrbChannel<LightningOrb>(voltaic.Owner, GetVoltaicChannelCount(voltaic));
-                break;
-            case Zap:
-                simulator.OrbChannel<LightningOrb>(card.Owner);
-                break;
-            default:
+            if (!predictor.Simulate())
+            {
                 return OrbPredictionResult.Empty;
+            }
         }
 
         var damagePrediction = DamagePredictionResult.FromDamageHistory(simulator);
@@ -105,37 +58,117 @@ internal static class OrbPrediction
         return new OrbPredictionResult(damagePrediction, extraTips);
     }
 
-    private static void SimulateChaos(
-        Chaos chaos,
-        CombatPredictionSimulator simulator,
-        List<IHoverTip> extraTips)
+    private bool Simulate()
+    {
+        return source.Preview switch
+        {
+            BallLightning => SimulateBallLightning(),
+            Chaos => SimulateChaos(),
+            Chill => SimulateChill(),
+            ColdSnap => SimulateColdSnap(),
+            ConsumingShadow => SimulateConsumingShadow(),
+            Coolheaded => SimulateCoolheaded(),
+            Darkness => SimulateDarkness(),
+            Dualcast => SimulateDualcast(),
+            Fusion => SimulateFusion(),
+            Glacier => SimulateGlacier(),
+            Glasswork => SimulateGlasswork(),
+            IceLance => SimulateIceLance(),
+            Ignition => SimulateIgnition(),
+            MeteorStrike => SimulateMeteorStrike(),
+            MultiCast => SimulateMultiCast(),
+            Null => SimulateNull(),
+            Quadcast => SimulateQuadcast(),
+            Rainbow => SimulateRainbow(),
+            Refract => SimulateRefract(),
+            ShadowShield => SimulateShadowShield(),
+            Shatter => SimulateShatter(),
+            Spinner { IsUpgraded: true } => SimulateSpinner(),
+            Tempest => SimulateTempest(),
+            Voltaic => SimulateVoltaic(),
+            Zap => SimulateZap(),
+            _ => false
+        };
+    }
+
+    private int GetXValue()
+    {
+        // TODO: Track player energy in SimPlayerCombatState
+        var capturedXValue = source.Preview.Owner.PlayerCombatState?.Energy ?? 0;
+        return Hook.ModifyXValue(simulator.State.CombatState, source.Preview, capturedXValue);
+    }
+
+    private bool TrySimulateTargetedAttack(int hitCount = 1)
+    {
+        return simulator.TrySimulateTargetedAttack(source, target, hitCount);
+    }
+
+    private bool SimulateBallLightning()
+    {
+        if (!TrySimulateTargetedAttack())
+        {
+            return false;
+        }
+
+        simulator.OrbChannel<LightningOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateChaos()
     {
         var generatedOrbs = new List<OrbModel>();
-        for (var i = 0; i < chaos.DynamicVars.Repeat.IntValue; i++)
+        for (var i = 0; i < source.Preview.DynamicVars.Repeat.IntValue; i++)
         {
             var orb = OrbModel.GetRandomOrb(simulator.Rng.CombatOrbGeneration).ToMutable();
-            if (simulator.OrbChannel(chaos.Owner, orb))
+            if (simulator.OrbChannel(source.Preview.Owner, orb))
             {
                 generatedOrbs.Add(orb);
             }
         }
 
         extraTips.AddRange(PredictionHoverTips.Orbs(generatedOrbs));
+        return true;
     }
 
-    private static void SimulateDarkness(
-        Darkness darkness,
-        CombatPredictionSimulator simulator)
+    private bool SimulateChill()
     {
-        simulator.OrbChannel<DarkOrb>(darkness.Owner);
+        simulator.OrbChannel<FrostOrb>(
+            source.Preview.Owner,
+            simulator.State.GetHittableOpponentsOf(source.Preview.Owner.Creature).Count);
+        return true;
+    }
 
-        var triggerCount = darkness.IsUpgraded ? 2 : 1;
-        var darkOrbs = simulator.State
-            .GetPlayerCombatState(darkness.Owner)
-            .OrbQueue
-            .Orbs
-            .OfType<DarkOrb>()
-            .ToList();
+    private bool SimulateColdSnap()
+    {
+        if (!TrySimulateTargetedAttack())
+        {
+            return false;
+        }
+
+        simulator.OrbChannel<FrostOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateConsumingShadow()
+    {
+        simulator.OrbChannel<DarkOrb>(source.Preview.Owner, source.Preview.DynamicVars.Repeat.IntValue);
+        // Vanilla applies ConsumingShadowPower after channeling, which is not simulated here.
+        return true;
+    }
+
+    private bool SimulateCoolheaded()
+    {
+        simulator.OrbChannel<FrostOrb>(source.Preview.Owner);
+        simulator.Draw(source.Preview.Owner, source.Preview.DynamicVars.Cards.IntValue);
+        return true;
+    }
+
+    private bool SimulateDarkness()
+    {
+        simulator.OrbChannel<DarkOrb>(source.Preview.Owner);
+
+        var triggerCount = source.Preview.IsUpgraded ? 2 : 1;
+        var darkOrbs = playerCombatState.OrbQueue.Orbs.OfType<DarkOrb>().ToArray();
 
         foreach (var darkOrb in darkOrbs)
         {
@@ -144,22 +177,163 @@ internal static class OrbPrediction
                 simulator.OrbPassive(darkOrb);
             }
         }
+
+        return true;
     }
 
-    private static int GetXValue(CardModel card)
+    private bool SimulateDualcast()
     {
-        if (card.Owner.Creature.CombatState is not { } combatState)
+        simulator.OrbEvokeNext(source.Preview.Owner, repeat: 2);
+        return true;
+    }
+
+    private bool SimulateFusion()
+    {
+        simulator.OrbChannel<PlasmaOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateGlacier()
+    {
+        simulator.GainBlock(source.Preview.Owner.Creature, source.Preview.DynamicVars.Block, source);
+        simulator.OrbChannel<FrostOrb>(source.Preview.Owner, 2);
+        return true;
+    }
+
+    private bool SimulateGlasswork()
+    {
+        simulator.GainBlock(source.Preview.Owner.Creature, source.Preview.DynamicVars.Block, source);
+        simulator.OrbChannel<GlassOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateIceLance()
+    {
+        if (!TrySimulateTargetedAttack())
         {
-            return 0;
+            return false;
         }
 
-        var capturedXValue = card.Owner.PlayerCombatState?.Energy ?? 0;
-        return Hook.ModifyXValue(combatState, card, capturedXValue);
+        simulator.OrbChannel<FrostOrb>(source.Preview.Owner, source.Preview.DynamicVars.Repeat.IntValue);
+        return true;
     }
 
-    private static int GetVoltaicChannelCount(Voltaic voltaic)
+    private bool SimulateIgnition()
     {
-        return (int)((CalculatedVar)voltaic.DynamicVars["CalculatedChannels"]).Calculate(null);
+        if (target?.Player is not { } ignitionTarget || !source.Preview.CanPlayTargeting(target))
+        {
+            return false;
+        }
+
+        simulator.OrbChannel<PlasmaOrb>(ignitionTarget);
+        return true;
+    }
+
+    private bool SimulateMeteorStrike()
+    {
+        if (!TrySimulateTargetedAttack())
+        {
+            return false;
+        }
+
+        simulator.OrbChannel<PlasmaOrb>(source.Preview.Owner, 3);
+        return true;
+    }
+
+    private bool SimulateMultiCast()
+    {
+        simulator.OrbEvokeNext(source.Preview.Owner, repeat: GetXValue() + (source.Preview.IsUpgraded ? 1 : 0));
+        return true;
+    }
+
+    private bool SimulateNull()
+    {
+        if (!TrySimulateTargetedAttack())
+        {
+            return false;
+        }
+
+        // Vanilla applies Weak before channeling; Weak does not affect this prediction's orb damage.
+        simulator.OrbChannel<DarkOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateQuadcast()
+    {
+        simulator.OrbEvokeNext(source.Preview.Owner, repeat: source.Preview.DynamicVars.Repeat.IntValue);
+        return true;
+    }
+
+    private bool SimulateRainbow()
+    {
+        simulator.OrbChannel<LightningOrb>(source.Preview.Owner);
+        simulator.OrbChannel<FrostOrb>(source.Preview.Owner);
+        simulator.OrbChannel<DarkOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateRefract()
+    {
+        if (!TrySimulateTargetedAttack(hitCount: 2))
+        {
+            return false;
+        }
+
+        simulator.OrbChannel<GlassOrb>(source.Preview.Owner, source.Preview.DynamicVars.Repeat.IntValue);
+        return true;
+    }
+
+    private bool SimulateShadowShield()
+    {
+        simulator.GainBlock(source.Preview.Owner.Creature, source.Preview.DynamicVars.Block, source);
+        simulator.OrbChannel<DarkOrb>(source.Preview.Owner);
+        return true;
+    }
+
+    private bool SimulateShatter()
+    {
+        DamageCmd.Attack(source.Preview.DynamicVars.Damage.BaseValue)
+            .FromCard(source.Preview, null)
+            .TargetingAllOpponents(simulator.State.CombatState)
+            .Simulate(simulator);
+
+        var orbCount = playerCombatState.OrbQueue.Orbs.Count;
+        for (var i = 0; i < orbCount; i++)
+        {
+            simulator.OrbEvokeNext(source.Preview.Owner, repeat: 2);
+        }
+
+        return true;
+    }
+
+    private bool SimulateSpinner()
+    {
+        simulator.OrbChannel<GlassOrb>(source.Preview.Owner);
+        // Vanilla applies SpinnerPower after channeling, which is not simulated here.
+        return true;
+    }
+
+    private bool SimulateTempest()
+    {
+        simulator.OrbChannel<LightningOrb>(
+            source.Preview.Owner,
+            GetXValue() + (source.Preview.IsUpgraded ? 1 : 0));
+        return true;
+    }
+
+    private bool SimulateVoltaic()
+    {
+        if (source.Preview.DynamicVars["CalculatedChannels"] is CalculatedVar calculatedVar)
+        {
+            simulator.OrbChannel<LightningOrb>(source.Preview.Owner, (int)calculatedVar.Calculate(null));
+        }
+        return true;
+    }
+
+    private bool SimulateZap()
+    {
+        simulator.OrbChannel<LightningOrb>(source.Preview.Owner);
+        return true;
     }
 }
 
