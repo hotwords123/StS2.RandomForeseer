@@ -27,12 +27,12 @@ Mirror file: `InCombat/Hooks/AfterCardDrawnHook.cs`.
 | `CacophonyPower` | 杂音 | Decrements its 33-card counter on every drawn card; at zero waits, rolls a random hittable enemy with `RunState.Rng.CombatTargets`, deals unpowered damage, then resets the counter to 33. | Implemented. StS2 v0.108.0 added this listener; mirror uses prediction-local counter state, cloned `CombatTargets` RNG, and simulator `Damage`. |
 | `KinglyKick` | 王者之踢 | When this card is drawn, reduces this-combat cost by 1. | Implemented. Matches original relevant state change. |
 | `KinglyPunch` | 王者之拳 | When this card is drawn, increases its damage by `Increase`. | Implemented. Matches current prediction-relevant state. |
-| `AutomationPower` | 自动化 | Counts drawn cards and grants energy at threshold. | Ignored. Energy gain does not affect current predictions. |
-| `Void` | 虚空 | Waits, then loses energy when this card is drawn. | Ignored. Energy/wait do not affect current predictions. |
+| `AutomationPower` | 自动化 | Counts drawn cards and grants energy at threshold. | Implemented. Uses prediction-local cards-left state and simulator `GainEnergy`; live display/internal data is not mutated. |
+| `Void` | 虚空 | Waits, then loses energy when this card is drawn. | Implemented for energy loss. Wait is omitted. |
 
 ## Parity notes
 
-- Implemented cost/draw/affliction/card-stat handlers match the original gameplay predicates and use shadow state.
+- Implemented cost/draw/affliction/card-stat/energy handlers match the original gameplay predicates and use shadow state.
 - `CorrosiveWavePower` is not implementable under the current rule because it applies powers.
 - `CacophonyPower` uses the live counter as the initial shadow value and resets to the canonical card threshold after a simulated trigger, avoiding a hard-coded 33 if vanilla changes that value later.
 

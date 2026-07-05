@@ -202,12 +202,12 @@ internal static class OrbBehavior
 
     private static void PlasmaOrbPassive(CombatPredictionSimulator simulator, PlasmaOrb orb)
     {
-        // Energy gain is not modeled in the combat prediction simulator.
+        simulator.GainEnergy(orb.Owner, orb.PassiveVal);
     }
 
     private static IReadOnlyList<Creature> PlasmaOrbEvoke(CombatPredictionSimulator simulator, PlasmaOrb orb)
     {
-        // Energy gain is not modeled in the combat prediction simulator.
+        simulator.GainEnergy(orb.Owner, orb.EvokeVal);
         return [orb.Owner.Creature];
     }
 

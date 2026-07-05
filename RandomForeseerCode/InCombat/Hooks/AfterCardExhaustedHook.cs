@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Achievements;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -37,7 +38,7 @@ internal static class AfterCardExhaustedHook
         registry.Register<BurningSticks>(HandleBurningSticks);
         registry.Register<CharonsAshes>(HandleCharonsAshes);
         registry.Register<DarkEmbracePower>(HandleDarkEmbracePower);
-        registry.RegisterIgnored<DrumOfBattle>();
+        registry.Register<DrumOfBattle>(HandleDrumOfBattle);
         registry.Register<FeelNoPainPower>(HandleFeelNoPainPower);
         registry.Register<ForgottenSoul>(HandleForgottenSoul);
         registry.Register<JossPaper>(HandleJossPaper);
@@ -85,6 +86,33 @@ internal static class AfterCardExhaustedHook
         }
 
         context.Simulator.Draw(context.Player, power.Amount);
+    }
+
+    private static void HandleDrumOfBattle(DrumOfBattle card, AfterCardExhaustedHookContext context)
+    {
+        if (context.OriginalCard != card)
+        {
+            return;
+        }
+
+        var playCount = Hook.ModifyCardPlayCount(
+            context.CombatState,
+            context.PreviewCard,
+            context.PreviewCard.GetEnchantedReplayCount() + 1,
+            target: null,
+            out var modifiers);
+        if (modifiers.Count > 0)
+        {
+            // Vanilla GeneratePlayCount would also run AfterModifyingCardPlayCount here.
+            // Those listeners can decrement/remove live powers or relic state, so prediction
+            // uses the value hook for energy amount and marks the missing state commit as risk.
+            context.MarkCurrentSourceRisky();
+        }
+
+        for (var i = 0; i < playCount; i++)
+        {
+            context.Simulator.GainEnergy(card.Owner, card.DynamicVars.Energy.BaseValue);
+        }
     }
 
     private static void HandleJossPaper(JossPaper relic, AfterCardExhaustedHookContext context)

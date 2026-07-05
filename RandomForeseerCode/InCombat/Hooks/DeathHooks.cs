@@ -77,7 +77,7 @@ internal static class DeathHooks
             return;
         }
 
-        // Vanilla also gains energy here; energy is outside the current prediction surface.
+        context.Simulator.GainEnergy(relic.Owner, relic.DynamicVars.Energy.BaseValue);
         context.Simulator.Draw(relic.Owner, relic.DynamicVars.Cards.IntValue);
     }
 

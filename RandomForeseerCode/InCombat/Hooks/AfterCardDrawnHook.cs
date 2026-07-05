@@ -67,9 +67,8 @@ internal static class AfterCardDrawnHook
         registry.Register<CacophonyPower>(HandleCacophonyPower);
         registry.Register<KinglyKick>(HandleKinglyKick);
         registry.Register<KinglyPunch>(HandleKinglyPunch);
-
-        registry.RegisterIgnored<AutomationPower>();
-        registry.RegisterIgnored<Cards.Void>();
+        registry.Register<AutomationPower>(HandleAutomationPower);
+        registry.Register<Cards.Void>(HandleVoid);
 
         return registry;
     }
@@ -207,6 +206,36 @@ internal static class AfterCardDrawnHook
         previewCard.ExtraDamage += damageIncrease;
     }
 
+    private static void HandleAutomationPower(AutomationPower power, AfterCardDrawnHookContext context)
+    {
+        if (context.PreviewCard.Owner != power.Owner?.Player)
+        {
+            return;
+        }
+
+        var state = context.StateStore.Get(power, () => new AutomationPredictionState
+        {
+            CardsLeft = power.DisplayAmount
+        });
+        state.CardsLeft--;
+
+        if (state.CardsLeft > 0)
+        {
+            return;
+        }
+
+        context.Simulator.GainEnergy(context.PreviewCard.Owner, power.Amount);
+        state.CardsLeft = power.DynamicVars["BaseCards"].IntValue;
+    }
+
+    private static void HandleVoid(Cards.Void card, AfterCardDrawnHookContext context)
+    {
+        if (context.OriginalCard == card)
+        {
+            context.Simulator.LoseEnergy(card.Owner, card.DynamicVars.Energy.IntValue);
+        }
+    }
+
     private static void HandleDriftRiskIfOwner(PowerModel power, AfterCardDrawnHookContext context)
     {
         // CorrosiveWavePower applies Poison to all hittable enemies; power application
@@ -221,6 +250,11 @@ internal static class AfterCardDrawnHook
 internal sealed class CacophonyPredictionState
 {
     public int CardsDrawn { get; set; }
+}
+
+internal sealed class AutomationPredictionState
+{
+    public int CardsLeft { get; set; }
 }
 
 internal sealed class AfterCardDrawnHookContext : CombatPredictionCardHookContext

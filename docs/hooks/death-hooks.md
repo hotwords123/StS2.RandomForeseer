@@ -20,7 +20,7 @@ Mirror file: `InCombat/Hooks/DeathHooks.cs`.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `GremlinHorn` | 地精之角 | When an enemy dies, owner gains energy and draws cards. | Implemented for draw; energy is ignored by current scope. |
+| `GremlinHorn` | 地精之角 | When an enemy dies, owner gains energy and draws cards. | Implemented for energy and draw. Energy is applied before draw, matching vanilla order. |
 | `Aeonglass` | 永世沙漏 | Music/progression side effect on own death. | Ignored. |
 | `DecimillipedeSegment` | 残杀千足虫 | Segment death state/VFX handling. | Ignored in registry, but full combat-structure parity is unsupported. |
 | `KinPriest` | 同族神官 | Encounter-specific death behavior. | Ignored in registry; no current prediction-relevant player turn effect. |
@@ -56,7 +56,7 @@ Mirror file: `InCombat/Hooks/DeathHooks.cs`.
 
 - `CombatPredictionSimulator.ProcessDeath` currently only updates shadow liveness/prevented-death state and runs before/after death registries for risk detection.
 - The simulator does not model removal from combat, power cleanup/removal, creature revive, monster move/state transitions, player death, or orb clearing. Most missing death listeners need those capabilities.
-- `GremlinHorn` ignores energy by scope but mirrors the draw. `Melancholy` mutates only matching shadow `PredictedCard` previews and does not mutate the live card.
+- `GremlinHorn` mirrors energy and draw. `Melancholy` mutates only matching shadow `PredictedCard` previews and does not mutate the live card.
 - `HeistPower` and `SwipePower` are intentionally ignored because they only affect combat rewards/deck return, which is outside the current prediction scope.
 
 ## Mock model list

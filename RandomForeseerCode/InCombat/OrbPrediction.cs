@@ -86,8 +86,7 @@ internal sealed class OrbPrediction(
 
     private int GetXValue()
     {
-        // TODO: Track player energy in SimPlayerCombatState
-        var capturedXValue = source.Preview.Owner.PlayerCombatState?.Energy ?? 0;
+        var capturedXValue = playerCombatState.Energy;
         return Hook.ModifyXValue(simulator.State.CombatState, source.Preview, capturedXValue);
     }
 

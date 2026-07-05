@@ -28,6 +28,10 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
 
     public SimCardPile PlayPile => _playPile ??= SimCardPile.FromPlayerPile(PileType.Play, player);
 
+    public int Energy { get; private set; } = player.PlayerCombatState?.Energy ?? 0;
+
+    public int Stars { get; private set; } = player.PlayerCombatState?.Stars ?? 0;
+
     public IEnumerable<PredictedCard> AllCards =>
         GetCards(PileType.Hand, PileType.Draw, PileType.Discard, PileType.Exhaust, PileType.Play);
 
@@ -60,6 +64,26 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
     public IEnumerable<PredictedCard> GetCards(params PileType[] piles)
     {
         return piles.SelectMany(type => GetCardPile(type)?.Cards ?? []);
+    }
+
+    public void GainEnergy(decimal amount)
+    {
+        if (amount < 0m)
+        {
+            throw new ArgumentException("amount must be positive. Use LoseEnergy for energy loss.", nameof(amount));
+        }
+
+        Energy = (int)Math.Clamp(Energy + amount, 0m, 999999999m);
+    }
+
+    public void LoseEnergy(decimal amount)
+    {
+        if (amount < 0m)
+        {
+            throw new ArgumentException("amount must be positive. Use GainEnergy for energy gain.", nameof(amount));
+        }
+
+        Energy = (int)Math.Clamp(Energy - amount, 0m, 999999999m);
     }
 
     private static int CountStatusCardsDrawnThisTurn(ICombatState combatState, Player player)

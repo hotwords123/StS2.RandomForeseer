@@ -3,10 +3,10 @@
 ## Guidelines
 
 - Prefer original read-only value hooks when vanilla already uses them for previews. Current examples: `Hook.ModifyBlock`, `Hook.ModifyDamage`, `Hook.ModifyHpLost`, card reward creation options, and card reward upgrade odds.
-- Mirror only side effects that can change prediction output: draw order, hand/discard/exhaust piles, preview card cost/dynamic vars, block, damage, death/liveness, orb counts, and RNG consumption.
+- Mirror only side effects that can change prediction output: draw order, hand/discard/exhaust piles, preview card cost/dynamic vars, block, damage, death/liveness, orb counts, current-turn energy, and RNG consumption.
 - Combat predictions are scoped to outcomes that can still affect the current player turn. Do not mark risk only because vanilla would mutate state for an enemy turn, a later player turn, room-end rewards, or future reward screens, unless that state can feed back into a prediction surfaced before the current player turn finishes.
 - Do not simulate VFX, SFX, waits, achievement unlocks, or effects that cannot occur during the current player-turn prediction surface.
-- Currently, ignore energy gain/loss since they do not affect the prediction surface. This may change if energy gain/loss is used to gate other prediction-relevant effects.
+- Track supported current-turn energy gain/loss in `SimPlayerCombatState`. Stars are seeded from live state but currently have no gain/loss mirror. Energy/star spending and turn-start energy reset remain outside full card-play simulation.
 - Treat Apply Power, Remove Power, summon, revive, monster move/state changes, combat removal, player death, and max HP mutation as unsupported until the simulator owns those state domains.
 - Use `PredictionStateStore` for model-local counters/flags instead of mutating live model fields.
 - Use exact model-type registrations. A derived model with the same base hook should be reviewed separately.
@@ -45,6 +45,7 @@
 - `damage-hooks.md`
 - `death-hooks.md`
 - `end-turn-hooks.md`
+- `energy-hooks.md`
 - `orb-hooks.md`
 - `shuffle-hooks.md`
 - `card-reward-hooks.md`
