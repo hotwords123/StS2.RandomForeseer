@@ -20,13 +20,7 @@ internal sealed class OrbPrediction(
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        // TODO: This should also show when the card is dragged to play
-        return Predict(card, target: null).ExtraHoverTips;
-    }
-
-    public static DamagePredictionResult PredictDamage(CardModel card, Creature? target)
-    {
-        return Predict(card, target).DamagePrediction;
+        return Predict(card, target: null).ToHoverTips();
     }
 
     public static OrbPredictionResult Predict(CardModel card, Creature? target)
@@ -53,9 +47,7 @@ internal sealed class OrbPrediction(
             }
         }
 
-        var damagePrediction = DamagePredictionResult.FromDamageHistory(simulator);
-        PredictionHoverTips.AddDriftWarningIfNeeded(extraTips, "orb", damagePrediction.Risk);
-        return new OrbPredictionResult(damagePrediction, extraTips);
+        return new(DamagePredictionResult.FromDamageHistory(simulator), extraTips);
     }
 
     private bool Simulate()
@@ -342,4 +334,18 @@ internal sealed record OrbPredictionResult(
     IReadOnlyList<IHoverTip> ExtraHoverTips)
 {
     public static OrbPredictionResult Empty { get; } = new(DamagePredictionResult.Empty, []);
+
+    public bool IsEmpty => !DamagePrediction.HasTargets && ExtraHoverTips.Count == 0;
+
+    public IReadOnlyList<IHoverTip> ToHoverTips()
+    {
+        if (IsEmpty)
+        {
+            return [];
+        }
+
+        var hoverTips = ExtraHoverTips.ToList();
+        PredictionHoverTips.AddDriftWarningIfNeeded(hoverTips, "orb", DamagePrediction.Risk);
+        return hoverTips;
+    }
 }

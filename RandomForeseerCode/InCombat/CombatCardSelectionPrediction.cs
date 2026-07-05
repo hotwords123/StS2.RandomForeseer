@@ -18,13 +18,7 @@ internal sealed class CombatCardSelectionPrediction(
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        // TODO: This should also show when the card is dragged to play
         return Predict(card, target: null).ToHoverTips();
-    }
-
-    public static IReadOnlyList<CardModel> PredictSelectedCards(CardModel card, Creature? target)
-    {
-        return Predict(card, target).SelectedCards;
     }
 
     public static CombatCardSelectionPredictionResult Predict(CardModel card, Creature? target)

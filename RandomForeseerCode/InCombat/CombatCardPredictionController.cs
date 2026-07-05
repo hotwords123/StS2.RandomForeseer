@@ -1,8 +1,12 @@
+using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.HoverTips;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -11,6 +15,8 @@ internal static class CombatCardPredictionController
     private static ActiveCardPrediction? _activePrediction;
 
     private static bool _hasDamagePrediction;
+
+    private static List<IHoverTip> _cachedHoverTips = [];
 
     public static void OnCardHover(NHandCardHolder holder, bool isHovered)
     {
@@ -31,31 +37,48 @@ internal static class CombatCardPredictionController
 
     public static void OnCardPlayTargetChanged(NHandCardHolder holder, Creature? target)
     {
-        UpdatePredictions(ActiveCardPredictionSource.CardPlay, holder, target);
+        if (UpdatePredictions(ActiveCardPredictionSource.CardPlay, holder, target))
+        {
+            ShowCardPlayHoverTips(holder);
+        }
+    }
+
+    public static void OnCardPlayTargetingStarted(Control control)
+    {
+        if (_activePrediction is not { Source: ActiveCardPredictionSource.CardPlay } activePrediction ||
+            !ReferenceEquals(control, activePrediction.Holder.CardNode))
+        {
+            return;
+        }
+
+        ShowCardPlayHoverTips(activePrediction.Holder);
     }
 
     public static void OnCardPlayCleanedUp(NHandCardHolder holder)
     {
+        ClearCardPlayHoverTips(holder);
         ClearPredictions(ActiveCardPredictionSource.CardPlay, holder);
     }
 
-    private static void UpdatePredictions(
+    private static bool UpdatePredictions(
         ActiveCardPredictionSource source,
         NHandCardHolder holder,
         Creature? target = null)
     {
         if (holder.CardModel is not { } card || !ShouldUpdatePredictions(source, card))
         {
-            return;
+            return false;
         }
 
         _activePrediction = new ActiveCardPrediction(source, holder, card, target);
+        _cachedHoverTips.Clear();
 
         ShowDamagePrediction(card, target);
         ShowSelectionHighlight(card, target);
 
         // Card damage predictions share the same display surfaces as end-turn prediction.
         EndTurnPredictionController.SetCardDamageOverride(_hasDamagePrediction);
+        return true;
     }
 
     private static bool ShouldUpdatePredictions(ActiveCardPredictionSource source, CardModel card)
@@ -78,6 +101,7 @@ internal static class CombatCardPredictionController
         }
 
         _activePrediction = null;
+        _cachedHoverTips.Clear();
 
         ClearDamagePrediction();
         CombatCardPredictionHighlight.Clear();
@@ -98,11 +122,11 @@ internal static class CombatCardPredictionController
 
     private static void ShowDamagePrediction(CardModel card, Creature? target)
     {
-        DamagePredictionResult prediction;
+        OrbPredictionResult prediction;
 
         try
         {
-            prediction = OrbPrediction.PredictDamage(card, target);
+            prediction = OrbPrediction.Predict(card, target);
         }
         catch (Exception ex)
         {
@@ -111,24 +135,27 @@ internal static class CombatCardPredictionController
             return;
         }
 
-        if (!prediction.HasTargets)
+        if (prediction.DamagePrediction.HasTargets)
+        {
+            CombatPredictionOverlay.Show(prediction.DamagePrediction);
+            DamagePredictionHealthBarForecast.Set(prediction.DamagePrediction);
+            _hasDamagePrediction = true;
+        }
+        else
         {
             ClearDamagePrediction();
-            return;
         }
 
-        CombatPredictionOverlay.Show(prediction);
-        DamagePredictionHealthBarForecast.Set(prediction);
-        _hasDamagePrediction = true;
+        _cachedHoverTips.AddRange(prediction.ToHoverTips());
     }
 
     private static void ShowSelectionHighlight(CardModel card, Creature? target)
     {
-        IReadOnlyList<CardModel> selectedCards;
+        CombatCardSelectionPredictionResult prediction;
 
         try
         {
-            selectedCards = CombatCardSelectionPrediction.PredictSelectedCards(card, target);
+            prediction = CombatCardSelectionPrediction.Predict(card, target);
         }
         catch (Exception ex)
         {
@@ -137,7 +164,31 @@ internal static class CombatCardPredictionController
             return;
         }
 
-        CombatCardPredictionHighlight.Show(selectedCards);
+        CombatCardPredictionHighlight.Show(prediction.SelectedCards);
+
+        _cachedHoverTips.AddRange(prediction.ToHoverTips());
+    }
+
+    private static void ShowCardPlayHoverTips(NHandCardHolder holder)
+    {
+        ClearCardPlayHoverTips(holder);
+        if (_cachedHoverTips.Count == 0)
+        {
+            return;
+        }
+
+        // NTargetManager blocks normal hover tips while selecting a target. This tooltip is an
+        // explicit card-play prediction surface, so temporarily bypass that global block.
+        var shouldBlockHoverTips = NHoverTipSet.shouldBlockHoverTips;
+        NHoverTipSet.shouldBlockHoverTips = false;
+        try
+        {
+            NHoverTipSet.CreateAndShow(holder, _cachedHoverTips)?.SetAlignmentForCardHolder(holder);
+        }
+        finally
+        {
+            NHoverTipSet.shouldBlockHoverTips = shouldBlockHoverTips;
+        }
     }
 
     private static void ClearDamagePrediction()
@@ -148,6 +199,11 @@ internal static class CombatCardPredictionController
             DamagePredictionHealthBarForecast.Clear();
             _hasDamagePrediction = false;
         }
+    }
+
+    private static void ClearCardPlayHoverTips(NHandCardHolder holder)
+    {
+        NHoverTipSet.Remove(holder);
     }
 
     private sealed record ActiveCardPrediction(
@@ -207,5 +263,27 @@ internal static class CombatCardPredictionCardPlayPatches
     private static void CleanupPredictions(NCardPlay __instance)
     {
         CombatCardPredictionController.OnCardPlayCleanedUp(__instance.Holder);
+    }
+}
+
+[HarmonyPatch(typeof(NTargetManager))]
+internal static class CombatCardPredictionTargetManagerPatches
+{
+    // NTargetManager also has a Vector2 overload for target pickers that only know a
+    // screen position. Card play uses the Control overload with the card node, which
+    // lets us verify that this targeting session belongs to the active dragged card.
+    [HarmonyPatch(
+        nameof(NTargetManager.StartTargeting),
+        [
+            typeof(TargetType),
+            typeof(Control),
+            typeof(TargetMode),
+            typeof(Func<bool>),
+            typeof(Func<Node, bool>)
+        ])]
+    [HarmonyPostfix]
+    private static void ShowPredictionHoverTipsOnTargetingStarted(Control control)
+    {
+        CombatCardPredictionController.OnCardPlayTargetingStarted(control);
     }
 }
