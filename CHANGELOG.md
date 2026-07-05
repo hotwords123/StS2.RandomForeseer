@@ -10,6 +10,9 @@
 - 战斗随机选牌预测现在会在拖拽攻击牌并指向目标时模拟攻击结算后的随机选牌结果。<br>
   Combat random card selection prediction now simulates target-dependent attack resolution while dragging attack cards over a target.
 
+- 战斗伤害预测指示器现在会在有伤害被格挡时显示实际未格挡伤害，并提高全部格挡时的描边可见度。<br>
+  Combat damage prediction indicators now show actual unblocked damage when damage is blocked, with a more visible outline for fully blocked damage.
+
 ### fix
 
 - 修复 v0.108.0 后灾厄对玩家在 AfterSideTurnEnd 触发、对敌人在 BeforeSideTurnEnd 触发导致回合结束预测的判定条件问题。<br>

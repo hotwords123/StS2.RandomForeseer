@@ -24,12 +24,12 @@ mouse_filter = 2
 theme_override_constants/separation = 0
 
 [node name="NumberSpacer" type="Control" parent="Content"]
-custom_minimum_size = Vector2(6, 40)
+custom_minimum_size = Vector2(10, 40)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="DamageLabel" type="Label" parent="Content"]
-custom_minimum_size = Vector2(30, 40)
+custom_minimum_size = Vector2(20, 40)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)

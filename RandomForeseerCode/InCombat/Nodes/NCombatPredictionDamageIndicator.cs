@@ -15,7 +15,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
     private const string ScenePath = $"{Entry.ResPath}/scenes/combat_prediction_damage_indicator.tscn";
 
     private static readonly Color DefaultOutlineColor = StsColors.halfTransparentBlack;
-    private static readonly Color BlockedOutlineColor = new("1B3045");
+    private static readonly Color BlockedOutlineColor = new("2B5A85");
     private static readonly Color LethalOutlineColor = new("900000");
 
     private Creature _target = null!;
@@ -63,8 +63,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
             _sourceIcons.AddChildSafely(sourceIcon);
         }
 
-        var amount = (int)prediction.TotalDamage;
-        var amountText = hasRisk ? $"{amount}*" : amount.ToString();
+        var amountText = GetAmountText(prediction, hasRisk);
         var outlineColor = GetOutlineColor(prediction);
 
         _damageLabel.Text = amountText;
@@ -120,6 +119,18 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         return prediction.TotalUnblockedDamage == 0 && prediction.TotalDamage > 0
             ? BlockedOutlineColor
             : DefaultOutlineColor;
+    }
+
+    private static string GetAmountText(DamagePredictionTarget prediction, bool hasRisk)
+    {
+        var totalDamage = (int)prediction.TotalDamage;
+        var totalUnblockedDamage = (int)prediction.TotalUnblockedDamage;
+
+        var amountText = totalUnblockedDamage < totalDamage
+            ? $"{totalDamage}({totalUnblockedDamage})"
+            : totalDamage.ToString();
+
+        return hasRisk ? $"{amountText}*" : amountText;
     }
 
     private static Texture2D GetIcon(AbstractModel? sourceModel)
