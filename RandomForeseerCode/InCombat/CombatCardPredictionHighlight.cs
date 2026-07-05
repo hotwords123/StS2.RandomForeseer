@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
-internal static class CombatCardSelectionPredictionHighlight
+internal static class CombatCardPredictionHighlight
 {
     private static readonly Color PredictionHighlightColor = new(1f, 0.36f, 0f, 0.98f);
     private static HashSet<CardModel> _highlightedCards = [];
@@ -55,12 +55,12 @@ internal static class CombatCardSelectionPredictionHighlight
 }
 
 [HarmonyPatch(typeof(NHandCardHolder))]
-internal static class CombatCardSelectionPredictionHandHighlightPatches
+internal static class CombatCardPredictionHandHighlightPatches
 {
     [HarmonyPatch(nameof(NHandCardHolder.UpdateCard))]
     [HarmonyPostfix]
     private static void ShowHighlightAfterCardUpdate(NHandCardHolder __instance)
     {
-        CombatCardSelectionPredictionHighlight.ApplyHighlightToHolder(__instance);
+        CombatCardPredictionHighlight.ApplyHighlightToHolder(__instance);
     }
 }

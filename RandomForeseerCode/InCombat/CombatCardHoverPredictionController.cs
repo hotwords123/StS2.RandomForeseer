@@ -74,7 +74,7 @@ internal static class CombatCardHoverPredictionController
         _sourceCard = null;
 
         ClearDamagePrediction();
-        CombatCardSelectionPredictionHighlight.Clear();
+        CombatCardPredictionHighlight.Clear();
 
         // Refresh end-turn prediction in case the card hover was taking precedence over it.
         EndTurnPredictionController.SetCardDamageOverride(false);
@@ -120,7 +120,7 @@ internal static class CombatCardHoverPredictionController
             return;
         }
 
-        CombatCardSelectionPredictionHighlight.Show(prediction.SelectedCards);
+        CombatCardPredictionHighlight.Show(prediction.SelectedCards);
     }
 
     private static void ClearDamagePrediction()
