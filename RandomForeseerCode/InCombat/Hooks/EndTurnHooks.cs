@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -133,28 +134,45 @@ internal static class EndTurnHooks
 
     private static void HandleHowlFromBeyond(HowlFromBeyond card, AfterAutoPostPlayHookContext context)
     {
-        if (context.Player == card.Owner)
-        {
-            var exhaustPile = context.State.GetPlayerCombatState(card.Owner).ExhaustPile;
-            if (exhaustPile.Find(card) is { } predictedCard)
-            {
-                context.Simulator.AutoPlay(predictedCard);
-            }
-        }
-    }
-
-    private static void HandleIAmInvincible(IAmInvincible card, AfterAutoPostPlayHookContext context)
-    {
-        if (context.Player != card.Owner)
+        if (context.Player != card.Owner ||
+            context.State.GetPlayerCombatState(card.Owner).ExhaustPile.Find(card) is not { } predictedCard)
         {
             return;
         }
 
-        var drawPile = context.State.GetPlayerCombatState(card.Owner).DrawPile;
-        if (drawPile.TopCard?.References(card) is true)
+        context.Simulator.AutoPlay(predictedCard, onPlay: (cardToPlay, _) =>
         {
-            context.Simulator.AutoPlayFromDrawPile(card.Owner, 1, CardPilePosition.Top, forceExhaust: false);
+            if (cardToPlay.Preview is not HowlFromBeyond previewCard)
+            {
+                context.Simulator.MarkCurrentSourceRisky();
+                return;
+            }
+
+            DamageCmd.Attack(previewCard.DynamicVars.Damage.BaseValue)
+                .FromCard(previewCard, null)
+                .TargetingAllOpponents(context.CombatState)
+                .Simulate(context.Simulator);
+        });
+    }
+
+    private static void HandleIAmInvincible(IAmInvincible card, AfterAutoPostPlayHookContext context)
+    {
+        if (context.Player != card.Owner ||
+            context.State.GetPlayerCombatState(card.Owner).DrawPile.TopCard?.References(card) is not true)
+        {
+            return;
         }
+
+        context.Simulator.AutoPlayFromDrawPile(card.Owner, 1, CardPilePosition.Top, onPlay: (cardToPlay, _) =>
+        {
+            if (cardToPlay.Preview is not IAmInvincible previewCard)
+            {
+                context.Simulator.MarkCurrentSourceRisky();
+                return;
+            }
+
+            context.Simulator.GainBlock(previewCard.Owner.Creature, previewCard.DynamicVars.Block, cardToPlay);
+        });
     }
 
     private static void HandleStampedePower(StampedePower power, AfterAutoPostPlayHookContext context)

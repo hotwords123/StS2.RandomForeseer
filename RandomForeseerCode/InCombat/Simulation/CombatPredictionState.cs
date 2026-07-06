@@ -14,7 +14,18 @@ internal sealed class CombatPredictionState(ICombatState combatState)
 
     private readonly Dictionary<Player, SimPlayerCombatState> _playerCombatStates = [];
 
+    public IReadOnlyList<Creature> Allies => CombatState.Allies;
+
+    public IReadOnlyList<Creature> Enemies => CombatState.Enemies;
+
+    public IReadOnlyList<Creature> Creatures => CombatState.Creatures;
+
     public IReadOnlyList<Creature> PlayerCreatures => CombatState.PlayerCreatures;
+
+    public IReadOnlyList<Player> Players => CombatState.Players;
+
+    public IReadOnlyList<Creature> HittableEnemies =>
+        Enemies.Where(enemy => GetCreature(enemy).IsHittable).ToArray();
 
     public SimCreatureState GetCreature(Creature creature)
     {

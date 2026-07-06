@@ -13,9 +13,9 @@ Mirror file: `InCombat/Hooks/EndTurnHooks.cs`.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Calls simulator `AutoPlay`, which currently marks risk. Precise mirror needs autoplay simulation. |
-| `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Calls `AutoPlayFromDrawPile`, currently risk-heavy. Precise mirror needs autoplay simulation. |
-| `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Marks risk and calls `AutoPlay` for candidates. Precise mirror needs autoplay simulation. |
+| `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Implemented for immediate auto-play damage through simulator `AutoPlay` and a targeted `OnPlay` delegate. |
+| `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Implemented for draw-pile selection, play-pile movement, and immediate block gain through simulator `AutoPlayFromDrawPile` and a targeted `OnPlay` delegate. |
+| `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `Shuffle` RNG and calls generic simulator `AutoPlay`; unsupported generic `OnPlay` bodies are risk-marked, so this remains a partial mirror until individual attack effects or full card-play simulation are supported. |
 
 ## BeforeSideTurnEndVeryEarly listeners
 

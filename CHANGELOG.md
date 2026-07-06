@@ -13,6 +13,9 @@
 - 战斗伤害预测指示器现在会在有伤害被格挡时显示实际未格挡伤害，并提高全部格挡时的描边可见度。<br>
   Combat damage prediction indicators now show actual unblocked damage when damage is blocked, with a more visible outline for fully blocked damage.
 
+- 回合结束预测现在会模拟彼岸咆哮和所向无敌的自动打出效果。<br>
+  End-turn prediction now simulates autoplay effects for Howl From Beyond and I Am Invincible.
+
 ### fix
 
 - 修复 v0.108.0 后灾厄对玩家在 AfterSideTurnEnd 触发、对敌人在 BeforeSideTurnEnd 触发导致回合结束预测的判定条件问题。<br>

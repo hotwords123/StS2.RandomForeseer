@@ -8,9 +8,12 @@ using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
+// TODO: Mirror the signature of CardModel.OnPlay, which takes a CardPlay parameter.
+internal delegate void OnPlayDelegate(PredictedCard card, Creature? target);
+
 internal sealed partial class CombatPredictionSimulator
 {
-    private delegate (PileType PileType, int Position)
+    private delegate (PileType PileType, CardPilePosition Position)
         GetResultPileTypeAndPositionForCardPlayDelegate(CardModel card);
 
     private static readonly GetResultPileTypeAndPositionForCardPlayDelegate
@@ -117,8 +120,22 @@ internal sealed partial class CombatPredictionSimulator
         });
     }
 
+    // Mirrors PlayCardAction.ExecuteAction. This is the main entry point for simulating a card play.
+    public void ManualPlay(PredictedCard card, Creature? target, OnPlayDelegate onPlay)
+    {
+        if (card.Preview.Keywords.Contains(CardKeyword.Unplayable) ||
+            !card.Preview.IsValidTarget(target))
+        {
+            return;
+        }
+
+        // Note: Resources, ShouldPlay hooks and IsPlayable checks are not simulated here.
+        // TODO: Simulate SpendResources and pass the result to OnPlayWrapper.
+        OnPlayWrapper(card, target, isAutoPlay: false, onPlay);
+    }
+
     // Mirrors CardModel.OnPlayWrapper. ResourceInfo is not simulated yet.
-    public void Play(PredictedCard card, Creature? target, bool isAutoPlay, Action onPlay)
+    private void OnPlayWrapper(PredictedCard card, Creature? target, bool isAutoPlay, OnPlayDelegate onPlay)
     {
         using var _ = PushSource(card.Original);
 
@@ -135,7 +152,9 @@ internal sealed partial class CombatPredictionSimulator
             AddDuringManualCardPlay(card);
         }
 
-        // TODO: Determine the result pile and position for the card play
+        var (resultPileType, resultPilePosition) = GetResultPileTypeAndPositionForCardPlay(previewCard);
+        // TODO: Dispatch Hook.ModifyCardPlayResultPileTypeAndPosition after ResourceInfo is simulated and
+        // passed to the hook.
 
         var playCount = card.GeneratePlayCount(this, target);
         var ownerCreature = State.GetCreature(previewCard.Owner.Creature);
@@ -152,7 +171,7 @@ internal sealed partial class CombatPredictionSimulator
             // TODO: Dispatch BeforeCardPlayed hooks
             // TODO: Record CardPlayStarted history
 
-            onPlay();
+            onPlay(card, target);
 
             if (ownerCreature.IsDead)
             {
@@ -178,7 +197,22 @@ internal sealed partial class CombatPredictionSimulator
             }
         }
 
-        // TODO: Move card to the appropriate result pile and position after play
+        if (card.GetPile(State)?.Type is PileType.Play)
+        {
+            switch (resultPileType)
+            {
+                case PileType.None:
+                    RemoveFromCombat(card);
+                    break;
+                case PileType.Exhaust:
+                    Exhaust(card);
+                    break;
+                default:
+                    AddToPile(card, resultPileType, resultPilePosition);
+                    break;
+            }
+        }
+
         // TODO: Check for empty hand
 
         previewCard.EnergyCost.AfterCardPlayedCleanup();
