@@ -1,6 +1,8 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Commands.Builders;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -34,5 +36,24 @@ internal static class CombatPredictionSimulatorExtensions
             .Simulate(simulator);
 
         return true;
+    }
+
+    // Exhausts the player's hand.
+    // Used by Glowwater Potion and Pael's Eye to mirror their effects.
+    public static void ExhaustHand(this CombatPredictionSimulator simulator, Player player)
+    {
+        var cards = simulator.State.GetPlayerCombatState(player).Hand.Cards.ToArray();
+        foreach (var card in cards)
+        {
+            simulator.Exhaust(card);
+        }
+    }
+
+    // Moves all cards in the player's hand to the draw pile.
+    // Used by Bottled Potential and Reboot to mirror their effects.
+    public static void MoveHandToDrawPile(this CombatPredictionSimulator simulator, Player player)
+    {
+        var cards = simulator.State.GetPlayerCombatState(player).Hand.Cards.ToArray();
+        simulator.AddToPile(cards, PileType.Draw);
     }
 }

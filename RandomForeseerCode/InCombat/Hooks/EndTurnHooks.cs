@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 

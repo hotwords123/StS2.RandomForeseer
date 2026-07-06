@@ -26,12 +26,10 @@ internal sealed class OrbPrediction(
     public static OrbPredictionResult Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOrbPrediction) ||
-            card.Owner.Creature.CombatState is not { } combatState)
+            !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
             return OrbPredictionResult.Empty;
         }
-
-        var simulator = new CombatPredictionSimulator(combatState);
 
         var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
         var predictedCard = playerCombatState.FindCard(card) ?? new PredictedCard(card);

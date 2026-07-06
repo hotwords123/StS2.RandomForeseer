@@ -54,7 +54,7 @@ internal sealed class CombatPredictionState(ICombatState combatState)
     {
         if (!_playerCombatStates.TryGetValue(player, out var state))
         {
-            state = new SimPlayerCombatState(player, CombatState);
+            state = new SimPlayerCombatState(player);
             _playerCombatStates.Add(player, state);
         }
 

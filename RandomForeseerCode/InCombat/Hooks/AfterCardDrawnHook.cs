@@ -1,3 +1,5 @@
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -8,6 +10,7 @@ using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using Cards = MegaCrit.Sts2.Core.Models.Cards;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Hooks;
@@ -34,13 +37,9 @@ internal static class AfterCardDrawnHook
     private static readonly HookRegistry<AfterCardDrawnHookContext> Early = CreateEarly();
     private static readonly HookRegistry<AfterCardDrawnHookContext> Normal = CreateNormal();
 
-    public static void RunEarly(AfterCardDrawnHookContext context)
-    {
-        Early.Run(context.CombatState.IterateHookListeners(), context);
-    }
-
     public static void Run(AfterCardDrawnHookContext context)
     {
+        Early.Run(context.CombatState.IterateHookListeners(), context);
         Normal.Run(context.CombatState.IterateHookListeners(), context);
     }
 
@@ -107,42 +106,35 @@ internal static class AfterCardDrawnHook
 
     private static void HandleIterationPower(IterationPower power, AfterCardDrawnHookContext context)
     {
-        var drawState = context.State.GetPlayerCombatState(context.Player).CardDrawState;
-        if (context.PreviewCard.Owner.Creature != power.Owner ||
-            context.PreviewCard.Type != CardType.Status ||
-            drawState.StatusCardsDrawnThisTurn > 1)
+        if (power.Owner.Player is { } player &&
+            context.PreviewCard.Owner == player &&
+            context.PreviewCard.Type == CardType.Status &&
+            CountStatusCardsDrawnThisTurn(context.Simulator, player) <= 1)
         {
-            return;
+            context.Simulator.Draw(player, power.Amount);
         }
-
-        context.Simulator.Draw(context.Player, power.Amount);
     }
 
     private static void HandlePagestormPower(PagestormPower power, AfterCardDrawnHookContext context)
     {
-        if (context.PreviewCard.Owner.Creature != power.Owner ||
-            !context.PreviewCard.Keywords.Contains(CardKeyword.Ethereal))
+        if (power.Owner.Player is { } player &&
+            context.PreviewCard.Owner == player &&
+            context.PreviewCard.Keywords.Contains(CardKeyword.Ethereal))
         {
-            return;
+            context.Simulator.Draw(player, power.Amount);
         }
-
-        context.Simulator.Draw(context.Player, power.Amount);
     }
 
     private static void HandleChainsOfBindingPower(ChainsOfBindingPower power, AfterCardDrawnHookContext context)
     {
-        var drawState = context.State.GetPlayerCombatState(context.Player).CardDrawState;
-        var bound = ModelDb.Affliction<Bound>();
-        if (context.PreviewCard.Owner != power.Owner?.Player ||
-            context.CombatState.CurrentSide != power.Owner.Side ||
-            !bound.CanAfflict(context.PreviewCard) ||
-            drawState.BoundCardsAfflictedThisTurn >= power.Amount)
+        if (power.Owner.Player is { } player &&
+            context.PreviewCard.Owner == player &&
+            context.CombatState.CurrentSide == power.Owner.Side &&
+            ModelDb.Affliction<Bound>().CanAfflict(context.PreviewCard) &&
+            CountBoundCardsAfflictedThisTurn(context.Simulator, player) < power.Amount)
         {
-            return;
+            context.Simulator.Afflict<Bound>(context.Card, power.Amount);
         }
-
-        context.MutablePreviewCard.AfflictInternal(bound.ToMutable(), power.Amount);
-        drawState.BoundCardsAfflictedThisTurn++;
     }
 
     private static void HandleSpeedsterPower(SpeedsterPower power, AfterCardDrawnHookContext context)
@@ -245,6 +237,32 @@ internal static class AfterCardDrawnHook
             context.MarkCurrentSourceRisky();
         }
     }
+
+    private static int CountStatusCardsDrawnThisTurn(CombatPredictionSimulator simulator, Player player)
+    {
+        var count = CombatManager.Instance.History.Entries
+            .OfType<CardDrawnEntry>()
+            .Count(entry =>
+                entry.HappenedThisTurn(simulator.State.CombatState) &&
+                entry.Actor == player.Creature &&
+                entry.Card.Type == CardType.Status);
+        count += simulator.CardDrawnHistory
+            .Count(entry => entry.Card.Preview.Owner == player && entry.Card.Preview.Type == CardType.Status);
+        return count;
+    }
+
+    private static int CountBoundCardsAfflictedThisTurn(CombatPredictionSimulator simulator, Player player)
+    {
+        var count = CombatManager.Instance.History.Entries
+            .OfType<CardAfflictedEntry>()
+            .Count(entry =>
+                entry.HappenedThisTurn(simulator.State.CombatState) &&
+                entry.Actor == player.Creature &&
+                entry.Affliction is Bound);
+        count += simulator.CardAfflictedHistory
+            .Count(entry => entry.Card.Preview.Owner == player && entry.Affliction is Bound);
+        return count;
+    }
 }
 
 internal sealed class CacophonyPredictionState
@@ -259,8 +277,6 @@ internal sealed class AutomationPredictionState
 
 internal sealed class AfterCardDrawnHookContext : CombatPredictionCardHookContext
 {
-    public required Player Player { get; init; }
-
     public required bool FromHandDraw { get; init; }
 
 }

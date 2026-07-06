@@ -12,63 +12,14 @@ internal sealed partial class CombatPredictionSimulator
 {
     private const int MaxSimulatedDraws = 10;
 
-    private readonly List<PredictedCard> _predictedCards = [];
-
-    private bool _reachedSimulationLimit;
-
-    public DrawPilePredictionResult PeekTopCardsAfterNecessaryShuffles(Player player, int count)
+    // Mirrors CardPileCmd.Draw.
+    public void Draw(Player player, int drawCount, bool fromHandDraw = false)
     {
-        if (count <= 0)
-        {
-            return DrawPilePredictionResult.Empty;
-        }
-
-        if (count > MaxSimulatedDraws)
-        {
-            count = MaxSimulatedDraws;
-            _riskTracker.AddUnknown();
-        }
-
-        var predictedCards = MoveCardsForAutoPlay(player, count, CardPilePosition.Top);
-        return DrawPilePredictionResult.FromPredictedCards(predictedCards, Snapshot());
-    }
-
-    public DrawPilePredictionResult Draw(Player player, int count)
-    {
-        if (count <= 0)
-        {
-            return DrawPilePredictionResult.Empty;
-        }
-
-        DrawInternal(player, count);
-        return DrawPilePredictionResult.FromPredictedCards(_predictedCards, Snapshot());
-    }
-
-    public DrawPilePredictionResult ShuffleAfterDrawPileDepleted(Player player)
-    {
-        var state = State.GetPlayerCombatState(player);
-        if (state.DiscardPile.IsEmpty)
-        {
-            return DrawPilePredictionResult.Empty;
-        }
-
-        state.DrawPile.Clear();
-        Shuffle(player);
-        return DrawPilePredictionResult.FromPredictedCards(state.DrawPile.Cards, Snapshot());
-    }
-
-    private void DrawInternal(Player player, int drawCount)
-    {
-        if (drawCount <= 0 || _reachedSimulationLimit)
-        {
-            return;
-        }
-
         var shouldDrawContext = new ShouldDrawHookContext
         {
             Simulator = this,
             Player = player,
-            FromHandDraw = false
+            FromHandDraw = fromHandDraw,
         };
         ShouldDrawHook.Run(shouldDrawContext);
 
@@ -81,19 +32,19 @@ internal sealed partial class CombatPredictionSimulator
 
         for (var i = 0; i < drawCount; i++)
         {
-            if (hand.Cards.Count >= CardPile.MaxCardsInHand || !DrawOne(player))
+            if (hand.Cards.Count >= CardPile.MaxCardsInHand || !DrawOne(player, fromHandDraw))
             {
                 break;
             }
         }
     }
 
-    private bool DrawOne(Player player)
+    // Mirrors the body of the draw loop in CardPileCmd.Draw.
+    private bool DrawOne(Player player, bool fromHandDraw)
     {
-        if (_predictedCards.Count >= MaxSimulatedDraws)
+        if (_cardDrawnHistory.Count >= MaxSimulatedDraws)
         {
             _riskTracker.AddUnknown();
-            _reachedSimulationLimit = true;
             return false;
         }
 
@@ -106,78 +57,16 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         var predictedCard = state.DrawPile.Cards[0];
-        state.DrawPile.Remove(predictedCard);
-        state.Hand.Add(predictedCard);
-        _predictedCards.Add(predictedCard);
-        RecordCardDrawnHistory(player, predictedCard);
+        AddToPile(predictedCard, state.Hand);
+        RecordCardDrawnHistory(predictedCard, fromHandDraw);
 
-        if (predictedCard.Original.Type == CardType.Status)
+        AfterCardDrawnHook.Run(new AfterCardDrawnHookContext
         {
-            state.CardDrawState.StatusCardsDrawnThisTurn++;
-        }
-
-        RunAfterCardDrawnHooks(player, predictedCard);
+            Simulator = this,
+            Card = predictedCard,
+            FromHandDraw = fromHandDraw
+        });
         return true;
-    }
-
-    public void MoveHandToDrawPile(Player player)
-    {
-        var state = State.GetPlayerCombatState(player);
-        state.DrawPile.AddRange(state.Hand.Cards);
-        state.Hand.Clear();
-    }
-
-    // TODO: Use something like AddCardToPile(card, PileType.Play) instead
-    public void RemoveFromHand(CardModel card)
-    {
-        var hand = State.GetPlayerCombatState(card.Owner).Hand;
-        if (hand.Find(card) is { } predictedCard)
-        {
-            hand.Remove(predictedCard);
-        }
-    }
-
-    public int DiscardHand(Player player)
-    {
-        var state = State.GetPlayerCombatState(player);
-        var cards = state.Hand.Cards.ToList();
-        foreach (var card in cards)
-        {
-            state.Hand.Remove(card);
-            state.DiscardPile.Add(card);
-            RunAfterCardDiscardedHooks(card);
-        }
-
-        return cards.Count;
-    }
-
-    public void ExhaustHand(Player player)
-    {
-        var state = State.GetPlayerCombatState(player);
-        var cards = state.Hand.Cards.ToList();
-        foreach (var card in cards)
-        {
-            state.Hand.Remove(card);
-            state.ExhaustPile.Add(card);
-            RunAfterCardExhaustedHooks(player, card, causedByEthereal: false);
-        }
-    }
-
-    public DrawPilePredictionResult RandomizeHandCosts(Player player)
-    {
-        var state = State.GetPlayerCombatState(player);
-        foreach (var card in state.Hand.Cards)
-        {
-            if (card.Preview.EnergyCost.CostsX ||
-                card.Preview.EnergyCost.GetWithModifiers(CostModifiers.None) < 0)
-            {
-                continue;
-            }
-
-            card.MutablePreview.EnergyCost.SetThisTurnOrUntilPlayed(Rng.CombatEnergyCosts.NextInt(4));
-        }
-
-        return DrawPilePredictionResult.FromPredictedCards(state.Hand.Cards, Snapshot());
     }
 
     public void Shuffle(Player player)
@@ -185,6 +74,7 @@ internal sealed partial class CombatPredictionSimulator
         // Mirrors CardPileCmd.Shuffle: merge discard cards with current draw-pile cards,
         // shuffle the combined list, then place all cards back into the draw pile.
         var state = State.GetPlayerCombatState(player);
+        var drawPileCards = state.DrawPile.Cards.ToHashSet();
         var shuffledCards = state.DiscardPile.Cards.ToList();
 
         // The original code adds draw-pile cards through ToHashSet(), relying on the current
@@ -201,16 +91,28 @@ internal sealed partial class CombatPredictionSimulator
             IsInitialShuffle = false
         });
 
+        foreach (var card in drawPileCards)
+        {
+            state.DrawPile.Remove(card);
+        }
+
+        foreach (var card in shuffledCards)
+        {
+            if (drawPileCards.Contains(card))
+            {
+                state.DrawPile.Add(card);
+            }
+            else
+            {
+                AddToPile(card, state.DrawPile);
+            }
+        }
+
         ShuffleHooks.RunAfterShuffle(new AfterShuffleHookContext
         {
             Simulator = this,
-            Player = player,
-            DrawPileCards = shuffledCards
+            Player = player
         });
-
-        state.DrawPile.Clear();
-        state.DrawPile.AddRange(shuffledCards);
-        state.DiscardPile.Clear();
     }
 
     private void ShuffleIfNecessary(Player player)
@@ -222,58 +124,6 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         Shuffle(player);
-    }
-
-    private void RunAfterCardDrawnHooks(Player player, PredictedCard card)
-    {
-        var context = new AfterCardDrawnHookContext
-        {
-            Simulator = this,
-            Player = player,
-            Card = card,
-            FromHandDraw = false
-        };
-
-        AfterCardDrawnHook.RunEarly(context);
-        AfterCardDrawnHook.Run(context);
-    }
-
-    private void RunAfterCardDiscardedHooks(PredictedCard card)
-    {
-        var context = new AfterCardDiscardedHookContext
-        {
-            Simulator = this,
-            Card = card
-        };
-
-        AfterCardDiscardedHook.Run(context);
-    }
-
-    private void RunAfterCardExhaustedHooks(Player player, PredictedCard card, bool causedByEthereal)
-    {
-        var context = new AfterCardExhaustedHookContext
-        {
-            Simulator = this,
-            Player = player,
-            Card = card,
-            CausedByEthereal = causedByEthereal
-        };
-
-        AfterCardExhaustedHook.Run(context);
-    }
-
-    public void AddToHand(Player player, PredictedCard card)
-    {
-        var state = State.GetPlayerCombatState(player);
-        if (state.Hand.Cards.Count < CardPile.MaxCardsInHand)
-        {
-            state.Hand.Add(card);
-            _predictedCards.Add(card);
-        }
-        else
-        {
-            state.DiscardPile.Add(card);
-        }
     }
 
     // Mirrors CardPileCmd.AddToCombatAndPreview<T>(Creature, PileType, int, Player?, CardPilePosition)
@@ -362,17 +212,36 @@ internal sealed partial class CombatPredictionSimulator
         return AddToPile([card], newPileType, position)[0];
     }
 
-    // Mirrors the combat-pile branch of CardPileCmd.Add(IEnumerable<CardModel>, CardPile, ...).
+    public SimCardPileAddResult AddToPile(
+        PredictedCard card,
+        SimCardPile newPile,
+        CardPilePosition position = CardPilePosition.Bottom)
+    {
+        return AddToPile([card], newPile, position)[0];
+    }
+
     public IReadOnlyList<SimCardPileAddResult> AddToPile(
         IReadOnlyList<PredictedCard> cards,
         PileType newPileType,
         CardPilePosition position = CardPilePosition.Bottom)
     {
-        if (!newPileType.IsCombatPile())
+        if (cards.Count == 0)
         {
-            throw new InvalidOperationException($"Cannot add card to non-combat pile {newPileType}.");
+            return [];
         }
 
+        var newPile = State.GetPlayerCombatState(cards[0].Preview.Owner).GetCardPile(newPileType)
+            ?? throw new InvalidOperationException(
+                $"Cannot find combat pile {newPileType} for player {cards[0].Preview.Owner}.");
+        return AddToPile(cards, newPile, position);
+    }
+
+    // Mirrors the combat-pile branch of CardPileCmd.Add(IEnumerable<CardModel>, CardPile, ...).
+    public IReadOnlyList<SimCardPileAddResult> AddToPile(
+        IReadOnlyList<PredictedCard> cards,
+        SimCardPile newPile,
+        CardPilePosition position = CardPilePosition.Bottom)
+    {
         if (cards.Count == 0)
         {
             return [];
@@ -418,8 +287,7 @@ internal sealed partial class CombatPredictionSimulator
 
             var card = result.CardAdded;
 
-            var targetPile = playerCombatState.GetCardPile(newPileType)
-                ?? throw new InvalidOperationException($"Cannot find combat pile {newPileType} for player {owner}.");
+            var targetPile = newPile;
             if (targetPile.Type == PileType.Hand && targetPile.Cards.Count >= CardPile.MaxCardsInHand)
             {
                 targetPile = playerCombatState.DiscardPile;
@@ -452,6 +320,39 @@ internal sealed partial class CombatPredictionSimulator
         // skipped until a prediction-relevant combat-pile listener appears.
 
         return results;
+    }
+
+    // Mirrors CardPileCmd.RemoveFromCombat without mutating the real combat piles.
+    public void RemoveFromCombat(PredictedCard card)
+    {
+        RemoveFromCombat([card]);
+    }
+
+    // Mirrors CardPileCmd.RemoveFromCombat without mutating the real combat piles.
+    public void RemoveFromCombat(IReadOnlyList<PredictedCard> cards)
+    {
+        if (cards.Count == 0)
+        {
+            return;
+        }
+
+        List<(PredictedCard card, PileType oldPileType)> removedCards = [];
+
+        foreach (var card in cards)
+        {
+            var pile = card.GetPile(State)
+                ?? throw new InvalidOperationException(
+                    $"Cannot remove card {card} from combat because it is not in a pile.");
+            pile?.Remove(card);
+            removedCards.Add((card, pile?.Type ?? PileType.None));
+        }
+
+        foreach (var (card, oldPileType) in removedCards)
+        {
+            // Vanilla dispatches Hook.AfterCardChangedPiles here, which is not mirrored for the same reasons
+            // as in AddToPile.
+            card.MutablePreview.HasBeenRemovedFromState = true;
+        }
     }
 }
 

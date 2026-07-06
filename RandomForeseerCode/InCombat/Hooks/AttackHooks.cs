@@ -140,20 +140,12 @@ internal static class AttackHooks
 
         var damageResultsByPlayer = context.FlatResults
             .Where(result => result.Receiver.IsPlayer)
-            .GroupBy(result => result.Receiver.Player!);
+            .GroupBy(result => result.Receiver);
 
         foreach (var group in damageResultsByPlayer)
         {
-            var player = group.Key;
             var woundCount = group.Count(result => result.UnblockedDamage > 0) * power.Amount;
-
-            for (int i = 0; i < woundCount; i++)
-            {
-                // TODO: Streamline this with something like AddGeneratedCardToCombat
-                var wound = PredictedCard.Create(ModelDb.Card<Wound>(), player);
-                var discardPile = context.State.GetPlayerCombatState(player).DiscardPile;
-                discardPile.Add(wound);
-            }
+            context.Simulator.AddToCombat<Wound>(group.Key, PileType.Discard, woundCount, creator: null);
         }
     }
 

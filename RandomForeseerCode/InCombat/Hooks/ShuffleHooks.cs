@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
@@ -83,9 +84,8 @@ internal static class ShuffleHooks
             return;
         }
 
-        var soot = PredictionUtils.CreateCard(ModelDb.Card<Soot>(), context.Player);
-        var position = context.Rng.Shuffle.NextInt(context.DrawPileCards.Count + 1);
-        context.DrawPileCards.Insert(position, PredictedCard.FromGenerated(soot));
+        var soot = PredictedCard.Create(ModelDb.Card<Soot>(), context.Player);
+        context.Simulator.AddGeneratedCardToCombat(soot, PileType.Draw, context.Player, CardPilePosition.Random);
     }
 
     private static void HandleStratagemPower(StratagemPower power, AfterShuffleHookContext context)
@@ -121,7 +121,4 @@ internal sealed class ModifyShuffleOrderHookContext : CombatPredictionHookContex
 internal sealed class AfterShuffleHookContext : CombatPredictionHookContext
 {
     public required Player Player { get; init; }
-
-    public required List<PredictedCard> DrawPileCards { get; init; }
-
 }

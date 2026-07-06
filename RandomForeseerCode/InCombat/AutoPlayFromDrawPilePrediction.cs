@@ -1,9 +1,11 @@
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -23,7 +25,7 @@ internal static class AutoPlayFromDrawPilePrediction
             _ => 0
         };
 
-        return GetHoverTips(card.Owner, count);
+        return Predict(card.Owner, count).ToHoverTips();
     }
 
     public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
@@ -41,17 +43,18 @@ internal static class AutoPlayFromDrawPilePrediction
             _ => 0
         };
 
-        return GetHoverTips(potion.Owner, count);
+        return Predict(potion.Owner, count).ToHoverTips();
     }
 
-    private static IReadOnlyList<IHoverTip> GetHoverTips(Player player, int count)
+    private static DrawPilePredictionResult Predict(Player player, int count)
     {
-        if (count <= 0)
+        if (count <= 0 || !CombatPredictionSimulator.TryCreate(player, out var simulator))
         {
-            return [];
+            return DrawPilePredictionResult.Empty;
         }
 
-        return DrawPilePrediction.PredictTopCardsAfterNecessaryShuffles(player, count).ToHoverTips();
+        var predictedCards = simulator.MoveCardsForAutoPlay(player, count, CardPilePosition.Top);
+        return DrawPilePredictionResult.FromPredictedCards(predictedCards, simulator.Snapshot());
     }
 
     private static int PredictCascadeCount(Cascade cascade)

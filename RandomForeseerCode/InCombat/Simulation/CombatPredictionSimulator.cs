@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 
@@ -29,4 +31,15 @@ internal sealed partial class CombatPredictionSimulator(ICombatState combatState
         _riskTracker.AddCurrentSources(_sourceStack);
     }
 
+    public static bool TryCreate(Player player, [NotNullWhen(true)] out CombatPredictionSimulator? simulator)
+    {
+        if (player.Creature.CombatState is not { } combatState)
+        {
+            simulator = null;
+            return false;
+        }
+
+        simulator = new CombatPredictionSimulator(combatState);
+        return true;
+    }
 }

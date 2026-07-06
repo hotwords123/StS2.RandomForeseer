@@ -39,6 +39,8 @@ internal sealed class PredictedCard(
         return this;
     }
 
+    // Clones the prediction wrapper state only. Combat effects that generate a gameplay
+    // clone of a card should use CombatPredictedCardExtensions.CreateClone instead.
     public PredictedCard Clone()
     {
         return new(original, (CardModel?)preview?.MutableClone());

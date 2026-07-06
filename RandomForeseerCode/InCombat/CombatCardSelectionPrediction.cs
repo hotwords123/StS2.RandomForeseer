@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Extensions;
@@ -24,32 +23,33 @@ internal sealed class CombatCardSelectionPrediction(
     public static CombatCardSelectionPredictionResult Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction) ||
-            card.Owner.Creature.CombatState is not { } combatState)
+            !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
             return CombatCardSelectionPredictionResult.Empty;
         }
 
-        var simulator = new CombatPredictionSimulator(combatState);
-
         var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
         var predictedCard = playerCombatState.FindCard(card) ?? new PredictedCard(card);
-        playerCombatState.Hand.Remove(predictedCard);
-        playerCombatState.PlayPile.Add(predictedCard);
 
-        var predictor = new CombatCardSelectionPrediction(simulator, playerCombatState, predictedCard, target);
-
-        using var _ = simulator.PushSource(card);
-
-        return card switch
+        using (simulator.PushSource(card))
         {
-            Anointed => predictor.PredictAnointed(),
-            Cinder => predictor.PredictCinder(),
-            DrainPower => predictor.PredictDrainPower(),
-            HiddenGem => predictor.PredictHiddenGem(),
-            SeekerStrike => predictor.PredictSeekerStrike(),
-            Thrash => predictor.PredictThrash(),
-            TrueGrit { IsUpgraded: false } => predictor.PredictTrueGrit(),
-            Uproar => predictor.PredictUproar(),
+            simulator.AddToPile(predictedCard, PileType.Play);
+            return new CombatCardSelectionPrediction(simulator, playerCombatState, predictedCard, target).Predict();
+        }
+    }
+
+    private CombatCardSelectionPredictionResult Predict()
+    {
+        return source.Preview switch
+        {
+            Anointed => PredictAnointed(),
+            Cinder => PredictCinder(),
+            DrainPower => PredictDrainPower(),
+            HiddenGem => PredictHiddenGem(),
+            SeekerStrike => PredictSeekerStrike(),
+            Thrash => PredictThrash(),
+            TrueGrit { IsUpgraded: false } => PredictTrueGrit(),
+            Uproar => PredictUproar(),
             _ => CombatCardSelectionPredictionResult.Empty
         };
     }

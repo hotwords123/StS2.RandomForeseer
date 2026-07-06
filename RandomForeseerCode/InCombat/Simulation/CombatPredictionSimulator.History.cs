@@ -11,6 +11,7 @@ internal sealed partial class CombatPredictionSimulator
     private readonly List<CombatPredictionAttackHistoryEntry> _attackHistory = [];
     private readonly List<CombatPredictionOrbChanneledHistoryEntry> _orbChanneledHistory = [];
     private readonly List<CombatPredictionCardDrawnHistoryEntry> _cardDrawnHistory = [];
+    private readonly List<CombatPredictionCardAfflictedHistoryEntry> _cardAfflictedHistory = [];
 
     public IReadOnlyList<CombatPredictionDamageHistoryEntry> DamageHistory => _damageHistory;
 
@@ -19,6 +20,8 @@ internal sealed partial class CombatPredictionSimulator
     public IReadOnlyList<CombatPredictionOrbChanneledHistoryEntry> OrbChanneledHistory => _orbChanneledHistory;
 
     public IReadOnlyList<CombatPredictionCardDrawnHistoryEntry> CardDrawnHistory => _cardDrawnHistory;
+
+    public IReadOnlyList<CombatPredictionCardAfflictedHistoryEntry> CardAfflictedHistory => _cardAfflictedHistory;
 
     private void RecordDamageHistory(DamageResult result, Creature? dealer, PredictedCard? cardSource)
     {
@@ -43,9 +46,14 @@ internal sealed partial class CombatPredictionSimulator
         _orbChanneledHistory.Add(new CombatPredictionOrbChanneledHistoryEntry(orb));
     }
 
-    private void RecordCardDrawnHistory(Player player, PredictedCard card)
+    private void RecordCardDrawnHistory(PredictedCard card, bool fromHandDraw)
     {
-        _cardDrawnHistory.Add(new CombatPredictionCardDrawnHistoryEntry(player, card));
+        _cardDrawnHistory.Add(new CombatPredictionCardDrawnHistoryEntry(card, fromHandDraw));
+    }
+
+    private void RecordCardAfflictedHistory(PredictedCard card, AfflictionModel affliction)
+    {
+        _cardAfflictedHistory.Add(new CombatPredictionCardAfflictedHistoryEntry(card, affliction));
     }
 }
 
@@ -63,4 +71,10 @@ internal sealed record CombatPredictionAttackHistoryEntry(
 
 internal sealed record CombatPredictionOrbChanneledHistoryEntry(OrbModel Orb);
 
-internal sealed record CombatPredictionCardDrawnHistoryEntry(Player Player, PredictedCard Card);
+internal sealed record CombatPredictionCardDrawnHistoryEntry(
+    PredictedCard Card,
+    bool FromHandDraw);
+
+internal sealed record CombatPredictionCardAfflictedHistoryEntry(
+    PredictedCard Card,
+    AfflictionModel Affliction);

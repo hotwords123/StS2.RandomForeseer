@@ -1,14 +1,11 @@
-using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Afflictions;
 using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal sealed class SimPlayerCombatState(Player player, ICombatState combatState)
+internal sealed class SimPlayerCombatState(Player player)
 {
     public SimOrbQueue OrbQueue { get; } = new(player);
 
@@ -35,12 +32,6 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
     public IReadOnlyList<SimCardPile> AllPiles => [Hand, DrawPile, DiscardPile, ExhaustPile, PlayPile];
 
     public IEnumerable<PredictedCard> AllCards => AllPiles.SelectMany(pile => pile.Cards);
-
-    public CombatCardDrawPredictionState CardDrawState { get; } = new()
-    {
-        StatusCardsDrawnThisTurn = CountStatusCardsDrawnThisTurn(combatState, player),
-        BoundCardsAfflictedThisTurn = CountBoundCardsAfflictedThisTurn(combatState, player)
-    };
 
     public PredictedCard? FindCard(CardModel card)
     {
@@ -81,31 +72,4 @@ internal sealed class SimPlayerCombatState(Player player, ICombatState combatSta
 
         Energy = (int)Math.Clamp(Energy - amount, 0m, 999999999m);
     }
-
-    private static int CountStatusCardsDrawnThisTurn(ICombatState combatState, Player player)
-    {
-        return CombatManager.Instance.History.Entries
-            .OfType<CardDrawnEntry>()
-            .Count(entry =>
-                entry.HappenedThisTurn(combatState) &&
-                entry.Actor == player.Creature &&
-                entry.Card.Type == CardType.Status);
-    }
-
-    private static int CountBoundCardsAfflictedThisTurn(ICombatState combatState, Player player)
-    {
-        return CombatManager.Instance.History.Entries
-            .OfType<CardAfflictedEntry>()
-            .Count(entry =>
-                entry.HappenedThisTurn(combatState) &&
-                entry.Actor == player.Creature &&
-                entry.Affliction is Bound);
-    }
-}
-
-internal sealed class CombatCardDrawPredictionState
-{
-    public int StatusCardsDrawnThisTurn { get; set; }
-
-    public int BoundCardsAfflictedThisTurn { get; set; }
 }

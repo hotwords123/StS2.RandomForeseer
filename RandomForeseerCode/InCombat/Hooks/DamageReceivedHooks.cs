@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
@@ -222,16 +223,14 @@ internal static class DamageReceivedHooks
                 ? osty.PetOwner?.Creature
                 : context.Dealer;
 
-            if (dealer?.Player is { } player)
+            if (dealer is not null)
             {
-                for (int i = 0; i < power.Amount; i++)
-                {
-                    // TODO: Streamline this with the BiiigHug shuffle logic in ShuffleHooks.cs
-                    var dazed = PredictedCard.Create(ModelDb.Card<Dazed>(), player);
-                    var drawPile = context.State.GetPlayerCombatState(player).DrawPile;
-                    var position = context.Rng.Shuffle.NextInt(drawPile.Cards.Count + 1);
-                    drawPile.Insert(position, dazed);
-                }
+                context.Simulator.AddToCombat<Dazed>(
+                    dealer,
+                    PileType.Draw,
+                    power.Amount,
+                    creator: null,
+                    CardPilePosition.Random);
             }
         }
     }

@@ -1,15 +1,13 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Achievements;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 
@@ -66,14 +64,13 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        var copy = (CardModel)context.PreviewCard.MutableClone();
-        context.Simulator.AddToHand(context.Player, PredictedCard.FromGenerated(copy));
+        context.Simulator.AddGeneratedCardToCombat(context.Card.CreateClone(), PileType.Hand, relic.Owner);
         state.WasUsedThisCombat = true;
     }
 
     private static void HandleDarkEmbracePower(DarkEmbracePower power, AfterCardExhaustedHookContext context)
     {
-        if (context.PreviewCard.Owner.Creature != power.Owner)
+        if (context.PreviewCard.Owner.Creature != power.Owner || power.Owner.Player is not { } player)
         {
             return;
         }
@@ -85,7 +82,7 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        context.Simulator.Draw(context.Player, power.Amount);
+        context.Simulator.Draw(player, power.Amount);
     }
 
     private static void HandleDrumOfBattle(DrumOfBattle card, AfterCardExhaustedHookContext context)
@@ -95,20 +92,7 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        var playCount = Hook.ModifyCardPlayCount(
-            context.CombatState,
-            context.PreviewCard,
-            context.PreviewCard.GetEnchantedReplayCount() + 1,
-            target: null,
-            out var modifiers);
-        if (modifiers.Count > 0)
-        {
-            // Vanilla GeneratePlayCount would also run AfterModifyingCardPlayCount here.
-            // Those listeners can decrement/remove live powers or relic state, so prediction
-            // uses the value hook for energy amount and marks the missing state commit as risk.
-            context.MarkCurrentSourceRisky();
-        }
-
+        var playCount = context.Card.GeneratePlayCount(context.Simulator, target: null);
         for (var i = 0; i < playCount; i++)
         {
             context.Simulator.GainEnergy(card.Owner, card.DynamicVars.Energy.BaseValue);
@@ -138,7 +122,7 @@ internal static class AfterCardExhaustedHook
         var threshold = relic.DynamicVars["ExhaustAmount"].IntValue;
         if (cardsExhausted >= threshold)
         {
-            context.Simulator.Draw(context.Player, cardsExhausted / threshold);
+            context.Simulator.Draw(relic.Owner, cardsExhausted / threshold);
             cardsExhausted %= threshold;
         }
 
@@ -203,8 +187,5 @@ internal sealed class JossPaperPredictionState
 
 internal sealed class AfterCardExhaustedHookContext : CombatPredictionCardHookContext
 {
-    public required Player Player { get; init; }
-
     public required bool CausedByEthereal { get; init; }
-
 }

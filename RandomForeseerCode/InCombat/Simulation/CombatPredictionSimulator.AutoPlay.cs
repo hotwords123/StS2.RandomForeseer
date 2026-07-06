@@ -44,7 +44,9 @@ internal sealed partial class CombatPredictionSimulator
         return cards;
     }
 
-    private IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(Player player, int count, CardPilePosition position)
+    // Mirrors CardPileCmd.AutoPlayFromDrawPile until the card is moved to the play pile. Should be an internal
+    // helper for AutoPlayFromDrawPile, but is public for draw-pile prediction without autoplay.
+    public IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(Player player, int count, CardPilePosition position)
     {
         var cards = new List<PredictedCard>(count);
         var playerCombatState = State.GetPlayerCombatState(player);
@@ -67,9 +69,7 @@ internal sealed partial class CombatPredictionSimulator
             }
 
             cards.Add(card);
-            // TODO: streamline this with CardPileCmd.Add mirror
-            drawPile.Remove(card);
-            playerCombatState.PlayPile.Add(card);
+            AddToPile(card, playerCombatState.PlayPile);
         }
 
         return cards;
