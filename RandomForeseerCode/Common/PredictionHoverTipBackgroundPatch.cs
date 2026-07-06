@@ -20,7 +20,7 @@ internal static class PredictionHoverTipBackgroundPatch
 
         var predictionTextTipMask = IHoverTip.RemoveDupes(materializedTips)
             .Where(tip => tip is HoverTip)
-            .Select(PredictionHoverTips.IsPredictionHoverTip)
+            .Select(PredictionHoverTips.IsPredictionTextHoverTip)
             .ToList();
 
         if (!predictionTextTipMask.Any(isPrediction => isPrediction))

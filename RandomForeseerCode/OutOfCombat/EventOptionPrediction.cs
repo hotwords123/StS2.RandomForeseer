@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
@@ -152,6 +153,11 @@ internal static class EventOptionPredictionHoverTipsPatch
         {
             return;
         }
+
+        // Event options may reuse a model's HoverTips, which can already include predictions from global patches.
+        // Remove those nested prediction tips here so the option only shows its own event prediction and avoids
+        // confusing mixed results.
+        __result = __result.Where(tip => !PredictionHoverTips.IsPredictionHoverTip(tip));
 
         var predictionTips = EventOptionPrediction.GetHoverTips(eventModel, __instance);
         if (predictionTips.Count > 0)

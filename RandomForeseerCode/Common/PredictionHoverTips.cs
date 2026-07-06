@@ -94,7 +94,17 @@ internal static class PredictionHoverTips
 
     public static bool IsPredictionHoverTip(IHoverTip tip)
     {
+        return IsPredictionTextHoverTip(tip) || IsPredictionCardHoverTip(tip);
+    }
+
+    public static bool IsPredictionTextHoverTip(IHoverTip tip)
+    {
         return tip.Id.StartsWith(PredictionHoverTipIdPrefix, StringComparison.Ordinal);
+    }
+
+    public static bool IsPredictionCardHoverTip(IHoverTip tip)
+    {
+        return tip is PredictionCardHoverTip or PredictionCardBundleHoverTip;
     }
 
     public static string GetModelName(AbstractModel model)
