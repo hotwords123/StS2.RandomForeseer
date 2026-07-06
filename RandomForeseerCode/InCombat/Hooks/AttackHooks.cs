@@ -27,21 +27,21 @@ internal static class AttackHooks
         nameof(AbstractModel.ModifyAttackHitCount),
         [typeof(AttackCommand), typeof(int)]);
 
-    private static readonly HookRegistry<BeforeAttackHookContext> BeforeAttackRegistry =
+    private static readonly HookRegistry<AttackHookContext> BeforeAttackRegistry =
         CreateBeforeAttackRegistry();
 
-    private static readonly HookRegistry<AfterAttackHookContext> AfterAttackRegistry =
+    private static readonly HookRegistry<AttackHookContext> AfterAttackRegistry =
         CreateAfterAttackRegistry();
 
     private static readonly HookRegistry<ModifyAttackHitCountHookContext> ModifyAttackHitCountRegistry =
         new(ModifyAttackHitCount);
 
-    public static void RunBefore(BeforeAttackHookContext context)
+    public static void RunBefore(AttackHookContext context)
     {
         BeforeAttackRegistry.Run(context.CombatState.IterateHookListeners(), context);
     }
 
-    public static void RunAfter(AfterAttackHookContext context)
+    public static void RunAfter(AttackHookContext context)
     {
         AfterAttackRegistry.Run(context.CombatState.IterateHookListeners(), context);
     }
@@ -52,9 +52,9 @@ internal static class AttackHooks
         return context.HitCount;
     }
 
-    private static HookRegistry<BeforeAttackHookContext> CreateBeforeAttackRegistry()
+    private static HookRegistry<AttackHookContext> CreateBeforeAttackRegistry()
     {
-        var registry = new HookRegistry<BeforeAttackHookContext>(BeforeAttack);
+        var registry = new HookRegistry<AttackHookContext>(BeforeAttack);
 
         registry.Register<GigantificationPower>(HandleGigantificationBeforeAttack);
         registry.RegisterIgnored<HellraiserPower>();
@@ -63,9 +63,9 @@ internal static class AttackHooks
         return registry;
     }
 
-    private static HookRegistry<AfterAttackHookContext> CreateAfterAttackRegistry()
+    private static HookRegistry<AttackHookContext> CreateAfterAttackRegistry()
     {
-        var registry = new HookRegistry<AfterAttackHookContext>(AfterAttack);
+        var registry = new HookRegistry<AttackHookContext>(AfterAttack);
 
         registry.Register<BoneFlute>(HandleBoneFlute);
         registry.Register<Flatten>(HandleFlatten);
@@ -80,7 +80,7 @@ internal static class AttackHooks
 
     private static void HandleGigantificationBeforeAttack(
         GigantificationPower power,
-        BeforeAttackHookContext context)
+        AttackHookContext context)
     {
         if (ShouldGigantificationTrigger(power, context.Command))
         {
@@ -88,7 +88,7 @@ internal static class AttackHooks
         }
     }
 
-    private static void HandleVigorBeforeAttack(VigorPower power, BeforeAttackHookContext context)
+    private static void HandleVigorBeforeAttack(VigorPower power, AttackHookContext context)
     {
         if (ShouldVigorTrigger(power, context.Command))
         {
@@ -96,7 +96,7 @@ internal static class AttackHooks
         }
     }
 
-    private static void HandleBoneFlute(BoneFlute relic, AfterAttackHookContext context)
+    private static void HandleBoneFlute(BoneFlute relic, AttackHookContext context)
     {
         if (context.Command.Attacker?.Monster is not Osty ||
             context.Command.Attacker.PetOwner != relic.Owner)
@@ -107,7 +107,7 @@ internal static class AttackHooks
         context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
     }
 
-    private static void HandleFlatten(Flatten card, AfterAttackHookContext context)
+    private static void HandleFlatten(Flatten card, AttackHookContext context)
     {
         if (context.Command.Attacker == null || context.Command.Attacker != card.Owner.Osty)
         {
@@ -119,7 +119,7 @@ internal static class AttackHooks
 
     private static void HandleGigantificationAfterAttack(
         GigantificationPower power,
-        AfterAttackHookContext context)
+        AttackHookContext context)
     {
         var state = context.StateStore.Get<AttackPowerPredictionState>(power);
         if (state.DidTrigger && ShouldGigantificationTrigger(power, context.Command))
@@ -129,7 +129,7 @@ internal static class AttackHooks
         }
     }
 
-    private static void HandlePainfulStabsPower(PainfulStabsPower power, AfterAttackHookContext context)
+    private static void HandlePainfulStabsPower(PainfulStabsPower power, AttackHookContext context)
     {
         if (context.Command.Attacker != power.Owner ||
             context.Command.TargetSide == power.Owner.Side ||
@@ -138,7 +138,8 @@ internal static class AttackHooks
             return;
         }
 
-        var damageResultsByPlayer = context.FlatResults
+        var damageResultsByPlayer = context.Command.Results
+            .SelectMany(results => results)
             .Where(result => result.Receiver.IsPlayer)
             .GroupBy(result => result.Receiver);
 
@@ -149,7 +150,7 @@ internal static class AttackHooks
         }
     }
 
-    private static void HandleSkittishPower(SkittishPower power, AfterAttackHookContext context)
+    private static void HandleSkittishPower(SkittishPower power, AttackHookContext context)
     {
         var state = context.StateStore.Get(power, () => new SkittishPredictionState
         {
@@ -163,7 +164,9 @@ internal static class AttackHooks
             return;
         }
 
-        var damageResult = context.FlatResults.FirstOrDefault(result => result.Receiver == power.Owner);
+        var damageResult = context.Command.Results
+            .SelectMany(results => results)
+            .FirstOrDefault(result => result.Receiver == power.Owner);
         if (damageResult is not { UnblockedDamage: > 0 })
         {
             return;
@@ -173,7 +176,7 @@ internal static class AttackHooks
         context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
     }
 
-    private static void HandleSuckPower(SuckPower power, AfterAttackHookContext context)
+    private static void HandleSuckPower(SuckPower power, AttackHookContext context)
     {
         if (context.Command.Attacker != power.Owner ||
             context.Command.TargetSide == power.Owner.Side ||
@@ -184,7 +187,7 @@ internal static class AttackHooks
 
         var triggeredHits = 0;
 
-        foreach (var hitResults in context.HitResults)
+        foreach (var hitResults in context.Command.Results)
         {
             var petOwners = hitResults
                 .Where(result => result.Receiver.IsPet)
@@ -204,7 +207,7 @@ internal static class AttackHooks
         }
     }
 
-    private static void HandleVigorAfterAttack(VigorPower power, AfterAttackHookContext context)
+    private static void HandleVigorAfterAttack(VigorPower power, AttackHookContext context)
     {
         var state = context.StateStore.Get<AttackPowerPredictionState>(power);
         if (state.DidTrigger && ShouldVigorTrigger(power, context.Command))
@@ -240,18 +243,9 @@ internal sealed class SkittishPredictionState
     public bool HasGainedBlockThisTurn { get; set; }
 }
 
-internal sealed class BeforeAttackHookContext : CombatPredictionHookContext
+internal sealed class AttackHookContext : CombatPredictionHookContext
 {
     public required AttackCommand Command { get; init; }
-}
-
-internal sealed class AfterAttackHookContext : CombatPredictionHookContext
-{
-    public required AttackCommand Command { get; init; }
-
-    public required IReadOnlyList<IReadOnlyList<DamageResult>> HitResults { get; init; }
-
-    public IEnumerable<DamageResult> FlatResults => HitResults.SelectMany(results => results);
 }
 
 internal sealed class ModifyAttackHitCountHookContext : CombatPredictionHookContext

@@ -2,7 +2,7 @@
 
 Mirror files: `InCombat/Hooks/AttackHooks.cs`, `InCombat/Simulation/CombatPredictionSimulator.Attack.cs`, `InCombat/Simulation/CombatPredictionSimulator.History.cs`.
 
-`CombatPredictionSimulator.Execute(AttackCommand)` mirrors the prediction-relevant `AttackCommand.Execute` target loop and dispatches targeted attack hook mirrors. Per-hit damage is still delegated to `CombatPredictionSimulator.Damage`. Callers must push the attack's card/monster source before invoking `Execute`; the method itself only pushes hook listeners through `AttackHooks`.
+`CombatPredictionSimulator.ExecuteAttack(AttackCommand)` mirrors the prediction-relevant `AttackCommand.Execute` target loop and dispatches targeted attack hook mirrors. Per-hit damage is still delegated to `CombatPredictionSimulator.Damage`. Callers must push the attack's card/monster source before invoking `ExecuteAttack`; the method itself only pushes hook listeners through `AttackHooks`.
 
 Per-hit `CreatureCmd.Damage` modifier and result hooks are documented in `damage-modifier-hooks.md` and `damage-hooks.md`.
 
@@ -66,7 +66,7 @@ The attack mirror dispatches a registry for this hook and marks unknown modded o
 
 ## Current attack simulation gaps
 
-- `CombatPredictionSimulator.Execute(AttackCommand)` now resolves targets, consumes cloned `CombatTargets` RNG, calls mirrored attack hooks, calls `Damage`, records shadow attack history, and returns structured hit results.
+- `CombatPredictionSimulator.ExecuteAttack(AttackCommand)` now resolves targets, consumes cloned `CombatTargets` RNG, calls mirrored attack hooks, calls `Damage`, appends each hit through `AttackCommand.AddResultsInternal`, and records shadow attack history from `AttackCommand.Results`.
 - Existing direct `Damage` calls still bypass `BeforeAttack`, `ModifyAttackHitCount`, `AfterAttack`, attack result grouping, and attack history. They are suitable for non-attack damage and partial hit previews, not full attack behavior.
 - The simulator has shadow `AttackHistory`, but original value hooks and card model methods still read live `CombatManager.Instance.History`, not this shadow history.
 - Original attack hooks must not be called directly during prediction. `VigorPower`, `GigantificationPower`, `Flatten`, `BoneFlute`, `SkittishPower`, and others mutate live power/card/creature state.

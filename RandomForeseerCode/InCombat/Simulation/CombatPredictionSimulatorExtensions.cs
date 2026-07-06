@@ -10,11 +10,9 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 internal static class CombatPredictionSimulatorExtensions
 {
     // Convenience extension method to simulate an attack command.
-    public static IReadOnlyList<IReadOnlyList<DamageResult>> Simulate(
-        this AttackCommand attackCommand,
-        CombatPredictionSimulator simulator)
+    public static void Simulate(this AttackCommand attackCommand, CombatPredictionSimulator simulator)
     {
-        return simulator.ExecuteAttack(attackCommand);
+        simulator.ExecuteAttack(attackCommand);
     }
 
     // Convenience extension method to simulate a single-targeted attack command.

@@ -12,29 +12,29 @@ internal sealed partial class CombatPredictionSimulator
     // creature/card state or running command-local arbitrary callbacks. Callers are
     // responsible for pushing the attack's card/monster source before calling this method;
     // Execute only pushes hook listeners through AttackHooks.
-    public IReadOnlyList<IReadOnlyList<DamageResult>> ExecuteAttack(AttackCommand attackCommand)
+    public void ExecuteAttack(AttackCommand attackCommand)
     {
         if (attackCommand.Attacker is not { } attacker)
         {
             Entry.Logger.Warn("AttackCommand prediction skipped: command has no attacker.");
             MarkCurrentSourceRisky();
-            return [];
+            return;
         }
 
         var attackerState = State.GetCreature(attacker);
         if (attackerState.IsDead)
         {
-            return [];
+            return;
         }
 
         if (!attackCommand.IsSingleTargeted && !attackCommand.IsMultiTargeted)
         {
             Entry.Logger.Warn("AttackCommand prediction skipped: command has no targets configured.");
             MarkCurrentSourceRisky();
-            return [];
+            return;
         }
 
-        AttackHooks.RunBefore(new BeforeAttackHookContext
+        AttackHooks.RunBefore(new AttackHookContext
         {
             Simulator = this,
             Command = attackCommand
@@ -47,7 +47,6 @@ internal sealed partial class CombatPredictionSimulator
             HitCount = attackCommand._hitCount
         });
 
-        var hitResults = new List<IReadOnlyList<DamageResult>>();
         var cardSource = attackCommand.ModelSource is CardModel card
             ? State.FindCard(card) ?? new PredictedCard(card)
             : null;
@@ -67,7 +66,7 @@ internal sealed partial class CombatPredictionSimulator
                 break;
             }
 
-            var singleTarget = SelectSingleAttackTarget(attackCommand, validTargets, hitResults);
+            var singleTarget = SelectSingleAttackTarget(attackCommand, validTargets);
             if (attackCommand.IsRandomlyTargeted && singleTarget == null)
             {
                 break;
@@ -79,22 +78,19 @@ internal sealed partial class CombatPredictionSimulator
                 attackCommand.DamageProps,
                 attacker,
                 cardSource);
-            hitResults.Add(results);
+            attackCommand.AddResultsInternal(results);
         }
 
         RecordAttackHistory(
             attacker,
             attackCommand.ModelSource,
-            hitResults.SelectMany(results => results).ToArray());
+            attackCommand.Results.SelectMany(results => results).ToArray());
 
-        AttackHooks.RunAfter(new AfterAttackHookContext
+        AttackHooks.RunAfter(new AttackHookContext
         {
             Simulator = this,
-            Command = attackCommand,
-            HitResults = hitResults
+            Command = attackCommand
         });
-
-        return hitResults;
     }
 
     // Mirrors AttackCommand.GetPossibleTargets but uses the simulator's state instead of the real CombatState.
@@ -123,10 +119,7 @@ internal sealed partial class CombatPredictionSimulator
         throw new InvalidOperationException("AttackCommand must be either single-targeted or multi-targeted.");
     }
 
-    private Creature? SelectSingleAttackTarget(
-        AttackCommand attackCommand,
-        List<Creature> validTargets,
-        IReadOnlyList<IReadOnlyList<DamageResult>> previousHitResults)
+    private Creature? SelectSingleAttackTarget(AttackCommand attackCommand, List<Creature> validTargets)
     {
         if (!attackCommand.IsRandomlyTargeted)
         {
@@ -135,7 +128,7 @@ internal sealed partial class CombatPredictionSimulator
 
         if (!attackCommand._doesRandomTargetingAllowDuplicates)
         {
-            var previousReceivers = previousHitResults
+            var previousReceivers = attackCommand.Results
                 .SelectMany(results => results)
                 .Select(result => result.Receiver)
                 .ToHashSet();
