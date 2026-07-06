@@ -7,13 +7,15 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed class SimPlayerCombatState(Player player)
 {
-    public SimOrbQueue OrbQueue { get; } = new(player);
+    private SimOrbQueue? _orbQueue;
 
     private SimCardPile? _hand;
     private SimCardPile? _drawPile;
     private SimCardPile? _discardPile;
     private SimCardPile? _exhaustPile;
     private SimCardPile? _playPile;
+
+    public SimOrbQueue OrbQueue => _orbQueue ??= new SimOrbQueue(player);
 
     public SimCardPile Hand => _hand ??= SimCardPile.FromPlayerPile(PileType.Hand, player);
 
@@ -25,13 +27,13 @@ internal sealed class SimPlayerCombatState(Player player)
 
     public SimCardPile PlayPile => _playPile ??= SimCardPile.FromPlayerPile(PileType.Play, player);
 
-    public int Energy { get; private set; } = player.PlayerCombatState?.Energy ?? 0;
-
-    public int Stars { get; private set; } = player.PlayerCombatState?.Stars ?? 0;
-
     public IReadOnlyList<SimCardPile> AllPiles => [Hand, DrawPile, DiscardPile, ExhaustPile, PlayPile];
 
     public IEnumerable<PredictedCard> AllCards => AllPiles.SelectMany(pile => pile.Cards);
+
+    public int Energy { get; private set; } = player.PlayerCombatState?.Energy ?? 0;
+
+    public int Stars { get; private set; } = player.PlayerCombatState?.Stars ?? 0;
 
     public PredictedCard? FindCard(CardModel card)
     {
