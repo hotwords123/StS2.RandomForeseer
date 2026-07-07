@@ -243,7 +243,6 @@ internal static class EndTurnHooks
         context.Simulator.ExhaustHand(relic.Owner);
         // The extra-turn scheduling after Pael's Eye resolves is outside the current
         // end-turn simulator, but the immediate hand exhaust side effects are mirrored.
-        context.MarkCurrentSourceRisky();
     }
 
     private static void HandleOrichalcumLike(RelicModel relic, BeforeSideTurnEndHookContext context)
