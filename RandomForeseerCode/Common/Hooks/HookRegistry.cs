@@ -46,17 +46,17 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
     {
         foreach (var model in models)
         {
+            if (!context.ShouldContinue)
+            {
+                break;
+            }
+
             using (context.PushSource(model))
             {
                 if (!TryHandle(model, context))
                 {
                     continue;
                 }
-            }
-
-            if (!context.ShouldContinue)
-            {
-                break;
             }
         }
     }

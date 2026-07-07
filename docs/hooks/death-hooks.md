@@ -1,11 +1,17 @@
 # Death hooks
 
-Mirror file: `InCombat/Hooks/DeathHooks.cs`.
+Mirror files:
+
+- `InCombat/Hooks/DeathHooks.cs` for `BeforeDeath` / `AfterDeath`.
+- `InCombat/Hooks/DeathPreventHooks.cs` for `ShouldDie` / `ShouldDieLate` / `AfterPreventingDeath`.
 
 ## Hook specs
 
 - `AbstractModel.BeforeDeath(Creature)`
 - `AbstractModel.AfterDeath(PlayerChoiceContext, Creature, bool wasRemovalPrevented, float deathAnimLength)`
+- `AbstractModel.ShouldDie(Creature)`
+- `AbstractModel.ShouldDieLate(Creature)`
+- `AbstractModel.AfterPreventingDeath(Creature)`
 
 ## BeforeDeath listeners
 
@@ -52,13 +58,24 @@ Mirror file: `InCombat/Hooks/DeathHooks.cs`.
 | `StockPower` | 库存 | Death-triggered encounter behavior. | Missing; needs separate review. |
 | `SteamEruptionPower` | 蒸汽喷发 | Waterfall Giant transitions to about-to-blow state. | Missing; not implementable without monster state support. |
 
+## Death-prevention listeners
+
+| Model | 中文名 | Original effect | Current mirror status |
+| --- | --- | --- | --- |
+| `FairyInABottle` | 瓶中精灵 | `ShouldDie` prevents owner death once; `AfterPreventingDeath` uses the potion wrapper, then heals owner for 30% max HP, minimum 1. | Implemented for shadow used state and healing. `BeforePotionUsed`/`AfterPotionUsed` from `OnUseWrapper` are intentionally not mirrored. |
+| `LizardTail` | 蜥蜴尾巴 | `ShouldDieLate` prevents owner death once; `AfterPreventingDeath` marks the relic used and heals owner for 50% max HP, minimum 1. | Implemented for shadow used state and healing. Live relic state is not mutated. |
+
 ## Parity notes
 
-- `CombatPredictionSimulator.ProcessDeath` currently only updates shadow liveness/prevented-death state and runs before/after death registries for risk detection.
-- The simulator does not model removal from combat, power cleanup/removal, creature revive, monster move/state transitions, player death, or orb clearing. Most missing death listeners need those capabilities.
+- `CombatPredictionSimulator` updates shadow liveness, runs before/after death registries, records shadow creature removal for supported enemy death paths, and mirrors selected player death cleanup in shadow combat state.
+- The simulator does not model power cleanup/removal, full creature revive, monster move/state transitions, hook deactivation, or combat loss. Most missing death listeners need those capabilities.
 - `GremlinHorn` mirrors energy and draw. `Melancholy` mutates only matching shadow `PredictedCard` previews and does not mutate the live card.
+- `FairyInABottle` and `LizardTail` use `PredictionStateStore` to avoid mutating live potion/relic used state while still preventing repeated use in the same simulation.
+- Unsupported `ShouldDie` / `ShouldDieLate` listeners are risk-marked rather than fully mirrored; adding one requires both predicate behavior and matching `AfterPreventingDeath` side effects.
 - `HeistPower` and `SwipePower` are intentionally ignored because they only affect combat rewards/deck return, which is outside the current prediction scope.
 
 ## Mock model list
 
 - `MockInvincibleOnDeathPower`
+- `MockPreventDeathPower`
+- `MockRevivePower`

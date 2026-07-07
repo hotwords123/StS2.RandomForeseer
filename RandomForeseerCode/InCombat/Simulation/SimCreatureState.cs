@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.ValueProps;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -17,7 +18,7 @@ internal sealed class SimCreatureState(Creature creature)
 
     public bool IsDead => !IsAlive;
 
-    public bool IsHittable => IsAlive && Creature.IsHittable;
+    public bool IsHittable => IsAlive && Hook.ShouldAllowHitting(Creature.CombatState!, Creature);
 
     public decimal DamageBlock(decimal amount, ValueProp props)
     {
@@ -62,13 +63,5 @@ internal sealed class SimCreatureState(Creature creature)
         }
 
         CurrentHp = (int)Math.Min(CurrentHp + amount, MaxHp);
-    }
-
-    public void PreventDeath()
-    {
-        if (CurrentHp <= 0)
-        {
-            CurrentHp = 1;
-        }
     }
 }

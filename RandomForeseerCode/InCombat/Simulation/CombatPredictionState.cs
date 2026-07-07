@@ -12,20 +12,22 @@ internal sealed class CombatPredictionState(ICombatState combatState)
 
     private readonly Dictionary<Creature, SimCreatureState> _creatures = [];
 
+    private readonly HashSet<Creature> _removedCreatures = [];
+
     private readonly Dictionary<Player, SimPlayerCombatState> _playerCombatStates = [];
 
-    public IReadOnlyList<Creature> Allies => CombatState.Allies;
+    public IReadOnlyList<Creature> Allies => ExcludeRemoved(CombatState.Allies);
 
-    public IReadOnlyList<Creature> Enemies => CombatState.Enemies;
+    public IReadOnlyList<Creature> Enemies => ExcludeRemoved(CombatState.Enemies);
 
-    public IReadOnlyList<Creature> Creatures => CombatState.Creatures;
+    public IReadOnlyList<Creature> Creatures => ExcludeRemoved(CombatState.Creatures);
 
-    public IReadOnlyList<Creature> PlayerCreatures => CombatState.PlayerCreatures;
+    public IReadOnlyList<Creature> PlayerCreatures => ExcludeRemoved(CombatState.PlayerCreatures);
 
     public IReadOnlyList<Player> Players => CombatState.Players;
 
     public IReadOnlyList<Creature> HittableEnemies =>
-        Enemies.Where(enemy => GetCreature(enemy).IsHittable).ToArray();
+        [.. ExcludeRemoved(CombatState.Enemies).Where(enemy => GetCreature(enemy).IsHittable)];
 
     public SimCreatureState GetCreature(Creature creature)
     {
@@ -38,21 +40,14 @@ internal sealed class CombatPredictionState(ICombatState combatState)
         return state;
     }
 
-    public IReadOnlyList<Creature> GetOpponentsOf(Creature creature)
-    {
-        // TODO: Make this align with the real CombatState's GetOpponentsOf
-        return CombatState.GetOpponentsOf(creature)
-            .Where(opponent => GetCreature(opponent).IsAlive)
-            .ToList();
-    }
+    public IReadOnlyList<Creature> GetOpponentsOf(Creature creature) =>
+        ExcludeRemoved(CombatState.GetOpponentsOf(creature));
 
-    public IReadOnlyList<Creature> GetCreaturesOnSide(CombatSide side)
-    {
-        // TODO: Make this align with the real CombatState's GetCreaturesOnSide
-        return CombatState.GetCreaturesOnSide(side)
-            .Where(creature => GetCreature(creature).IsAlive)
-            .ToList();
-    }
+    public IReadOnlyList<Creature> GetTeammatesOf(Creature creature) =>
+        ExcludeRemoved(CombatState.GetTeammatesOf(creature));
+
+    public IReadOnlyList<Creature> GetCreaturesOnSide(CombatSide side) =>
+        ExcludeRemoved(CombatState.GetCreaturesOnSide(side));
 
     public SimPlayerCombatState GetPlayerCombatState(Player player)
     {
@@ -65,8 +60,21 @@ internal sealed class CombatPredictionState(ICombatState combatState)
         return state;
     }
 
+    public void RemoveCreature(Creature creature)
+    {
+        if (Creatures.Contains(creature))
+        {
+            _removedCreatures.Add(creature);
+        }
+    }
+
     public PredictedCard? FindCard(CardModel card)
     {
         return GetPlayerCombatState(card.Owner).FindCard(card);
+    }
+
+    private IReadOnlyList<Creature> ExcludeRemoved(IEnumerable<Creature> creatures)
+    {
+        return [.. creatures.Where(creature => !_removedCreatures.Contains(creature))];
     }
 }
