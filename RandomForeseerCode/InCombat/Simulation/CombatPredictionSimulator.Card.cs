@@ -8,8 +8,7 @@ using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-// TODO: Mirror the signature of CardModel.OnPlay, which takes a CardPlay parameter.
-internal delegate void OnPlayDelegate(PredictedCard card, Creature? target);
+internal delegate void OnPlayDelegate(PredictedCard card, CardPlay cardPlay);
 
 internal sealed partial class CombatPredictionSimulator
 {
@@ -18,8 +17,7 @@ internal sealed partial class CombatPredictionSimulator
 
     private static readonly GetResultPileTypeAndPositionForCardPlayDelegate
         GetResultPileTypeAndPositionForCardPlay =
-            AccessTools
-                .Method(typeof(CardModel), "GetResultPileTypeAndPositionForCardPlay")
+            AccessTools.Method(typeof(CardModel), "GetResultPileTypeAndPositionForCardPlay")
                 .CreateDelegate<GetResultPileTypeAndPositionForCardPlayDelegate>();
 
     // Mirrors CardPileCmd.AddDuringManualCardPlay, which is called when a card is manually played
@@ -121,6 +119,7 @@ internal sealed partial class CombatPredictionSimulator
     }
 
     // Mirrors PlayCardAction.ExecuteAction. This is the main entry point for simulating a card play.
+    // Note: Resources, ShouldPlay hooks and IsPlayable checks are not simulated here.
     public void ManualPlay(PredictedCard card, Creature? target, OnPlayDelegate onPlay)
     {
         if (card.Preview.Keywords.Contains(CardKeyword.Unplayable) ||
@@ -129,13 +128,87 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        // Note: Resources, ShouldPlay hooks and IsPlayable checks are not simulated here.
-        // TODO: Simulate SpendResources and pass the result to OnPlayWrapper.
-        OnPlayWrapper(card, target, isAutoPlay: false, onPlay);
+        var resources = SpendResources(card, isAutoPlay: false);
+        OnPlayWrapper(card, target, isAutoPlay: false, resources, onPlay);
+    }
+
+    // Mirrors CardModel.SpendResources, but returns ResourceInfo instead of (int, int) for convenience.
+    // Also implements the auto-play logic for capturing X values and star costs, which is handled in CardCmd.AutoPlay
+    // in vanilla.
+    private ResourceInfo SpendResources(PredictedCard card, bool isAutoPlay, bool skipXCapture = false)
+    {
+        var playerCombatState = State.GetPlayerCombatState(card.Preview.Owner);
+
+        // TODO: Simulate these hooks to read from the predicted state instead of the real state.
+        // Direct Hook calls here can drift from vanilla after simulated pile/state changes,
+        // because cost hooks may read live CardModel.Pile, combat history, or model-local counters.
+		var energyCost = card.Preview.EnergyCost;
+        var energyValue = energyCost.CostsX
+            ? playerCombatState.Energy
+            : Math.Max(0, energyCost.GetWithModifiers(CostModifiers.All));
+
+		var starValue = card.Preview.HasStarCostX
+            ? playerCombatState.Stars
+            : Math.Max(0, (int)Hook.ModifyStarCost(combatState, card.Preview, card.Preview.CurrentStarCost));
+
+        if (!isAutoPlay)
+        {
+            // Vanilla checks Hook.ShouldPayExcessEnergyCostWithStars here, but there are no known consumers
+            // of this hook, so it is skipped for now.
+        }
+
+        if (!skipXCapture)
+        {
+            if (energyCost.CostsX)
+            {
+                card.MutablePreview.EnergyCost.CapturedXValue = energyValue;
+            }
+            card.MutablePreview.LastStarsSpent = starValue;
+        }
+
+        if (isAutoPlay)
+        {
+            return new ResourceInfo
+            {
+                EnergySpent = 0,
+                EnergyValue = energyValue,
+                StarsSpent = 0,
+                StarValue = starValue
+            };
+        }
+
+        // Mirrors CardModel.SpendEnergy and CardModel.SpendStars.
+        if (energyValue > 0)
+        {
+            // TODO: Record EnergySpent history.
+            playerCombatState.LoseEnergy(energyValue);
+        }
+        // TODO: Dispatch Hook.AfterEnergySpent.
+
+        card.MutablePreview.LastStarsSpent = starValue;
+        if (starValue > 0)
+        {
+            playerCombatState.LoseStars(starValue);
+            // TODO: Record StarsSpent history.
+            // TODO: Dispatch Hook.AfterStarsSpent.
+        }
+
+		return new ResourceInfo
+        {
+            EnergySpent = energyValue,
+            EnergyValue = energyValue,
+            StarsSpent = starValue,
+            StarValue = starValue
+        };
     }
 
     // Mirrors CardModel.OnPlayWrapper. ResourceInfo is not simulated yet.
-    private void OnPlayWrapper(PredictedCard card, Creature? target, bool isAutoPlay, OnPlayDelegate onPlay)
+    private void OnPlayWrapper(
+        PredictedCard card,
+        Creature? target,
+        bool isAutoPlay,
+        ResourceInfo resources,
+        OnPlayDelegate onPlay)
     {
         using var _ = PushSource(card.Original);
 
@@ -153,8 +226,22 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         var (resultPileType, resultPilePosition) = GetResultPileTypeAndPositionForCardPlay(previewCard);
-        // TODO: Dispatch Hook.ModifyCardPlayResultPileTypeAndPosition after ResourceInfo is simulated and
-        // passed to the hook.
+        (resultPileType, resultPilePosition) = Hook.ModifyCardPlayResultPileTypeAndPosition(
+            combatState,
+            previewCard,
+            isAutoPlay,
+            resources,
+            resultPileType,
+            resultPilePosition,
+            out var modifiers);
+        foreach (var modifier in modifiers)
+        {
+            // TODO: Dispatch Hook.AfterCardPlayResultPileTypeAndPositionModified.
+            using (PushSource(modifier))
+            {
+                MarkCurrentSourceRisky();
+            }
+        }
 
         var playCount = card.GeneratePlayCount(this, target);
         var ownerCreature = State.GetCreature(previewCard.Owner.Creature);
@@ -167,11 +254,21 @@ internal sealed partial class CombatPredictionSimulator
         {
             previewCard.CurrentPlayIndex = i;
 
-            // TODO: Construct CardPlay
+            var cardPlay = new CardPlay
+            {
+                Card = previewCard,
+                Target = target,
+                ResultPile = resultPileType,
+                Resources = resources,
+                IsAutoPlay = isAutoPlay,
+                PlayIndex = i,
+                PlayCount = playCount
+            };
+
             // TODO: Dispatch BeforeCardPlayed hooks
             // TODO: Record CardPlayStarted history
 
-            onPlay(card, target);
+            onPlay(card, cardPlay);
 
             if (ownerCreature.IsDead)
             {

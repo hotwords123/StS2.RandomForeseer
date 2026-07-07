@@ -140,7 +140,7 @@ internal static class EndTurnHooks
             return;
         }
 
-        context.Simulator.AutoPlay(predictedCard, onPlay: (cardToPlay, _) =>
+        context.Simulator.AutoPlay(predictedCard, onPlay: (cardToPlay, cardPlay) =>
         {
             if (cardToPlay.Preview is not HowlFromBeyond previewCard)
             {
@@ -149,7 +149,7 @@ internal static class EndTurnHooks
             }
 
             DamageCmd.Attack(previewCard.DynamicVars.Damage.BaseValue)
-                .FromCard(previewCard, null)
+                .FromCard(previewCard, cardPlay)
                 .TargetingAllOpponents(context.CombatState)
                 .Simulate(context.Simulator);
         });

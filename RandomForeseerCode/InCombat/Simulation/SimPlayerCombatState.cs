@@ -55,23 +55,27 @@ internal sealed class SimPlayerCombatState(Player player)
         };
     }
 
+    // Mirrors PlayerCombatState.GainEnergy.
     public void GainEnergy(decimal amount)
     {
-        if (amount < 0m)
-        {
-            throw new ArgumentException("amount must be positive. Use LoseEnergy for energy loss.", nameof(amount));
-        }
-
         Energy = (int)Math.Clamp(Energy + amount, 0m, 999999999m);
     }
 
+    // Mirrors PlayerCombatState.LoseEnergy.
     public void LoseEnergy(decimal amount)
     {
-        if (amount < 0m)
-        {
-            throw new ArgumentException("amount must be positive. Use GainEnergy for energy gain.", nameof(amount));
-        }
-
         Energy = (int)Math.Clamp(Energy - amount, 0m, 999999999m);
+    }
+
+    // Mirrors PlayerCombatState.GainStars.
+    public void GainStars(decimal amount)
+    {
+        Stars = (int)Math.Clamp(Stars + amount, 0m, 999999999m);
+    }
+
+    // Mirrors PlayerCombatState.LoseStars.
+    public void LoseStars(decimal amount)
+    {
+        Stars = (int)Math.Clamp(Stars - amount, 0m, 999999999m);
     }
 }
