@@ -6,44 +6,44 @@ using MegaCrit.Sts2.Core.ValueProps;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal static class OrbBehavior
+internal sealed class OrbBehavior(CombatPredictionSimulator simulator)
 {
-    public static IReadOnlyList<Creature> Evoke(CombatPredictionSimulator simulator, OrbModel orb)
+    public IReadOnlyList<Creature> Evoke(OrbModel orb)
     {
         using (simulator.PushSource(orb))
         {
             return orb switch
             {
-                LightningOrb lightningOrb => LightningOrbEvoke(simulator, lightningOrb),
-                FrostOrb frostOrb => FrostOrbEvoke(simulator, frostOrb),
-                DarkOrb darkOrb => DarkOrbEvoke(simulator, darkOrb),
-                GlassOrb glassOrb => GlassOrbEvoke(simulator, glassOrb),
-                PlasmaOrb plasmaOrb => PlasmaOrbEvoke(simulator, plasmaOrb),
-                _ => UnsupportedOrbEvoke(simulator, orb)
+                LightningOrb lightningOrb => LightningOrbEvoke(lightningOrb),
+                FrostOrb frostOrb => FrostOrbEvoke(frostOrb),
+                DarkOrb darkOrb => DarkOrbEvoke(darkOrb),
+                GlassOrb glassOrb => GlassOrbEvoke(glassOrb),
+                PlasmaOrb plasmaOrb => PlasmaOrbEvoke(plasmaOrb),
+                _ => UnsupportedOrbEvoke(orb)
             };
         }
     }
 
-    public static void Passive(CombatPredictionSimulator simulator, OrbModel orb, Creature? target = null)
+    public void Passive(OrbModel orb, Creature? target = null)
     {
         using (simulator.PushSource(orb))
         {
             switch (orb)
             {
                 case LightningOrb lightningOrb:
-                    LightningOrbPassive(simulator, lightningOrb, target);
+                    LightningOrbPassive(lightningOrb, target);
                     break;
                 case FrostOrb frostOrb:
-                    FrostOrbPassive(simulator, frostOrb);
+                    FrostOrbPassive(frostOrb);
                     break;
                 case DarkOrb darkOrb:
-                    DarkOrbPassive(simulator, darkOrb);
+                    DarkOrbPassive(darkOrb);
                     break;
                 case GlassOrb glassOrb:
-                    GlassOrbPassive(simulator, glassOrb);
+                    GlassOrbPassive(glassOrb);
                     break;
                 case PlasmaOrb plasmaOrb:
-                    PlasmaOrbPassive(simulator, plasmaOrb);
+                    PlasmaOrbPassive(plasmaOrb);
                     break;
                 default:
                     simulator.MarkCurrentSourceRisky();
@@ -53,23 +53,23 @@ internal static class OrbBehavior
     }
 
     // Mirrors OrbModel.BeforeTurnEndOrbTrigger for vanilla orbs.
-    public static void BeforeTurnEndTrigger(CombatPredictionSimulator simulator, OrbModel orb)
+    public void BeforeTurnEndTrigger(OrbModel orb)
     {
         using (simulator.PushSource(orb))
         {
             switch (orb)
             {
                 case LightningOrb lightningOrb:
-                    LightningOrbPassive(simulator, lightningOrb, target: null);
+                    LightningOrbPassive(lightningOrb, target: null);
                     break;
                 case FrostOrb frostOrb:
-                    FrostOrbPassive(simulator, frostOrb);
+                    FrostOrbPassive(frostOrb);
                     break;
                 case DarkOrb darkOrb:
-                    DarkOrbPassive(simulator, darkOrb);
+                    DarkOrbPassive(darkOrb);
                     break;
                 case GlassOrb glassOrb:
-                    GlassOrbPassive(simulator, glassOrb);
+                    GlassOrbPassive(glassOrb);
                     break;
                 case PlasmaOrb:
                     // PlasmaOrb does not trigger at end of turn; it only forwards to Passive after turn start.
@@ -81,21 +81,17 @@ internal static class OrbBehavior
         }
     }
 
-    private static void LightningOrbPassive(CombatPredictionSimulator simulator, LightningOrb orb, Creature? target)
+    private void LightningOrbPassive(LightningOrb orb, Creature? target)
     {
-        LightningOrbDamage(simulator, orb, orb.PassiveVal, target);
+        LightningOrbDamage(orb, orb.PassiveVal, target);
     }
 
-    private static IReadOnlyList<Creature> LightningOrbEvoke(CombatPredictionSimulator simulator, LightningOrb orb)
+    private IReadOnlyList<Creature> LightningOrbEvoke(LightningOrb orb)
     {
-        return LightningOrbDamage(simulator, orb, orb.EvokeVal, target: null);
+        return LightningOrbDamage(orb, orb.EvokeVal, target: null);
     }
 
-    private static IReadOnlyList<Creature> LightningOrbDamage(
-        CombatPredictionSimulator simulator,
-        LightningOrb orb,
-        decimal value,
-        Creature? target)
+    private IReadOnlyList<Creature> LightningOrbDamage(LightningOrb orb, decimal value, Creature? target)
     {
         var candidates = simulator.State.GetOpponentsOf(orb.Owner.Creature)
             .Where(creature => simulator.State.GetCreature(creature).IsHittable)
@@ -116,20 +112,17 @@ internal static class OrbBehavior
         return targets;
     }
 
-    private static void FrostOrbPassive(CombatPredictionSimulator simulator, FrostOrb orb)
+    private void FrostOrbPassive(FrostOrb orb)
     {
-        FrostOrbBlock(simulator, orb, orb.PassiveVal);
+        FrostOrbBlock(orb, orb.PassiveVal);
     }
 
-    private static IReadOnlyList<Creature> FrostOrbEvoke(CombatPredictionSimulator simulator, FrostOrb orb)
+    private IReadOnlyList<Creature> FrostOrbEvoke(FrostOrb orb)
     {
-        return FrostOrbBlock(simulator, orb, orb.EvokeVal);
+        return FrostOrbBlock(orb, orb.EvokeVal);
     }
 
-    private static IReadOnlyList<Creature> FrostOrbBlock(
-        CombatPredictionSimulator simulator,
-        FrostOrb orb,
-        decimal value)
+    private IReadOnlyList<Creature> FrostOrbBlock(FrostOrb orb, decimal value)
     {
         simulator.GainBlock(orb.Owner.Creature, value, ValueProp.Unpowered);
 
@@ -153,14 +146,14 @@ internal static class OrbBehavior
         return allPlayers.Select(player => player.Creature).ToArray();
     }
 
-    private static void DarkOrbPassive(CombatPredictionSimulator simulator, DarkOrb orb)
+    private void DarkOrbPassive(DarkOrb orb)
     {
         // We can modify the orb's evoke value because the simulator uses a cloned orb queue.
         // The real orb queue is not mutated.
         orb._evokeVal += orb.PassiveVal;
     }
 
-    private static IReadOnlyList<Creature> DarkOrbEvoke(CombatPredictionSimulator simulator, DarkOrb orb)
+    private IReadOnlyList<Creature> DarkOrbEvoke(DarkOrb orb)
     {
         var target = simulator.State.HittableEnemies
             .MinBy(creature => simulator.State.GetCreature(creature).CurrentHp);
@@ -174,7 +167,7 @@ internal static class OrbBehavior
         return targets;
     }
 
-    private static void GlassOrbPassive(CombatPredictionSimulator simulator, GlassOrb orb)
+    private void GlassOrbPassive(GlassOrb orb)
     {
         var passiveVal = orb.PassiveVal;
         if (passiveVal <= 0m)
@@ -185,38 +178,38 @@ internal static class OrbBehavior
         // We can modify the orb's passive value because the simulator uses a cloned orb queue.
         // The real orb queue is not mutated.
         orb._passiveVal = Math.Max(0m, orb._passiveVal - 1m);
-        GlassOrbDamage(simulator, orb, passiveVal);
+        GlassOrbDamage(orb, passiveVal);
     }
 
-    private static IReadOnlyList<Creature> GlassOrbEvoke(CombatPredictionSimulator simulator, GlassOrb orb)
+    private IReadOnlyList<Creature> GlassOrbEvoke(GlassOrb orb)
     {
         if (orb.EvokeVal <= 0m)
         {
             return [];
         }
 
-        return GlassOrbDamage(simulator, orb, orb.EvokeVal);
+        return GlassOrbDamage(orb, orb.EvokeVal);
     }
 
-    private static IReadOnlyList<Creature> GlassOrbDamage(CombatPredictionSimulator simulator, GlassOrb orb, decimal value)
+    private IReadOnlyList<Creature> GlassOrbDamage(GlassOrb orb, decimal value)
     {
         var targets = simulator.State.HittableEnemies;
         simulator.Damage(targets, value, ValueProp.Unpowered, orb.Owner.Creature);
         return targets;
     }
 
-    private static void PlasmaOrbPassive(CombatPredictionSimulator simulator, PlasmaOrb orb)
+    private void PlasmaOrbPassive(PlasmaOrb orb)
     {
         simulator.GainEnergy(orb.Owner, orb.PassiveVal);
     }
 
-    private static IReadOnlyList<Creature> PlasmaOrbEvoke(CombatPredictionSimulator simulator, PlasmaOrb orb)
+    private IReadOnlyList<Creature> PlasmaOrbEvoke(PlasmaOrb orb)
     {
         simulator.GainEnergy(orb.Owner, orb.EvokeVal);
         return [orb.Owner.Creature];
     }
 
-    private static IReadOnlyList<Creature> UnsupportedOrbEvoke(CombatPredictionSimulator simulator, OrbModel orb)
+    private IReadOnlyList<Creature> UnsupportedOrbEvoke(OrbModel orb)
     {
         simulator.MarkCurrentSourceRisky();
         return [];

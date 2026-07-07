@@ -11,6 +11,7 @@ internal sealed partial class CombatPredictionSimulator
     private void SimulateOrbQueueBeforeTurnEnd(Player player)
     {
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
+        var orbBehavior = new OrbBehavior(this);
         foreach (var orb in orbQueue.Orbs.ToList())
         {
             var passiveCountContext = new OrbPassiveCountHookContext
@@ -22,7 +23,7 @@ internal sealed partial class CombatPredictionSimulator
 
             for (var i = 0; i < triggerCount; i++)
             {
-                OrbBehavior.BeforeTurnEndTrigger(this, orb);
+                orbBehavior.BeforeTurnEndTrigger(orb);
             }
         }
     }
@@ -93,7 +94,7 @@ internal sealed partial class CombatPredictionSimulator
             _ = orbQueue.Remove(evokedOrb);
         }
 
-        var targets = OrbBehavior.Evoke(this, evokedOrb);
+        var targets = new OrbBehavior(this).Evoke(evokedOrb);
 
         // Vanilla calls evokedOrb.RemoveInternal after AfterOrbEvoked when dequeue succeeds.
         // We only remove from the shadow queue because mutating the real orb would affect
@@ -104,7 +105,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbCmd.Passive without VFX/SFX, choice-context model stack updates, or real orb mutation.
     public void OrbPassive(OrbModel orb, Creature? target = null)
     {
-        OrbBehavior.Passive(this, orb, target);
+        new OrbBehavior(this).Passive(orb, target);
     }
 
     // Mirrors Hook.AfterOrbChanneled as a risk-only hook scan.
