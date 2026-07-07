@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
@@ -41,6 +42,17 @@ internal static class CombatPredictedCardExtensions
         previewCard.Affliction._amount = (int)amount;
     }
 
+    // Mirrors CardModel.ClearAfflictionInternal without firing live-model side effects.
+    public static void ClearAffliction(this PredictedCard card)
+    {
+        if (card.Preview.Affliction != null)
+        {
+            var previewCard = card.MutablePreview;
+            previewCard.Affliction!.ClearInternal();
+            previewCard.Affliction = null;
+        }
+    }
+
     // Mirrors CardModel.GeneratePlayCount.
     public static int GeneratePlayCount(this PredictedCard card, CombatPredictionSimulator simulator, Creature? target)
     {
@@ -60,6 +72,52 @@ internal static class CombatPredictedCardExtensions
         return playCount;
     }
 
+    // Mirrors CardEnergyCost.GetAmountToSpend().
+    public static int GetEnergyCostWithModifiers(
+        this PredictedCard card,
+        CombatPredictionState state,
+        SimPlayerCombatState playerCombatState)
+    {
+        var energyCost = card.Preview.EnergyCost;
+        if (energyCost.CostsX)
+        {
+            return playerCombatState.Energy;
+        }
+
+        var cost = energyCost._base;
+        if (cost < 0)
+        {
+            return 0;
+        }
+
+        foreach (var modifier in energyCost._localModifiers)
+        {
+            cost = modifier.Modify(cost);
+        }
+
+        // TODO: Simulate these hooks to read from the predicted state instead of the real state.
+        // Direct Hook calls here can drift from vanilla after simulated pile/state changes,
+        // because cost hooks may read live CardModel.Pile, combat history, or model-local counters.
+        cost = (int)Hook.ModifyEnergyCostInCombat(state.CombatState, card.Preview, cost);
+        return Math.Max(0, cost);
+    }
+
+    public static int GetStarCostWithModifiers(
+        this PredictedCard card,
+        CombatPredictionState state,
+        SimPlayerCombatState playerCombatState)
+    {
+        if (card.Preview.HasStarCostX)
+        {
+            return playerCombatState.Stars;
+        }
+
+        var cost = card.Preview.CurrentStarCost;
+        // TODO: Simulate these hooks to read from the predicted state instead of the real state.
+        cost = (int)Hook.ModifyStarCost(state.CombatState, card.Preview, cost);
+        return Math.Max(0, cost);
+    }
+
     // Mirrors CardModel.ResolveEnergyXValue.
     public static int ResolveEnergyXValue(this PredictedCard card, CombatPredictionState state)
     {
@@ -70,5 +128,13 @@ internal static class CombatPredictedCardExtensions
     public static int ResolveStarXValue(this PredictedCard card, CombatPredictionState state)
     {
         return Hook.ModifyXValue(state.CombatState, card.Preview, card.Preview.LastStarsSpent);
+    }
+
+    // Mirrors CardModel.Keywords => CardModel.GetKeywordsWithSources(KeywordSources.All).
+    public static IReadOnlySet<CardKeyword> GetKeywords(this PredictedCard card, CombatPredictionState state)
+    {
+        var keywords = card.Preview.LocalKeywords.ToHashSet();
+        Hook.ModifyKeywordsInCombat(state.CombatState, card.Preview, keywords);
+        return keywords;
     }
 }

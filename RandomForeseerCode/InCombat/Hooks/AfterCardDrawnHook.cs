@@ -119,7 +119,7 @@ internal static class AfterCardDrawnHook
     {
         if (power.Owner.Player is { } player &&
             context.PreviewCard.Owner == player &&
-            context.PreviewCard.Keywords.Contains(CardKeyword.Ethereal))
+            context.Card.GetKeywords(context.State).Contains(CardKeyword.Ethereal))
         {
             context.Simulator.Draw(player, power.Amount);
         }
@@ -130,6 +130,8 @@ internal static class AfterCardDrawnHook
         if (power.Owner.Player is { } player &&
             context.PreviewCard.Owner == player &&
             context.CombatState.CurrentSide == power.Owner.Side &&
+            // CanAfflict only checks card type, existing affliction, and Unplayable.
+            // Vanilla currently has no global hook that adds Unplayable, so preview keywords are sufficient here.
             ModelDb.Affliction<Bound>().CanAfflict(context.PreviewCard) &&
             CountBoundCardsAfflictedThisTurn(context.Simulator, player) < power.Amount)
         {

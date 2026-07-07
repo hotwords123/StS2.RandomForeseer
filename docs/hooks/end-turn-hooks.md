@@ -49,7 +49,7 @@ Mirror file: `InCombat/Hooks/EndTurnHooks.cs`.
 | `Regret` | 悔恨 | Stores hand size so its turn-end-in-hand effect later deals unblockable self damage. | Currently ignored. This can affect HP/death and damage hooks; it should be risk or a mirror if end-turn-in-hand damage becomes part of prediction. |
 | `DiamondDiadem` | 钻石头冠 | If few enough cards were played, applies `DiamondDiademPower`, then resets its counter. | Currently ignored. Apply Power is unsupported, but silently ignoring can miss later power effects. |
 | `PaelsTears` | 佩尔之泪 | Gains energy. | Ignored. Energy does not affect current predictions. |
-| `ChainsOfBindingPower` | 魂缚锁链 | Clears Bound from hand/discard/draw cards and resets internal flag. | Implemented for mirror pile state by clearing Bound on `PredictedCard` previews. Live internal flag reset is not mutated. |
+| `ChainsOfBindingPower` | 魂缚锁链 | Clears Bound from all cards and resets internal flag. | Implemented for mirror pile state by clearing Bound on `PredictedCard` previews. Live internal flag reset is not mutated. |
 | `SandpitPower` | 沙坑 | Updates creature positions on enemy side turn end. | Ignored. Enemy-side positioning does not affect current player-turn predictions. |
 
 ## Parity notes

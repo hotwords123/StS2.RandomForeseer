@@ -16,26 +16,12 @@ internal sealed partial class CombatPredictionSimulator
         bool skipXCapture = false,
         OnPlayDelegate? onPlay = null)
     {
-        if (card.Preview.Keywords.Contains(CardKeyword.Unplayable) ||
+        if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
             !Hook.ShouldPlay(combatState, card.Preview, out var _, type) ||
             !TryResolveAutoPlayTarget(card, ref target))
         {
             MoveToResultPileWithoutPlaying(card);
             return;
-        }
-
-        var playerCombatState = State.GetPlayerCombatState(card.Preview.Owner);
-
-        if (!skipXCapture)
-        {
-            if (card.Preview.EnergyCost.CostsX)
-            {
-                card.MutablePreview.EnergyCost.CapturedXValue = playerCombatState.Energy;
-            }
-
-            card.MutablePreview.LastStarsSpent = card.Preview.HasStarCostX
-                ? playerCombatState.Stars
-                : Math.Max(0, card.Preview.GetStarCostWithModifiers());
         }
 
         if (card.GetPile(State) is null)

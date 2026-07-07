@@ -119,7 +119,7 @@ internal sealed class CombatCardSelectionPrediction(
 
         var eligibleCards = drawPile.Cards
             .Where(card =>
-                !card.Preview.Keywords.Contains(CardKeyword.Unplayable) &&
+                !card.GetKeywords(simulator.State).Contains(CardKeyword.Unplayable) &&
                 card.Preview.Type is not CardType.Status and not CardType.Curse &&
                 card.Preview.GetEnchantedReplayCount() < 1)
             .ToList();
@@ -180,7 +180,7 @@ internal sealed class CombatCardSelectionPrediction(
             .ToList();
 
         var predicted = attackCards
-            .Where(card => !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
+            .Where(card => !card.GetKeywords(simulator.State).Contains(CardKeyword.Unplayable))
             .ToList()
             .StableShuffle(simulator.Rng.Shuffle)
             .FirstOrDefault();

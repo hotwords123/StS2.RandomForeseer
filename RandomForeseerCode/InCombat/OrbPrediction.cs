@@ -1,8 +1,9 @@
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
@@ -208,7 +209,7 @@ internal sealed class OrbPrediction(
 
     private bool SimulateIgnition()
     {
-        if (target?.Player is not { } ignitionTarget || !source.Preview.CanPlayTargeting(target))
+        if (target?.Player is not { } ignitionTarget || !source.Preview.IsValidTarget(target))
         {
             return false;
         }
@@ -332,10 +333,14 @@ internal sealed class OrbPrediction(
 
     private bool SimulateVoltaic()
     {
-        if (source.Preview.DynamicVars["CalculatedChannels"] is CalculatedVar calculatedVar)
-        {
-            simulator.OrbChannel<LightningOrb>(source.Preview.Owner, (int)calculatedVar.Calculate(null));
-        }
+        var count = CombatManager.Instance.History.Entries
+            .OfType<OrbChanneledEntry>()
+            .Count(entry => entry.Actor.Player == source.Preview.Owner && entry.Orb is LightningOrb);
+
+        count += simulator.OrbChanneledHistory
+            .Count(entry => entry.Orb.Owner == source.Preview.Owner && entry.Orb is LightningOrb);
+
+        simulator.OrbChannel<LightningOrb>(source.Preview.Owner, count);
         return true;
     }
 

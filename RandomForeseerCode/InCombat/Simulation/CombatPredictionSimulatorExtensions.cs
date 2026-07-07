@@ -22,7 +22,7 @@ internal static class CombatPredictionSimulatorExtensions
         Creature? target,
         int hitCount = 1)
     {
-        if (target is null || !source.Preview.CanPlayTargeting(target))
+        if (target is null || !source.Preview.IsValidTarget(target))
         {
             return false;
         }

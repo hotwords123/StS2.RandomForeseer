@@ -11,7 +11,6 @@ using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Hooks;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -187,9 +186,9 @@ internal static class EndTurnHooks
         for (var i = 0; i < power.Amount; i++)
         {
             var candidates = hand.Cards
-                .Where(static card =>
+                .Where(card =>
                     card.Preview.Type == CardType.Attack &&
-                    !card.Preview.Keywords.Contains(CardKeyword.Unplayable))
+                    !card.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
                 .ToArray();
             var card = context.Rng.Shuffle.NextItem(candidates);
 
@@ -359,19 +358,11 @@ internal static class EndTurnHooks
             return;
         }
 
-        var playerState = context.State.GetPlayerCombatState(player);
-        ClearBoundAfflictions(playerState.Hand.Cards);
-        ClearBoundAfflictions(playerState.DrawPile.Cards);
-        ClearBoundAfflictions(playerState.DiscardPile.Cards);
-    }
-
-    private static void ClearBoundAfflictions(IEnumerable<PredictedCard> cards)
-    {
-        foreach (var card in cards)
+        foreach (var card in context.State.GetPlayerCombatState(player).AllCards)
         {
             if (card.Preview.Affliction is Bound)
             {
-                card.MutablePreview.ClearAfflictionInternal();
+                card.ClearAffliction();
             }
         }
     }

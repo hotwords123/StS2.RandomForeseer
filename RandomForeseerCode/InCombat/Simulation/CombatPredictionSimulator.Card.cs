@@ -42,7 +42,7 @@ internal sealed partial class CombatPredictionSimulator
         {
             RemoveFromCombat(card);
         }
-        else if (card.Preview.ExhaustOnNextPlay || card.Preview.Keywords.Contains(CardKeyword.Exhaust))
+        else if (card.Preview.ExhaustOnNextPlay || card.GetKeywords(State).Contains(CardKeyword.Exhaust))
         {
             Exhaust(card);
         }
@@ -122,7 +122,7 @@ internal sealed partial class CombatPredictionSimulator
     // Note: Resources, ShouldPlay hooks and IsPlayable checks are not simulated here.
     public void ManualPlay(PredictedCard card, Creature? target, OnPlayDelegate onPlay)
     {
-        if (card.Preview.Keywords.Contains(CardKeyword.Unplayable) ||
+        if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
             !card.Preview.IsValidTarget(target))
         {
             return;
@@ -138,18 +138,8 @@ internal sealed partial class CombatPredictionSimulator
     private ResourceInfo SpendResources(PredictedCard card, bool isAutoPlay, bool skipXCapture = false)
     {
         var playerCombatState = State.GetPlayerCombatState(card.Preview.Owner);
-
-        // TODO: Simulate these hooks to read from the predicted state instead of the real state.
-        // Direct Hook calls here can drift from vanilla after simulated pile/state changes,
-        // because cost hooks may read live CardModel.Pile, combat history, or model-local counters.
-		var energyCost = card.Preview.EnergyCost;
-        var energyValue = energyCost.CostsX
-            ? playerCombatState.Energy
-            : Math.Max(0, energyCost.GetWithModifiers(CostModifiers.All));
-
-		var starValue = card.Preview.HasStarCostX
-            ? playerCombatState.Stars
-            : Math.Max(0, (int)Hook.ModifyStarCost(combatState, card.Preview, card.Preview.CurrentStarCost));
+        var energyValue = card.GetEnergyCostWithModifiers(State, playerCombatState);
+        var starValue = card.GetStarCostWithModifiers(State, playerCombatState);
 
         if (!isAutoPlay)
         {
@@ -159,7 +149,7 @@ internal sealed partial class CombatPredictionSimulator
 
         if (!skipXCapture)
         {
-            if (energyCost.CostsX)
+            if (card.Preview.EnergyCost.CostsX)
             {
                 card.MutablePreview.EnergyCost.CapturedXValue = energyValue;
             }
