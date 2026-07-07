@@ -16,7 +16,7 @@ Mirror file: `InCombat/Hooks/AfterCardDiscardedHook.cs`.
 ## Parity notes
 
 - `ToughBandages` is consistent with original logic, except VFX/flash are intentionally omitted.
-- Random target selection uses `State.GetHittableOpponentsOf(owner)` with cloned `CombatTargets`.
+- Random target selection uses `State.HittableEnemies` with cloned `CombatTargets`, matching vanilla `CombatState.HittableEnemies`.
 
 ## Mock model list
 

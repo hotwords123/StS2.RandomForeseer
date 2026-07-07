@@ -55,7 +55,7 @@ internal static class AfterCurrentHpChangedHook
         }
 
         context.Simulator.Damage(
-            context.State.GetHittableOpponentsOf(power.Owner),
+            context.State.HittableEnemies,
             -context.Delta * power.Amount,
             ValueProp.Unblockable | ValueProp.Unpowered,
             power.Owner);

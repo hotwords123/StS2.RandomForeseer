@@ -40,8 +40,7 @@ internal static class AfterCardDiscardedHook
             return;
         }
 
-        var target = context.Rng.CombatTargets.NextItem(
-            context.State.GetHittableOpponentsOf(relic.Owner.Creature));
+        var target = context.Rng.CombatTargets.NextItem(context.State.HittableEnemies);
         if (target != null)
         {
             context.Simulator.Damage(target, relic.DynamicVars.Damage, relic.Owner.Creature);

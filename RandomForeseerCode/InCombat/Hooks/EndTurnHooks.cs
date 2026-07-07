@@ -299,11 +299,7 @@ internal static class EndTurnHooks
             .Count(static orb => orb is FrostOrb);
         if (frostCount >= power.DynamicVars[HailstormPower.frostOrbKey].IntValue)
         {
-            context.Simulator.Damage(
-                context.State.GetHittableOpponentsOf(power.Owner),
-                power.Amount,
-                ValueProp.Unpowered,
-                power.Owner);
+            context.Simulator.Damage(context.State.HittableEnemies, power.Amount, ValueProp.Unpowered, power.Owner);
         }
     }
 
@@ -312,10 +308,7 @@ internal static class EndTurnHooks
         if (context.Participants.Contains(relic.Owner.Creature) &&
             context.State.GetPlayerCombatState(relic.Owner).Hand.IsEmpty)
         {
-            context.Simulator.Damage(
-                context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-                relic.DynamicVars.Damage,
-                relic.Owner.Creature);
+            context.Simulator.Damage(context.State.HittableEnemies, relic.DynamicVars.Damage, relic.Owner.Creature);
         }
     }
 
@@ -324,10 +317,7 @@ internal static class EndTurnHooks
         if (context.Participants.Contains(relic.Owner.Creature) &&
             relic.Owner.PlayerCombatState?.TurnNumber == relic.DynamicVars["DamageTurn"].IntValue)
         {
-            context.Simulator.Damage(
-                context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-                relic.DynamicVars.Damage,
-                relic.Owner.Creature);
+            context.Simulator.Damage(context.State.HittableEnemies, relic.DynamicVars.Damage, relic.Owner.Creature);
         }
     }
 
@@ -338,10 +328,7 @@ internal static class EndTurnHooks
             return;
         }
 
-        context.Simulator.Damage(
-            context.State.GetHittableOpponentsOf(power.Owner),
-            power.DynamicVars.Damage,
-            power.Owner);
+        context.Simulator.Damage(context.State.HittableEnemies, power.DynamicVars.Damage, power.Owner);
     }
 
     private static void HandleDoomPower(DoomPower power, BeforeSideTurnEndHookContext context)

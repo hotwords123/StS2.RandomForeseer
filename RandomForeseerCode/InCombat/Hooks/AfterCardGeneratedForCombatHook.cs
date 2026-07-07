@@ -118,11 +118,7 @@ internal static class AfterCardGeneratedForCombatHook
             return;
         }
 
-        context.Simulator.Damage(
-            context.State.GetHittableOpponentsOf(power.Owner),
-            power.Amount,
-            ValueProp.Unpowered,
-            power.Owner);
+        context.Simulator.Damage(context.State.HittableEnemies, power.Amount, ValueProp.Unpowered, power.Owner);
     }
 
     private static void HandleTrashToTreasurePower(TrashToTreasurePower power, AfterCardGeneratedForCombatHookContext context)

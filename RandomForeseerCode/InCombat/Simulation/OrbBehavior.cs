@@ -97,8 +97,10 @@ internal static class OrbBehavior
         decimal value,
         Creature? target)
     {
-        var candidates = simulator.State.GetHittableOpponentsOf(orb.Owner.Creature);
-        if (candidates.Count == 0)
+        var candidates = simulator.State.GetOpponentsOf(orb.Owner.Creature)
+            .Where(creature => simulator.State.GetCreature(creature).IsHittable)
+            .ToArray();
+        if (candidates.Length == 0)
         {
             return [];
         }
@@ -160,7 +162,7 @@ internal static class OrbBehavior
 
     private static IReadOnlyList<Creature> DarkOrbEvoke(CombatPredictionSimulator simulator, DarkOrb orb)
     {
-        var target = simulator.State.GetHittableOpponentsOf(orb.Owner.Creature)
+        var target = simulator.State.HittableEnemies
             .MinBy(creature => simulator.State.GetCreature(creature).CurrentHp);
         if (target == null)
         {
@@ -183,9 +185,7 @@ internal static class OrbBehavior
         // We can modify the orb's passive value because the simulator uses a cloned orb queue.
         // The real orb queue is not mutated.
         orb._passiveVal = Math.Max(0m, orb._passiveVal - 1m);
-
-        var targets = simulator.State.GetHittableOpponentsOf(orb.Owner.Creature);
-        simulator.Damage(targets, passiveVal, ValueProp.Unpowered, orb.Owner.Creature);
+        GlassOrbDamage(simulator, orb, passiveVal);
     }
 
     private static IReadOnlyList<Creature> GlassOrbEvoke(CombatPredictionSimulator simulator, GlassOrb orb)
@@ -195,8 +195,13 @@ internal static class OrbBehavior
             return [];
         }
 
-        var targets = simulator.State.GetHittableOpponentsOf(orb.Owner.Creature);
-        simulator.Damage(targets, orb.EvokeVal, ValueProp.Unpowered, orb.Owner.Creature);
+        return GlassOrbDamage(simulator, orb, orb.EvokeVal);
+    }
+
+    private static IReadOnlyList<Creature> GlassOrbDamage(CombatPredictionSimulator simulator, GlassOrb orb, decimal value)
+    {
+        var targets = simulator.State.HittableEnemies;
+        simulator.Damage(targets, value, ValueProp.Unpowered, orb.Owner.Creature);
         return targets;
     }
 

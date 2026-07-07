@@ -18,7 +18,7 @@ Mirror file: `InCombat/Hooks/BlockHooks.cs`.
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
 | `BeaconOfHopePower` | 希望灯塔 | During owner's turn, after owner gains block, gives living player teammates half as much block once per trigger chain. | Implemented with reentry guard. Matches original relevant state change. |
-| `JuggernautPower` | 势不可当 | After owner gains positive block, rolls a random hittable opponent and deals damage. | Implemented with cloned `CombatTargets` and simulator `Damage`. |
+| `JuggernautPower` | 势不可当 | After owner gains positive block, rolls a random hittable enemy and deals damage. | Implemented with cloned `CombatTargets` and simulator `Damage`. |
 
 ## Parity notes
 

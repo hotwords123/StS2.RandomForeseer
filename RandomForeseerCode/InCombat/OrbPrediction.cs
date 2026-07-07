@@ -122,9 +122,7 @@ internal sealed class OrbPrediction(
 
     private bool SimulateChill()
     {
-        simulator.OrbChannel<FrostOrb>(
-            source.Preview.Owner,
-            simulator.State.GetHittableOpponentsOf(source.Preview.Owner.Creature).Count);
+        simulator.OrbChannel<FrostOrb>(source.Preview.Owner, simulator.State.HittableEnemies.Count);
         return true;
     }
 

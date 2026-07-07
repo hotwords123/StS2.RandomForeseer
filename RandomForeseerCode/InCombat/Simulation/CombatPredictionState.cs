@@ -46,13 +46,6 @@ internal sealed class CombatPredictionState(ICombatState combatState)
             .ToList();
     }
 
-    public IReadOnlyList<Creature> GetHittableOpponentsOf(Creature creature)
-    {
-        return CombatState.GetOpponentsOf(creature)
-            .Where(opponent => GetCreature(opponent).IsHittable)
-            .ToList();
-    }
-
     public IReadOnlyList<Creature> GetCreaturesOnSide(CombatSide side)
     {
         // TODO: Make this align with the real CombatState's GetCreaturesOnSide

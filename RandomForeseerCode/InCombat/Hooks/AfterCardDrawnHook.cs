@@ -146,11 +146,7 @@ internal static class AfterCardDrawnHook
             return;
         }
 
-        context.Simulator.Damage(
-            context.State.GetHittableOpponentsOf(power.Owner),
-            power.Amount,
-            ValueProp.Unpowered,
-            power.Owner);
+        context.Simulator.Damage(context.State.HittableEnemies, power.Amount, ValueProp.Unpowered, power.Owner);
     }
 
     private static void HandleCacophonyPower(CacophonyPower power, AfterCardDrawnHookContext context)
@@ -163,7 +159,7 @@ internal static class AfterCardDrawnHook
 
         if (state.CardsDrawn <= 0)
         {
-            var target = context.Rng.CombatTargets.NextItem(context.State.GetHittableOpponentsOf(power.Owner));
+            var target = context.Rng.CombatTargets.NextItem(context.State.HittableEnemies);
 
             if (target != null)
             {

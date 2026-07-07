@@ -97,10 +97,7 @@ internal static class OrbHooks
 
         if (state.OrbsChanneled == relic.DynamicVars["OrbCount"].IntValue)
         {
-            context.Simulator.Damage(
-                context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-                relic.DynamicVars.Damage,
-                relic.Owner.Creature);
+            context.Simulator.Damage(context.State.HittableEnemies, relic.DynamicVars.Damage, relic.Owner.Creature);
         }
     }
 }

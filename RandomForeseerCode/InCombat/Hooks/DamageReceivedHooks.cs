@@ -207,11 +207,7 @@ internal static class DamageReceivedHooks
             context.Result.UnblockedDamage > 0 &&
             context.CombatState.CurrentSide == power.Owner.Side)
         {
-            context.Simulator.Damage(
-                context.State.GetHittableOpponentsOf(power.Owner),
-                power.Amount,
-                ValueProp.Unpowered,
-                power.Owner);
+            context.Simulator.Damage(context.State.HittableEnemies, power.Amount, ValueProp.Unpowered, power.Owner);
         }
     }
 

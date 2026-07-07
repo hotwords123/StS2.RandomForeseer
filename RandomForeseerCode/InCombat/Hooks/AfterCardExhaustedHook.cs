@@ -136,10 +136,7 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        context.Simulator.Damage(
-            context.State.GetHittableOpponentsOf(relic.Owner.Creature),
-            relic.DynamicVars.Damage,
-            relic.Owner.Creature);
+        context.Simulator.Damage(context.State.HittableEnemies, relic.DynamicVars.Damage, relic.Owner.Creature);
     }
 
     private static void HandleForgottenSoul(ForgottenSoul relic, AfterCardExhaustedHookContext context)
@@ -149,8 +146,7 @@ internal static class AfterCardExhaustedHook
             return;
         }
 
-        var target = context.Rng.CombatTargets.NextItem(
-            context.State.GetHittableOpponentsOf(relic.Owner.Creature));
+        var target = context.Rng.CombatTargets.NextItem(context.State.HittableEnemies);
         if (target != null)
         {
             context.Simulator.Damage(target, relic.DynamicVars.Damage, relic.Owner.Creature);

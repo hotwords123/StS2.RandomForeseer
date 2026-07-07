@@ -34,7 +34,7 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 | `Crusher` | 碾碎爪 | Plays hurt animation on own HP loss. | Ignorable. VFX only. |
 | `Rocket` | 火箭 | Plays hurt animation on own HP loss. | Ignorable. VFX only. |
 | `RedSkull` | 红头骨 | Applies/removes Strength when owner's HP crosses threshold. | Marked risky when the shadow HP threshold would require applying/removing Strength. Apply/remove Power unsupported. |
-| `NecroMasteryPower` | 亡灵精通 | When owner's Osty loses HP, damages enemies based on HP lost. | Implemented with simulator `Damage` against current shadow hittable opponents. |
+| `NecroMasteryPower` | 亡灵精通 | When owner's Osty loses HP, damages enemies based on HP lost. | Implemented with simulator `Damage` against current shadow hittable enemies. |
 | `MeatOnTheBone` | 带骨肉 | Updates active status based on owner's HP threshold. | Ignorable for current predictions; heal is room-end/start behavior, not damage-chain effect. |
 
 ## AfterDamageGiven listeners
@@ -62,7 +62,7 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 | `SelfFormingClay` | 自成型黏土 | On owner HP loss, applies next-turn block power. | Ignored by current-turn scope: the block is gained next turn. |
 | `FlameBarrierPower` | 火焰屏障 | When owner is attacked, damages dealer. | Implemented with simulator `Damage`. |
 | `FlutterPower` | 振翅 | On powered HP loss, decrements/removes mitigation power. | Marked risky when powered owner HP loss occurs. Power mutation/removal and stun unsupported. |
-| `InfernoPower` | 狱火 | During owner's turn, HP loss triggers all-enemy damage. | Implemented with simulator `Damage` against current shadow hittable opponents. |
+| `InfernoPower` | 狱火 | During owner's turn, HP loss triggers all-enemy damage. | Implemented with simulator `Damage` against current shadow hittable enemies. |
 | `HardenedShellPower` | 硬化外壳 | Tracks non-fully-blocked hits for later HP-loss cap/status. | Marked risky when owner is not fully blocked. Original value hook reads live internal state, so a state-store-only mirror would not affect later cap checks. |
 | `PersonalHivePower` | 人体蜂房 | On powered damage, adds Dazed cards to dealer draw pile. | Implemented by generating Dazed previews and inserting them into the simulated draw pile with cloned Shuffle RNG. |
 | `PlowPower` | 横冲直撞 | Damage-received movement/stun behavior. | Ignored by current-turn scope: the stun/monster state change affects later enemy behavior. |

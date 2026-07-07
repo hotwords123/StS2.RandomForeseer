@@ -95,14 +95,11 @@ internal static class BlockHooks
             return;
         }
 
-        var targets = context.State.GetHittableOpponentsOf(power.Owner);
-        var target = context.Rng.CombatTargets.NextItem(targets);
-        if (target == null)
+        var target = context.Rng.CombatTargets.NextItem(context.State.HittableEnemies);
+        if (target != null)
         {
-            return;
+            context.Simulator.Damage(target, power.Amount, ValueProp.Unpowered, power.Owner);
         }
-
-        context.Simulator.Damage(target, power.Amount, ValueProp.Unpowered, power.Owner);
     }
 }
 
