@@ -28,7 +28,7 @@ internal static class CombatPredictionSimulatorExtensions
         }
 
         DamageCmd.Attack(source.Preview.DynamicVars.Damage.BaseValue)
-            .FromCard(source.Preview, null)
+            .FromCard(source.Preview, null)  // TODO: Add CardPlay parameter here
             .WithHitCount(hitCount)
             .Targeting(target)
             .Simulate(simulator);

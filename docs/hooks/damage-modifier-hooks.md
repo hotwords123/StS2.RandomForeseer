@@ -50,7 +50,7 @@ Current mirror status: implemented by directly calling original `Hook.ModifyDama
 | `LeadershipPower` | 领袖气质 | Owner buffs allied powered attacks by flat damage. | Implemented by original hook. |
 | `MiniatureCannon` | 微型大炮 | Owner upgraded-card powered attacks gain flat damage. | Implemented by original hook. |
 | `MysticLighter` | 神秘打火机 | Owner enchanted-card powered attacks gain flat damage. | Implemented by original hook. |
-| `OneForAllPower` | 一心化万 | Owner's powered 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Implemented by original hook. StS2 v0.108.0 added the `CardPlay?` branch, so hover forecasts follow vanilla preview semantics until full card-play state is mirrored. |
+| `OneForAllPower` | 一心化万 | Owner's powered 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Implemented by original hook. StS2 v0.108.0 added the `CardPlay?` branch; simulated `AttackCommand` damage forwards `CardPlay`, while generic/direct damage forecasts still follow vanilla preview semantics. |
 | `PhantomBladesPower` | 幻影之刃 | Owner's first Shiv attack this turn gains flat damage. | Implemented by original hook, but reads live `CombatManager.Instance.History.CardPlaysFinished`. |
 | `StrikeDummy` | 打击木偶 | Owner Strike-tag attacks gain flat damage. | Implemented by original hook. |
 | `StrengthPower` | 力量 | Owner powered attacks gain flat damage; negative amounts reduce damage. | Implemented by original hook. |
@@ -158,7 +158,7 @@ Current mirror status: `AfterModifyingHpLostAfterOsty` is dispatched only to the
 ## Parity notes
 
 - The simulator intentionally uses the original `Hook.Modify*` value path because vanilla previews also use these hooks without mutating RNG.
-- StS2 v0.108.0 added `CardPlay?` to damage modifiers. Real card execution passes the active `CardPlay`; hover forecasts and other vanilla previews pass `null`, so the simulator also passes `null` until it owns a full card-play mirror.
+- StS2 v0.108.0 added `CardPlay?` to damage modifiers. Real card execution passes the active `CardPlay`; hover forecasts and other vanilla previews pass `null`. The simulator forwards `AttackCommand.CardPlay` through `ExecuteAttack(AttackCommand)` for simulated card-play/autoplay attacks, but direct `Damage` calls and helper-created attacks without a `CardPlay` still pass `null`.
 - Direct original hook calls read live model state. History-dependent listeners such as `LethalityPower` and `PhantomBladesPower` do not read simulator shadow history, so chained simulated card plays or auto-plays can drift until those powers get targeted mirrors.
 - Attack-command scoped listeners such as `VigorPower`, `GigantificationPower`, and `PenNib` rely on live `BeforeAttack`/`BeforeCardPlayed`/`AfterAttack` state. `CombatPredictionSimulator.ExecuteAttack(AttackCommand)` now mirrors the attack lifecycle around per-hit `Damage`, but direct simulator `Damage` calls still bypass that lifecycle, and original value hooks still read live power/history state until targeted shadow-state mirrors exist. See `attack-hooks.md`.
 - `DamageModifierHooks` explicitly registers the reviewed vanilla `AfterModifyingHpLostAfterOsty` listeners. Add new exact registrations if vanilla gains more after-modifying listeners.

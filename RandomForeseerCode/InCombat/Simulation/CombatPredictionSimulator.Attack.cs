@@ -77,7 +77,8 @@ internal sealed partial class CombatPredictionSimulator
                 GetAttackDamageAmount(attackCommand, singleTarget),
                 attackCommand.DamageProps,
                 attacker,
-                cardSource);
+                cardSource,
+                attackCommand.CardPlay);
             attackCommand.AddResultsInternal(results);
         }
 

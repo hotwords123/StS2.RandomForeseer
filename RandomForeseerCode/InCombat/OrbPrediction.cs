@@ -281,7 +281,7 @@ internal sealed class OrbPrediction(
     private bool SimulateShatter()
     {
         DamageCmd.Attack(source.Preview.DynamicVars.Damage.BaseValue)
-            .FromCard(source.Preview, null)
+            .FromCard(source.Preview, null)  // TODO: Add CardPlay parameter here
             .TargetingAllOpponents(simulator.State.CombatState)
             .Simulate(simulator);
 

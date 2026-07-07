@@ -11,35 +11,42 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
-    // Convenience overload for Damage with a single target and a DamageVar.
+    // Convenience overload for non-card Damage with a single target and a DamageVar.
     public IReadOnlyList<DamageResult> Damage(
         Creature target,
         DamageVar damageVar,
-        Creature? dealer,
-        PredictedCard? cardSource = null)
+        Creature? dealer)
     {
-        return Damage([target], damageVar.BaseValue, damageVar.Props, dealer, cardSource);
+        return Damage([target], damageVar.BaseValue, damageVar.Props, dealer, cardSource: null, cardPlay: null);
     }
 
-    // Convenience overload for Damage with a single target.
+    // Convenience overload for non-card Damage with a single target.
     public IReadOnlyList<DamageResult> Damage(
         Creature target,
         decimal amount,
         ValueProp props,
-        Creature? dealer,
-        PredictedCard? cardSource = null)
+        Creature? dealer)
     {
-        return Damage([target], amount, props, dealer, cardSource);
+        return Damage([target], amount, props, dealer, cardSource: null, cardPlay: null);
     }
 
-    // Convenience overload for Damage with a DamageVar.
+    // Convenience overload for non-card Damage with a DamageVar.
     public IReadOnlyList<DamageResult> Damage(
         IReadOnlyList<Creature> targets,
         DamageVar damageVar,
-        Creature? dealer,
-        PredictedCard? cardSource = null)
+        Creature? dealer)
     {
-        return Damage(targets, damageVar.BaseValue, damageVar.Props, dealer, cardSource);
+        return Damage(targets, damageVar.BaseValue, damageVar.Props, dealer, cardSource: null, cardPlay: null);
+    }
+
+    // Convenience overload for non-card Damage.
+    public IReadOnlyList<DamageResult> Damage(
+        IReadOnlyList<Creature> targets,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer)
+    {
+        return Damage(targets, amount, props, dealer, cardSource: null, cardPlay: null);
     }
 
     // Mirrors CreatureCmd.Damage without mutating real Creature state.
@@ -48,7 +55,8 @@ internal sealed partial class CombatPredictionSimulator
         decimal amount,
         ValueProp props,
         Creature? dealer,
-        PredictedCard? cardSource = null)
+        PredictedCard? cardSource,
+        CardPlay? cardPlay)
     {
         if (dealer?.IsDead == true || targets.Count == 0)
         {
@@ -62,7 +70,7 @@ internal sealed partial class CombatPredictionSimulator
 
         foreach (var originalTarget in targets)
         {
-            results.AddRange(DamageTarget(originalTarget, amount, props, dealer, cardSource, runState));
+            results.AddRange(DamageTarget(originalTarget, amount, props, dealer, cardSource, cardPlay, runState));
         }
 
         ProcessDamageResults(results, runState, dealer, cardSource);
@@ -76,6 +84,7 @@ internal sealed partial class CombatPredictionSimulator
         ValueProp props,
         Creature? dealer,
         PredictedCard? cardSource,
+        CardPlay? cardPlay,
         IRunState runState)
     {
         var originalTargetState = State.GetCreature(originalTarget);
@@ -93,8 +102,7 @@ internal sealed partial class CombatPredictionSimulator
             props,
             cardSource?.Preview,
             // StS2 v0.108.0 passes CardPlay into damage modifiers during real card execution.
-            // Forecast damage uses the same no-CardPlay shape as vanilla preview calculations.
-            null,
+            cardPlay,
             ModifyDamageHookType.All,
             CardPreviewMode.None,
             out var damageModifiers);
