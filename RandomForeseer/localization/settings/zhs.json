@@ -34,6 +34,8 @@
   "toggle.enable_combat_card_selection_prediction.description": "启用后，战斗卡牌提示和手牌高亮会显示当前随机数状态将选中的已有卡牌。",
   "toggle.enable_orb_prediction.label": "预测充能球效果",
   "toggle.enable_orb_prediction.description": "启用后，支持的充能球触发卡牌提示会显示充能球效果将命中的目标。",
+  "toggle.enable_random_target_attack_prediction.label": "预测随机目标攻击",
+  "toggle.enable_random_target_attack_prediction.description": "启用后，支持的随机敌人目标攻击牌会显示当前随机数状态将命中的目标。",
   "toggle.enable_end_turn_prediction.label": "预测回合结束效果",
   "toggle.enable_end_turn_prediction.description": "启用后，战斗中会预览支持的回合结束伤害效果。",
   "choice.end_turn_prediction_display_mode.label": "回合结束预测图标显示时机",

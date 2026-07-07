@@ -20,15 +20,15 @@ internal sealed class OrbPrediction(
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        return Predict(card, target: null).ToHoverTips();
+        return Predict(card, target: null)?.ToHoverTips() ?? [];
     }
 
-    public static OrbPredictionResult Predict(CardModel card, Creature? target)
+    public static OrbPredictionResult? Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOrbPrediction) ||
             !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
-            return OrbPredictionResult.Empty;
+            return null;
         }
 
         var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
@@ -41,7 +41,7 @@ internal sealed class OrbPrediction(
         {
             if (!predictor.Simulate())
             {
-                return OrbPredictionResult.Empty;
+                return null;
             }
         }
 
@@ -350,8 +350,6 @@ internal sealed record OrbPredictionResult(
     DamagePredictionResult DamagePrediction,
     IReadOnlyList<IHoverTip> ExtraHoverTips)
 {
-    public static OrbPredictionResult Empty { get; } = new(DamagePredictionResult.Empty, []);
-
     public bool IsEmpty => !DamagePrediction.HasTargets && ExtraHoverTips.Count == 0;
 
     public IReadOnlyList<IHoverTip> ToHoverTips()

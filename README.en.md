@@ -15,6 +15,7 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
+- **Random-target attack prediction**: shows targets that supported random-enemy attack cards will hit during combat, with health bar forecasts.
 - **Orb effect prediction**: shows targets that supported orb-triggering cards will hit during combat, with health bar forecasts.
 - **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; overlay indicators and health bar forecasts can be configured separately for End Turn button hover or always during the player turn; hovering a target creature or prediction indicator shows per-hit damage source details.
 - **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
@@ -86,6 +87,16 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Anointed
 - Seeker Strike (random candidates)
 - Uproar
+
+### Random-Target Attacks
+
+- Flak Cannon
+- Ricochet
+- Rip and Tear
+- Stardust
+- Sweeping Gaze
+- Sword Boomerang
+- Volley
 
 ### Orb Effects
 
@@ -195,6 +206,7 @@ Open the RitsuLib mod settings page and select **Random Foreseer**:
 | Predict combat card generation | Controls whether supported in-hand combat cards show predicted generated cards |
 | Predict combat card selection | Controls whether supported in-hand combat cards show selected existing cards and hand highlights |
 | Predict orb effects | Controls whether supported orb-triggering cards show the targets that orb effects will hit |
+| Predict random-target attacks | Controls whether supported random-enemy attack cards show the targets they will hit |
 | Predict end-turn effects | Controls whether supported end-turn damage predictions are shown |
 | End-turn prediction overlay display | Controls whether end-turn damage prediction indicators appear on End Turn button hover or always during the player turn |
 | End-turn health bar forecast display | Controls when end-turn damage is shown on target health bars, default always during the player turn |

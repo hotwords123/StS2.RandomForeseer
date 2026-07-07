@@ -21,6 +21,7 @@ internal static class CombatCardPrediction
         registry.Register("auto-play from draw pile", AutoPlayFromDrawPilePrediction.GetCardHoverTips);
         registry.Register("card draw", CardDrawPrediction.GetCardHoverTips);
         registry.Register("orb", OrbPrediction.GetHoverTips);
+        registry.Register("random target attack", RandomTargetAttackPrediction.GetHoverTips);
 
         return registry;
     }

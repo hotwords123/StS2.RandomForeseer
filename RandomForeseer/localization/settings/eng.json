@@ -34,6 +34,8 @@
   "toggle.enable_combat_card_selection_prediction.description": "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select.",
   "toggle.enable_orb_prediction.label": "Predict orb effects",
   "toggle.enable_orb_prediction.description": "When enabled, supported orb-triggering card tooltips show the targets that orb effects will hit.",
+  "toggle.enable_random_target_attack_prediction.label": "Predict random-target attacks",
+  "toggle.enable_random_target_attack_prediction.description": "When enabled, supported random-enemy attack cards show the targets the current RNG will hit.",
   "toggle.enable_end_turn_prediction.label": "Predict end-turn effects",
   "toggle.enable_end_turn_prediction.description": "When enabled, supported end-turn damage effects are previewed during combat.",
   "choice.end_turn_prediction_display_mode.label": "End-turn prediction overlay display",

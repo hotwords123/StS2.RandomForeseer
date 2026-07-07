@@ -5,6 +5,8 @@
   "drift_warning.draw_pile.description": "Draw, shuffle, or on-draw effects may change the pile, advance RNG, or trigger combat side effects, so this prediction may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
   "drift_warning.orb.title": "Notice",
   "drift_warning.orb.description": "Orb-related side effects may change targets, advance RNG, or trigger combat effects, so this prediction may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
+  "drift_warning.random_target_attack.title": "Notice",
+  "drift_warning.random_target_attack.description": "Attack, exhaust, or damage side effects may change targets, advance RNG, or trigger combat effects, so this prediction may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
   "drift_warning.end_turn.title": "Notice",
   "drift_warning.end_turn.description": "End-turn or orb-related effects may change targets, advance RNG, or trigger combat effects before this prediction resolves, so it may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
   "end_turn_prediction_indicator.title": "Prediction",

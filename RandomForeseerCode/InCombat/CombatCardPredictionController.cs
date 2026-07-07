@@ -122,31 +122,47 @@ internal static class CombatCardPredictionController
 
     private static void ShowDamagePrediction(CardModel card, Creature? target)
     {
-        OrbPredictionResult prediction;
-
-        try
+        if (GetDamagePredictionResult(card, target) is { } prediction)
         {
-            prediction = OrbPrediction.Predict(card, target);
-        }
-        catch (Exception ex)
-        {
-            Entry.Logger.Warn($"Combat orb prediction failed for {card.Id}: {ex}");
-            ClearDamagePrediction();
-            return;
-        }
-
-        if (prediction.DamagePrediction.HasTargets)
-        {
-            CombatPredictionOverlay.Show(prediction.DamagePrediction);
-            DamagePredictionHealthBarForecast.Set(prediction.DamagePrediction);
+            CombatPredictionOverlay.Show(prediction);
+            DamagePredictionHealthBarForecast.Set(prediction);
             _hasDamagePrediction = true;
         }
         else
         {
             ClearDamagePrediction();
         }
+    }
 
-        _cachedHoverTips.AddRange(prediction.ToHoverTips());
+    private static DamagePredictionResult? GetDamagePredictionResult(CardModel card, Creature? target)
+    {
+        try
+        {
+            if (OrbPrediction.Predict(card, target) is { } prediction)
+            {
+                _cachedHoverTips.AddRange(prediction.ToHoverTips());
+                return prediction.DamagePrediction;
+            }
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat orb prediction failed for {card.Id}: {ex}");
+        }
+
+        try
+        {
+            if (RandomTargetAttackPrediction.Predict(card) is { } prediction)
+            {
+                _cachedHoverTips.AddRange(prediction.ToHoverTips());
+                return prediction.DamagePrediction;
+            }
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat random target attack prediction failed for {card.Id}: {ex}");
+        }
+
+        return null;
     }
 
     private static void ShowSelectionHighlight(CardModel card, Creature? target)

@@ -5,6 +5,8 @@
   "drift_warning.draw_pile.description": "抽牌、洗牌或抽牌时触发的效果可能改变牌堆、推进随机数或触发战斗副作用，因此这里的预测不一定准确。{HasModels:\n可能来源：{Models:[gold]{}[/gold]|、|和|和}{ExtraModelCount:cond:>0?，以及其他[blue]{ExtraModelCount}[/blue]项|}。|}\n你可以在设置界面关闭这个提示。",
   "drift_warning.orb.title": "提示",
   "drift_warning.orb.description": "充能球相关副作用可能改变目标、推进随机数或触发战斗效果，因此这里的预测不一定准确。{HasModels:\n可能来源：{Models:[gold]{}[/gold]|、|和|和}{ExtraModelCount:cond:>0?，以及其他[blue]{ExtraModelCount}[/blue]项|}。|}\n你可以在设置界面关闭这个提示。",
+  "drift_warning.random_target_attack.title": "提示",
+  "drift_warning.random_target_attack.description": "攻击、消耗或伤害相关副作用可能改变目标、推进随机数或触发战斗效果，因此这里的预测不一定准确。{HasModels:\n可能来源：{Models:[gold]{}[/gold]|、|和|和}{ExtraModelCount:cond:>0?，以及其他[blue]{ExtraModelCount}[/blue]项|}。|}\n你可以在设置界面关闭这个提示。",
   "drift_warning.end_turn.title": "提示",
   "drift_warning.end_turn.description": "回合结束或充能球相关效果可能在这项预测结算前改变目标、推进随机数或触发战斗效果，因此这里的预测不一定准确。{HasModels:\n可能来源：{Models:[gold]{}[/gold]|、|和|和}{ExtraModelCount:cond:>0?，以及其他[blue]{ExtraModelCount}[/blue]项|}。|}\n你可以在设置界面关闭这个提示。",
   "end_turn_prediction_indicator.title": "预测",

@@ -41,6 +41,7 @@ internal static class CombatPredictedCardExtensions
         previewCard.Affliction._amount = (int)amount;
     }
 
+    // Mirrors CardModel.GeneratePlayCount.
     public static int GeneratePlayCount(this PredictedCard card, CombatPredictionSimulator simulator, Creature? target)
     {
         var playCount = Hook.ModifyCardPlayCount(
@@ -57,5 +58,17 @@ internal static class CombatPredictedCardExtensions
             simulator.MarkCurrentSourceRisky();
         }
         return playCount;
+    }
+
+    // Mirrors CardModel.ResolveEnergyXValue.
+    public static int ResolveEnergyXValue(this PredictedCard card, CombatPredictionState state)
+    {
+        return Hook.ModifyXValue(state.CombatState, card.Preview, card.Preview.EnergyCost.CapturedXValue);
+    }
+
+    // Mirrors CardModel.ResolveStarXValue.
+    public static int ResolveStarXValue(this PredictedCard card, CombatPredictionState state)
+    {
+        return Hook.ModifyXValue(state.CombatState, card.Preview, card.Preview.LastStarsSpent);
     }
 }

@@ -47,6 +47,8 @@ internal sealed class RandomForeseerSettingsData
 
     public bool EnableOrbPrediction { get; set; } = true;
 
+    public bool EnableRandomTargetAttackPrediction { get; set; } = true;
+
     public bool EnableEndTurnPrediction { get; set; } = true;
 
     public EndTurnPredictionDisplayMode EndTurnPredictionDisplayMode { get; set; } =
@@ -233,6 +235,14 @@ internal static class RandomForeseerSettings
             (settings, value) => settings.EnableOrbPrediction = value)
         .WithDefault(() => Default.EnableOrbPrediction);
 
+    private static readonly IModSettingsValueBinding<bool> EnableRandomTargetAttackPredictionBinding =
+        ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
+            Entry.ModId,
+            DataKey,
+            settings => settings.EnableRandomTargetAttackPrediction,
+            (settings, value) => settings.EnableRandomTargetAttackPrediction = value)
+        .WithDefault(() => Default.EnableRandomTargetAttackPrediction);
+
     private static readonly IModSettingsValueBinding<bool> EnableEndTurnPredictionBinding =
         ModSettingsBindings.Global<RandomForeseerSettingsData, bool>(
             Entry.ModId,
@@ -365,6 +375,8 @@ internal static class RandomForeseerSettings
     public static bool EnableCombatCardSelectionPrediction => EnableCombatCardSelectionPredictionBinding.Read();
 
     public static bool EnableOrbPrediction => EnableOrbPredictionBinding.Read();
+
+    public static bool EnableRandomTargetAttackPrediction => EnableRandomTargetAttackPredictionBinding.Read();
 
     public static bool EnableEndTurnPrediction => EnableEndTurnPredictionBinding.Read();
 
@@ -579,6 +591,12 @@ internal static class RandomForeseerSettings
                     Text("toggle.enable_orb_prediction.label"),
                     EnableOrbPredictionBinding,
                     Text("toggle.enable_orb_prediction.description"));
+
+                section.AddToggle(
+                    "enable_random_target_attack_prediction",
+                    Text("toggle.enable_random_target_attack_prediction.label"),
+                    EnableRandomTargetAttackPredictionBinding,
+                    Text("toggle.enable_random_target_attack_prediction.description"));
 
                 section.AddToggle(
                     "enable_end_turn_prediction",

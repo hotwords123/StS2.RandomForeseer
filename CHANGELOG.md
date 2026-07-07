@@ -10,6 +10,9 @@
 - 战斗随机选牌预测现在会在拖拽攻击牌并指向目标时模拟攻击结算后的随机选牌结果。<br>
   Combat random card selection prediction now simulates target-dependent attack resolution while dragging attack cards over a target.
 
+- 新增随机目标攻击预测，支持散射炮、连续反弹、狂乱撕扯、星尘、扫荡凝视、飞剑回旋镖和连射。<br>
+  Added random-target attack prediction for Flak Cannon, Ricochet, Rip and Tear, Stardust, Sweeping Gaze, Sword Boomerang, and Volley.
+
 - 战斗伤害预测指示器现在会在有伤害被格挡时显示实际未格挡伤害，并提高全部格挡时的描边可见度。<br>
   Combat damage prediction indicators now show actual unblocked damage when damage is blocked, with a more visible outline for fully blocked damage.
 
