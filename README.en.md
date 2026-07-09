@@ -14,9 +14,9 @@ Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedet
 - **Random-card-generation potion prediction**: adds the predicted generated cards to random-card-generation potion hover tips.
 - **Potion generation prediction**: shows the potions that Entropic Brew and Alchemize will generate.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
-- **Combat card selection prediction**: shows or highlights existing cards that supported in-hand combat effects will select; predictions that may be shifted by side effects show a warning that can be disabled.
+- **Combat card selection prediction**: shows or highlights existing cards that supported combat card-selection effects will select when hovering cards in hand or card-play targets; predictions that may be shifted by side effects show a warning that can be disabled.
 - **Random-target attack prediction**: shows targets that supported random-enemy attack cards will hit during combat, with health bar forecasts.
-- **Orb effect prediction**: shows targets that supported orb-triggering cards will hit during combat, with health bar forecasts.
+- **Orb effect prediction**: shows targets that supported orb-triggering cards will hit when hovering cards or card-play targets during combat, with health bar forecasts.
 - **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; overlay indicators and health bar forecasts can be configured separately for End Turn button hover or always during the player turn; hovering a target creature or prediction indicator shows per-hit damage source details.
 - **Draw-pile autoplay prediction**: shows the cards that Havoc, Cascade, and Distilled Chaos will play from the draw pile.
 - **Potion draw prediction**: shows the cards that supported draw potions will draw, including cards after shuffle.
@@ -102,7 +102,10 @@ Each feature can be toggled independently from the mod settings page, and predic
 
 - Ball Lightning
 - Chaos
+- Chill
 - Cold Snap
+- Consuming Shadow
+- Coolheaded
 - Darkness
 - Dualcast
 - Fusion
@@ -185,7 +188,7 @@ Current manifest targets:
 
 | Item | Value |
 |---|---|
-| Current version | `0.8.2` |
+| Current version | `0.9.0` |
 | Minimum game version | `0.108.0` |
 | RitsuLib dependency | `0.4.47` |
 
