@@ -48,12 +48,6 @@ Thanks to the friends who played multiplayer with me. They helped test the proto
 
 Here are some common questions. [b]Please try these solutions before reporting an issue.[/b]
 
-[b]Q:[/b] Is multiplayer supported? Does everyone in multiplayer need to install it?
-[b]A:[/b] Multiplayer is supported, and only you need to install it. Only players with the mod installed can see prediction results; everyone else is unaffected.
-
-[b]Q:[/b] After installing the mod, all my saves are gone!
-[b]A:[/b] Vanilla saves and modded saves are separate. You can use another mod, such as [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700]Better Save Slots[/url], to import vanilla saves. You only need to import them once when first installing mods, then you can continue playing from the modded save.
-
 [b]Q:[/b] Where is the mod settings page?
 [b]A:[/b] Click the RitsuLib icon in the top-right corner of the main menu, or open [b]Game Settings[/b], scroll to the bottom, open [b]Mod Settings (RitsuLib)[/b], then find [b]Random Foreseer[/b] in the list on the left after it finishes loading. All settings are available there.
 

@@ -48,12 +48,6 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 
 这里列出了一些常见的问题，[b]在反馈问题前请先尝试这里的解决方案。[/b]
 
-[b]Q:[/b] 支持联机吗？联机需要所有人都安装吗？
-[b]A:[/b] 支持联机，只需要自己装。只有装了 Mod 的玩家才能看到预测结果，其他人不受影响。
-
-[b]Q:[/b] 装了 Mod 之后，我的存档都没了！
-[b]A:[/b] 原版存档和 Mod 存档是分开的，可以使用其它 Mod（例如 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700]更好的存档槽[/url]）来导入原版存档。只需在首次安装 Mod 时导入一次，之后就可以在 Mod 存档中继续游戏了。
-
 [b]Q:[/b] Mod 的设置界面在哪里？
 [b]A:[/b] 主菜单点击右上角的 RitsuLib 图标，或者在[b]游戏设置[/b]页面，拉到最底下，打开 [b]Mod 设置（RitsuLib）[/b]，加载完成后在左侧列表中找到[b]随机数预测[/b]，就可以看到所有设置选项了。
 
