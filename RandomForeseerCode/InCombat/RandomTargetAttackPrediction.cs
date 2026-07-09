@@ -11,7 +11,8 @@ namespace RandomForeseer.RandomForeseerCode.InCombat;
 internal sealed class RandomTargetAttackPrediction(
     CombatPredictionSimulator simulator,
     SimPlayerCombatState playerCombatState,
-    PredictedCard source)
+    PredictedCard source,
+    CardPlay cardPlay)
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
@@ -29,46 +30,60 @@ internal sealed class RandomTargetAttackPrediction(
 
         var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
         var predictedCard = playerCombatState.FindCard(card) ?? new PredictedCard(card);
-        var predictor = new RandomTargetAttackPrediction(simulator, playerCombatState, predictedCard);
 
-        simulator.ManualPlay(predictedCard, target: null, predictor.GetOnPlayDelegate());
+        simulator.ManualPlay(predictedCard, target: null, (_, cardPlay) =>
+        {
+            new RandomTargetAttackPrediction(simulator, playerCombatState, predictedCard, cardPlay)
+                .Simulate();
+        });
 
         return new(DamagePredictionResult.FromDamageHistory(simulator));
     }
 
     private static bool IsSupported(CardModel card)
     {
-        return card is FlakCannon
-            or Ricochet
-            or RipAndTear
-            or Stardust
-            or SweepingGaze
-            or SwordBoomerang
-            or Volley;
+        return card is
+            FlakCannon or
+            Ricochet or
+            RipAndTear or
+            Stardust or
+            SweepingGaze or
+            SwordBoomerang or
+            Volley;
     }
 
-    private OnPlayDelegate GetOnPlayDelegate()
+    private void Simulate()
     {
-        return source.Preview switch
+        switch (source.Preview)
         {
-            FlakCannon => SimulateFlakCannon,
-            Ricochet => (_, cardPlay) =>
-                SimulateRandomAttack(cardPlay, source.Preview.DynamicVars.Repeat.IntValue),
-            RipAndTear => (_, cardPlay) =>
-                SimulateRandomAttack(cardPlay, 2),
-            Stardust => (_, cardPlay) =>
-                SimulateRandomAttack(cardPlay, source.ResolveStarXValue(simulator.State)),
-            SweepingGaze => SimulateSweepingGaze,
-            SwordBoomerang => (_, cardPlay) =>
-                SimulateRandomAttack(cardPlay, source.Preview.DynamicVars.Repeat.IntValue),
-            Volley => (_, cardPlay) =>
-                SimulateRandomAttack(cardPlay, source.ResolveEnergyXValue(simulator.State)),
-            _ => throw new InvalidOperationException(
-                $"Unsupported card type for random target attack prediction: {source.Preview.Id}")
-        };
+            case FlakCannon:
+                SimulateFlakCannon();
+                break;
+            case Ricochet:
+                SimulateRandomAttack(source.Preview.DynamicVars.Repeat.IntValue);
+                break;
+            case RipAndTear:
+                SimulateRandomAttack(2);
+                break;
+            case Stardust:
+                SimulateRandomAttack(source.ResolveStarXValue(simulator.State));
+                break;
+            case SweepingGaze:
+                SimulateSweepingGaze();
+                break;
+            case SwordBoomerang:
+                SimulateRandomAttack(source.Preview.DynamicVars.Repeat.IntValue);
+                break;
+            case Volley:
+                SimulateRandomAttack(source.ResolveEnergyXValue(simulator.State));
+                break;
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported card type for random target attack prediction: {source.Preview.Id}");
+        }
     }
 
-    private void SimulateRandomAttack(CardPlay cardPlay, int hitCount)
+    private void SimulateRandomAttack(int hitCount)
     {
         DamageCmd.Attack(source.Preview.DynamicVars.Damage.BaseValue)
             .FromCard(source.Preview, cardPlay)
@@ -77,7 +92,7 @@ internal sealed class RandomTargetAttackPrediction(
             .Simulate(simulator);
     }
 
-    private void SimulateFlakCannon(PredictedCard _, CardPlay cardPlay)
+    private void SimulateFlakCannon()
     {
         var statuses = playerCombatState.AllCards
             .Where(card =>
@@ -90,13 +105,12 @@ internal sealed class RandomTargetAttackPrediction(
             simulator.Exhaust(status);
         }
 
-        SimulateRandomAttack(cardPlay, statuses.Count);
+        SimulateRandomAttack(statuses.Count);
     }
 
-    private void SimulateSweepingGaze(PredictedCard _, CardPlay cardPlay)
+    private void SimulateSweepingGaze()
     {
-        if (source.Preview.Owner.Osty is not { } osty ||
-            !simulator.State.GetCreature(osty).IsAlive)
+        if (source.Preview.Owner.Osty is not { } osty || !simulator.State.GetCreature(osty).IsAlive)
         {
             return;
         }

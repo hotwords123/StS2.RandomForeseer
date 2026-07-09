@@ -4,8 +4,8 @@
 
 ### feat
 
-- 充能球效果预测现在支持球状闪电、寒流、冰之长枪、引火、陨石打击、空值、折射、打碎和特斯拉线圈。<br>
-  Orb effect prediction now supports Ball Lightning, Cold Snap, Ice Lance, Ignition, Meteor Strike, Null, Refract, Shatter, and Tesla Coil.
+- 充能球效果预测现在支持球状闪电、冰寒、寒流、吞噬暗影、冷静头脑、冰之长枪、引火、陨石打击、空值、折射、打碎和特斯拉线圈。<br>
+  Orb effect prediction now supports Ball Lightning, Chill, Cold Snap, Consuming Shadow, Coolheaded, Ice Lance, Ignition, Meteor Strike, Null, Refract, Shatter, and Tesla Coil.
 
 - 战斗随机选牌预测现在会在拖拽攻击牌并指向目标时模拟攻击结算后的随机选牌结果。<br>
   Combat random card selection prediction now simulates target-dependent attack resolution while dragging attack cards over a target.
@@ -18,6 +18,9 @@
 
 - 回合结束预测现在会模拟彼岸咆哮和所向无敌的自动打出效果。<br>
   End-turn prediction now simulates autoplay effects for Howl From Beyond and I Am Invincible.
+
+- 部分战斗预测现在能处理重放的效果。<br>
+  Some combat predictions now handle Replay effects.
 
 ### fix
 

@@ -1,9 +1,11 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Extensions;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -13,7 +15,8 @@ internal sealed class CombatCardSelectionPrediction(
     CombatPredictionSimulator simulator,
     SimPlayerCombatState playerCombatState,
     PredictedCard source,
-    Creature? target)
+    CardPlay cardPlay,
+    List<PredictedCard> selectedCards)
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
@@ -23,6 +26,7 @@ internal sealed class CombatCardSelectionPrediction(
     public static CombatCardSelectionPredictionResult Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction) ||
+            !IsSupported(card, target) ||
             !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
             return CombatCardSelectionPredictionResult.Empty;
@@ -31,90 +35,134 @@ internal sealed class CombatCardSelectionPrediction(
         var playerCombatState = simulator.State.GetPlayerCombatState(card.Owner);
         var predictedCard = playerCombatState.FindCard(card) ?? new PredictedCard(card);
 
-        using (simulator.PushSource(card))
+        var selectedCards = new List<PredictedCard>();
+
+        simulator.ManualPlay(predictedCard, target, (_, cardPlay) =>
         {
-            simulator.AddToPile(predictedCard, PileType.Play);
-            return new CombatCardSelectionPrediction(simulator, playerCombatState, predictedCard, target).Predict();
-        }
+            new CombatCardSelectionPrediction(simulator, playerCombatState, predictedCard, cardPlay, selectedCards)
+                .Simulate();
+        });
+
+        return new(selectedCards.Select(card => card.Preview).ToList(), simulator.Snapshot());
     }
 
-    private CombatCardSelectionPredictionResult Predict()
+    private static bool IsSupported(CardModel card, Creature? target)
     {
-        return source.Preview switch
+        return card switch
         {
-            Anointed => PredictAnointed(),
-            Cinder => PredictCinder(),
-            DrainPower => PredictDrainPower(),
-            HiddenGem => PredictHiddenGem(),
-            SeekerStrike => PredictSeekerStrike(),
-            Thrash => PredictThrash(),
-            TrueGrit { IsUpgraded: false } => PredictTrueGrit(),
-            Uproar => PredictUproar(),
-            _ => CombatCardSelectionPredictionResult.Empty
+            // Cards that can be predicted from hand hover without a selected target.
+            Anointed or
+            HiddenGem or
+            TrueGrit { IsUpgraded: false } => true,
+
+            // Cards that require an explicit target.
+            Cinder or
+            DrainPower or
+            SeekerStrike or
+            Thrash or
+            Uproar => card.IsValidTarget(target),
+
+            _ => false
         };
     }
 
-    private CombatCardSelectionPredictionResult PredictHandCard(Func<CardModel, bool> filter)
+    private void Simulate()
     {
-        var candidates = playerCombatState.Hand.Cards
-            .Select(predictedCard => predictedCard.Preview)
-            .Where(filter);
-        var selectedCard = simulator.Rng.CombatCardSelection.NextItem(candidates);
-        return new(selectedCard, simulator.Snapshot());
+        switch (source.Preview)
+        {
+            case Anointed:
+                SimulateAnointed();
+                break;
+            case Cinder:
+                SimulateCinder();
+                break;
+            case DrainPower:
+                SimulateDrainPower();
+                break;
+            case HiddenGem:
+                SimulateHiddenGem();
+                break;
+            case SeekerStrike:
+                SimulateSeekerStrike();
+                break;
+            case Thrash:
+                SimulateThrash();
+                break;
+            case TrueGrit { IsUpgraded: false }:
+                SimulateTrueGrit();
+                break;
+            case Uproar:
+                SimulateUproar();
+                break;
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported card type for combat card selection prediction: {source.Preview.Id}");
+        }
     }
 
-    private bool TrySimulateTargetedAttack(int hitCount = 1)
+    private PredictedCard? SelectRandomHandCard(Func<CardModel, bool> filter)
     {
-        return simulator.TrySimulateTargetedAttack(source, target, hitCount);
+        var candidates = playerCombatState.Hand.Cards.Where(card => filter(card.Preview));
+        return simulator.Rng.CombatCardSelection.NextItem(candidates);
     }
 
-    private CombatCardSelectionPredictionResult PredictAnointed()
+    private void SimulateTargetedAttack(int hitCount = 1)
+    {
+        simulator.SimulateTargetedAttack(source, cardPlay, hitCount);
+    }
+
+    private void SimulateAnointed()
     {
         var cardsInHandAfterPlay = playerCombatState.Hand.Cards.Count;
         var count = CardPile.MaxCardsInHand - cardsInHandAfterPlay;
         if (count <= 0)
         {
-            return CombatCardSelectionPredictionResult.Empty;
+            return;
         }
 
-        var selectedCards = playerCombatState.DrawPile.Cards
+        var cardsToAdd = playerCombatState.DrawPile.Cards
             .Where(card => card.Preview.Rarity == CardRarity.Rare)
             .TakeRandom(count, simulator.Rng.CombatCardSelection)
-            .Select(card => card.Preview)
             .ToList();
 
-        return new(selectedCards, simulator.Snapshot());
+        simulator.AddToPile(cardsToAdd, PileType.Hand);
+        selectedCards.AddRange(cardsToAdd);
     }
 
-    private CombatCardSelectionPredictionResult PredictCinder()
+    private void SimulateCinder()
     {
-        return TrySimulateTargetedAttack()
-            ? PredictHandCard(_ => true)
-            : CombatCardSelectionPredictionResult.Empty;
-    }
+        SimulateTargetedAttack();
 
-    private CombatCardSelectionPredictionResult PredictDrainPower()
-    {
-        if (!TrySimulateTargetedAttack())
+        if (SelectRandomHandCard(_ => true) is { } card)
         {
-            return CombatCardSelectionPredictionResult.Empty;
+            simulator.Exhaust(card);
+            selectedCards.Add(card);
         }
+    }
 
-        var selectedCards = playerCombatState.DiscardPile.Cards
+    private void SimulateDrainPower()
+    {
+        SimulateTargetedAttack();
+
+        var cardsToUpgrade = playerCombatState.DiscardPile.Cards
             .Where(card => card.Preview.IsUpgradable)
             .TakeRandom(source.Preview.DynamicVars.Cards.IntValue, simulator.Rng.CombatCardSelection)
-            .Select(card => card.Upgrade().Preview)
             .ToList();
 
-        return new(selectedCards, simulator.Snapshot());
+        foreach (var card in cardsToUpgrade)
+        {
+            card.Upgrade();
+        }
+
+        selectedCards.AddRange(cardsToUpgrade);
     }
 
-    private CombatCardSelectionPredictionResult PredictHiddenGem()
+    private void SimulateHiddenGem()
     {
         var drawPile = playerCombatState.DrawPile;
         if (drawPile.IsEmpty)
         {
-            return CombatCardSelectionPredictionResult.Empty;
+            return;
         }
 
         var eligibleCards = drawPile.Cards
@@ -129,51 +177,101 @@ internal sealed class CombatCardSelectionPrediction(
 
         var predicted = simulator.Rng.CombatCardSelection.NextItem(
             preferredCards.Count == 0 ? eligibleCards : preferredCards);
-        if (predicted == null)
+        if (predicted is not null)
         {
-            return CombatCardSelectionPredictionResult.Empty;
+            predicted.MutablePreview.BaseReplayCount += source.Preview.DynamicVars["Replay"].IntValue;
+            selectedCards.Add(predicted);
         }
-
-        predicted.MutablePreview.BaseReplayCount += source.Preview.DynamicVars["Replay"].IntValue;
-        return new(predicted.Preview, PredictionRisk.None);
     }
 
-    private CombatCardSelectionPredictionResult PredictSeekerStrike()
+    private void SimulateSeekerStrike()
     {
-        if (!TrySimulateTargetedAttack())
+        if (selectedCards.Count > 0)
         {
-            return CombatCardSelectionPredictionResult.Empty;
+            // The player selects a card each time it is played, and the draw pile will change after the selection,
+            // but we cannot know which card the player selected, so we can only predict once.
+            return;
         }
 
-        var selectedCards = playerCombatState.DrawPile.Cards
+        SimulateTargetedAttack();
+
+        var cardOptions = playerCombatState.DrawPile.Cards
             .ToList()
             .StableShuffle(simulator.Rng.CombatCardSelection)
             .Take(source.Preview.DynamicVars.Cards.IntValue)
-            .Select(card => card.Preview)
             .ToList();
 
-        return new(selectedCards, simulator.Snapshot());
+        selectedCards.AddRange(cardOptions);
     }
 
-    private CombatCardSelectionPredictionResult PredictThrash()
+    private void SimulateThrash()
     {
-        return TrySimulateTargetedAttack(hitCount: 2)
-            ? PredictHandCard(card => card.Type == CardType.Attack)
-            : CombatCardSelectionPredictionResult.Empty;
+        SimulateTargetedAttack(hitCount: 2);
+
+        var cardToExhaust = SelectRandomHandCard(card => card.Type == CardType.Attack);
+        if (cardToExhaust is null)
+        {
+            return;
+        }
+
+        var damage = default(decimal);
+        var dynamicVars = cardToExhaust.Preview.DynamicVars;
+        if (dynamicVars.ContainsKey("CalculatedDamage"))
+        {
+            using (simulator.PushSource(cardToExhaust.Original))
+            {
+                damage = dynamicVars.CalculatedDamage.SimulateCalculate(simulator, null);
+            }
+        }
+        else if (dynamicVars.ContainsKey("Damage"))
+        {
+            damage = dynamicVars.Damage.BaseValue;
+        }
+        else if (dynamicVars.ContainsKey("OstyDamage"))
+        {
+            damage = dynamicVars.OstyDamage.BaseValue;
+        }
+        else
+        {
+            Entry.Logger.Warn(
+                $"Exhausted attack card {cardToExhaust.Preview.Id.Entry} did not have an appropriate DamageVar");
+        }
+
+        damage = Hook.ModifyDamage(
+            simulator.State.CombatState.RunState,
+            simulator.State.CombatState,
+            target: null,
+            dealer: cardToExhaust.Preview.Owner.Creature,
+            damage,
+            ValueProp.Move,
+            cardToExhaust.Preview,
+            cardPlay: null,
+            ModifyDamageHookType.All,
+            CardPreviewMode.None,
+            out var _);
+
+        var previewCard = (Thrash)source.MutablePreview;
+        previewCard.DynamicVars.Damage.BaseValue += damage;
+        previewCard.ExtraDamage += damage;
+
+        simulator.Exhaust(cardToExhaust);
+        selectedCards.Add(cardToExhaust);
     }
 
-    private CombatCardSelectionPredictionResult PredictTrueGrit()
+    private void SimulateTrueGrit()
     {
         simulator.GainBlock(source.Preview.Owner.Creature, source.Preview.DynamicVars.Block, source);
-        return PredictHandCard(_ => true);
+
+        if (SelectRandomHandCard(_ => true) is { } card)
+        {
+            simulator.Exhaust(card);
+            selectedCards.Add(card);
+        }
     }
 
-    private CombatCardSelectionPredictionResult PredictUproar()
+    private void SimulateUproar()
     {
-        if (!TrySimulateTargetedAttack(hitCount: 2))
-        {
-            return CombatCardSelectionPredictionResult.Empty;
-        }
+        SimulateTargetedAttack(hitCount: 2);
 
         var attackCards = playerCombatState.DrawPile.Cards
             .Where(card => card.Preview.Type == CardType.Attack)
@@ -189,7 +287,11 @@ internal sealed class CombatCardSelectionPrediction(
             .StableShuffle(simulator.Rng.Shuffle)
             .FirstOrDefault();
 
-        return new(predicted?.Preview, simulator.Snapshot());
+        if (predicted is not null)
+        {
+            selectedCards.Add(predicted);
+            simulator.AutoPlay(predicted);
+        }
     }
 }
 
@@ -197,15 +299,13 @@ internal sealed record CombatCardSelectionPredictionResult(
     IReadOnlyList<CardModel> SelectedCards,
     PredictionRisk Risk)
 {
-    public CombatCardSelectionPredictionResult(CardModel? selectedCard, PredictionRisk risk)
-        : this(selectedCard != null ? [selectedCard] : [], risk)
-    { }
-
     public static CombatCardSelectionPredictionResult Empty { get; } = new([], PredictionRisk.None);
+
+    public bool IsEmpty => SelectedCards.Count == 0;
 
     public IReadOnlyList<IHoverTip> ToHoverTips()
     {
-        if (SelectedCards.Count == 0)
+        if (IsEmpty)
         {
             return [];
         }

@@ -152,10 +152,7 @@ internal sealed partial class CombatPredictionSimulator
     {
         if (attackCommand._calculatedDamageVar is {} calculatedDamageVar)
         {
-            // TODO: This might need more careful review to ensure that all modifiers and context are
-            // correctly applied in the simulation.
-            MarkCurrentSourceRisky();
-            return calculatedDamageVar.Calculate(singleTarget);
+            return calculatedDamageVar.SimulateCalculate(this, singleTarget);
         }
 
         return attackCommand._damagePerHit;
