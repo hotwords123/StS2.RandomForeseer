@@ -70,4 +70,4 @@ Here are some common questions. [b]Please try these solutions before reporting a
 
 If none of the above solves your issue, you can report it in the [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam discussions[/url] or [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url].
 
-[b]IMPORTANT: Please DO NOT report issues or send feature requests in the Steam comments below. Reports without useful information, as well as issues already covered above (such as version mismatch errors after updates), may be deleted directly.[/b]
+[b]IMPORTANT: Please DO NOT report issues in the Steam comments below. Reports without useful information, as well as issues already covered above (such as version mismatch errors after updates), may be deleted directly.[/b]

@@ -68,6 +68,6 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 
 [h2]反馈问题[/h2]
 
-如果以上都无法解决你的问题，可以在 [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam 讨论区[/url]或 [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url] 中反馈。
+如果以上都无法解决你的问题，可以在 [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam 讨论区[/url] 或 [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url] 中反馈。
 
-[b]重要提示：请不要在下方的 Steam 评论区反馈问题或发送功能请求。缺少有效信息的反馈，以及上面已经提到过的问题（例如更新后报错版本不匹配）可能会被直接删除。[/b]
+[b]重要提示：请不要在下方的 Steam 留言区反馈问题。缺少有效信息的反馈，以及上面已经提到过的问题（例如更新后报错版本不匹配）可能会被直接删除。[/b]
