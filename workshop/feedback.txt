@@ -1,0 +1,20 @@
+反馈问题前，[b]请先确保你关闭了所有其它 Mod（除前置 RitsuLib）后，问题仍然存在[/b]，或者你能确定这个 Mod 和某个其它 Mod 存在冲突。
+
+对于 Mod 加载失败 / 无法使用 / 冲突报错等问题，请务必附上完整的游戏日志。
+对于预测结果错误的问题，请确保你能复现问题，并完整描述问题场景和操作步骤，最好能同时提供存档文件。
+
+[b]如何找到日志：[/b]游戏内按 [b]~[/b] 打开控制台，输入 [b]open logs[/b] 打开日志文件夹，附上 [b]godot.log[/b]。
+[b]如何找到存档：[/b]游戏内按 [b]~[/b] 打开控制台，输入 [b]open saves[/b] 打开存档文件夹，附上 [b]current_run.save[/b]（单人）或 [b]current_run_mp.save[/b]（多人，仅房主）。
+
+[b]如果没有日志或准确的信息，将很难排查你遇到的问题。[/b]
+
+[hr][/hr]
+Before reporting, [b]please make sure the issue still happens after disabling all other mods except the required RitsuLib dependency[/b], unless you can confirm this mod conflicts with another specific mod.
+
+For mod loading failures, broken functionality, conflict errors, and similar issues, please include the complete game log.
+For incorrect prediction results, please make sure you can reproduce the issue and describe the scenario and steps in full. A save file is also helpful.
+
+[b]How to find logs:[/b] Press [b]~[/b] in the game to open the console, enter [b]open logs[/b] to open the log folder, and attach [b]godot.log[/b].
+[b]How to find saves:[/b] Press [b]~[/b] in the game to open the console, enter [b]open saves[/b] to open the save folder, and attach [b]current_run.save[/b] for singleplayer, or [b]current_run_mp.save[/b] for multiplayer if you are the host.
+
+[b]Without logs or precise information, it will be difficult to investigate the issue.[/b]
