@@ -140,7 +140,8 @@ internal static class NewLeafTransformPreviewPatch
     private static Func<CardModel, CardTransformation>? MakePredictor(NewLeaf source) =>
         TransformPreviewPredictor.Make(
             source.Owner.RunState.Rng.Niche,
-            fairness: PredictionFairness.UnfairInSingleplayer);
+            fairness: PredictionFairness.UnfairInSingleplayer,
+            relicSource: source);
 }
 
 [HarmonyPatch]

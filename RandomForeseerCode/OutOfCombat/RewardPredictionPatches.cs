@@ -55,15 +55,12 @@ internal static class RewardPagePredictionContext
         }
     }
 
-    public static bool HasOtherPendingRelicReward(RelicModel relic)
+    public static bool HasOtherPendingReward(RelicModel relic)
     {
         return RewardsSets.TryGetValue(relic, out var reference) &&
             FlattenRewards(reference.Set.Rewards)
-                .OfType<RelicReward>()
-                .Any(other =>
-                    !other.SuccessfullySelected &&
-                    other.Relic is { } otherRelic &&
-                    !ReferenceEquals(otherRelic, relic));
+                .Any(other => !other.SuccessfullySelected &&
+                    !(other is RelicReward relicReward && ReferenceEquals(relicReward.Relic, relic)));
     }
 
     private static IEnumerable<Reward> FlattenRewards(IEnumerable<Reward> rewards)

@@ -11,7 +11,6 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common;
 
@@ -35,24 +34,24 @@ internal static class RelicPickupPrediction
             return relic switch
             {
                 // Neow
-                ArcaneScroll when IsSingleplayerUnfairPredictionAllowed() =>
+                ArcaneScroll when IsSingleplayerUnfairPredictionAllowed(relic) =>
                     PredictionHoverTips.Cards(PredictRareCharacterCards(context, 1)),
                 HeftyTablet => PredictionHoverTips.Cards(PredictRareCharacterCards(context, 3)),
                 Kaleidoscope =>
                     PredictionHoverTips.CardBundles(PredictKaleidoscopeBundles(context)),
-                LargeCapsule when IsSingleplayerUnfairPredictionAllowed() =>
+                LargeCapsule when IsSingleplayerUnfairPredictionAllowed(relic) =>
                     PredictionHoverTips.Relics(OutOfCombatPredictionUtils.PredictRelicRewards(
                         context,
                         relic.DynamicVars["Relics"].IntValue)),
                 LeadPaperweight => PredictionHoverTips.Cards(PredictColorlessCards(context, 2)),
-                LeafyPoultice when IsSingleplayerUnfairPredictionAllowed() =>
+                LeafyPoultice when IsSingleplayerUnfairPredictionAllowed(relic) =>
                     PredictionHoverTips.Cards(PredictLeafyPoultice(player)),
                 LostCoffer => PredictLostCofferTips(context),
                 MassiveScroll => PredictionHoverTips.Cards(PredictMultiplayerCards(context, 3)),
                 NeowsBones => PredictNeowsBonesTips(context, relic),
-                NewLeaf when IsSingleplayerUnfairPredictionAllowed() =>
+                NewLeaf when IsSingleplayerUnfairPredictionAllowed(relic) =>
                     PredictionHoverTips.Cards(PredictNewLeaf(player)),
-                PhialHolster when IsSingleplayerUnfairPredictionAllowed() =>
+                PhialHolster when IsSingleplayerUnfairPredictionAllowed(relic) =>
                     PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
@@ -60,7 +59,7 @@ internal static class RelicPickupPrediction
                 ScrollBoxes =>
                     PredictionHoverTips.CardBundles(PredictScrollBoxes(context), isVanillaCardBundle: true),
                 SilkenTress silkenTress when IsAllModesUnfairPredictionAllowed() =>
-                    RewardPagePredictionContext.HasOtherPendingRelicReward(silkenTress)
+                    RewardPagePredictionContext.HasOtherPendingReward(silkenTress)
                         ? [PredictionHoverTips.Text("silken_tress_reward_offset")]
                         : PredictSilkenTressRewardTips(context, silkenTress),
                 SmallCapsule =>
@@ -530,9 +529,10 @@ internal static class RelicPickupPrediction
         }
     }
 
-    private static bool IsSingleplayerUnfairPredictionAllowed()
+    private static bool IsSingleplayerUnfairPredictionAllowed(RelicModel? relicSource = null)
     {
-        return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInSingleplayer);
+        return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInSingleplayer) ||
+            (relicSource is not null && RewardPagePredictionContext.HasOtherPendingReward(relicSource));
     }
 
     private static bool IsAllModesUnfairPredictionAllowed()

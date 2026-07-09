@@ -13,10 +13,12 @@ internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview
     public static Func<CardModel, CardTransformation>? Make(
         Rng realRng,
         bool upgradePreview = false,
-        PredictionFairness fairness = PredictionFairness.Fair)
+        PredictionFairness fairness = PredictionFairness.Fair,
+        RelicModel? relicSource = null)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableTransformPrediction) ||
-            !RandomForeseerSettings.IsFairPredictionAllowed(fairness))
+            !(RandomForeseerSettings.IsFairPredictionAllowed(fairness) ||
+                (relicSource is not null && RewardPagePredictionContext.HasOtherPendingReward(relicSource))))
         {
             return null;
         }

@@ -30,6 +30,9 @@
 - 修复“药水的未来？”和“长者兰伟德”事件选项会同时显示药水自身随机印牌预测的问题。<br>
   Fixed The Future of Potions? and Ranwid the Elder event options also showing the potion's own random-card-generation prediction.
 
+- 修复公平模式开启时，单人模式下涅奥骨骰奖励页面的第一个待领取遗物不显示拾起或变牌预测的问题。<br>
+  Fixed the first pending relic on a Neow’s Bones reward screen not showing pickup or transform predictions in singleplayer with fair mode enabled.
+
 ## v0.8.2
 
 ### fix
