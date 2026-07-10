@@ -1,7 +1,9 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using MegaCrit.Sts2.Core.Debug;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
 
@@ -23,14 +25,14 @@ public static class Bootstrap
     private const string ModId = "RandomForeseer";
     private const string RealDllName = $"{ModId}.dll";
     private const string RealPckName = $"{ModId}.pck";
-    private const string VariantManifestName = "random-foreseer-variants.manifest";
+    private const string VariantManifestName = "mod-variants.manifest";
 
     public static void Initialize()
     {
         var loaderDirectory = Path.GetDirectoryName(typeof(Bootstrap).Assembly.Location);
         if (string.IsNullOrWhiteSpace(loaderDirectory))
         {
-            throw new InvalidOperationException($"[${ModId}.Loader] Could not resolve the loader directory.");
+            throw new InvalidOperationException($"[{ModId}.Loader] Could not resolve the loader directory.");
         }
 
         var variants = LoadVariants(loaderDirectory);
@@ -38,8 +40,14 @@ public static class Bootstrap
         var selected = SelectVariant(variants, hostVersion);
 
         Log.Info(
-            $"[${ModId}.Loader] Host version {hostVersion?.ToString() ?? "<unknown>"}; " +
-            $"selected Random Foreseer {selected.ModVersion} (minimum game version {selected.MinGameVersion}).");
+            $"[{ModId}.Loader] Host version {hostVersion?.ToString() ?? "<unknown>"}; " +
+            $"selected Mod variant {selected.ModVersion} (minimum game version {selected.MinGameVersion}).");
+
+        if (!TryValidateDependencies(selected, out var dependencyErrors))
+        {
+            ReportDependencyFailure(dependencyErrors);
+            return;
+        }
 
         var loadContext = AssemblyLoadContext.GetLoadContext(typeof(Bootstrap).Assembly) ?? AssemblyLoadContext.Default;
         var realAssembly = loadContext.LoadFromAssemblyPath(selected.DllPath);
@@ -115,7 +123,30 @@ public static class Bootstrap
 
         var dllPath = Path.Combine(variantDirectory, RealDllName);
         var pckPath = Path.Combine(variantDirectory, RealPckName);
-        return new(modVersionText, modVersion, minGameVersionText, minGameVersion, dllPath, pckPath);
+        var dependencies = (entry.Dependencies ?? [])
+            .Select(dependency => CreateDependencyCandidate(entry.ModVersion, dependency))
+            .ToList();
+        return new(modVersionText, modVersion, minGameVersionText, minGameVersion, dllPath, pckPath, dependencies);
+    }
+
+    private static DependencyCandidate CreateDependencyCandidate(string? modVersion, BundleDependency dependency)
+    {
+        var id = dependency.Id?.Trim();
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new InvalidDataException($"Variant {modVersion} contains a dependency without an ID.");
+        }
+
+        var minVersionText = dependency.MinVersion?.Trim();
+        SemanticVersion? minVersion = null;
+        if (!string.IsNullOrWhiteSpace(minVersionText) &&
+            (!SemanticVersion.TryFromString(minVersionText, out minVersion) || minVersion is null))
+        {
+            throw new InvalidDataException(
+                $"Variant {modVersion} has an invalid minimum version for dependency {id}: {minVersionText}");
+        }
+
+        return new(id, minVersionText, minVersion);
     }
 
     private static VariantCandidate SelectVariant(
@@ -134,17 +165,133 @@ public static class Bootstrap
             }
 
             Log.Warn(
-                $"[${ModId}.Loader] No bundled variant declares support for game {hostVersion}; " +
+                $"[{ModId}.Loader] No bundled variant declares support for game {hostVersion}; " +
                 "using the newest bundled Mod version as a best-effort fallback.");
         }
         else
         {
             Log.Warn(
-                $"[${ModId}.Loader] Could not determine the game version; " +
+                $"[{ModId}.Loader] Could not determine the game version; " +
                 "using the newest bundled Mod version as a best-effort fallback.");
         }
 
         return variants.OrderBy(candidate => candidate.ModSemanticVersion).Last();
+    }
+
+    private static bool TryValidateDependencies(VariantCandidate selected, out List<LocString> errors)
+    {
+        var loadedMods = ModManager.GetLoadedMods().ToList();
+        var missingDependencies = new List<string>();
+        errors = [];
+
+        foreach (var dependency in selected.Dependencies)
+        {
+            var dependencyMod = loadedMods.FirstOrDefault(mod => mod.manifest?.id == dependency.Id);
+            if (dependencyMod is null)
+            {
+                Log.Error(
+                    $"[{ModId}.Loader] Selected Mod variant {selected.ModVersion} is missing dependency {dependency.Id}.");
+                missingDependencies.Add(dependency.Id);
+                continue;
+            }
+
+            if (dependency.MinSemanticVersion is null)
+            {
+                continue;
+            }
+
+            if (dependencyMod.manifest?.version is null)
+            {
+                Log.Error($"[{ModId}.Loader] Dependency {dependency.Id} does not declare a version.");
+                errors.Add(CreateDependencyVersionError(
+                    ModId,
+                    "MOD_ERROR.DEPENDENCY_VERSION_MISSING",
+                    dependency,
+                    null));
+                continue;
+            }
+
+            if (dependencyMod.version is null)
+            {
+                Log.Error(
+                    $"[{ModId}.Loader] Dependency {dependency.Id} declares invalid version {dependencyMod.manifest.version}.");
+                errors.Add(CreateDependencyVersionError(
+                    ModId,
+                    "MOD_ERROR.DEPENDENCY_VERSION_INVALID",
+                    dependency,
+                    dependencyMod.manifest.version));
+                continue;
+            }
+
+            if (dependencyMod.version.CompareTo(dependency.MinSemanticVersion) < 0)
+            {
+                Log.Error(
+                    $"[{ModId}.Loader] " +
+                    $"Selected Mod variant {selected.ModVersion} requires {dependency.Id} {dependency.MinVersion} or newer, " +
+                    $"but {dependencyMod.manifest.version} is loaded.");
+                errors.Add(CreateDependencyVersionError(
+                    ModId,
+                    "MOD_ERROR.DEPENDENCY_VERSION_UNSUPPORTED",
+                    dependency,
+                    dependencyMod.manifest.version));
+            }
+        }
+
+        if (missingDependencies.Count > 0)
+        {
+            var error = new LocString("main_menu_ui", "MOD_ERROR.MISSING_DEPENDENCY");
+            error.Add("id", ModId);
+            error.Add("missingCount", missingDependencies.Count);
+            error.Add("missingDependencies", string.Join(",", missingDependencies));
+            errors.Add(error);
+        }
+
+        return errors.Count == 0;
+    }
+
+    private static LocString CreateDependencyVersionError(
+        string modId,
+        string localizationKey,
+        DependencyCandidate dependency,
+        string? installedVersion)
+    {
+        var error = new LocString("main_menu_ui", localizationKey);
+        error.Add("id", modId);
+        error.Add("dependency", dependency.Id);
+        error.Add("minVersion", dependency.MinVersion ?? "<null>");
+        if (installedVersion is not null)
+        {
+            error.Add("version", installedVersion);
+        }
+
+        return error;
+    }
+
+    private static void ReportDependencyFailure(List<LocString> errors)
+    {
+        ModManager.OnModDetected += OnModDetected;
+
+        void OnModDetected(Mod mod)
+        {
+            if (mod.manifest?.id != ModId)
+            {
+                return;
+            }
+
+            ModManager.OnModDetected -= OnModDetected;
+            try
+            {
+                mod.state = ModLoadState.Failed;
+                mod.errors ??= [];
+                mod.errors.AddRange(errors);
+            }
+            catch (Exception ex)
+            {
+                // StS2 0.107 invokes OnModDetected subscribers directly, so
+                // this compatibility callback must never throw into ModManager.
+                Log.Error($"[{ModId}.Loader] Failed to report dependency error: {ex}");
+            }
+        }
     }
 
     private static SemanticVersion? ResolveHostVersion()
@@ -155,7 +302,7 @@ public static class Bootstrap
         }
         catch (Exception ex)
         {
-            Log.Warn($"[${ModId}.Loader] Failed to read the host game version: {ex.Message}");
+            Log.Warn($"[{ModId}.Loader] Failed to read the host game version: {ex.Message}");
             return null;
         }
     }
@@ -233,7 +380,7 @@ public static class Bootstrap
         }
         catch (ReflectionTypeLoadException ex)
         {
-            Log.Warn($"[${ModId}.Loader] Only part of {assembly.FullName} could be inspected: {ex.Message}");
+            Log.Warn($"[{ModId}.Loader] Only part of {assembly.FullName} could be inspected: {ex.Message}");
             return ex.Types.OfType<Type>();
         }
     }
@@ -253,7 +400,13 @@ public static class Bootstrap
         string MinGameVersion,
         SemanticVersion MinGameSemanticVersion,
         string DllPath,
-        string PckPath);
+        string PckPath,
+        IReadOnlyList<DependencyCandidate> Dependencies);
+
+    private sealed record DependencyCandidate(
+        string Id,
+        string? MinVersion,
+        SemanticVersion? MinSemanticVersion);
 
     private sealed class BundleManifest
     {
@@ -266,5 +419,14 @@ public static class Bootstrap
         public string? ModVersion { get; set; }
         public string? MinGameVersion { get; set; }
         public string? Directory { get; set; }
+        public List<BundleDependency>? Dependencies { get; set; }
+    }
+
+    private sealed class BundleDependency
+    {
+        public string? Id { get; set; }
+
+        [JsonPropertyName("min_version")]
+        public string? MinVersion { get; set; }
     }
 }

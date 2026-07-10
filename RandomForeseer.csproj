@@ -93,21 +93,21 @@
         </PropertyGroup>
         <PropertyGroup>
             <_Json>$([System.IO.File]::ReadAllText('$(ManifestFile)'))</_Json>
-            <_VersionSearchPattern>(?s)&quot;id&quot;\s*:\s*&quot;STS2-RitsuLib&quot;.*?&quot;version&quot;\s*:\s*&quot;([^&quot;]+)&quot;</_VersionSearchPattern>
-            <_VersionExtractPattern>(?s).*?&quot;id&quot;\s*:\s*&quot;STS2-RitsuLib&quot;.*?&quot;version&quot;\s*:\s*&quot;([^&quot;]+)&quot;.*</_VersionExtractPattern>
+            <_VersionSearchPattern>(?s)&quot;id&quot;\s*:\s*&quot;STS2-RitsuLib&quot;.*?&quot;min_version&quot;\s*:\s*&quot;([^&quot;]+)&quot;</_VersionSearchPattern>
+            <_VersionExtractPattern>(?s).*?&quot;id&quot;\s*:\s*&quot;STS2-RitsuLib&quot;.*?&quot;min_version&quot;\s*:\s*&quot;([^&quot;]+)&quot;.*</_VersionExtractPattern>
             <_HasRitsuLibVersion>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_Json)', '$(_VersionSearchPattern)'))</_HasRitsuLibVersion>
             <_CurrentRitsuLibVersion Condition="'$(_HasRitsuLibVersion)' == 'True'">$([System.Text.RegularExpressions.Regex]::Replace('$(_Json)', '$(_VersionExtractPattern)', '$1'))</_CurrentRitsuLibVersion>
             <_ManifestNeedsUpdate>false</_ManifestNeedsUpdate>
             <_ManifestNeedsUpdate Condition="'$(_CurrentRitsuLibVersion)' != '' and '$(_CurrentRitsuLibVersion)' != '$(RitsuLibVersion)'">true</_ManifestNeedsUpdate>
         </PropertyGroup>
         <Error Condition="'$(_HasRitsuLibVersion)' != 'True'"
-               Text="Could not find dependencies[STS2-RitsuLib].version in '$(ManifestFile)'."/>
+               Text="Could not find dependencies[STS2-RitsuLib].min_version in '$(ManifestFile)'."/>
         <Message Importance="High" Condition="'$(_ManifestNeedsUpdate)' == 'true'"
                  Text="Sync STS2-RitsuLib manifest dependency: $(_CurrentRitsuLibVersion) -> $(RitsuLibVersion)"/>
         <Message Importance="Low" Condition="'$(_ManifestNeedsUpdate)' != 'true'"
                  Text="STS2-RitsuLib manifest dependency already matches $(RitsuLibVersion)."/>
         <PropertyGroup Condition="'$(_ManifestNeedsUpdate)' == 'true'">
-            <_Pattern>(?s)(&quot;STS2-RitsuLib&quot;.*?&quot;version&quot;\s*:\s*&quot;)[^&quot;]+(&quot;)</_Pattern>
+            <_Pattern>(?s)(&quot;STS2-RitsuLib&quot;.*?&quot;min_version&quot;\s*:\s*&quot;)[^&quot;]+(&quot;)</_Pattern>
             <_Replacement>${1}$(RitsuLibVersion)${2}</_Replacement>
             <_Updated>$([System.Text.RegularExpressions.Regex]::Replace('$(_Json)', '$(_Pattern)', '$(_Replacement)'))</_Updated>
         </PropertyGroup>

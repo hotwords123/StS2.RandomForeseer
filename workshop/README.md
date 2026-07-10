@@ -35,12 +35,14 @@ The GitHub Release ZIP still contains only that version. A published SemVer pack
 2. For each version in `active-game-versions.txt`, selects the highest Mod SemVer whose `min_game_version` does not exceed that game version.
 3. Deduplicates packages selected by more than one active game version.
 4. Builds the root `RandomForeseer.Loader` dispatcher.
-5. Stages the selected DLL/PCK pairs under `artifacts/workshop/content/lib/<mod-version>/` and writes their version metadata to a `.manifest` file.
-6. Creates a Workshop-only root Mod manifest with `has_pck: false`; the dispatcher mounts the selected PCK itself.
+5. Stages the selected DLL/PCK pairs under `artifacts/workshop/content/lib/<mod-version>/` and writes their version and dependency metadata to a `.manifest` file.
+6. Creates a Workshop-only root Mod manifest with `has_pck: false` and the dependencies of the lowest bundled Mod version; the dispatcher mounts the selected PCK and enforces its own dependency minimums.
 
 At runtime, the dispatcher uses the same compatibility test against the packages present in the upload and loads the highest compatible Mod SemVer. Unknown or older host versions fall back to the newest bundled Mod version with a warning, matching the best-effort delivery policy.
 
 Variant directories must not contain their original `RandomForeseer.json`: the game recursively treats every `.json` below a Workshop item as a Mod manifest.
+
+All historical package manifests must use `min_version` for dependency minimums. The legacy `version` field is rejected. Bundled variants are expected to keep the same dependency ID set and vary only their minimum versions.
 
 The dispatcher is always compiled against the oldest supported game API configured by `Sts2ApiSignatureRoot`, rather than whichever game branch is currently installed.
 

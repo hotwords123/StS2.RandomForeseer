@@ -164,6 +164,44 @@ function Get-ActiveGameVersions {
     return @($versions)
 }
 
+function Get-PackageDependencies {
+    param(
+        [Parameter(Mandatory = $true)][psobject]$Manifest,
+        [Parameter(Mandatory = $true)][string]$ManifestPath
+    )
+
+    $dependenciesProperty = $Manifest.PSObject.Properties["dependencies"]
+    if ($null -eq $dependenciesProperty -or $null -eq $dependenciesProperty.Value) {
+        return @()
+    }
+
+    $dependencies = @()
+    foreach ($dependency in @($dependenciesProperty.Value)) {
+        $id = [string]$dependency.id
+        if ([string]::IsNullOrWhiteSpace($id)) {
+            throw "Package dependency has no ID: $ManifestPath"
+        }
+        if ($null -ne $dependency.PSObject.Properties["version"]) {
+            throw "Legacy dependency field 'version' is not supported; migrate it to 'min_version': $ManifestPath"
+        }
+
+        $minVersionProperty = $dependency.PSObject.Properties["min_version"]
+        $minVersion = if ($null -eq $minVersionProperty) { "" } else { [string]$minVersionProperty.Value }
+        $minSemanticVersion = $null
+        if (![string]::IsNullOrWhiteSpace($minVersion)) {
+            $minSemanticVersion = ConvertTo-SemanticVersion $minVersion "minimum version for dependency $id"
+        }
+
+        $dependencies += [pscustomobject]@{
+            Id = $id
+            MinVersion = $minVersion
+            MinSemanticVersion = $minSemanticVersion
+        }
+    }
+
+    return @($dependencies)
+}
+
 function Get-VersionedPackages {
     param(
         [Parameter(Mandatory = $true)][string]$Path,
@@ -204,6 +242,7 @@ function Get-VersionedPackages {
             throw "Package manifest has no min_game_version: $manifestPath"
         }
         $minGameSemanticVersion = ConvertTo-SemanticVersion $minGameVersion "package minimum game version"
+        $dependencies = @(Get-PackageDependencies $manifest $manifestPath)
 
         if (!$manifest.has_dll) {
             throw "Workshop variants require a DLL package: $manifestPath"
@@ -226,6 +265,7 @@ function Get-VersionedPackages {
             ModSemanticVersion = $modSemanticVersion
             MinGameVersion = $minGameVersion
             MinGameSemanticVersion = $minGameSemanticVersion
+            Dependencies = $dependencies
             Directory = $packageDirectory
             Manifest = $manifest
             DllPath = $dllPath
@@ -350,6 +390,15 @@ $minimumSelectedGameVersion = $selectedPackages |
     Sort-Object MinGameSemanticVersion |
     Select-Object -First 1 -ExpandProperty MinGameVersion
 Set-JsonProperty $compositeManifest "min_game_version" $minimumSelectedGameVersion
+$lowestModPackage = $selectedPackages | Sort-Object ModSemanticVersion | Select-Object -First 1
+$rootDependencies = @($lowestModPackage.Dependencies | ForEach-Object {
+    $entry = [ordered]@{ id = $_.Id }
+    if (![string]::IsNullOrWhiteSpace($_.MinVersion)) {
+        $entry.min_version = $_.MinVersion
+    }
+    $entry
+})
+Set-JsonProperty $compositeManifest "dependencies" $rootDependencies
 $compositeManifest | ConvertTo-Json -Depth 10 | Set-Content -Path (Join-Path $contentDir "$modId.json") -Encoding utf8
 
 $variantEntries = @()
@@ -365,10 +414,18 @@ foreach ($package in $selectedPackages) {
         Copy-Item -LiteralPath $package.BuildInfoPath -Destination (Join-Path $variantDirectory "build-info.txt") -Force
     }
 
+    $variantDependencies = @($package.Dependencies | ForEach-Object {
+        $entry = [ordered]@{ id = $_.Id }
+        if (![string]::IsNullOrWhiteSpace($_.MinVersion)) {
+            $entry.min_version = $_.MinVersion
+        }
+        $entry
+    })
     $variantEntries += [ordered]@{
         modVersion = $package.ModVersion
         minGameVersion = $package.MinGameVersion
         directory = $relativeDirectory
+        dependencies = $variantDependencies
     }
 }
 
@@ -377,7 +434,7 @@ $variantManifest = [ordered]@{
     variants = $variantEntries
 }
 $variantManifest | ConvertTo-Json -Depth 10 |
-    Set-Content -Path (Join-Path $contentDir "random-foreseer-variants.manifest") -Encoding utf8
+    Set-Content -Path (Join-Path $contentDir "mod-variants.manifest") -Encoding utf8
 
 $workshop = Get-Content $workshopJsonSource -Raw | ConvertFrom-Json
 $workshop.changeNote = Get-ChangelogSection $notesFile "v$Version"

@@ -23,13 +23,17 @@ The union of those selections is uploaded. This omits historical packages that n
 
 ## Runtime selection
 
-The generated `random-foreseer-variants.manifest` records each bundled package's Mod version, minimum game version, and relative directory.
+The generated `mod-variants.manifest` records each bundled package's Mod version, minimum game version, relative directory, and its original `dependencies` entries using the game manifest's `min_version` field.
 
 The dispatcher resolves the host version through `ReleaseInfoManager`, then selects the highest bundled Mod SemVer satisfying the same minimum-game-version test. If the host version is unknown or older than every bundled minimum, it logs a warning and loads the highest bundled Mod SemVer as a best-effort fallback.
 
 The dispatcher loads the selected business DLL into its own `AssemblyLoadContext`, associates it with the Mod through `ModManager.AssociateAssemblyWithMod` when that API exists, mounts the selected PCK, and forwards all discovered `ModInitializer` methods. The business assembly keeps the `RandomForeseer` identity; the root file is named `RandomForeseer.dll` as required by the game but has the distinct assembly identity `RandomForeseer.Loader`.
 
 The loader project is compiled against the oldest supported game API under `Sts2ApiSignatureRoot`, not the currently installed game branch. This keeps the root dispatcher loadable by every active branch while the selected business assembly remains version-specific.
+
+The Workshop root manifest uses the dependencies from the lowest bundled Mod SemVer, so an older compatible branch is not rejected before the dispatcher runs. After selecting a variant, the dispatcher enforces that variant's own dependency minimums. If a dependency is missing or too old, it skips the real initializer and uses a one-shot `ModManager.OnModDetected` callback to mark Random Foreseer failed and append the matching vanilla dependency `LocString` after the game has assigned `Mod.errors`.
+
+All maintained variants are expected to use the same dependency ID set; only their `min_version` values may differ. This is a documented packaging invariant rather than a prepare-time validation because Random Foreseer is expected to depend only on RitsuLib for the foreseeable future. Historical manifests must be migrated to `min_version`; the old `version` dependency field is intentionally rejected.
 
 The 0.107 `ReflectionHelper.ModTypes` bridge is intentionally not patched. Random Foreseer currently registers Harmony patches, RitsuLib discovery, Godot scripts, settings, and localization explicitly against the selected business assembly and does not add game-discovered `AbstractModel` implementations. Add a bridge only if a future feature requires global Mod type discovery on an older game API.
 
