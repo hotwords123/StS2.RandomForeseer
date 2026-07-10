@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../../local.props" Condition="Exists('../../local.props')"/>
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <AssemblyName>RandomForeseer.Loader</AssemblyName>
+        <RootNamespace>RandomForeseer.WorkshopLoader</RootNamespace>
+        <Sts2ApiCompat>v0.107.1</Sts2ApiCompat>
+        <Sts2ApiSignatureDir Condition="'$(Sts2ApiSignatureRoot)' != ''">$(Sts2ApiSignatureRoot)\$(Sts2ApiCompat)\data_sts2_windows_x86_64</Sts2ApiSignatureDir>
+        <Sts2DataDir Condition="'$(Sts2ApiSignatureRoot)' != ''">$(Sts2ApiSignatureDir)</Sts2DataDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="sts2" HintPath="$(Sts2DataDir)\sts2.dll" Private="False"/>
+    </ItemGroup>
+
+    <Target Name="ValidateSts2GameInstall" BeforeTargets="ResolveAssemblyReferences">
+        <Error Condition="'$(Sts2ApiSignatureRoot)' == ''"
+               Text="Sts2ApiSignatureRoot is required for Workshop loader builds."/>
+        <Error Condition="'$(Sts2ApiSignatureRoot)' != '' and !Exists('$(Sts2ApiSignatureDir)\sts2.dll')"
+               Text="Could not find the oldest supported sts2.dll under '$(Sts2ApiSignatureDir)'."/>
+    </Target>
+</Project>

@@ -8,6 +8,8 @@ Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 Steam Workshop: [Random Foreseer](https://steamcommunity.com/sharedfiles/filedetails/?id=3747531952)
 
+The Workshop package automatically loads the newest compatible Mod version for the running game version; GitHub Releases provide a standard single-version package.
+
 ## Features
 
 - **Transform prediction**: shows the exact card that the current RNG state will produce in transform selection grid hover tips and confirmation previews.
@@ -276,4 +278,5 @@ RandomForeseerCode/OutOfCombat/Events/ - Non-Ancient event option predictions
 RandomForeseerCode/RandomForeseerSettings.cs - Setting definitions, persistence, and feature gates
 project.godot - Godot project used for PCK export
 scripts/release.ps1 - Local build, packaging, and release script
+workshop/loader/ - Steam Workshop multi-version package loader
 ```

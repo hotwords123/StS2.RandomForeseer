@@ -8,6 +8,8 @@
 
 Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/filedetails/?id=3747531952)
 
+创意工坊包会根据当前游戏版本自动加载最新兼容的 Mod 版本；GitHub Release 提供对应版本的单一标准包。
+
 ## 功能
 
 - **预测牌组变化结果**：在变牌选择网格悬停提示和确认预览中显示当前随机数状态将生成的确切卡牌。
@@ -276,4 +278,5 @@ RandomForeseerCode/OutOfCombat/Events/ - 非先古之民事件选项预测
 RandomForeseerCode/RandomForeseerSettings.cs - 设置项定义、持久化和功能开关
 project.godot - PCK 导出用 Godot 项目
 scripts/release.ps1 - 本地构建、打包和发版脚本
+workshop/loader/ - Steam 创意工坊多版本包加载器
 ```

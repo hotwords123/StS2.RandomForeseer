@@ -7,6 +7,9 @@
 - 当只有一个有效目标时，战斗随机选牌和充能球效果现在可在悬停手牌时直接显示预测，无需先拖拽指向目标。<br>
   Combat random card selection and orb effect predictions now appear directly on hand hover when there is only one valid target, without requiring the card to be dragged over that target first.
 
+- Steam 创意工坊包现在会为当前的游戏版本同时携带所需的历史版本 DLL/PCK，并在启动时按游戏版本自动选择最新兼容 Mod 版本；GitHub Releases 继续提供单版本包。<br>
+  Steam Workshop packages now bundle the required historical DLL/PCK variants for active game versions and select the newest compatible Mod version at startup; GitHub Releases continue to provide a single-version package.
+
 ## v0.9.0
 
 ### feat
