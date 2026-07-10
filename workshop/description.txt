@@ -6,7 +6,7 @@
 目前适配的游戏版本：
 [list]
 [*]正式版：[b]v0.107.1[/b]（Mod 版本 [b]v0.8.1[/b]）
-[*]测试版：[b]v0.108.0[/b]（Mod 版本 [b]v0.9.0[/b]）
+[*]测试版：[b]v0.108.0[/b]（Mod 版本 [b]v0.10.0[/b]）
 [/list]
 
 GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
@@ -54,9 +54,6 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 [b]Q:[/b] 我安装了 Mod，但还是看不到预测内容。
 [b]A:[/b] 首先确认前置 RitsuLib 是否安装并启用，可以通过上一条的设置界面确认。其次可以先将其它 Mod（除前置 RitsuLib 外）暂时禁用，排除 Mod 冲突的可能性。如果仍无法解决，请参考下方的说明反馈。
 
-[b]Q:[/b] 游戏更新后 Mod 加载失败，提示游戏版本不匹配或不支持。
-[b]A:[/b] 这是 Steam 分发机制的已知缺陷。检查你的网络连接后，尝试这几个方法：先取消订阅本 Mod，然后重新订阅；在 Steam 库中右键游戏，选择[b]属性[/b]-[b]游戏版本及测试版[/b]，切换到另一个版本，等待下载完成后再切换回来；选择[b]属性[/b]-[b]已安装文件[/b]-[b]验证游戏文件的完整性[/b]。也可以在 [url=https://github.com/hotwords123/StS2.RandomForeseer/releases]GitHub Releases[/url] 下载对应版本的 Mod 压缩包（可能需要代理工具），解压到游戏目录下的 [b]mods[/b] 文件夹中。
-
 [b]Q:[/b] 为什么预测的结果和实际结果不一样？
 [b]A:[/b] 可能的原因有很多，包括但不限于：启用了更改原版内容的 Mod；联机时队友的操作先过了随机数；部分卡牌的连带效果过了随机数；游戏版本更新导致预测失效等等。如果你能复现某个场景的问题，欢迎反馈。反馈前请参考下方的说明。
 
@@ -68,6 +65,6 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 
 [h2]反馈问题[/h2]
 
-如果以上都无法解决你的问题，可以在 [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam 讨论区[/url] 或 [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url] 中反馈。
+如果以上都无法解决你的问题，可以在 [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam 讨论区[/url] 或 [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url] 中反馈。[b]请不要在下方的 Steam 留言区反馈问题。[/b]
 
-[b]重要提示：请不要在下方的 Steam 留言区反馈问题。缺少有效信息的反馈，以及上面已经提到过的问题（例如更新后报错版本不匹配）可能会被直接删除。[/b]
+[b]缺少有效信息的反馈，以及上面已经提到过的问题可能会被直接删除。[/b]

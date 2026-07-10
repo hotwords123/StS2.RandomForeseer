@@ -6,7 +6,7 @@ This mod supports both the [b]public[/b] branch and the [b]public-beta[/b] branc
 Currently supported game versions:
 [list]
 [*]public: [b]v0.107.1[/b] (mod version [b]v0.8.1[/b])
-[*]public-beta: [b]v0.108.0[/b] (mod version [b]v0.9.0[/b])
+[*]public-beta: [b]v0.108.0[/b] (mod version [b]v0.10.0[/b])
 [/list]
 
 GitHub: [url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
@@ -54,9 +54,6 @@ Here are some common questions. [b]Please try these solutions before reporting a
 [b]Q:[/b] I installed the mod, but I still cannot see predictions.
 [b]A:[/b] First, make sure the required RitsuLib dependency is installed and enabled. You can confirm this from the settings page mentioned above. Then try temporarily disabling other mods, except RitsuLib, to rule out mod conflicts. If the issue remains, please follow the reporting instructions below.
 
-[b]Q:[/b] After a game update, the mod fails to load and says the game version does not match or is unsupported.
-[b]A:[/b] This is a known issue with Steam's distribution mechanism. After checking your network connection, try these steps: unsubscribe from this mod, then subscribe again; right-click the game in your Steam Library, choose [b]Properties[/b] - [b]Betas[/b], switch to another version, wait for the download to finish, then switch back; choose [b]Properties[/b] - [b]Installed Files[/b] - [b]Verify integrity of game files[/b]. You can also download the matching mod zip from [url=https://github.com/hotwords123/StS2.RandomForeseer/releases]GitHub Releases[/url] and extract it into the game's [b]mods[/b] folder.
-
 [b]Q:[/b] Why does a prediction differ from the actual result?
 [b]A:[/b] There are many possible causes, including but not limited to: mods that change vanilla content, teammates advancing RNG first in multiplayer, secondary effects from some cards advancing RNG, or game updates breaking predictions. If you can reproduce a specific issue, please report it. Please read the reporting instructions below first.
 
@@ -68,6 +65,6 @@ Here are some common questions. [b]Please try these solutions before reporting a
 
 [h2]Reporting Issues[/h2]
 
-If none of the above solves your issue, you can report it in the [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam discussions[/url] or [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url].
+If none of the above solves your issue, you can report it in the [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam discussions[/url] or [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url]. [b]Please do not report issues in the Steam comments below.[/b]
 
-[b]IMPORTANT: Please DO NOT report issues in the Steam comments below. Reports without useful information, as well as issues already covered above (such as version mismatch errors after updates), may be deleted directly.[/b]
+[b]Reports without useful information, as well as issues already covered above, may be deleted directly.[/b]
