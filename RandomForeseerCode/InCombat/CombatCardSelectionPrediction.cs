@@ -26,7 +26,8 @@ internal sealed class CombatCardSelectionPrediction(
     public static CombatCardSelectionPredictionResult Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardSelectionPrediction) ||
-            !IsSupported(card, target) ||
+            !IsSupported(card) ||
+            !card.TryResolveTarget(ref target) ||
             !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
             return CombatCardSelectionPredictionResult.Empty;
@@ -46,24 +47,17 @@ internal sealed class CombatCardSelectionPrediction(
         return new(selectedCards.Select(card => card.Preview).ToList(), simulator.Snapshot());
     }
 
-    private static bool IsSupported(CardModel card, Creature? target)
+    private static bool IsSupported(CardModel card)
     {
-        return card switch
-        {
-            // Cards that can be predicted from hand hover without a selected target.
+        return card is
             Anointed or
-            HiddenGem or
-            TrueGrit { IsUpgraded: false } => true,
-
-            // Cards that require an explicit target.
             Cinder or
             DrainPower or
+            HiddenGem or
             SeekerStrike or
             Thrash or
-            Uproar => card.IsValidTarget(target),
-
-            _ => false
-        };
+            TrueGrit { IsUpgraded: false } or
+            Uproar;
     }
 
     private void Simulate()

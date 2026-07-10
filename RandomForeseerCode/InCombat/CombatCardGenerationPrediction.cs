@@ -189,23 +189,11 @@ internal static class CombatCardGenerationPrediction
             return [];
         }
 
-        return GetLargesseTargets(source)
+        var validTargets = source.Owner.Creature.CombatState?.GetValidManualCardTargets(source) ?? [];
+        return validTargets
             .SelectMany(target => PredictLargesseForTarget(source, target.Player!, previewRng))
             .DistinctBy(card => card.Id)
             .ToList();
-    }
-
-    private static IEnumerable<Creature> GetLargesseTargets(CardModel source)
-    {
-        return source.Owner.Creature.CombatState?.PlayerCreatures
-            .Where(creature => IsValidLargesseTarget(source, creature)) ?? [];
-    }
-
-    private static bool IsValidLargesseTarget(CardModel source, Creature? target)
-    {
-        return target is { IsHittable: true, IsPlayer: true } &&
-            target != source.Owner.Creature &&
-            source.IsValidTarget(target);
     }
 
     private static IReadOnlyList<CardModel> PredictLargesseForTarget(CardModel source, Player target, Rng sourceRng)

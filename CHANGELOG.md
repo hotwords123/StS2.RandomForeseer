@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 当只有一个有效目标时，战斗随机选牌和充能球效果现在可在悬停手牌时直接显示预测，无需先拖拽指向目标。<br>
+  Combat random card selection and orb effect predictions now appear directly on hand hover when there is only one valid target, without requiring the card to be dragged over that target first.
+
 ## v0.9.0
 
 ### feat

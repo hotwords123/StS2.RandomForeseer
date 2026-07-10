@@ -28,7 +28,8 @@ internal sealed class OrbPrediction(
     public static OrbPredictionResult? Predict(CardModel card, Creature? target)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableOrbPrediction) ||
-            !IsSupported(card, target) ||
+            !IsSupported(card) ||
+            !card.TryResolveTarget(ref target) ||
             !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
             return null;
@@ -48,23 +49,13 @@ internal sealed class OrbPrediction(
         return new(DamagePredictionResult.FromDamageHistory(simulator), extraTips);
     }
 
-    private static bool IsSupported(CardModel card, Creature? target)
+    private static bool IsSupported(CardModel card)
     {
-        return card switch
-        {
-            // Cards that require an explicit target.
+        return card is
             BallLightning or
-            ColdSnap or
-            IceLance or
-            Ignition or
-            MeteorStrike or
-            Null or
-            Refract or
-            TeslaCoil => card.IsValidTarget(target),
-
-            // Cards that can be predicted from hand hover without a selected target.
             Chaos or
             Chill or
+            ColdSnap or
             ConsumingShadow or
             Coolheaded or
             Darkness or
@@ -72,18 +63,21 @@ internal sealed class OrbPrediction(
             Fusion or
             Glacier or
             Glasswork or
+            IceLance or
+            Ignition or
+            MeteorStrike or
             MultiCast or
+            Null or
             Quadcast or
             Rainbow or
+            Refract or
             ShadowShield or
             Shatter or
             Spinner { IsUpgraded: true } or
             Tempest or
+            TeslaCoil or
             Voltaic or
-            Zap => true,
-
-            _ => false
-        };
+            Zap;
     }
 
     private void Simulate()
