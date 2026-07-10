@@ -9,6 +9,7 @@ param(
 
     [switch]$Draft,
     [switch]$Prerelease,
+    [switch]$PackageOnly,
     [switch]$SkipBuild,
     [switch]$SkipTagPush,
     [switch]$SkipReleaseCreate
@@ -21,8 +22,14 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $projectPath = Join-Path $root "RandomForeseer.csproj"
 $manifestPath = Join-Path $root "RandomForeseer.json"
 $artifactsDir = Join-Path $root "artifacts"
-$packageRoot = Join-Path $artifactsDir "package"
+$packageRoot = Join-Path $artifactsDir "packages"
+$releaseStagingRoot = Join-Path $artifactsDir "release-staging"
 $releaseNotesPath = Join-Path $root $NotesPath
+
+if ($PackageOnly) {
+    $SkipTagPush = $true
+    $SkipReleaseCreate = $true
+}
 
 function Invoke-Checked {
     param(
@@ -109,27 +116,38 @@ try {
     }
 
     $headCommit = Invoke-Checked git @("rev-parse", "HEAD")
-    $existingLocalTag = Invoke-Checked git @("tag", "--list", $tag)
-    $localTagExists = [bool]$existingLocalTag
-    if ($localTagExists) {
-        $localTagCommit = Invoke-Checked git @("rev-list", "-n", "1", $tag)
-        if ($localTagCommit -ne $headCommit) {
-            throw "Local tag $tag already exists but does not point at HEAD."
+    $localTagExists = $false
+    $remoteTagExists = $false
+    if (!$PackageOnly) {
+        $existingLocalTag = Invoke-Checked git @("tag", "--list", $tag)
+        $localTagExists = [bool]$existingLocalTag
+        if ($localTagExists) {
+            $localTagCommit = Invoke-Checked git @("rev-list", "-n", "1", $tag)
+            if ($localTagCommit -ne $headCommit) {
+                throw "Local tag $tag already exists but does not point at HEAD."
+            }
         }
+
+        $remoteTag = Invoke-Checked git @("ls-remote", "--tags", "origin", "refs/tags/$tag")
+        $remoteTagExists = [bool]$remoteTag
     }
 
-    $remoteTag = Invoke-Checked git @("ls-remote", "--tags", "origin", "refs/tags/$tag")
-    $remoteTagExists = [bool]$remoteTag
-
-    if (Test-Path $artifactsDir) {
-        Remove-Item -LiteralPath $artifactsDir -Recurse -Force
-    }
-
-    $packageDir = Join-Path $packageRoot $modId
-    New-Item -ItemType Directory -Path $packageDir -Force | Out-Null
+    $packageVersionDir = Join-Path $packageRoot $Version
+    $packageDir = Join-Path $packageVersionDir $modId
 
     if (!$SkipBuild) {
-        $modOutputDir = "$packageDir$([System.IO.Path]::DirectorySeparatorChar)"
+        if (Test-Path $packageDir) {
+            throw "Versioned package already exists: $packageDir. Published SemVer packages are immutable; pass -SkipBuild to reuse it, or remove an unpublished package explicitly before rebuilding."
+        }
+
+        $stagingVersionDir = Join-Path $releaseStagingRoot $Version
+        $stagingPackageDir = Join-Path $stagingVersionDir $modId
+        if (Test-Path $stagingVersionDir) {
+            Remove-Item -LiteralPath $stagingVersionDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Path $stagingPackageDir -Force | Out-Null
+
+        $modOutputDir = "$stagingPackageDir$([System.IO.Path]::DirectorySeparatorChar)"
         Invoke-Checked dotnet @(
             "build",
             $projectPath,
@@ -139,10 +157,49 @@ try {
             "/p:CopyModOnBuild=true",
             "/p:RunPckExport=true"
         )
+
+        $sourceRef = Invoke-Checked git @("branch", "--show-current")
+        if ([string]::IsNullOrWhiteSpace($sourceRef)) {
+            $sourceRef = "detached"
+        }
+        $buildInfo = @(
+            "mod-version: $Version"
+            "min-game-version: $([string]$manifest.min_game_version)"
+            "git-commit: $headCommit"
+            "git-ref: $sourceRef"
+            "built-at: $([DateTimeOffset]::Now.ToString('o'))"
+        ) -join "`n"
+        Set-Content -Path (Join-Path $stagingPackageDir "build-info.txt") -Value $buildInfo -Encoding utf8 -NoNewline
+
+        $stagedRequiredFiles = @(
+            Join-Path $stagingPackageDir "$modId.json"
+            Join-Path $stagingPackageDir "build-info.txt"
+        )
+        if ($manifest.has_dll) {
+            $stagedRequiredFiles += Join-Path $stagingPackageDir "$modId.dll"
+        }
+        if ($manifest.has_pck) {
+            $stagedRequiredFiles += Join-Path $stagingPackageDir "$modId.pck"
+        }
+        foreach ($file in $stagedRequiredFiles) {
+            if (!(Test-Path $file)) {
+                throw "Expected staged package file was not produced: $file"
+            }
+        }
+
+        New-Item -ItemType Directory -Path $packageVersionDir -Force | Out-Null
+        Move-Item -LiteralPath $stagingPackageDir -Destination $packageDir
+        if (Test-Path $stagingVersionDir) {
+            Remove-Item -LiteralPath $stagingVersionDir -Recurse -Force
+        }
+    }
+    elseif (!(Test-Path $packageDir)) {
+        throw "Versioned package not found for -SkipBuild: $packageDir"
     }
 
     $requiredFiles = @(
         Join-Path $packageDir "$modId.json"
+        Join-Path $packageDir "build-info.txt"
     )
 
     if ($manifest.has_dll) {
@@ -159,6 +216,15 @@ try {
         }
     }
 
+    $packagedManifestPath = Join-Path $packageDir "$modId.json"
+    $packagedManifest = Get-Content $packagedManifestPath -Raw | ConvertFrom-Json
+    if ([string]$packagedManifest.id -ne $modId -or [string]$packagedManifest.version -ne $Version) {
+        throw "Cached package manifest identity/version does not match $modId ${Version}: $packagedManifestPath"
+    }
+    if ([string]$packagedManifest.min_game_version -ne [string]$manifest.min_game_version) {
+        throw "Cached package min_game_version does not match the source manifest: $packagedManifestPath"
+    }
+
     $postBuildStatus = Invoke-Checked git @("status", "--porcelain")
     if ($postBuildStatus) {
         throw "Build changed tracked files. Review and commit those changes, then rerun the release script."
@@ -171,7 +237,7 @@ try {
     $hashPath = "$zipPath.sha256"
     "{0}  {1}" -f $hash.Hash.ToLowerInvariant(), (Split-Path $zipPath -Leaf) | Set-Content -Path $hashPath -Encoding ascii
 
-    if (!$localTagExists) {
+    if (!$PackageOnly -and !$localTagExists) {
         Invoke-Checked git @("tag", "-a", $tag, "-m", "$modId $tag")
     }
 
@@ -208,6 +274,7 @@ try {
     }
 
     Write-Host "Release package created: $zipPath"
+    Write-Host "Versioned package retained at: $packageDir"
     Write-Host "SHA256 file created: $hashPath"
 }
 finally {

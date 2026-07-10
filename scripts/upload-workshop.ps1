@@ -9,7 +9,9 @@ param(
 
     [string]$ConfigPath = "workshop/config.json",
 
-    [string]$PackageDir,
+    [string]$PackagesRoot,
+
+    [string]$ActiveGameVersionsPath,
 
     [switch]$SkipPrepare
 )
@@ -137,8 +139,12 @@ if (!$SkipPrepare) {
         $prepareParams.Version = $Version
     }
 
-    if (![string]::IsNullOrWhiteSpace($PackageDir)) {
-        $prepareParams.PackageDir = $PackageDir
+    if (![string]::IsNullOrWhiteSpace($PackagesRoot)) {
+        $prepareParams.PackagesRoot = $PackagesRoot
+    }
+
+    if (![string]::IsNullOrWhiteSpace($ActiveGameVersionsPath)) {
+        $prepareParams.ActiveGameVersionsPath = $ActiveGameVersionsPath
     }
 
     & $prepareScript @prepareParams

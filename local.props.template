@@ -4,6 +4,9 @@
     <Sts2Dir>PATH_TO_STEAM/steamapps/common/Slay the Spire 2</Sts2Dir>
     <Sts2DataDir>$(Sts2Dir)/data_sts2_windows_x86_64</Sts2DataDir>
 
+    <!-- 创意工坊 loader 固定使用最老支持版本的 API assembly 编译。 -->
+    <Sts2ApiSignatureRoot>PATH_TO_STS2_GAME_VERSIONS</Sts2ApiSignatureRoot>
+
     <!-- 只有导出 pck 时才需要 GodotExe；纯 C# 构建可使用 /p:RunPckExport=false。 -->
     <GodotExe>PATH_TO_GODOT/MegaDot_v4.5.1-stable_mono_win64.exe</GodotExe>
 
