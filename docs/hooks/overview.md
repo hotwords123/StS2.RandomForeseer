@@ -13,6 +13,30 @@
 - If a listener has any unmodeled prediction-relevant side effect, mark the current source risky instead of silently ignoring it.
 - Keep Mock models out of implementation/ignore registries; list them only in docs.
 
+## Mirror registry architecture
+
+`Common/Mirrors/ModelMethodMirrorRegistry.cs` provides the shared single-receiver dispatch used by
+prediction mirrors. Both Action and result-producing variants perform base-method override detection,
+exact model-type registration, lookup-result caching, and unsupported risk handling. Only the Action
+variant supports explicit ignored registrations and the non-gameplay-mod ignore policy; result methods
+require a handler for every supported override because an ignored implementation cannot supply return
+semantics. Generic fallback handlers are intentionally unsupported: every handled or ignored runtime
+type must be reviewed and registered explicitly. `MirrorMethodSpec` identifies the actual
+declaring base method, so the same infrastructure can support public `AbstractModel` hooks and later
+protected or more-specific virtual methods such as `CardModel.OnPlay` and `OrbModel.Evoke`.
+
+`Common/Hooks/HookRegistry.cs` remains the hook invocation adapter: it enumerates listeners in caller-
+provided order, honors `ShouldContinue`, and delegates each receiver to the shared Action registry.
+The shared registry uses its typed context to establish the receiver's prediction source scope before
+dispatch or unsupported risk marking. Registrations prepopulate the same runtime-type lookup dictionary later used
+for lazy `NotOverridden` / `Ignored` / `Unsupported` results. Registries are constructed with all
+registrations before first use, as required by the registry contract, and registered types are
+validated as real overrides. Unsupported warnings are emitted only
+when a lazy entry is first populated, while an `Unsupported` invocation still marks prediction risk
+every time.
+Listener discovery, hook phase ordering, and only-modifier dispatch remain outside the model-method
+registry. Exact derived types must still be reviewed and registered independently.
+
 ## Current implementation may differ from vanilla
 
 | Area | Model | 中文名 | Difference |

@@ -1,45 +1,33 @@
 using System.Reflection;
-using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.Common.Hooks;
 
-internal delegate void HookHandler<in TContext>(AbstractModel model, TContext context);
-
-internal delegate bool GenericHookHandler<in TContext>(AbstractModel model, TContext context);
-
-internal sealed record HookSpec(string Name, Type[] ParameterTypes);
+internal sealed class HookSpec(string name, Type[] parameterTypes)
+    : MirrorMethodSpec(
+        typeof(AbstractModel),
+        name,
+        BindingFlags.Instance | BindingFlags.Public,
+        parameterTypes);
 
 // Shared per-hook dispatcher. Each concrete hook owns one or more registries with a typed context;
-// this class handles exact model-type handlers, generic handlers, and unsupported detection.
+// this class owns listener iteration and delegates source-scoped model dispatch to the shared registry.
 internal sealed class HookRegistry<TContext>(HookSpec hook)
     where TContext : IPredictionHookContext
 {
-    private readonly Dictionary<Type, HookHandler<TContext>> _handlers = [];
-    private readonly List<GenericHookHandler<TContext>> _genericHandlers = [];
-
-    private readonly Dictionary<Type, MethodInfo?> _overrideCache = [];
-    private readonly Dictionary<Type, UnsupportedHandling> _unsupportedCache = [];
+    private readonly ModelMethodMirrorRegistry<AbstractModel, TContext> _mirrors = new(hook);
 
     public void Register<TModel>(Action<TModel, TContext> handler)
         where TModel : AbstractModel
     {
-        // Exact type matching is intentional: a derived model may have different side effects and
-        // should be reviewed before it is treated as covered by a base model handler.
-        _handlers[typeof(TModel)] = (model, context) => handler((TModel)model, context);
+        _mirrors.Register(handler);
     }
 
     public void RegisterIgnored<TModel>()
         where TModel : AbstractModel
     {
-        Register<TModel>(static (_, _) => { });
-    }
-
-    // Generic handlers are fallback mirrors for reviewed hook overrides that are not
-    // registered by exact model type. The first one that accepts the model owns it.
-    public void RegisterGeneric(GenericHookHandler<TContext> handler)
-    {
-        _genericHandlers.Add(handler);
+        _mirrors.RegisterIgnored<TModel>();
     }
 
     public void Run(IEnumerable<AbstractModel> models, TContext context)
@@ -51,91 +39,12 @@ internal sealed class HookRegistry<TContext>(HookSpec hook)
                 break;
             }
 
-            using (context.PushSource(model))
-            {
-                if (!TryHandle(model, context))
-                {
-                    continue;
-                }
-            }
+            _mirrors.Invoke(model, context);
         }
-    }
-
-    // Handles a single model, returning true if it was handled by a registered handler or false
-    // if it was ignored or unsupported.
-    private bool TryHandle(AbstractModel model, TContext context)
-    {
-        var type = model.GetType();
-
-        if (!TryGetOverride(type, out var overrideMethod))
-        {
-            return false;
-        }
-
-        if (_handlers.TryGetValue(type, out var handler))
-        {
-            handler(model, context);
-            return true;
-        }
-
-        foreach (var genericHandler in _genericHandlers)
-        {
-            if (genericHandler(model, context))
-            {
-                return true;
-            }
-        }
-
-        if (!_unsupportedCache.TryGetValue(type, out var unsupportedHandling))
-        {
-            if (HookReflection.TryGetMod(overrideMethod, out var mod) &&
-                HookReflection.IsNonGameplayMod(mod))
-            {
-                unsupportedHandling = UnsupportedHandling.Ignore;
-                Entry.Logger.Warn(
-                    $"Mirror for {hook.Name} ignored unsupported {type.FullName} from non-gameplay mod {mod.manifest?.id}.");
-            }
-            else
-            {
-                unsupportedHandling = UnsupportedHandling.MarkRisky;
-                Entry.Logger.Warn(
-                    $"Mirror for {hook.Name} does not safely handle {type.FullName}; preview may omit that modifier.");
-            }
-
-            _unsupportedCache[type] = unsupportedHandling;
-        }
-
-        if (unsupportedHandling == UnsupportedHandling.MarkRisky)
-        {
-            context.MarkCurrentSourceRisky();
-        }
-
-        return false;
-    }
-
-    private bool TryGetOverride(Type type, [NotNullWhen(true)] out MethodInfo? overrideMethod)
-    {
-        if (!_overrideCache.TryGetValue(type, out overrideMethod))
-        {
-            overrideMethod = HookReflection.GetOverride(hook, type);
-            _overrideCache[type] = overrideMethod;
-        }
-
-        return overrideMethod != null;
-    }
-
-    private enum UnsupportedHandling
-    {
-        Ignore,
-        MarkRisky
     }
 }
 
-internal interface IPredictionHookContext
+internal interface IPredictionHookContext : IPredictionMirrorContext<AbstractModel>
 {
-    IDisposable PushSource(AbstractModel model);
-
-    void MarkCurrentSourceRisky();
-
     bool ShouldContinue => true;
 }
