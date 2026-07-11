@@ -24,14 +24,14 @@
   "toggle.enable_drift_warnings.description": "When enabled, predictions that may be shifted by side effects show a warning tooltip.",
   "toggle.enable_transform_prediction.label": "Predict transform results",
   "toggle.enable_transform_prediction.description": "When enabled, deck transform confirmation previews show the exact card the current RNG will produce.",
-  "toggle.enable_potion_card_prediction.label": "Predict potion card results",
-  "toggle.enable_potion_card_prediction.description": "When enabled, random-card potion tooltips show the exact cards the current RNG will produce.",
+  "toggle.enable_potion_card_prediction.label": "Predict card-generating potions",
+  "toggle.enable_potion_card_prediction.description": "When enabled, tooltips for potions that generate random cards show the exact cards the current RNG will produce.",
   "toggle.enable_potion_generation_prediction.label": "Predict potion generation",
   "toggle.enable_potion_generation_prediction.description": "When enabled, Entropic Brew and Alchemize tooltips show the exact potions the current RNG will produce.",
-  "toggle.enable_combat_card_prediction.label": "Predict combat card generation",
-  "toggle.enable_combat_card_prediction.description": "When enabled, combat card tooltips show the exact random cards the current RNG will generate.",
+  "toggle.enable_combat_card_prediction.label": "Predict card-generating cards",
+  "toggle.enable_combat_card_prediction.description": "When enabled, tooltips for cards that generate random cards show the exact cards the current RNG will produce.",
   "toggle.enable_combat_card_selection_prediction.label": "Predict combat card selection",
-  "toggle.enable_combat_card_selection_prediction.description": "When enabled, combat card tooltips and hand highlights show the exact existing cards the current RNG will select.",
+  "toggle.enable_combat_card_selection_prediction.description": "When enabled, tooltips for cards that select random cards show the exact cards the current RNG will select and highlight them in your hand.",
   "toggle.enable_orb_prediction.label": "Predict orb effects",
   "toggle.enable_orb_prediction.description": "When enabled, supported orb-triggering card tooltips show the targets that orb effects will hit.",
   "toggle.enable_random_target_attack_prediction.label": "Predict random-target attacks",
@@ -86,5 +86,5 @@
   "toggle.enable_frozen_eye.label": "Enable Frozen Eye",
   "toggle.enable_frozen_eye.description": "When enabled, the combat draw pile view shows cards in draw order.",
   "toggle.enable_shuffle_prediction.label": "Predict shuffle order",
-  "toggle.enable_shuffle_prediction.description": "When enabled, the Frozen Eye draw pile view previews the order in which the discard pile will be shuffled into the draw pile."
+  "toggle.enable_shuffle_prediction.description": "When enabled, the Frozen Eye draw pile view previews the order in which the discard pile will be shuffled into the draw pile after the draw pile is depleted during the turn."
 }

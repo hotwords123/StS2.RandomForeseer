@@ -24,14 +24,14 @@
   "toggle.enable_drift_warnings.description": "启用后，可能因副作用而偏移的预测会显示提示信息。",
   "toggle.enable_transform_prediction.label": "预测变牌结果",
   "toggle.enable_transform_prediction.description": "启用后，牌组变牌确认预览会显示当前随机数状态将生成的确切卡牌。",
-  "toggle.enable_potion_card_prediction.label": "预测药水随机牌",
-  "toggle.enable_potion_card_prediction.description": "启用后，随机给牌药水的提示会显示当前随机数状态将生成的确切卡牌。",
+  "toggle.enable_potion_card_prediction.label": "预测药水印牌",
+  "toggle.enable_potion_card_prediction.description": "启用后，随机印牌药水的提示会显示当前随机数状态将生成的确切卡牌。",
   "toggle.enable_potion_generation_prediction.label": "预测随机生成药水",
   "toggle.enable_potion_generation_prediction.description": "启用后，混沌药水和炼制药水的提示会显示当前随机数状态将生成的确切药水。",
-  "toggle.enable_combat_card_prediction.label": "预测战斗随机印牌",
-  "toggle.enable_combat_card_prediction.description": "启用后，战斗中随机印牌的卡牌提示会显示当前随机数状态将生成的确切卡牌。",
-  "toggle.enable_combat_card_selection_prediction.label": "预测战斗随机选牌",
-  "toggle.enable_combat_card_selection_prediction.description": "启用后，战斗卡牌提示和手牌高亮会显示当前随机数状态将选中的已有卡牌。",
+  "toggle.enable_combat_card_prediction.label": "预测卡牌印牌",
+  "toggle.enable_combat_card_prediction.description": "启用后，随机印牌的卡牌提示会显示当前随机数状态将生成的确切卡牌。",
+  "toggle.enable_combat_card_selection_prediction.label": "预测随机选牌",
+  "toggle.enable_combat_card_selection_prediction.description": "启用后，战斗中随机选牌的卡牌提示会显示当前随机数状态将选中的卡牌，并高亮对应手牌。",
   "toggle.enable_orb_prediction.label": "预测充能球效果",
   "toggle.enable_orb_prediction.description": "启用后，支持的充能球触发卡牌提示会显示充能球效果将命中的目标。",
   "toggle.enable_random_target_attack_prediction.label": "预测随机目标攻击",
@@ -86,5 +86,5 @@
   "toggle.enable_frozen_eye.label": "启用冻结之眼",
   "toggle.enable_frozen_eye.description": "启用后，战斗中查看抽牌堆会按实际抽牌顺序显示卡牌。",
   "toggle.enable_shuffle_prediction.label": "预测洗牌后牌序",
-  "toggle.enable_shuffle_prediction.description": "启用后，冻结之眼抽牌堆界面会预览弃牌堆洗入抽牌堆的顺序。"
+  "toggle.enable_shuffle_prediction.description": "启用后，冻结之眼抽牌堆界面会预览回合内抽牌堆抽空后弃牌堆洗入抽牌堆的顺序。"
 }
