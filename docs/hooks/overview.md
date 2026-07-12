@@ -37,6 +37,15 @@ every time.
 Listener discovery, hook phase ordering, and only-modifier dispatch remain outside the model-method
 registry. Exact derived types must still be reviewed and registered independently.
 
+Side-turn-end hooks use this split directly: `InCombat/Mirrors/HookMirrors.cs` exposes the
+simulation-facing hook API, constructs internal contexts, and owns listener enumeration and phase
+order. VeryEarly, Early, and Normal each rebuild the listener sequence so earlier phase changes can
+affect later phases, matching vanilla. The hook-name files
+`InCombat/Mirrors/Hooks/TurnEnd/AfterAutoPostPlayPhaseEnteredMirrors.cs` and
+`InCombat/Mirrors/Hooks/TurnEnd/BeforeSideTurnEndMirrors.cs` own their method registries, contexts,
+and handlers; cross-phase Orichalcum state is colocated with its two handlers in
+`InCombat/Mirrors/Hooks/TurnEnd/OrichalcumMirrors.cs`.
+
 ## Current implementation may differ from vanilla
 
 | Area | Model | 中文名 | Difference |

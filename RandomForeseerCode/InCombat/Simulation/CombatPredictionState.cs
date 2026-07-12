@@ -49,6 +49,8 @@ internal sealed class CombatPredictionState(ICombatState combatState)
     public IReadOnlyList<Creature> GetCreaturesOnSide(CombatSide side) =>
         ExcludeRemoved(CombatState.GetCreaturesOnSide(side));
 
+    public IEnumerable<AbstractModel> IterateHookListeners() => CombatState.IterateHookListeners();
+
     public SimPlayerCombatState GetPlayerCombatState(Player player)
     {
         if (!_playerCombatStates.TryGetValue(player, out var state))

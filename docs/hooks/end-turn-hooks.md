@@ -1,6 +1,13 @@
 # End turn hooks
 
-Mirror file: `InCombat/Hooks/EndTurnHooks.cs`.
+Simulation-facing hook facade: `InCombat/Mirrors/HookMirrors.cs`.
+
+Mirror files:
+
+- `InCombat/Mirrors/CombatPredictionMirrorContext.cs`
+- `InCombat/Mirrors/Hooks/TurnEnd/AfterAutoPostPlayPhaseEnteredMirrors.cs`
+- `InCombat/Mirrors/Hooks/TurnEnd/BeforeSideTurnEndMirrors.cs`
+- `InCombat/Mirrors/Hooks/TurnEnd/OrichalcumMirrors.cs`
 
 ## Hook specs
 
@@ -54,6 +61,11 @@ Mirror file: `InCombat/Hooks/EndTurnHooks.cs`.
 
 ## Parity notes
 
+- `HookMirrors.BeforeSideTurnEnd` preserves the vanilla VeryEarly → Early → Normal phase order and
+  rebuilds the combat listener sequence at the start of each phase. Listener changes caused by an
+  earlier phase therefore affect later phases. `AfterAutoPostPlayPhaseEnteredMirrors` and
+  `BeforeSideTurnEndMirrors` own their exact model registrations, contexts, and handlers, while
+  cross-phase Orichalcum behavior and prediction-local state live in `OrichalcumMirrors`.
 - End-turn block and all-enemy damage handlers are consistent with original predicates, aside from VFX/SFX/status UI.
 - StS2 v0.108.0 renamed the side-wide turn-end hooks from `BeforeTurnEnd` /
   `AfterTurnEnd` to `BeforeSideTurnEnd` / `AfterSideTurnEnd`. The simulator

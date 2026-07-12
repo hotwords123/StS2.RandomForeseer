@@ -1,5 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Players;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -9,19 +9,13 @@ internal sealed partial class CombatPredictionSimulator
     {
         foreach (var player in playersEndingTurn)
         {
-            EndTurnHooks.RunAfterAutoPostPlayPhaseEntered(new AfterAutoPostPlayHookContext
-            {
-                Player = player,
-                Simulator = this
-            });
+            HookMirrors.AfterAutoPostPlayPhaseEntered(this, player);
         }
 
-        EndTurnHooks.RunBeforeSideTurnEnd(new BeforeSideTurnEndHookContext
-        {
-            Side = State.CombatState.CurrentSide,
-            Simulator = this,
-            Participants = playersEndingTurn.Select(static player => player.Creature).ToList()
-        });
+        HookMirrors.BeforeSideTurnEnd(
+            this,
+            State.CombatState.CurrentSide,
+            [.. playersEndingTurn.Select(static player => player.Creature)]);
 
         foreach (var player in playersEndingTurn)
         {

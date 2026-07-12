@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using MegaCrit.Sts2.Core.Models;
 
 namespace RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
@@ -31,6 +32,15 @@ internal class MirrorMethodSpec
                 parameterTypes,
                 modifiers: null)
             ?? throw new MissingMethodException(declaringType.FullName, name);
+    }
+
+    public static MirrorMethodSpec Hook(string name, Type[] parameterTypes)
+    {
+        return new MirrorMethodSpec(
+            typeof(AbstractModel),
+            name,
+            BindingFlags.Instance | BindingFlags.Public,
+            parameterTypes);
     }
 
     public bool TryGetOverride(Type receiverType, [NotNullWhen(true)] out MethodInfo? overrideMethod)
