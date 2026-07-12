@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -11,20 +12,25 @@ internal sealed partial class CombatPredictionSimulator
     private void SimulateOrbQueueBeforeTurnEnd(Player player)
     {
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
-        var orbBehavior = new OrbBehavior(this);
         foreach (var orb in orbQueue.Orbs.ToList())
         {
-            var passiveCountContext = new OrbPassiveCountHookContext
-            {
-                Simulator = this,
-                Orb = orb
-            };
-            var triggerCount = OrbPassiveCountHooks.ModifyOrbPassiveTriggerCount(passiveCountContext);
+            OrbMirrors.InvokeBeforeTurnEndOrbTrigger(this, orb);
+        }
+    }
 
-            for (var i = 0; i < triggerCount; i++)
-            {
-                orbBehavior.BeforeTurnEndTrigger(orb);
-            }
+    // Mirrors OrbModel.TriggerPassive without VFX/SFX, waits, or real model-stack updates.
+    internal void TriggerOrbPassive(OrbModel orb, Creature? target)
+    {
+        var passiveCountContext = new OrbPassiveCountHookContext
+        {
+            Simulator = this,
+            Orb = orb
+        };
+        var triggerCount = OrbPassiveCountHooks.ModifyOrbPassiveTriggerCount(passiveCountContext);
+
+        for (var i = 0; i < triggerCount; i++)
+        {
+            OrbMirrors.InvokePassive(this, orb, target);
         }
     }
 
@@ -94,7 +100,7 @@ internal sealed partial class CombatPredictionSimulator
             _ = orbQueue.Remove(evokedOrb);
         }
 
-        var targets = new OrbBehavior(this).Evoke(evokedOrb);
+        var targets = OrbMirrors.InvokeEvoke(this, evokedOrb);
 
         // Vanilla calls evokedOrb.RemoveInternal after AfterOrbEvoked when dequeue succeeds.
         // We only remove from the shadow queue because mutating the real orb would affect
@@ -105,7 +111,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbCmd.Passive without VFX/SFX, choice-context model stack updates, or real orb mutation.
     public void OrbPassive(OrbModel orb, Creature? target = null)
     {
-        new OrbBehavior(this).Passive(orb, target);
+        OrbMirrors.InvokePassive(this, orb, target);
     }
 
     // Mirrors Hook.AfterOrbChanneled as a risk-only hook scan.

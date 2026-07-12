@@ -46,6 +46,13 @@ affect later phases, matching vanilla. The hook-name files
 and handlers; cross-phase Orichalcum state is colocated with its two handlers in
 `InCombat/Mirrors/Hooks/TurnEnd/OrichalcumMirrors.cs`.
 
+Orb behavior uses the same registry infrastructure without hook listener enumeration.
+`InCombat/Mirrors/Orbs/OrbMirrors.cs` is the simulation-facing facade and registration index for
+separate `Passive`, `Evoke`, and `BeforeTurnEndOrbTrigger` registries. The five vanilla orb
+implementations are grouped into orb-centric files so behavior shared across methods remains local.
+The simulator still owns queue mutation, passive trigger counts, and `AfterOrbEvoked` dispatch;
+the registries own only single-orb virtual-method dispatch and unsupported risk handling.
+
 ## Current implementation may differ from vanilla
 
 | Area | Model | 中文名 | Difference |
