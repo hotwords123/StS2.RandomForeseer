@@ -1,7 +1,7 @@
 # Orb hooks
 
-Mirror files: `InCombat/Hooks/OrbHooks.cs`, `InCombat/Hooks/OrbPassiveCountHooks.cs`, and
-`InCombat/Mirrors/Orbs/`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs`, `InCombat/Mirrors/Orbs/` for `OrbModel`
+behavior, and `InCombat/Mirrors/Hooks/Orb/` for orb-related `AbstractModel` hooks.
 
 ## Hook specs
 
@@ -43,6 +43,9 @@ Mirror files: `InCombat/Hooks/OrbHooks.cs`, `InCombat/Hooks/OrbPassiveCountHooks
   so each orb's passive, evoke, turn trigger, and shared helpers stay together. Unknown overrides
   use the shared model-method mirror risk handling; the result-producing Evoke registry does not
   permit ignored registrations.
+- `HookMirrors` owns listener enumeration for the orb hook family. Each hook-name mirror file under
+  `InCombat/Mirrors/Hooks/Orb/` owns its method spec, registry, context, handlers, and hook-local
+  prediction state; simulator callers pass ordinary hook arguments.
 - Turn-end orb queue simulation mirrors `OrbQueue.BeforeTurnEnd` by dispatching the
   `BeforeTurnEndOrbTrigger` registry. Vanilla Lightning, Frost, Dark, and Glass orbs forward this
   trigger through `OrbModel.TriggerPassive`; `PlasmaOrb` does not override the method, so the

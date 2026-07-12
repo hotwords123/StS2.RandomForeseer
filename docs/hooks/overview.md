@@ -25,8 +25,9 @@ type must be reviewed and registered explicitly. `MirrorMethodSpec` identifies t
 declaring base method, so the same infrastructure can support public `AbstractModel` hooks and later
 protected or more-specific virtual methods such as `CardModel.OnPlay` and `OrbModel.Evoke`.
 
-`Common/Hooks/HookRegistry.cs` remains the hook invocation adapter: it enumerates listeners in caller-
-provided order, honors `ShouldContinue`, and delegates each receiver to the shared Action registry.
+`Common/Hooks/HookRegistry.cs` remains a temporary compatibility invocation adapter for hook
+families not yet migrated to `HookMirrors`: it enumerates listeners in caller-provided order, honors
+`ShouldContinue`, and delegates each receiver to the shared Action registry.
 The shared registry uses its typed context to establish the receiver's prediction source scope before
 dispatch or unsupported risk marking. Registrations prepopulate the same runtime-type lookup dictionary later used
 for lazy `NotOverridden` / `Ignored` / `Unsupported` results. Registries are constructed with all
@@ -52,6 +53,11 @@ separate `Passive`, `Evoke`, and `BeforeTurnEndOrbTrigger` registries. The five 
 implementations are grouped into orb-centric files so behavior shared across methods remains local.
 The simulator still owns queue mutation, passive trigger counts, and `AfterOrbEvoked` dispatch;
 the registries own only single-orb virtual-method dispatch and unsupported risk handling.
+Orb-related `AbstractModel` hooks have also moved behind `HookMirrors`: it owns listener enumeration,
+while `InCombat/Mirrors/Hooks/Orb/ModifyOrbPassiveTriggerCountMirrors.cs`,
+`AfterOrbChanneledMirrors.cs`, and `AfterOrbEvokedMirrors.cs` each own one hook's registry, context,
+handlers, and hook-local state. The remaining combat hook families still use the temporary
+`HookRegistry<TContext>` compatibility adapter until their staged migration is complete.
 
 ## Current implementation may differ from vanilla
 

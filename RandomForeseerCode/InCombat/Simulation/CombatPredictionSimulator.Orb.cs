@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -21,12 +21,8 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbModel.TriggerPassive without VFX/SFX, waits, or real model-stack updates.
     internal void TriggerOrbPassive(OrbModel orb, Creature? target)
     {
-        var passiveCountContext = new OrbPassiveCountHookContext
-        {
-            Simulator = this,
-            Orb = orb
-        };
-        var triggerCount = OrbPassiveCountHooks.ModifyOrbPassiveTriggerCount(passiveCountContext);
+        var triggerCount = HookMirrors.ModifyOrbPassiveTriggerCount(this, orb, 1, out _);
+        // Vanilla calls Hook.AfterModifyingOrbPassiveTriggerCount here, but all listeners are cosmetic.
 
         for (var i = 0; i < triggerCount; i++)
         {
@@ -66,7 +62,7 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         RecordOrbChanneledHistory(orb);
-        AfterOrbChanneled(player, orb);
+        HookMirrors.AfterOrbChanneled(this, player, orb);
         return true;
     }
 
@@ -105,36 +101,12 @@ internal sealed partial class CombatPredictionSimulator
         // Vanilla calls evokedOrb.RemoveInternal after AfterOrbEvoked when dequeue succeeds.
         // We only remove from the shadow queue because mutating the real orb would affect
         // gameplay state and save data.
-        AfterOrbEvoked(evokedOrb, targets);
+        HookMirrors.AfterOrbEvoked(this, evokedOrb, targets);
     }
 
     // Mirrors OrbCmd.Passive without VFX/SFX, choice-context model stack updates, or real orb mutation.
     public void OrbPassive(OrbModel orb, Creature? target = null)
     {
         OrbMirrors.InvokePassive(this, orb, target);
-    }
-
-    // Mirrors Hook.AfterOrbChanneled as a risk-only hook scan.
-    private void AfterOrbChanneled(Player player, OrbModel orb)
-    {
-        OrbHooks.RunAfterOrbChanneled(new AfterOrbChanneledHookContext
-        {
-            Simulator = this,
-            Player = player,
-            Orb = orb
-        });
-    }
-
-    // Mirrors Hook.AfterOrbEvoked as a risk-only hook scan in Phase 3.
-    private void AfterOrbEvoked(OrbModel orb, IReadOnlyList<Creature> targets)
-    {
-        // Vanilla awaits Hook.AfterOrbEvoked. The preview path does not run async side effects;
-        // OrbHooks only mirrors known handlers or records unsupported hook listeners as risk.
-        OrbHooks.RunAfterOrbEvoked(new AfterOrbEvokedHookContext
-        {
-            Simulator = this,
-            Orb = orb,
-            Targets = targets
-        });
     }
 }

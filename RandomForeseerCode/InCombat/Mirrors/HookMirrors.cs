@@ -1,6 +1,8 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -11,6 +13,69 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 // hook-level ordering while method-specific registries and contexts remain implementation details.
 internal static class HookMirrors
 {
+    // Mirrors Hook.ModifyOrbPassiveTriggerCount.
+    public static int ModifyOrbPassiveTriggerCount(
+        CombatPredictionSimulator simulator,
+        OrbModel orb,
+        int triggerCount,
+        out List<AbstractModel> modifiers)
+    {
+        var context = new ModifyOrbPassiveTriggerCountMirrorContext
+        {
+            Simulator = simulator,
+            Orb = orb,
+            TriggerCount = triggerCount
+        };
+        modifiers = [];
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            var newTriggerCount = ModifyOrbPassiveTriggerCountMirrors.Invoke(listener, context);
+            if (newTriggerCount != context.TriggerCount)
+            {
+                context.TriggerCount = newTriggerCount;
+                modifiers.Add(listener);
+            }
+        }
+
+        return context.TriggerCount;
+    }
+
+    // Mirrors Hook.AfterOrbChanneled.
+    public static void AfterOrbChanneled(CombatPredictionSimulator simulator, Player player, OrbModel orb)
+    {
+        var context = new AfterOrbChanneledMirrorContext
+        {
+            Simulator = simulator,
+            Player = player,
+            Orb = orb
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterOrbChanneledMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterOrbEvoked.
+    public static void AfterOrbEvoked(
+        CombatPredictionSimulator simulator,
+        OrbModel orb,
+        IReadOnlyList<Creature> targets)
+    {
+        var context = new AfterOrbEvokedMirrorContext
+        {
+            Simulator = simulator,
+            Orb = orb,
+            Targets = targets
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterOrbEvokedMirrors.Invoke(listener, context);
+        }
+    }
+
     // Mirrors Hook.AfterAutoPostPlayPhaseEntered.
     public static void AfterAutoPostPlayPhaseEntered(CombatPredictionSimulator simulator, Player player)
     {
