@@ -9,6 +9,7 @@ using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Attack;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -254,6 +255,84 @@ internal static class HookMirrors
         foreach (var listener in context.State.IterateHookListeners())
         {
             AfterAttackMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.ShouldDie followed by Hook.ShouldDieLate, including first-preventer short-circuiting.
+    public static bool ShouldDie(
+        CombatPredictionSimulator simulator,
+        Creature creature,
+        [NotNullWhen(false)] out AbstractModel? preventer)
+    {
+        var context = new ShouldDieMirrorContext { Simulator = simulator, Creature = creature };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            if (!ShouldDieMirrors.Invoke(listener, context))
+            {
+                preventer = listener;
+                return false;
+            }
+        }
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            if (!ShouldDieMirrors.InvokeLate(listener, context))
+            {
+                preventer = listener;
+                return false;
+            }
+        }
+
+        preventer = null;
+        return true;
+    }
+
+    // Mirrors Hook.AfterPreventingDeath's only-preventer dispatch.
+    public static void AfterPreventingDeath(
+        CombatPredictionSimulator simulator,
+        AbstractModel preventer,
+        Creature creature)
+    {
+        var context = new AfterPreventingDeathMirrorContext
+        {
+            Simulator = simulator,
+            Creature = creature
+        };
+
+        if (context.RunState.IterateHookListeners(context.CombatState).Contains(preventer))
+        {
+            AfterPreventingDeathMirrors.Invoke(preventer, context);
+        }
+    }
+
+    // Mirrors Hook.BeforeDeath.
+    public static void BeforeDeath(CombatPredictionSimulator simulator, Creature creature)
+    {
+        var context = new BeforeDeathMirrorContext { Simulator = simulator, Creature = creature };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            BeforeDeathMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterDeath.
+    public static void AfterDeath(
+        CombatPredictionSimulator simulator,
+        Creature creature,
+        bool wasRemovalPrevented)
+    {
+        var context = new AfterDeathMirrorContext
+        {
+            Simulator = simulator,
+            Creature = creature,
+            WasRemovalPrevented = wasRemovalPrevented
+        };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            AfterDeathMirrors.Invoke(listener, context);
         }
     }
 

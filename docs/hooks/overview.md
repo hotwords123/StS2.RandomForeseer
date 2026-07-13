@@ -69,6 +69,11 @@ The attack lifecycle hooks `BeforeAttack`, `ModifyAttackHitCount`, and `AfterAtt
 under `InCombat/Mirrors/Hooks/Attack/`. `HookMirrors` owns the fresh listener enumeration for each
 stage and chains `ModifyAttackHitCount` results, while model-centric files colocate the cross-stage
 prediction state used by Vigor and Gigantification.
+The death lifecycle hooks `BeforeDeath`, `ShouldDie` / `ShouldDieLate`, `AfterDeath`, and
+`AfterPreventingDeath` are organized under `InCombat/Mirrors/Hooks/Death/`. `HookMirrors` owns
+listener enumeration, predicate phase refresh, first-preventer short-circuiting, and only-preventer
+dispatch, while model-centric files share potion/relic usage state across the predicate and
+follow-up hook.
 The remaining combat hook families still use the temporary `HookRegistry<TContext>` compatibility
 adapter until their staged migration is complete.
 
@@ -84,7 +89,7 @@ adapter until their staged migration is complete.
 | Frost orb Hibernate block | `FrostOrb`, `HibernatePower` | 冰霜 / 休眠 | StS2 v0.108.0 gives Frost passive/evoke block to all players while Hibernate is active. The simulator mirrors block recipients and evoke targets, but any new all-player block hook side effects still need exact registrations. |
 | Autoplay | `HowlFromBeyond`, `IAmInvincible`, `StampedePower`, `HellraiserPower` | 彼岸咆哮 / 所向无敌 / 惊逃 / 地狱狂徒 | Simulator `AutoPlay`/`AutoPlayFromDrawPile` mirrors card selection, target resolution, X/star capture, play-pile movement, `ResourceInfo` and `CardPlay` construction, result-pile value hooks, and supported result-pile movement. `HowlFromBeyond`/`IAmInvincible` provide targeted `OnPlay` delegates; Hellraiser mirrors its draw trigger and infinite-target cap before entering generic autoplay. Full card-play lifecycle is still incomplete: unsupported generic `OnPlay` bodies, `BeforeCardAutoPlayed`, `BeforeCardPlayed`/`AfterCardPlayed`, card-play history, `AfterModifyingCardPlayResultPileOrPosition`, and enchantment/affliction play effects remain omitted or risk-marked. Cost/result-pile value hooks can still read live `CardModel.Pile`, combat history, or model-local counters instead of simulator shadow state. |
 | Ethereal exhaust | `DarkEmbracePower`, `JossPaper` | 黑暗之拥 / 金纸 | Ethereal hook calls only record delayed counts in vanilla; actual draw timing is end-turn cleanup, outside this simulation path, so the mirror intentionally does not mark risk here. |
-| Death processing | Many death listeners | - | Simulator tracks shadow liveness/removal, selected player death cleanup, secondary-enemy death chains, and Fairy in a Bottle/Lizard Tail prevented-death predicates/healing via `DeathPreventHooks`. Power cleanup/removal, full revive flows, hook deactivation, combat loss, and many encounter-specific death listeners remain unsupported or risk-marked. |
+| Death processing | Many death listeners | - | Simulator tracks shadow liveness/removal, selected player death cleanup, secondary-enemy death chains, and Fairy in a Bottle/Lizard Tail prevented-death predicates/healing via `HookMirrors`. Power cleanup/removal, full revive flows, hook deactivation, combat loss, and many encounter-specific death listeners remain unsupported or risk-marked. |
 | Extra-turn scheduling | `PaelsEye` | 佩尔之眼 | Immediate hand exhaust is mirrored, but the later extra-turn flow is still outside the simulator. |
 | Death reward return | `HeistPower`, `SwipePower` | 盗窃 / 顺走 | Ignored by scope: they only return stolen combat rewards/deck cards. |
 | End-turn healing | `RegenPower` | 再生 | StS2 v0.108.0 resolves Regen in `BeforeSideTurnEndEarly`, before normal `DoomPower` checks. The mirror applies shadow healing before Doom, but does not persist the Regen power decrement because no later hook in this simulation consumes it. |

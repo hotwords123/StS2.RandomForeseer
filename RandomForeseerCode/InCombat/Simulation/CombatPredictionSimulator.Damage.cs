@@ -285,22 +285,13 @@ internal sealed partial class CombatPredictionSimulator
             HookMirrors.AfterCurrentHpChanged(this, creature, -currentHp);
         }
 
-        DeathHooks.RunBeforeDeath(new BeforeDeathHookContext
-        {
-            Simulator = this,
-            Creature = creature
-        });
+        HookMirrors.BeforeDeath(this, creature);
 
-        if (force || creature.MaxHp <= 0 || DeathPreventHooks.RunShouldDie(this, creature, out var preventer))
+        if (force || creature.MaxHp <= 0 || HookMirrors.ShouldDie(this, creature, out var preventer))
         {
             var shouldRemoveFromCombat = Hook.ShouldCreatureBeRemovedFromCombatAfterDeath(combatState, creature);
 
-            DeathHooks.RunAfterDeath(new AfterDeathHookContext
-            {
-                Simulator = this,
-                Creature = creature,
-                WasRemovalPrevented = false
-            });
+            HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: false);
 
             var aliveTeammates = State.GetTeammatesOf(creature)
                 .Where(creature => State.GetCreature(creature).IsAlive)
@@ -331,14 +322,8 @@ internal sealed partial class CombatPredictionSimulator
         }
         else
         {
-            DeathHooks.RunAfterDeath(new AfterDeathHookContext
-            {
-                Simulator = this,
-                Creature = creature,
-                WasRemovalPrevented = true
-            });
-
-            DeathPreventHooks.RunAfterPreventingDeath(this, preventer, creature);
+            HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: true);
+            HookMirrors.AfterPreventingDeath(this, preventer, creature);
 
             // Vanilla recursively calls KillWithoutCheckingWinCondition here, which is not mirrored.
         }
