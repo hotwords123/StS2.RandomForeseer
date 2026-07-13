@@ -1,6 +1,7 @@
 # AfterCardDiscarded hook
 
-Mirror file: `InCombat/Hooks/AfterCardDiscardedHook.cs`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
+`InCombat/Mirrors/Hooks/Card/AfterCardDiscardedMirrors.cs`.
 
 ## Hook spec
 

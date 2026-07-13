@@ -56,8 +56,13 @@ the registries own only single-orb virtual-method dispatch and unsupported risk 
 Orb-related `AbstractModel` hooks have also moved behind `HookMirrors`: it owns listener enumeration,
 while `InCombat/Mirrors/Hooks/Orb/ModifyOrbPassiveTriggerCountMirrors.cs`,
 `AfterOrbChanneledMirrors.cs`, and `AfterOrbEvokedMirrors.cs` each own one hook's registry, context,
-handlers, and hook-local state. The remaining combat hook families still use the temporary
-`HookRegistry<TContext>` compatibility adapter until their staged migration is complete.
+handlers, and hook-local state.
+The simple single-stage `AfterCardDiscarded`, `AfterCardGeneratedForCombat`,
+`AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterModifyingHpLostAfterOsty` hooks also use
+`HookMirrors`; their hook-name files under `InCombat/Mirrors/Hooks/Card/` and
+`InCombat/Mirrors/Hooks/Damage/` own their registries, contexts, handlers, and hook-local state.
+The remaining combat hook families still use the temporary `HookRegistry<TContext>` compatibility
+adapter until their staged migration is complete.
 
 ## Current implementation may differ from vanilla
 

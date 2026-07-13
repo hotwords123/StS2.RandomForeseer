@@ -1,6 +1,7 @@
 # AfterCardGeneratedForCombat hook
 
-Mirror file: `InCombat/Hooks/AfterCardGeneratedForCombatHook.cs`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
+`InCombat/Mirrors/Hooks/Card/AfterCardGeneratedForCombatMirrors.cs`.
 
 ## Hook spec
 

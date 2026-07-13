@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -86,11 +87,7 @@ internal sealed partial class CombatPredictionSimulator
             AddToPile(card, PileType.Discard);
             // Vanilla records CardDiscardedHistory here. There are currently no simulated consumers of this history,
             // so it is skipped for now.
-            AfterCardDiscardedHook.Run(new AfterCardDiscardedHookContext
-            {
-                Simulator = this,
-                Card = card
-            });
+            HookMirrors.AfterCardDiscarded(this, card);
         }
 
         if (cardsToDraw > 0)

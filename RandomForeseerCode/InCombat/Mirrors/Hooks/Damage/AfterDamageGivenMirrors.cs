@@ -7,13 +7,15 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Hooks;
+using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
 
-internal static class DamageGivenHooks
+using Registry = ModelMethodMirrorRegistry<AbstractModel, AfterDamageGivenMirrorContext>;
+
+internal static class AfterDamageGivenMirrors
 {
-    private static readonly HookSpec AfterDamageGiven = new(
+    private static readonly MirrorMethodSpec AfterDamageGiven = MirrorMethodSpec.Hook(
         nameof(AbstractModel.AfterDamageGiven),
         [
             typeof(PlayerChoiceContext),
@@ -24,16 +26,16 @@ internal static class DamageGivenHooks
             typeof(CardModel)
         ]);
 
-    private static readonly HookRegistry<AfterDamageGivenHookContext> Registry = CreateRegistry();
+    private static readonly Registry Registry = CreateRegistry();
 
-    public static void Run(AfterDamageGivenHookContext context)
+    public static void Invoke(AbstractModel listener, AfterDamageGivenMirrorContext context)
     {
-        Registry.Run(context.RunState.IterateHookListeners(context.CombatState), context);
+        Registry.Invoke(listener, context);
     }
 
-    private static HookRegistry<AfterDamageGivenHookContext> CreateRegistry()
+    private static Registry CreateRegistry()
     {
-        var registry = new HookRegistry<AfterDamageGivenHookContext>(AfterDamageGiven);
+        var registry = new Registry(AfterDamageGiven);
 
         registry.RegisterIgnored<SkillIronclad2Achievement>();
         registry.Register<ConcoctPower>(HandleConcoctPower);
@@ -49,7 +51,7 @@ internal static class DamageGivenHooks
         return registry;
     }
 
-    private static void HandleConcoctPower(ConcoctPower power, AfterDamageGivenHookContext context)
+    private static void HandleConcoctPower(ConcoctPower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer == power.Owner &&
             context.Props.IsPoweredAttack() &&
@@ -60,7 +62,7 @@ internal static class DamageGivenHooks
         }
     }
 
-    private static void HandleEnvenomPower(EnvenomPower power, AfterDamageGivenHookContext context)
+    private static void HandleEnvenomPower(EnvenomPower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer == power.Owner &&
             context.Props.IsPoweredAttack() &&
@@ -70,7 +72,7 @@ internal static class DamageGivenHooks
         }
     }
 
-    private static void HandleHandDrill(HandDrill relic, AfterDamageGivenHookContext context)
+    private static void HandleHandDrill(HandDrill relic, AfterDamageGivenMirrorContext context)
     {
         if ((context.Dealer == relic.Owner.Creature || context.Dealer?.PetOwner == relic.Owner) &&
             !context.Target.IsPlayer &&
@@ -80,7 +82,7 @@ internal static class DamageGivenHooks
         }
     }
 
-    private static void HandleMonarchsGazePower(MonarchsGazePower power, AfterDamageGivenHookContext context)
+    private static void HandleMonarchsGazePower(MonarchsGazePower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer == power.Owner && context.Props.IsPoweredAttack())
         {
@@ -88,7 +90,7 @@ internal static class DamageGivenHooks
         }
     }
 
-    private static void HandleReaperFormPower(ReaperFormPower power, AfterDamageGivenHookContext context)
+    private static void HandleReaperFormPower(ReaperFormPower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer != null &&
             (context.Dealer == power.Owner || context.Dealer.PetOwner?.Creature == power.Owner) &&
@@ -99,7 +101,7 @@ internal static class DamageGivenHooks
         }
     }
 
-    private static void HandleSicEmPower(SicEmPower power, AfterDamageGivenHookContext context)
+    private static void HandleSicEmPower(SicEmPower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer?.Monster is Osty osty &&
             power.Applier != null &&
@@ -110,7 +112,7 @@ internal static class DamageGivenHooks
         }
     }
 
-    private static void HandleUnderworldPower(UnderworldPower power, AfterDamageGivenHookContext context)
+    private static void HandleUnderworldPower(UnderworldPower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer != null &&
             context.Dealer != power.Owner &&
@@ -124,7 +126,7 @@ internal static class DamageGivenHooks
     }
 }
 
-internal sealed class AfterDamageGivenHookContext : CombatPredictionHookContext
+internal sealed class AfterDamageGivenMirrorContext : CombatPredictionMirrorContext
 {
     public required Creature Target { get; init; }
 

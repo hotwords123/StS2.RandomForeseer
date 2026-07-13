@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -191,13 +192,7 @@ internal sealed partial class CombatPredictionSimulator
             // does not currently consume generated-card history, so this is intentionally omitted.
 
             results.Add(AddToPile(card, newPileType, position));
-
-            AfterCardGeneratedForCombatHook.Run(new AfterCardGeneratedForCombatHookContext
-            {
-                Simulator = this,
-                Card = card,
-                Creator = creator
-            });
+            HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
         }
 
         return results;

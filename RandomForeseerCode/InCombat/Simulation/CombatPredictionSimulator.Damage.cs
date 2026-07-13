@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -153,12 +154,7 @@ internal sealed partial class CombatPredictionSimulator
             cardSource?.Preview,
             HpLossHookPhase.AfterOsty,
             out var afterOstyModifiers);
-        DamageModifierHooks.RunAfterModifyingHpLostAfterOsty(
-            afterOstyModifiers,
-            new AfterModifyingHpLostHookContext
-            {
-                Simulator = this
-            });
+        HookMirrors.AfterModifyingHpLostAfterOsty(this, afterOstyModifiers);
 
         var unblockedDamageTargetState = State.GetCreature(unblockedDamageTarget);
         var unblockedDamageResult = unblockedDamageTargetState.LoseHp(unblockedDamage, props);
@@ -187,12 +183,7 @@ internal sealed partial class CombatPredictionSimulator
                 cardSource?.Preview,
                 HpLossHookPhase.AfterOsty,
                 out var redirectedAfterOstyModifiers);
-            DamageModifierHooks.RunAfterModifyingHpLostAfterOsty(
-                redirectedAfterOstyModifiers,
-                new AfterModifyingHpLostHookContext
-                {
-                    Simulator = this
-                });
+            HookMirrors.AfterModifyingHpLostAfterOsty(this, redirectedAfterOstyModifiers);
 
             var damageResult = originalTargetDamage > 0m
                 ? originalTargetState.LoseHp(originalTargetDamage, props)
@@ -230,23 +221,16 @@ internal sealed partial class CombatPredictionSimulator
 
             if (damageResult.UnblockedDamage > 0)
             {
-                AfterCurrentHpChangedHook.Run(new AfterCurrentHpChangedHookContext
-                {
-                    Simulator = this,
-                    Creature = originalTarget,
-                    Delta = -damageResult.UnblockedDamage
-                });
+                HookMirrors.AfterCurrentHpChanged(this, originalTarget, -damageResult.UnblockedDamage);
             }
 
-            DamageGivenHooks.Run(new AfterDamageGivenHookContext
-            {
-                Simulator = this,
-                Target = originalTarget,
-                Result = damageResult,
-                Props = damageResult.Props,
-                Dealer = dealer,
-                Source = cardSource
-            });
+            HookMirrors.AfterDamageGiven(
+                this,
+                originalTarget,
+                damageResult,
+                damageResult.Props,
+                dealer,
+                cardSource);
 
             if (!damageResult.WasTargetKilled || !State.GetCreature(originalTarget).IsDead)
             {
@@ -298,12 +282,7 @@ internal sealed partial class CombatPredictionSimulator
         if (currentHp > 0)
         {
             creatureState.LoseHp(currentHp, ValueProp.Unblockable | ValueProp.Unpowered);
-            AfterCurrentHpChangedHook.Run(new AfterCurrentHpChangedHookContext
-            {
-                Simulator = this,
-                Creature = creature,
-                Delta = -currentHp
-            });
+            HookMirrors.AfterCurrentHpChanged(this, creature, -currentHp);
         }
 
         DeathHooks.RunBeforeDeath(new BeforeDeathHookContext

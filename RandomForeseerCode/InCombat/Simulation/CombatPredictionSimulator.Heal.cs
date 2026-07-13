@@ -1,5 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -14,12 +14,7 @@ internal sealed partial class CombatPredictionSimulator
 
         if (amount > 0m)
         {
-            AfterCurrentHpChangedHook.Run(new AfterCurrentHpChangedHookContext
-            {
-                Simulator = this,
-                Creature = creature,
-                Delta = amount
-            });
+            HookMirrors.AfterCurrentHpChanged(this, creature, amount);
         }
     }
 }

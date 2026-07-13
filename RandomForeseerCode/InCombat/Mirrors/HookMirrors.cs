@@ -2,6 +2,10 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -13,6 +17,98 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 // hook-level ordering while method-specific registries and contexts remain implementation details.
 internal static class HookMirrors
 {
+    // Mirrors Hook.AfterCardDiscarded.
+    public static void AfterCardDiscarded(CombatPredictionSimulator simulator, PredictedCard card)
+    {
+        var context = new AfterCardDiscardedMirrorContext { Simulator = simulator, Card = card };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterCardDiscardedMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterCardGeneratedForCombat.
+    public static void AfterCardGeneratedForCombat(
+        CombatPredictionSimulator simulator,
+        PredictedCard card,
+        Player? creator)
+    {
+        var context = new AfterCardGeneratedForCombatMirrorContext
+        {
+            Simulator = simulator,
+            Card = card,
+            Creator = creator
+        };
+
+        // Prediction-local generated cards are not included as later listeners until simulated
+        // hook iteration owns prediction-local card listeners.
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterCardGeneratedForCombatMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterCurrentHpChanged.
+    public static void AfterCurrentHpChanged(
+        CombatPredictionSimulator simulator,
+        Creature creature,
+        decimal delta)
+    {
+        var context = new AfterCurrentHpChangedMirrorContext
+        {
+            Simulator = simulator,
+            Creature = creature,
+            Delta = delta
+        };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            AfterCurrentHpChangedMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterDamageGiven.
+    public static void AfterDamageGiven(
+        CombatPredictionSimulator simulator,
+        Creature target,
+        DamageResult result,
+        ValueProp props,
+        Creature? dealer,
+        PredictedCard? source)
+    {
+        var context = new AfterDamageGivenMirrorContext
+        {
+            Simulator = simulator,
+            Target = target,
+            Result = result,
+            Props = props,
+            Dealer = dealer,
+            Source = source
+        };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            AfterDamageGivenMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterModifyingHpLostAfterOsty for the modifiers selected by the value hook.
+    public static void AfterModifyingHpLostAfterOsty(
+        CombatPredictionSimulator simulator,
+        IEnumerable<AbstractModel> modifiers)
+    {
+        var context = new AfterModifyingHpLostMirrorContext { Simulator = simulator };
+
+        foreach (var modifier in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            if (modifiers.Contains(modifier))
+            {
+                AfterModifyingHpLostAfterOstyMirrors.Invoke(modifier, context);
+            }
+        }
+    }
+
     // Mirrors Hook.ModifyOrbPassiveTriggerCount.
     public static int ModifyOrbPassiveTriggerCount(
         CombatPredictionSimulator simulator,

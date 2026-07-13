@@ -1,6 +1,11 @@
 # Damage and HP hooks
 
-Mirror files: `InCombat/Hooks/AfterCurrentHpChangedHook.cs`, `InCombat/Hooks/DamageGivenHooks.cs`, `InCombat/Hooks/DamageReceivedHooks.cs`, `InCombat/Simulation/CombatPredictionSimulator.Damage.cs`, `InCombat/Simulation/CombatPredictionSimulator.Heal.cs`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
+`InCombat/Mirrors/Hooks/Damage/AfterCurrentHpChangedMirrors.cs`,
+`InCombat/Mirrors/Hooks/Damage/AfterDamageGivenMirrors.cs`,
+`InCombat/Hooks/DamageReceivedHooks.cs`,
+`InCombat/Simulation/CombatPredictionSimulator.Damage.cs`, and
+`InCombat/Simulation/CombatPredictionSimulator.Heal.cs`.
 
 This document covers the implemented `BeforeDamageReceived`, `AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterDamageReceived` mirrors plus the remaining damage/hp/block gaps.
 
