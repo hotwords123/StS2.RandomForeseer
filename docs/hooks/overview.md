@@ -25,9 +25,10 @@ type must be reviewed and registered explicitly. `MirrorMethodSpec` identifies t
 declaring base method, so the same infrastructure can support public `AbstractModel` hooks and later
 protected or more-specific virtual methods such as `CardModel.OnPlay` and `OrbModel.Evoke`.
 
-`Common/Hooks/HookRegistry.cs` remains a temporary compatibility invocation adapter for hook
-families not yet migrated to `HookMirrors`: it enumerates listeners in caller-provided order, honors
-`ShouldContinue`, and delegates each receiver to the shared Action registry.
+`Common/Hooks/HookRegistry.cs` remains a temporary compatibility invocation adapter for the
+out-of-combat card-reward mirrors: it enumerates listeners in caller-provided order, honors
+`ShouldContinue`, and delegates each receiver to the shared Action registry. Combat hook mirrors no
+longer use this adapter or `CombatPredictionHookContext`.
 The shared registry uses its typed context to establish the receiver's prediction source scope before
 dispatch or unsupported risk marking. Registrations prepopulate the same runtime-type lookup dictionary later used
 for lazy `NotOverridden` / `Ignored` / `Unsupported` results. Registries are constructed with all
@@ -64,6 +65,8 @@ The simple single-stage `AfterCardDiscarded`, `AfterCardGeneratedForCombat`,
 The damage-received lifecycle `BeforeDamageReceived`, `AfterDamageReceived`, and
 `AfterDamageReceivedLate` follows the same organization under `InCombat/Mirrors/Hooks/Damage/`;
 `HookMirrors` refreshes listeners between the normal and late post-damage phases.
+The block lifecycle `BeforeBlockGained` and `AfterBlockGained` is organized under
+`InCombat/Mirrors/Hooks/Block/`; `HookMirrors` owns separate listener enumeration for both stages.
 The card-pile lifecycle hooks `ShouldDraw`, `AfterCardDrawnEarly` / `AfterCardDrawn`,
 `AfterCardExhausted`, `ModifyShuffleOrder`, and `AfterShuffle` now follow the same organization under
 `InCombat/Mirrors/Hooks/Card/`. ShouldDraw short-circuiting and the listener refresh between draw
@@ -77,8 +80,9 @@ The death lifecycle hooks `BeforeDeath`, `ShouldDie` / `ShouldDieLate`, `AfterDe
 listener enumeration, predicate phase refresh, first-preventer short-circuiting, and only-preventer
 dispatch, while model-centric files share potion/relic usage state across the predicate and
 follow-up hook.
-The remaining combat hook families still use the temporary `HookRegistry<TContext>` compatibility
-adapter until their staged migration is complete.
+All currently used combat hook mirror families now dispatch through `HookMirrors` and the shared
+model-method registries. The temporary `HookRegistry<TContext>` remains only for out-of-combat
+card-reward mirrors.
 
 ## Current implementation may differ from vanilla
 

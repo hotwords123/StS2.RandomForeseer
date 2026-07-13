@@ -1,6 +1,12 @@
 # Block hooks
 
-Mirror file: `InCombat/Hooks/BlockHooks.cs`.
+Simulation-facing hook facade: `InCombat/Mirrors/HookMirrors.cs`.
+
+Mirror files:
+
+- `InCombat/Mirrors/Hooks/Block/BeforeBlockGainedMirrors.cs`
+- `InCombat/Mirrors/Hooks/Block/AfterBlockGainedMirrors.cs`
+- `InCombat/Simulation/CombatPredictionSimulator.Block.cs`
 
 ## Hook specs
 

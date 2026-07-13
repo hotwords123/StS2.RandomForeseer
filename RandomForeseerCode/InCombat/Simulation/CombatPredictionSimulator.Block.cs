@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -25,13 +25,7 @@ internal sealed partial class CombatPredictionSimulator
 
         // Vanilla first checks CombatManager.IsOverOrEnding. The simulator is detached from
         // CombatManager end-state and is only called from live prediction paths.
-        var beforeContext = new BlockHookContext
-        {
-            Simulator = this,
-            Creature = creature,
-            Amount = amount
-        };
-        BlockHooks.RunBeforeBlockGained(beforeContext);
+        HookMirrors.BeforeBlockGained(this, creature, amount, props, cardSource);
 
         var modifiedBlock = Hook.ModifyBlock(
             State.CombatState,
@@ -53,16 +47,9 @@ internal sealed partial class CombatPredictionSimulator
         State.GetCreature(creature).GainBlock(modifiedBlock);
 
         // Vanilla records BlockGained history before AfterBlockGained. Preview does not mutate
-        // run/combat history, but it still scans AfterBlockGained through BlockHooks below so
+        // run/combat history, but it still scans AfterBlockGained through HookMirrors below so
         // known block-triggered state changes can be mirrored or marked as risk.
-        var afterContext = new BlockHookContext
-        {
-            Simulator = this,
-            Creature = creature,
-            Amount = modifiedBlock
-        };
-
-        BlockHooks.RunAfterBlockGained(afterContext);
+        HookMirrors.AfterBlockGained(this, creature, modifiedBlock, props, cardSource);
         return modifiedBlock;
     }
 }

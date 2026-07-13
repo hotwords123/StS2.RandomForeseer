@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Attack;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Block;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
@@ -21,6 +22,52 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 // hook-level ordering while method-specific registries and contexts remain implementation details.
 internal static class HookMirrors
 {
+    // Mirrors Hook.BeforeBlockGained.
+    public static void BeforeBlockGained(
+        CombatPredictionSimulator simulator,
+        Creature creature,
+        decimal amount,
+        ValueProp props,
+        PredictedCard? source)
+    {
+        var context = new BeforeBlockGainedMirrorContext
+        {
+            Simulator = simulator,
+            Creature = creature,
+            Amount = amount,
+            Props = props,
+            Source = source
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            BeforeBlockGainedMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterBlockGained.
+    public static void AfterBlockGained(
+        CombatPredictionSimulator simulator,
+        Creature creature,
+        decimal amount,
+        ValueProp props,
+        PredictedCard? source)
+    {
+        var context = new AfterBlockGainedMirrorContext
+        {
+            Simulator = simulator,
+            Creature = creature,
+            Amount = amount,
+            Props = props,
+            Source = source
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterBlockGainedMirrors.Invoke(listener, context);
+        }
+    }
+
     // Mirrors Hook.ShouldDraw with listener short-circuiting.
     public static bool ShouldDraw(
         CombatPredictionSimulator simulator,
