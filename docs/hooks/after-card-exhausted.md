@@ -1,6 +1,7 @@
 # AfterCardExhausted hook
 
-Mirror file: `InCombat/Hooks/AfterCardExhaustedHook.cs`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
+`InCombat/Mirrors/Hooks/Card/AfterCardExhaustedMirrors.cs`.
 
 ## Hook spec
 

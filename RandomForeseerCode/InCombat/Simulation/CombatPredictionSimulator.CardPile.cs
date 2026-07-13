@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -16,16 +15,9 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CardPileCmd.Draw.
     public void Draw(Player player, int drawCount, bool fromHandDraw = false)
     {
-        var shouldDrawContext = new ShouldDrawHookContext
+        if (!HookMirrors.ShouldDraw(this, player, fromHandDraw, out _))
         {
-            Simulator = this,
-            Player = player,
-            FromHandDraw = fromHandDraw,
-        };
-        ShouldDrawHook.Run(shouldDrawContext);
-
-        if (shouldDrawContext.IsBlocked)
-        {
+            // Vanilla calls Hook.AfterPreventingDraw here, but all current listeners are cosmetic.
             return;
         }
 
@@ -61,12 +53,7 @@ internal sealed partial class CombatPredictionSimulator
         AddToPile(predictedCard, state.Hand);
         RecordCardDrawnHistory(predictedCard, fromHandDraw);
 
-        AfterCardDrawnHook.Run(new AfterCardDrawnHookContext
-        {
-            Simulator = this,
-            Card = predictedCard,
-            FromHandDraw = fromHandDraw
-        });
+        HookMirrors.AfterCardDrawn(this, predictedCard, fromHandDraw);
         return true;
     }
 
@@ -84,13 +71,7 @@ internal sealed partial class CombatPredictionSimulator
         shuffledCards.AddRange(state.DrawPile.Cards);
         shuffledCards.StableShuffle(Rng.Shuffle);
 
-        ShuffleHooks.RunModifyShuffleOrder(new ModifyShuffleOrderHookContext
-        {
-            Simulator = this,
-            Player = player,
-            DrawPileCards = shuffledCards,
-            IsInitialShuffle = false
-        });
+        HookMirrors.ModifyShuffleOrder(this, player, shuffledCards, isInitialShuffle: false);
 
         foreach (var card in drawPileCards)
         {
@@ -109,11 +90,7 @@ internal sealed partial class CombatPredictionSimulator
             }
         }
 
-        ShuffleHooks.RunAfterShuffle(new AfterShuffleHookContext
-        {
-            Simulator = this,
-            Player = player
-        });
+        HookMirrors.AfterShuffle(this, player);
     }
 
     private void ShuffleIfNecessary(Player player)

@@ -14,6 +14,8 @@ internal sealed class SimCreatureState(Creature creature)
 
     public int Block { get; private set; } = creature.Block;
 
+    public HpDisplay HpDisplay { get; set; } = creature.HpDisplay;
+
     public bool IsAlive => CurrentHp > 0;
 
     public bool IsDead => !IsAlive;

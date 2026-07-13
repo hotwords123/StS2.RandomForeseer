@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -17,6 +18,108 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 // hook-level ordering while method-specific registries and contexts remain implementation details.
 internal static class HookMirrors
 {
+    // Mirrors Hook.ShouldDraw with listener short-circuiting.
+    public static bool ShouldDraw(
+        CombatPredictionSimulator simulator,
+        Player player,
+        bool fromHandDraw,
+        [NotNullWhen(false)] out AbstractModel? modifier)
+    {
+        var context = new ShouldDrawMirrorContext
+        {
+            Simulator = simulator,
+            Player = player,
+            FromHandDraw = fromHandDraw
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            if (!ShouldDrawMirrors.Invoke(listener, context))
+            {
+                modifier = listener;
+                return false;
+            }
+        }
+
+        modifier = null;
+        return true;
+    }
+
+    // Mirrors Hook.AfterCardDrawnEarly followed by Hook.AfterCardDrawn.
+    public static void AfterCardDrawn(
+        CombatPredictionSimulator simulator,
+        PredictedCard card,
+        bool fromHandDraw)
+    {
+        var context = new AfterCardDrawnMirrorContext
+        {
+            Simulator = simulator,
+            Card = card,
+            FromHandDraw = fromHandDraw
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterCardDrawnMirrors.InvokeEarly(listener, context);
+        }
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterCardDrawnMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterCardExhausted.
+    public static void AfterCardExhausted(
+        CombatPredictionSimulator simulator,
+        PredictedCard card,
+        bool causedByEthereal)
+    {
+        var context = new AfterCardExhaustedMirrorContext
+        {
+            Simulator = simulator,
+            Card = card,
+            CausedByEthereal = causedByEthereal
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterCardExhaustedMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.ModifyShuffleOrder.
+    public static void ModifyShuffleOrder(
+        CombatPredictionSimulator simulator,
+        Player player,
+        List<PredictedCard> cards,
+        bool isInitialShuffle)
+    {
+        var context = new ModifyShuffleOrderMirrorContext
+        {
+            Simulator = simulator,
+            Player = player,
+            Cards = cards,
+            IsInitialShuffle = isInitialShuffle
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            ModifyShuffleOrderMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterShuffle.
+    public static void AfterShuffle(CombatPredictionSimulator simulator, Player player)
+    {
+        var context = new AfterShuffleMirrorContext { Simulator = simulator, Player = player };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterShuffleMirrors.Invoke(listener, context);
+        }
+    }
+
     // Mirrors Hook.AfterCardDiscarded.
     public static void AfterCardDiscarded(CombatPredictionSimulator simulator, PredictedCard card)
     {

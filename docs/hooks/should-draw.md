@@ -1,6 +1,7 @@
 # ShouldDraw hook
 
-Mirror file: `InCombat/Hooks/ShouldDrawHook.cs`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
+`InCombat/Mirrors/Hooks/Card/ShouldDrawMirrors.cs`.
 
 ## Hook spec
 
@@ -15,7 +16,8 @@ Mirror file: `InCombat/Hooks/ShouldDrawHook.cs`.
 
 ## Parity notes
 
-- Dispatcher stops once `IsBlocked` becomes true, matching the original `Hook.ShouldDraw` short-circuit behavior.
+- `ShouldDrawMirrors` uses the result registry, and `HookMirrors.ShouldDraw` stops at the first
+  listener returning `false` while returning that listener as the modifier, matching vanilla.
 - Both listeners are mirrored manually instead of calling original methods, so future flash/status side effects in originals will not leak into prediction.
 
 ## Mock model list

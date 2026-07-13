@@ -1,6 +1,8 @@
 # Shuffle hooks
 
-Mirror file: `InCombat/Hooks/ShuffleHooks.cs`.
+Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
+`InCombat/Mirrors/Hooks/Card/ModifyShuffleOrderMirrors.cs`, and
+`InCombat/Mirrors/Hooks/Card/AfterShuffleMirrors.cs`.
 
 ## Hook specs
 

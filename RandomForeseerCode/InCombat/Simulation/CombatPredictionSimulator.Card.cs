@@ -107,12 +107,7 @@ internal sealed partial class CombatPredictionSimulator
         AddToPile(card, PileType.Exhaust);
         // Vanilla records CardExhaustedHistory here. There are currently no simulated consumers of this history,
         // so it is skipped for now.
-        AfterCardExhaustedHook.Run(new AfterCardExhaustedHookContext
-        {
-            Simulator = this,
-            Card = card,
-            CausedByEthereal = causedByEthereal
-        });
+        HookMirrors.AfterCardExhausted(this, card, causedByEthereal);
     }
 
     // Mirrors PlayCardAction.ExecuteAction. This is the main entry point for simulating a card play.
