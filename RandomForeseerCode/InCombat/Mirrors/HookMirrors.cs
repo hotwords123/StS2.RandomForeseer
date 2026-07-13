@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Attack;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
@@ -209,6 +211,49 @@ internal static class HookMirrors
             {
                 AfterModifyingHpLostAfterOstyMirrors.Invoke(modifier, context);
             }
+        }
+    }
+
+    // Mirrors Hook.BeforeAttack.
+    public static void BeforeAttack(CombatPredictionSimulator simulator, AttackCommand command)
+    {
+        var context = new BeforeAttackMirrorContext { Simulator = simulator, Command = command };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            BeforeAttackMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.ModifyAttackHitCount with listener-to-listener result chaining.
+    public static int ModifyAttackHitCount(
+        CombatPredictionSimulator simulator,
+        AttackCommand command,
+        int originalHitCount)
+    {
+        var context = new ModifyAttackHitCountMirrorContext
+        {
+            Simulator = simulator,
+            Command = command,
+            HitCount = originalHitCount
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            context.HitCount = ModifyAttackHitCountMirrors.Invoke(listener, context);
+        }
+
+        return context.HitCount;
+    }
+
+    // Mirrors Hook.AfterAttack.
+    public static void AfterAttack(CombatPredictionSimulator simulator, AttackCommand command)
+    {
+        var context = new AfterAttackMirrorContext { Simulator = simulator, Command = command };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterAttackMirrors.Invoke(listener, context);
         }
     }
 

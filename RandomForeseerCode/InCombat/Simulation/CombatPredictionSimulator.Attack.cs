@@ -2,7 +2,7 @@ using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -11,7 +11,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors the gameplay-relevant parts of AttackCommand.Execute without mutating real
     // creature/card state or running command-local arbitrary callbacks. Callers are
     // responsible for pushing the attack's card/monster source before calling this method;
-    // Execute only pushes hook listeners through AttackHooks.
+    // Execute only pushes hook listeners through HookMirrors.
     public void ExecuteAttack(AttackCommand attackCommand)
     {
         if (attackCommand.Attacker is not { } attacker)
@@ -34,18 +34,9 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        AttackHooks.RunBefore(new AttackHookContext
-        {
-            Simulator = this,
-            Command = attackCommand
-        });
+        HookMirrors.BeforeAttack(this, attackCommand);
 
-        var hitCount = AttackHooks.ModifyHitCount(new ModifyAttackHitCountHookContext
-        {
-            Simulator = this,
-            Command = attackCommand,
-            HitCount = attackCommand._hitCount
-        });
+        var hitCount = HookMirrors.ModifyAttackHitCount(this, attackCommand, attackCommand._hitCount);
 
         var cardSource = attackCommand.ModelSource is CardModel card
             ? State.FindCard(card) ?? new PredictedCard(card)
@@ -87,11 +78,7 @@ internal sealed partial class CombatPredictionSimulator
             attackCommand.ModelSource,
             attackCommand.Results.SelectMany(results => results).ToArray());
 
-        AttackHooks.RunAfter(new AttackHookContext
-        {
-            Simulator = this,
-            Command = attackCommand
-        });
+        HookMirrors.AfterAttack(this, attackCommand);
     }
 
     // Mirrors AttackCommand.GetPossibleTargets but uses the simulator's state instead of the real CombatState.

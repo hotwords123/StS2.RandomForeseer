@@ -65,6 +65,10 @@ The card-pile lifecycle hooks `ShouldDraw`, `AfterCardDrawnEarly` / `AfterCardDr
 `AfterCardExhausted`, `ModifyShuffleOrder`, and `AfterShuffle` now follow the same organization under
 `InCombat/Mirrors/Hooks/Card/`. ShouldDraw short-circuiting and the listener refresh between draw
 phases remain responsibilities of `HookMirrors`.
+The attack lifecycle hooks `BeforeAttack`, `ModifyAttackHitCount`, and `AfterAttack` are organized
+under `InCombat/Mirrors/Hooks/Attack/`. `HookMirrors` owns the fresh listener enumeration for each
+stage and chains `ModifyAttackHitCount` results, while model-centric files colocate the cross-stage
+prediction state used by Vigor and Gigantification.
 The remaining combat hook families still use the temporary `HookRegistry<TContext>` compatibility
 adapter until their staged migration is complete.
 
