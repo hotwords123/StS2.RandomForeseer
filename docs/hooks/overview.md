@@ -61,6 +61,9 @@ The simple single-stage `AfterCardDiscarded`, `AfterCardGeneratedForCombat`,
 `AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterModifyingHpLostAfterOsty` hooks also use
 `HookMirrors`; their hook-name files under `InCombat/Mirrors/Hooks/Card/` and
 `InCombat/Mirrors/Hooks/Damage/` own their registries, contexts, handlers, and hook-local state.
+The damage-received lifecycle `BeforeDamageReceived`, `AfterDamageReceived`, and
+`AfterDamageReceivedLate` follows the same organization under `InCombat/Mirrors/Hooks/Damage/`;
+`HookMirrors` refreshes listeners between the normal and late post-damage phases.
 The card-pile lifecycle hooks `ShouldDraw`, `AfterCardDrawnEarly` / `AfterCardDrawn`,
 `AfterCardExhausted`, `ModifyShuffleOrder`, and `AfterShuffle` now follow the same organization under
 `InCombat/Mirrors/Hooks/Card/`. ShouldDraw short-circuiting and the listener refresh between draw

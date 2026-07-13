@@ -6,7 +6,6 @@ using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Hooks;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -112,14 +111,13 @@ internal sealed partial class CombatPredictionSimulator
         // state in sync and is intentionally left for targeted hook mirrors.
         _ = damageModifiers;
 
-        DamageReceivedHooks.RunBefore(new BeforeDamageReceivedHookContext
-        {
-            Simulator = this,
-            Target = originalTarget,
-            Props = props,
-            Dealer = dealer,
-            Source = cardSource
-        });
+        HookMirrors.BeforeDamageReceived(
+            this,
+            originalTarget,
+            modifiedAmount,
+            props,
+            dealer,
+            cardSource);
 
         var blockTarget = originalTarget.PetOwner?.Creature ?? originalTarget;
         var blockTargetState = State.GetCreature(blockTarget);
@@ -234,17 +232,13 @@ internal sealed partial class CombatPredictionSimulator
 
             if (!damageResult.WasTargetKilled || !State.GetCreature(originalTarget).IsDead)
             {
-                var context = new AfterDamageReceivedHookContext
-                {
-                    Simulator = this,
-                    Target = originalTarget,
-                    Result = damageResult,
-                    Props = damageResult.Props,
-                    Dealer = dealer,
-                    Source = cardSource
-                };
-                DamageReceivedHooks.RunAfter(context);
-                DamageReceivedHooks.RunAfterLate(context);
+                HookMirrors.AfterDamageReceived(
+                    this,
+                    originalTarget,
+                    damageResult,
+                    damageResult.Props,
+                    dealer,
+                    cardSource);
             }
             else
             {

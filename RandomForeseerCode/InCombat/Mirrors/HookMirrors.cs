@@ -215,6 +215,61 @@ internal static class HookMirrors
         }
     }
 
+    // Mirrors Hook.BeforeDamageReceived.
+    public static void BeforeDamageReceived(
+        CombatPredictionSimulator simulator,
+        Creature target,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer,
+        PredictedCard? source)
+    {
+        var context = new BeforeDamageReceivedMirrorContext
+        {
+            Simulator = simulator,
+            Target = target,
+            Amount = amount,
+            Props = props,
+            Dealer = dealer,
+            Source = source
+        };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            BeforeDamageReceivedMirrors.Invoke(listener, context);
+        }
+    }
+
+    // Mirrors Hook.AfterDamageReceived followed by Hook.AfterDamageReceivedLate.
+    public static void AfterDamageReceived(
+        CombatPredictionSimulator simulator,
+        Creature target,
+        DamageResult result,
+        ValueProp props,
+        Creature? dealer,
+        PredictedCard? source)
+    {
+        var context = new AfterDamageReceivedMirrorContext
+        {
+            Simulator = simulator,
+            Target = target,
+            Result = result,
+            Props = props,
+            Dealer = dealer,
+            Source = source
+        };
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            AfterDamageReceivedMirrors.Invoke(listener, context);
+        }
+
+        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        {
+            AfterDamageReceivedMirrors.InvokeLate(listener, context);
+        }
+    }
+
     // Mirrors Hook.BeforeAttack.
     public static void BeforeAttack(CombatPredictionSimulator simulator, AttackCommand command)
     {

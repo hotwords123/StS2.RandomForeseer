@@ -3,7 +3,8 @@
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/AfterCurrentHpChangedMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/AfterDamageGivenMirrors.cs`,
-`InCombat/Hooks/DamageReceivedHooks.cs`,
+`InCombat/Mirrors/Hooks/Damage/BeforeDamageReceivedMirrors.cs`,
+`InCombat/Mirrors/Hooks/Damage/AfterDamageReceivedMirrors.cs`,
 `InCombat/Simulation/CombatPredictionSimulator.Damage.cs`, and
 `InCombat/Simulation/CombatPredictionSimulator.Heal.cs`.
 

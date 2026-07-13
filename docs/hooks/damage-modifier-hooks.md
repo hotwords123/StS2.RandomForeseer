@@ -151,7 +151,7 @@ Current mirror status: `AfterModifyingHpLostAfterOsty` is dispatched only to the
 
 | Model | 中文名 | Original effect | Current impact |
 | --- | --- | --- | --- |
-| `BeatingRemnant` | 律动残余 | Flash only. | Ignored by `DamageModifiersHook`; damage-received state is marked risky in `DamageReceivedHooks`. |
+| `BeatingRemnant` | 律动残余 | Flash only. | Ignored by `DamageModifiersHook`; damage-received state is marked risky in `AfterDamageReceivedMirrors`. |
 | `BufferPower` | 缓冲 | Decrements Buffer after it prevents HP loss. | Marked risky when returned as a modifier. Prediction can diverge on multiple simulated hits because the live Buffer amount is not shadow-decremented. |
 | `IntangiblePower` | 无实体 | Flash only. | Ignored by `DamageModifiersHook`. |
 | `TheBoot` | 发条靴 | Flash only. | Ignored by `DamageModifiersHook`. |
