@@ -51,9 +51,19 @@ internal sealed partial class CombatPredictionSimulator
         orb.AssertMutable();
         orb.Owner = player;
 
-        if (orbQueue.Orbs.Count >= orbQueue.Capacity)
+        if (orbQueue.Capacity > 0 && orbQueue.Orbs.Count >= orbQueue.Capacity)
         {
             OrbEvokeNext(player);
+
+            // Vanilla OrbCmd.Channel immediately calls OrbQueue.TryEnqueue after EvokeNext. If
+            // evoke side effects synchronously channel another orb and refill the freed slot,
+            // vanilla throws "OrbQueue is full" here. Prediction fails closed instead of
+            // reproducing that bug or inventing additional evokes to make room.
+            if (orbQueue.Orbs.Count >= orbQueue.Capacity)
+            {
+                MarkCurrentSourceRisky();
+                return false;
+            }
         }
 
         if (!orbQueue.TryEnqueue(orb))
@@ -61,7 +71,7 @@ internal sealed partial class CombatPredictionSimulator
             return false;
         }
 
-        History.OrbChanneled(orb);
+        History.OrbChanneled(orb, _sourceStack.Current);
         HookMirrors.AfterOrbChanneled(this, player, orb);
         return true;
     }

@@ -50,6 +50,33 @@ internal static class CardOnPlayMirrors
         registry.Register<SwordBoomerang>(RandomTargetAttackCardMirrors.SwordBoomerangOnPlay);
         registry.Register<Volley>(RandomTargetAttackCardMirrors.VolleyOnPlay);
 
+        registry.Register<BallLightning>(OrbCardMirrors.BallLightningOnPlay);
+        registry.Register<Chaos>(OrbCardMirrors.ChaosOnPlay);
+        registry.Register<Chill>(OrbCardMirrors.ChillOnPlay);
+        registry.Register<ColdSnap>(OrbCardMirrors.ColdSnapOnPlay);
+        registry.Register<ConsumingShadow>(OrbCardMirrors.ConsumingShadowOnPlay);
+        registry.Register<Coolheaded>(OrbCardMirrors.CoolheadedOnPlay);
+        registry.Register<Darkness>(OrbCardMirrors.DarknessOnPlay);
+        registry.Register<Dualcast>(OrbCardMirrors.DualcastOnPlay);
+        registry.Register<Fusion>(OrbCardMirrors.FusionOnPlay);
+        registry.Register<Glacier>(OrbCardMirrors.GlacierOnPlay);
+        registry.Register<Glasswork>(OrbCardMirrors.GlassworkOnPlay);
+        registry.Register<IceLance>(OrbCardMirrors.IceLanceOnPlay);
+        registry.Register<Ignition>(OrbCardMirrors.IgnitionOnPlay);
+        registry.Register<MeteorStrike>(OrbCardMirrors.MeteorStrikeOnPlay);
+        registry.Register<MultiCast>(OrbCardMirrors.MultiCastOnPlay);
+        registry.Register<Null>(OrbCardMirrors.NullOnPlay);
+        registry.Register<Quadcast>(OrbCardMirrors.QuadcastOnPlay);
+        registry.Register<Rainbow>(OrbCardMirrors.RainbowOnPlay);
+        registry.Register<Refract>(OrbCardMirrors.RefractOnPlay);
+        registry.Register<ShadowShield>(OrbCardMirrors.ShadowShieldOnPlay);
+        registry.Register<Shatter>(OrbCardMirrors.ShatterOnPlay);
+        registry.Register<Spinner>(OrbCardMirrors.SpinnerOnPlay);
+        registry.Register<Tempest>(OrbCardMirrors.TempestOnPlay);
+        registry.Register<TeslaCoil>(OrbCardMirrors.TeslaCoilOnPlay);
+        registry.Register<Voltaic>(OrbCardMirrors.VoltaicOnPlay);
+        registry.Register<Zap>(OrbCardMirrors.ZapOnPlay);
+
         return registry;
     }
 }

@@ -78,9 +78,9 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
             sourceModel));
     }
 
-    public EntryHandle OrbChanneled(OrbModel orb)
+    public EntryHandle OrbChanneled(OrbModel orb, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionOrbChanneledEntry(_entries.Count, orb));
+        return Record(new CombatPredictionOrbChanneledEntry(_entries.Count, orb, sourceModel));
     }
 
     private EntryHandle Record(CombatPredictionHistoryEntry entry)
@@ -127,7 +127,8 @@ internal sealed record CombatPredictionCreatureAttackedEntry(
 
 internal sealed record CombatPredictionOrbChanneledEntry(
     int Index,
-    OrbModel Orb) : CombatPredictionHistoryEntry(Index);
+    OrbModel Orb,
+    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
 
 internal sealed record CombatPredictionCardDrawnEntry(
     int Index,
