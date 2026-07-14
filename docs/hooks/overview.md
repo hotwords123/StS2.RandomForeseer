@@ -25,10 +25,6 @@ type must be reviewed and registered explicitly. `MirrorMethodSpec` identifies t
 declaring base method, so the same infrastructure can support public `AbstractModel` hooks and later
 protected or more-specific virtual methods such as `CardModel.OnPlay` and `OrbModel.Evoke`.
 
-`Common/Hooks/HookRegistry.cs` remains a temporary compatibility invocation adapter for the
-out-of-combat card-reward mirrors: it enumerates listeners in caller-provided order, honors
-`ShouldContinue`, and delegates each receiver to the shared Action registry. Combat hook mirrors no
-longer use this adapter or `CombatPredictionHookContext`.
 The shared registry uses its typed context to establish the receiver's prediction source scope before
 dispatch or unsupported risk marking. Registrations prepopulate the same runtime-type lookup dictionary later used
 for lazy `NotOverridden` / `Ignored` / `Unsupported` results. Registries are constructed with all
@@ -80,9 +76,12 @@ The death lifecycle hooks `BeforeDeath`, `ShouldDie` / `ShouldDieLate`, `AfterDe
 listener enumeration, predicate phase refresh, first-preventer short-circuiting, and only-preventer
 dispatch, while model-centric files share potion/relic usage state across the predicate and
 follow-up hook.
-All currently used combat hook mirror families now dispatch through `HookMirrors` and the shared
-model-method registries. The temporary `HookRegistry<TContext>` remains only for out-of-combat
-card-reward mirrors.
+All currently used combat hook mirror families dispatch through `InCombat/Mirrors/HookMirrors.cs`
+and the shared model-method registries. Out-of-combat card-reward hooks independently use
+`OutOfCombat/Mirrors/HookMirrors.cs` with the same infrastructure; Early and Late each rebuild their
+modifier sequence, their bool results are ORed without skipping later modifiers, and true-returning
+models are collected in original invocation order. The former `HookRegistry<TContext>` compatibility
+adapter is no longer needed.
 
 ## Current implementation may differ from vanilla
 
@@ -102,7 +101,7 @@ card-reward mirrors.
 | End-turn healing | `RegenPower` | 再生 | StS2 v0.108.0 resolves Regen in `BeforeSideTurnEndEarly`, before normal `DoomPower` checks. The mirror applies shadow healing before Doom, but does not persist the Regen power decrement because no later hook in this simulation consumes it. |
 | End-turn ignored listeners | `Regret`, `DiamondDiadem` | 悔恨 / 钻石头冠 | Acceptable for current scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. |
 | Card reward state commit | `SilverCrucible`, `SilkenTress` | 白银熔炉 / 华美发束 | Result modifiers are mirrored, but `Hook.AfterModifyingCardRewardOptions` is not. Chained previews can reuse live usage state until prediction owns a transaction-local state commit. |
-| Card reward risk surfacing | Unsupported card reward listeners | - | `CardRewardHookContext` records risk internally but callers do not consume a risk snapshot. |
+| Card reward risk surfacing | Unsupported card reward listeners | - | `CardRewardMirrorContext` records risk internally but callers do not consume a risk snapshot. |
 | Card pile hook dispatch | Generated combat pile additions | - | Simulator generated-card helpers mirror supported `AfterCardGeneratedForCombat` listeners, but still skip `AfterCardEnteredCombat` and `AfterCardChangedPiles` by current scope. See the dedicated card-pile hook docs. |
 
 ## Related docs

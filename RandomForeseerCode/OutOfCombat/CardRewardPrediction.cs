@@ -10,7 +10,7 @@ using MegaCrit.Sts2.Core.Odds;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Hooks;
+using RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
@@ -88,19 +88,13 @@ internal static class CardRewardPrediction
         Action? afterGenerated = null,
         IEnumerable<AbstractModel>? extraResultModifiers = null)
     {
-        var hookContext = new CardRewardHookContext
-        {
-            Player = context.Player,
-            Results = results,
-            Options = options,
-            RewardRng = context.Rng.Rewards,
-            NicheRng = context.SharedRng.Niche,
-            RarityOdds = context.CardRarityOdds,
-            ExtraModifiers = extraResultModifiers?.ToList() ?? []
-        };
-
-        CardRewardHook.RunEarly(hookContext);
-        CardRewardHook.RunLate(hookContext);
+        _ = HookMirrors.TryModifyCardRewardOptions(
+            context,
+            results,
+            options,
+            out _,
+            extraResultModifiers);
+        // TODO: Run Hook.AfterModifyingCardRewardOptions
         ApplyKnownAfterGeneratedModifiers(afterGenerated, results);
     }
 
@@ -184,7 +178,8 @@ internal static class CardRewardPrediction
             if (selectedRarity == CardRarity.None)
             {
                 throw new InvalidOperationException(
-                    $"Could not predict a valid card reward rarity. Odds: {options.RarityOdds}, card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
+                    $"Could not predict a valid card reward rarity. Odds: {options.RarityOdds}, " +
+                    $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
             }
 
             candidates = filteredCards.Where(card => card.Rarity == selectedRarity);
@@ -194,7 +189,8 @@ internal static class CardRewardPrediction
         if (canonical == null)
         {
             throw new InvalidOperationException(
-                $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
+                $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, " +
+                $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
         }
 
         return PredictionUtils.CreateCard(canonical, player);

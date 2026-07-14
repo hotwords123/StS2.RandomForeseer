@@ -4,21 +4,22 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Odds;
-using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Hooks;
+using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Hooks;
+namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors.Hooks.CardReward;
+
+using Registry = ModelMethodMirrorRegistry<AbstractModel, TryModifyCardRewardOptionsMirrorContext, bool>;
 
 // Mirrors the card reward result-modifier half of the original Hook.TryModifyCardRewardOptions chain:
 // first AbstractModel.TryModifyCardRewardOptions, then AbstractModel.TryModifyCardRewardOptionsLate.
 // Card reward creation-option hooks and upgrade-odds hooks are pure enough for prediction callers to
 // keep using the original Hook.ModifyCardRewardCreationOptions and Hook.ModifyCardRewardUpgradeOdds.
-internal static class CardRewardHook
+internal static class TryModifyCardRewardOptionsMirrors
 {
-    private static readonly HookSpec TryModifyCardRewardOptions = new(
+    private static readonly MirrorMethodSpec TryModifyCardRewardOptions = MirrorMethodSpec.Hook(
         nameof(AbstractModel.TryModifyCardRewardOptions),
         [
             typeof(Player),
@@ -26,7 +27,7 @@ internal static class CardRewardHook
             typeof(CardCreationOptions)
         ]);
 
-    private static readonly HookSpec TryModifyCardRewardOptionsLate = new(
+    private static readonly MirrorMethodSpec TryModifyCardRewardOptionsLate = MirrorMethodSpec.Hook(
         nameof(AbstractModel.TryModifyCardRewardOptionsLate),
         [
             typeof(Player),
@@ -34,32 +35,31 @@ internal static class CardRewardHook
             typeof(CardCreationOptions)
         ]);
 
-    private static readonly HookRegistry<CardRewardHookContext> Early = CreateEarly();
+    private static readonly Registry Registry = CreateRegistry();
+    private static readonly Registry LateRegistry = CreateLateRegistry();
 
-    private static readonly HookRegistry<CardRewardHookContext> Late = CreateLate();
-
-    public static void RunEarly(CardRewardHookContext context)
+    public static bool Invoke(AbstractModel listener, TryModifyCardRewardOptionsMirrorContext context)
     {
-        Early.Run(context.IterateModifiers(), context);
+        return Registry.Invoke(listener, context, false).Value;
     }
 
-    public static void RunLate(CardRewardHookContext context)
+    public static bool InvokeLate(AbstractModel listener, TryModifyCardRewardOptionsMirrorContext context)
     {
-        Late.Run(context.IterateModifiers(), context);
+        return LateRegistry.Invoke(listener, context, false).Value;
     }
 
-    private static HookRegistry<CardRewardHookContext> CreateEarly()
+    private static Registry CreateRegistry()
     {
-        var registry = new HookRegistry<CardRewardHookContext>(TryModifyCardRewardOptions);
+        var registry = new Registry(TryModifyCardRewardOptions);
 
         registry.Register<LastingCandy>(HandleLastingCandy);
 
         return registry;
     }
 
-    private static HookRegistry<CardRewardHookContext> CreateLate()
+    private static Registry CreateLateRegistry()
     {
-        var registry = new HookRegistry<CardRewardHookContext>(TryModifyCardRewardOptionsLate);
+        var registry = new Registry(TryModifyCardRewardOptionsLate);
 
         registry.Register<FrozenEgg>(HandleFrozenEgg);
         registry.Register<MoltenEgg>(HandleMoltenEgg);
@@ -74,18 +74,17 @@ internal static class CardRewardHook
         return registry;
     }
 
-    private static void HandleLastingCandy(LastingCandy relic, CardRewardHookContext context)
+    private static bool HandleLastingCandy(LastingCandy relic, TryModifyCardRewardOptionsMirrorContext context)
     {
         // StS2 v0.108.0 changed Lasting Candy from counting ended combats to counting combat
         // card rewards seen, and it now requires the IsFromCombat card-creation flag.
         if (relic.Owner != context.Player ||
             context.Options.Source != CardCreationSource.Encounter ||
-            relic.CombatRewardsSeen <= 0 ||
-            relic.CombatRewardsSeen % 2 != 1 ||
+            !relic.IsInTriggeringCombat ||
             !context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward) ||
             !context.Options.Flags.HasFlag(CardCreationFlags.IsFromCombat))
         {
-            return;
+            return false;
         }
 
 
@@ -102,7 +101,7 @@ internal static class CardRewardHook
 
             if (!possibleCards.Any(IsLastingCandyCandidate))
             {
-                return;
+                return false;
             }
         }
 
@@ -111,110 +110,131 @@ internal static class CardRewardHook
                 context.Options.CardPools,
                 CardCreationSource.Other,
                 context.Options.RarityOdds,
-                card => (parentFilter == null || parentFilter(card)) && IsLastingCandyCandidate(card))
+                card => (parentFilter is null || parentFilter(card)) && IsLastingCandyCandidate(card))
             .WithFlags(CardCreationFlags.NoModifyHooks | CardCreationFlags.NoCardPoolModifications);
         var card = CardRewardPrediction.CreateBaseRewards(
             context.Player,
             1,
             candyOptions,
-            context.RewardRng,
+            context.Rng.Rewards,
             context.RarityOdds).FirstOrDefault()?.Card;
-        if (card == null)
+        if (card is null)
         {
-            return;
+            return false;
         }
 
         var result = new CardCreationResult(card);
         result.ModifyCard(card, relic);
         context.Results.Add(result);
+        return true;
     }
 
-    private static void HandleFrozenEgg(FrozenEgg relic, CardRewardHookContext context)
+    private static bool HandleFrozenEgg(FrozenEgg relic, TryModifyCardRewardOptionsMirrorContext context)
     {
-        UpgradeCardsByType(relic, context, CardType.Power);
+        return HandleEggRelic(relic, context, CardType.Power);
     }
 
-    private static void HandleMoltenEgg(MoltenEgg relic, CardRewardHookContext context)
+    private static bool HandleMoltenEgg(MoltenEgg relic, TryModifyCardRewardOptionsMirrorContext context)
     {
-        UpgradeCardsByType(relic, context, CardType.Attack);
+        return HandleEggRelic(relic, context, CardType.Attack);
     }
 
-    private static void HandleToxicEgg(ToxicEgg relic, CardRewardHookContext context)
+    private static bool HandleToxicEgg(ToxicEgg relic, TryModifyCardRewardOptionsMirrorContext context)
     {
-        UpgradeCardsByType(relic, context, CardType.Skill);
+        return HandleEggRelic(relic, context, CardType.Skill);
     }
 
-    private static void HandleSilverCrucible(SilverCrucible relic, CardRewardHookContext context)
+    private static bool HandleSilverCrucible(
+        SilverCrucible relic,
+        TryModifyCardRewardOptionsMirrorContext context)
     {
-        if (relic.Owner != context.Player ||
-            relic.TimesUsed >= relic.DynamicVars.Cards.IntValue ||
-            !context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward))
+        if (relic.Owner == context.Player &&
+            relic.TimesUsed < relic.DynamicVars.Cards.IntValue &&
+            context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward))
         {
-            return;
+            UpgradeAllCards(relic, context.Results);
+            return true;
         }
 
-        UpgradeAllValidCards(relic, context.Results);
+        return false;
     }
 
-    private static void HandleLavaLamp(LavaLamp relic, CardRewardHookContext context)
+    private static bool HandleLavaLamp(LavaLamp relic, TryModifyCardRewardOptionsMirrorContext context)
     {
-        if (relic.Owner != context.Player ||
-            context.Player.RunState.CurrentRoom is not CombatRoom ||
-            relic.TookDamageThisCombat)
+        if (relic.Owner == context.Player &&
+            context.Player.RunState.CurrentRoom is CombatRoom &&
+            !relic.TookDamageThisCombat)
         {
-            return;
+            UpgradeAllCards(relic, context.Results);
+            return true;
         }
 
-        UpgradeAllValidCards(relic, context.Results);
+        return false;
     }
 
-    private static void HandleGlitter(Glitter relic, CardRewardHookContext context)
+    private static bool HandleGlitter(Glitter relic, TryModifyCardRewardOptionsMirrorContext context)
     {
-        EnchantAllValid<Glam>(relic, context, 1m);
-    }
-
-    private static void HandleFresnelLens(FresnelLens relic, CardRewardHookContext context)
-    {
-        EnchantAllValid<Nimble>(relic, context, relic.DynamicVars["NimbleAmount"].BaseValue);
-    }
-
-    private static void HandleSilkenTress(SilkenTress relic, CardRewardHookContext context)
-    {
-        if (relic.Owner != context.Player ||
-            relic.IsUsedUp ||
-            !context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward))
+        if (relic.Owner == context.Player)
         {
-            return;
+            EnchantAllCards<Glam>(relic, context, 1m);
+            return true;
         }
 
-        EnchantAllValid<Glam>(relic, context, 1m);
+        return false;
     }
 
-    private static void HandleWingCharm(WingCharm relic, CardRewardHookContext context)
+    private static bool HandleFresnelLens(FresnelLens relic, TryModifyCardRewardOptionsMirrorContext context)
+    {
+        if (relic.Owner == context.Player)
+        {
+            EnchantAllCards<Nimble>(relic, context, relic.DynamicVars[FresnelLens._nimbleAmountKey].BaseValue);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool HandleSilkenTress(SilkenTress relic, TryModifyCardRewardOptionsMirrorContext context)
+    {
+        if (relic.Owner == context.Player &&
+            !relic.IsUsedUp &&
+            context.Options.Flags.HasFlag(CardCreationFlags.IsCardReward))
+        {
+            EnchantAllCards<Glam>(relic, context, 1m);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool HandleWingCharm(WingCharm relic, TryModifyCardRewardOptionsMirrorContext context)
     {
         if (relic.Owner != context.Player)
         {
-            return;
+            return false;
         }
 
         var swift = ModelDb.Enchantment<Swift>();
         var validResults = context.Results.Where(result => swift.CanEnchant(result.Card)).ToList();
-        var selected = context.NicheRng.NextItem(validResults);
-        if (selected == null)
+        var selected = context.SharedRng.Niche.NextItem(validResults);
+        if (selected is null)
         {
-            return;
+            return false;
         }
 
-        selected.ModifyCard(
-            EnchantPreview<Swift>(selected.Card, relic.DynamicVars["SwiftAmount"].BaseValue),
-            relic);
+        var modified = EnchantPreview<Swift>(selected.Card, relic.DynamicVars[WingCharm._swiftAmountKey].BaseValue);
+        selected.ModifyCard(modified, relic);
+        return true;
     }
 
-    private static void UpgradeCardsByType(RelicModel relic, CardRewardHookContext context, CardType type)
+    private static bool HandleEggRelic(
+        RelicModel relic,
+        TryModifyCardRewardOptionsMirrorContext context,
+        CardType type)
     {
         if (relic.Owner != context.Player || context.Options.Flags.HasFlag(CardCreationFlags.NoHookUpgrades))
         {
-            return;
+            return false;
         }
 
         foreach (var result in context.Results)
@@ -224,9 +244,11 @@ internal static class CardRewardHook
                 result.ModifyCard(PredictionUtils.ToUpgradedCard(result.Card), relic);
             }
         }
+
+        return true;
     }
 
-    private static void UpgradeAllValidCards(RelicModel relic, List<CardCreationResult> results)
+    private static void UpgradeAllCards(RelicModel relic, List<CardCreationResult> results)
     {
         foreach (var result in results)
         {
@@ -237,14 +259,12 @@ internal static class CardRewardHook
         }
     }
 
-    private static void EnchantAllValid<T>(RelicModel relic, CardRewardHookContext context, decimal amount)
+    private static void EnchantAllCards<T>(
+        RelicModel relic,
+        TryModifyCardRewardOptionsMirrorContext context,
+        decimal amount)
         where T : EnchantmentModel
     {
-        if (relic.Owner != context.Player)
-        {
-            return;
-        }
-
         var enchantment = ModelDb.Enchantment<T>();
         foreach (var result in context.Results)
         {
@@ -260,7 +280,7 @@ internal static class CardRewardHook
     {
         var preview = (CardModel)card.MutableClone();
         var enchantment = ModelDb.Enchantment<T>().ToMutable();
-        if (preview.Enchantment == null)
+        if (preview.Enchantment is null)
         {
             preview.EnchantInternal(enchantment, amount);
             enchantment.ModifyCard();
@@ -275,29 +295,24 @@ internal static class CardRewardHook
     }
 }
 
-internal sealed class CardRewardHookContext : IPredictionHookContext
+internal sealed class TryModifyCardRewardOptionsMirrorContext : IPredictionMirrorContext<AbstractModel>
 {
     private readonly PredictionSourceStack _sourceStack = new();
     private readonly PredictionRiskTracker _riskTracker = new();
 
-    public required Player Player { get; init; }
+    public required RunPredictionContext RunContext { get; init; }
 
     public required List<CardCreationResult> Results { get; init; }
 
     public required CardCreationOptions Options { get; init; }
 
-    public required Rng RewardRng { get; init; }
+    public Player Player => RunContext.Player;
 
-    public required Rng NicheRng { get; init; }
+    public RunPredictionPlayerRngSet Rng => RunContext.Rng;
 
-    public required CardRarityOdds RarityOdds { get; init; }
+    public RunPredictionSharedRngSet SharedRng => RunContext.SharedRng;
 
-    public IReadOnlyList<AbstractModel> ExtraModifiers { get; init; } = [];
-
-    public IEnumerable<AbstractModel> IterateModifiers()
-    {
-        return Player.RunState.IterateHookListeners(null).Concat(ExtraModifiers);
-    }
+    public CardRarityOdds RarityOdds => RunContext.CardRarityOdds;
 
     public IDisposable PushSource(AbstractModel model)
     {
