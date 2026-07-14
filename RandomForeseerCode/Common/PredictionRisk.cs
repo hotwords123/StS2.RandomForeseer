@@ -7,7 +7,13 @@ internal sealed record PredictionRisk(bool HasRisk, IReadOnlyList<AbstractModel>
     public static PredictionRisk None { get; } = new(false, []);
 }
 
-internal readonly record struct PredictionRiskCheckpoint(long Version);
+internal readonly record struct PredictionRiskCheckpoint(long Version) : IComparable<PredictionRiskCheckpoint>
+{
+    public int CompareTo(PredictionRiskCheckpoint other)
+    {
+        return Version.CompareTo(other.Version);
+    }
+}
 
 internal sealed class PredictionRiskTracker
 {

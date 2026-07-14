@@ -6,8 +6,9 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 /// <summary>
 /// Stores prediction-only combat events in simulation order without touching live combat history.
-/// Parallel risk checkpoints let consumers evaluate risk at their last relevant entry without event producers
-/// needing to know which prediction consumes it.
+/// Parallel risk checkpoints let consumers evaluate risk through their relevant entries without entry producers
+/// needing to know which prediction consumes them. A returned handle can move an entry's checkpoint to the point
+/// where deferred processing finishes; otherwise the entry is considered complete when recorded.
 /// </summary>
 internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
 {
@@ -22,48 +23,54 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         return _entries.OfType<TEntry>();
     }
 
-    public PredictionRisk GetRiskAt(CombatPredictionHistoryEntry? entry)
+    public PredictionRisk GetRisk(IReadOnlyList<CombatPredictionHistoryEntry> entries)
     {
-        if (entry is null)
+        if (entries.Count == 0)
         {
             return PredictionRisk.None;
         }
 
-        var index = _entries.FindIndex(candidate => ReferenceEquals(candidate, entry));
-        if (index < 0)
+        var latestCheckpoint = entries.Max(entry =>
         {
-            throw new InvalidOperationException("The history entry does not belong to this history.");
-        }
+            var index = entry.Index;
+            if (index < 0 || index >= _entries.Count || !ReferenceEquals(_entries[index], entry))
+            {
+                throw new InvalidOperationException("The history entry does not belong to this history.");
+            }
 
-        return riskTracker.Snapshot(_riskCheckpoints[index]);
+            return _riskCheckpoints[index];
+        });
+
+        return riskTracker.Snapshot(latestCheckpoint);
     }
 
-    public void CardAfflicted(PredictedCard card, AfflictionModel affliction)
+    public EntryHandle CardAfflicted(PredictedCard card, AfflictionModel affliction)
     {
-        Record(new CombatPredictionCardAfflictedEntry(card, affliction));
+        return Record(new CombatPredictionCardAfflictedEntry(_entries.Count, card, affliction));
     }
 
-    public void CardDrawn(PredictedCard card, bool fromHandDraw)
+    public EntryHandle CardDrawn(PredictedCard card, bool fromHandDraw)
     {
-        Record(new CombatPredictionCardDrawnEntry(card, fromHandDraw));
+        return Record(new CombatPredictionCardDrawnEntry(_entries.Count, card, fromHandDraw));
     }
 
-    public void CreatureAttacked(
+    public EntryHandle CreatureAttacked(
         Creature attacker,
         AbstractModel? source,
         IReadOnlyList<DamageResult> hitResults)
     {
-        Record(new CombatPredictionCreatureAttackedEntry(attacker, source, hitResults));
+        return Record(new CombatPredictionCreatureAttackedEntry(_entries.Count, attacker, source, hitResults));
     }
 
-    public void DamageReceived(
+    public EntryHandle DamageReceived(
         Creature receiver,
         Creature? dealer,
         DamageResult result,
         PredictedCard? cardSource,
         AbstractModel? sourceModel)
     {
-        Record(new CombatPredictionDamageReceivedEntry(
+        return Record(new CombatPredictionDamageReceivedEntry(
+            _entries.Count,
             receiver,
             result,
             dealer,
@@ -71,38 +78,63 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
             sourceModel));
     }
 
-    public void OrbChanneled(OrbModel orb)
+    public EntryHandle OrbChanneled(OrbModel orb)
     {
-        Record(new CombatPredictionOrbChanneledEntry(orb));
+        return Record(new CombatPredictionOrbChanneledEntry(_entries.Count, orb));
     }
 
-    private void Record(CombatPredictionHistoryEntry entry)
+    private EntryHandle Record(CombatPredictionHistoryEntry entry)
     {
+        if (entry.Index != _entries.Count)
+        {
+            throw new InvalidOperationException("History entry index does not match its list position.");
+        }
+
         _entries.Add(entry);
         _riskCheckpoints.Add(riskTracker.Checkpoint);
+        return new EntryHandle(this, entry.Index);
+    }
+
+    private void Complete(int index)
+    {
+        _riskCheckpoints[index] = riskTracker.Checkpoint;
+    }
+
+    internal readonly struct EntryHandle(CombatPredictionHistory history, int index)
+    {
+        public void Complete()
+        {
+            history.Complete(index);
+        }
     }
 }
 
-internal abstract record CombatPredictionHistoryEntry;
+internal abstract record CombatPredictionHistoryEntry(int Index);
 
 internal sealed record CombatPredictionDamageReceivedEntry(
+    int Index,
     Creature Receiver,
     DamageResult Result,
     Creature? Dealer,
     PredictedCard? CardSource,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry;
+    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
 
 internal sealed record CombatPredictionCreatureAttackedEntry(
+    int Index,
     Creature Attacker,
     AbstractModel? SourceModel,
-    IReadOnlyList<DamageResult> HitResults) : CombatPredictionHistoryEntry;
+    IReadOnlyList<DamageResult> HitResults) : CombatPredictionHistoryEntry(Index);
 
-internal sealed record CombatPredictionOrbChanneledEntry(OrbModel Orb) : CombatPredictionHistoryEntry;
+internal sealed record CombatPredictionOrbChanneledEntry(
+    int Index,
+    OrbModel Orb) : CombatPredictionHistoryEntry(Index);
 
 internal sealed record CombatPredictionCardDrawnEntry(
+    int Index,
     PredictedCard Card,
-    bool FromHandDraw) : CombatPredictionHistoryEntry;
+    bool FromHandDraw) : CombatPredictionHistoryEntry(Index);
 
 internal sealed record CombatPredictionCardAfflictedEntry(
+    int Index,
     PredictedCard Card,
-    AfflictionModel Affliction) : CombatPredictionHistoryEntry;
+    AfflictionModel Affliction) : CombatPredictionHistoryEntry(Index);

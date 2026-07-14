@@ -33,7 +33,7 @@ internal sealed record DamagePredictionResult(
                     .ToList()))
             .ToList();
 
-        return new DamagePredictionResult(targets, simulator.History.GetRiskAt(history.LastOrDefault()));
+        return new DamagePredictionResult(targets, simulator.History.GetRisk(history));
     }
 }
 

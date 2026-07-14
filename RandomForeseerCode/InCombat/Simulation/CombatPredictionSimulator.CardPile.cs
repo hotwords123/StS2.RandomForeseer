@@ -51,9 +51,11 @@ internal sealed partial class CombatPredictionSimulator
 
         var predictedCard = state.DrawPile.Cards[0];
         AddToPile(predictedCard, state.Hand);
-        History.CardDrawn(predictedCard, fromHandDraw);
+        var historyHandle = History.CardDrawn(predictedCard, fromHandDraw);
 
         HookMirrors.AfterCardDrawn(this, predictedCard, fromHandDraw);
+        // AfterCardDrawn can modify the same preview card, so its history entry is complete only after these hooks.
+        historyHandle.Complete();
         return true;
     }
 

@@ -42,7 +42,7 @@ internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, 
             .OfType<CombatPredictionCardDrawnEntry>()
             .ToList();
         var cards = history.Select(entry => entry.Card.Preview).ToArray();
-        return new DrawPilePredictionResult(cards, simulator.History.GetRiskAt(history.LastOrDefault()));
+        return new DrawPilePredictionResult(cards, simulator.History.GetRisk(history));
     }
 
     public IReadOnlyList<IHoverTip> ToHoverTips()
