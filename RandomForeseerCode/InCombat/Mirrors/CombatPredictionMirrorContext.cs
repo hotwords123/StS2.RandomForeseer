@@ -7,7 +7,8 @@ using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
-internal abstract class CombatPredictionMirrorContext : IPredictionMirrorContext<AbstractModel>
+internal abstract class CombatPredictionMirrorContext<TBase> : IPredictionMirrorContext<TBase>
+    where TBase : AbstractModel
 {
     public required CombatPredictionSimulator Simulator { get; init; }
 
@@ -21,7 +22,7 @@ internal abstract class CombatPredictionMirrorContext : IPredictionMirrorContext
 
     public IRunState RunState => CombatState.RunState;
 
-    public IDisposable PushSource(AbstractModel model)
+    public virtual IDisposable PushSource(TBase model)
     {
         return Simulator.PushSource(model);
     }
@@ -31,3 +32,5 @@ internal abstract class CombatPredictionMirrorContext : IPredictionMirrorContext
         Simulator.MarkCurrentSourceRisky();
     }
 }
+
+internal abstract class CombatPredictionMirrorContext : CombatPredictionMirrorContext<AbstractModel>;

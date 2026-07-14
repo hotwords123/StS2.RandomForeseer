@@ -96,7 +96,8 @@ between `BeforeAttack` and the per-hit target loop.
 
 1. Add shadow power amount/removal support for `VigorPower`, `GigantificationPower`, and `SuckPower`.
 2. Teach history-dependent value hooks and card logic to read simulator shadow attack/card-play history where prediction chains need it.
-3. Re-review any new vanilla or modded `_beforeDamage` / `_afterAttackerAnim` callbacks if card-play prediction starts building real attack commands for those cards; current reviewed vanilla callbacks are cosmetic-only.
+3. Re-review any new vanilla or modded `_beforeDamage` / `_afterAttackerAnim` callbacks used by
+   mirrored card-play attack commands; current reviewed vanilla callbacks are cosmetic-only.
 4. Add separate `AttackContext` mirrors for `EchoingSlash` and `Omnislice` if card-play prediction starts simulating their full attack bodies.
 
 ## Mock model list

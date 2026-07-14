@@ -31,7 +31,7 @@ internal sealed partial class CombatPredictionSimulator
 
         // TODO: Dispatch Hook.BeforeCardAutoPlayed
         var resources = SpendResources(card, isAutoPlay: true, skipXCapture);
-        OnPlayWrapper(card, target, isAutoPlay: true, resources, onPlay ?? ((_, _) => MarkCurrentSourceRisky()));
+        OnPlayWrapper(card, target, isAutoPlay: true, resources, onPlay);
     }
 
     // Mirrors CardPileCmd.AutoPlayFromDrawPile through selecting cards and moving them to

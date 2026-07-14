@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.CardOnPlay;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -111,7 +112,7 @@ internal sealed partial class CombatPredictionSimulator
 
     // Mirrors PlayCardAction.ExecuteAction. This is the main entry point for simulating a card play.
     // Note: Resources, ShouldPlay hooks and IsPlayable checks are not simulated here.
-    public void ManualPlay(PredictedCard card, Creature? target, OnPlayDelegate onPlay)
+    public void ManualPlay(PredictedCard card, Creature? target, OnPlayDelegate? onPlay = null)
     {
         if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
             !card.Preview.IsValidTarget(target))
@@ -189,7 +190,7 @@ internal sealed partial class CombatPredictionSimulator
         Creature? target,
         bool isAutoPlay,
         ResourceInfo resources,
-        OnPlayDelegate onPlay)
+        OnPlayDelegate? onPlay)
     {
         using var _ = PushSource(card.Original);
 
@@ -249,7 +250,14 @@ internal sealed partial class CombatPredictionSimulator
             // TODO: Dispatch BeforeCardPlayed hooks
             // TODO: Record CardPlayStarted history
 
-            onPlay(card, cardPlay);
+            if (onPlay is null)
+            {
+                CardOnPlayMirrors.Invoke(this, card, cardPlay);
+            }
+            else
+            {
+                onPlay(card, cardPlay);
+            }
 
             if (ownerCreature.IsDead)
             {
