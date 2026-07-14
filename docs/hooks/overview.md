@@ -6,82 +6,26 @@
 - Mirror only side effects that can change prediction output: draw order, hand/discard/exhaust piles, preview card cost/dynamic vars, block, damage, death/liveness, orb counts, current-turn energy, and RNG consumption.
 - Combat predictions are scoped to outcomes that can still affect the current player turn. Do not mark risk only because vanilla would mutate state for an enemy turn, a later player turn, room-end rewards, or future reward screens, unless that state can feed back into a prediction surfaced before the current player turn finishes.
 - Do not simulate VFX, SFX, waits, achievement unlocks, or effects that cannot occur during the current player-turn prediction surface.
-- Track supported current-turn energy and star gain/loss in `SimPlayerCombatState`. Simulated manual card plays spend shadow energy/stars; autoplay computes `ResourceInfo` values without spending resources, matching vanilla autoplay. Turn-start energy/star reset remains outside full card-play simulation.
 - Treat Apply Power, Remove Power, summon, revive, monster move/state changes, combat removal, player death, and max HP mutation as unsupported until the simulator owns those state domains.
 - Use `PredictionStateStore` for model-local counters/flags instead of mutating live model fields.
-- Use exact model-type registrations. A derived model with the same base hook should be reviewed separately.
 - If a listener has any unmodeled prediction-relevant side effect, mark the current source risky instead of silently ignoring it.
 - Keep Mock models out of implementation/ignore registries; list them only in docs.
 
 ## Mirror registry architecture
 
-`Common/Mirrors/ModelMethodMirrorRegistry.cs` provides the shared single-receiver dispatch used by
-prediction mirrors. Both Action and result-producing variants perform base-method override detection,
-exact model-type registration, lookup-result caching, and unsupported risk handling. Only the Action
-variant supports explicit ignored registrations and the non-gameplay-mod ignore policy; result methods
-require a handler for every supported override because an ignored implementation cannot supply return
-semantics. Generic fallback handlers are intentionally unsupported: every handled or ignored runtime
-type must be reviewed and registered explicitly. `MirrorMethodSpec` identifies the actual
-declaring base method, so the same infrastructure can support public `AbstractModel` hooks and later
-protected or more-specific virtual methods such as `CardModel.OnPlay` and `OrbModel.Evoke`.
-
-The shared registry uses its typed context to establish the receiver's prediction source scope before
-dispatch or unsupported risk marking. Registrations prepopulate the same runtime-type lookup dictionary later used
-for lazy `NotOverridden` / `Ignored` / `Unsupported` results. Registries are constructed with all
-registrations before first use, as required by the registry contract, and registered types are
-validated as real overrides. Unsupported warnings are emitted only
-when a lazy entry is first populated, while an `Unsupported` invocation still marks prediction risk
-every time.
-Listener discovery, hook phase ordering, and only-modifier dispatch remain outside the model-method
-registry. Exact derived types must still be reviewed and registered independently.
-
-Side-turn-end hooks use this split directly: `InCombat/Mirrors/HookMirrors.cs` exposes the
-simulation-facing hook API, constructs internal contexts, and owns listener enumeration and phase
-order. VeryEarly, Early, and Normal each rebuild the listener sequence so earlier phase changes can
-affect later phases, matching vanilla. The hook-name files
-`InCombat/Mirrors/Hooks/TurnEnd/AfterAutoPostPlayPhaseEnteredMirrors.cs` and
-`InCombat/Mirrors/Hooks/TurnEnd/BeforeSideTurnEndMirrors.cs` own their method registries, contexts,
-and handlers; cross-phase Orichalcum state is colocated with its two handlers in
-`InCombat/Mirrors/Hooks/TurnEnd/OrichalcumMirrors.cs`.
-
-Orb behavior uses the same registry infrastructure without hook listener enumeration.
-`InCombat/Mirrors/Orbs/OrbMirrors.cs` is the simulation-facing facade and registration index for
-separate `Passive`, `Evoke`, and `BeforeTurnEndOrbTrigger` registries. The five vanilla orb
-implementations are grouped into orb-centric files so behavior shared across methods remains local.
-The simulator still owns queue mutation, passive trigger counts, and `AfterOrbEvoked` dispatch;
-the registries own only single-orb virtual-method dispatch and unsupported risk handling.
-Orb-related `AbstractModel` hooks have also moved behind `HookMirrors`: it owns listener enumeration,
-while `InCombat/Mirrors/Hooks/Orb/ModifyOrbPassiveTriggerCountMirrors.cs`,
-`AfterOrbChanneledMirrors.cs`, and `AfterOrbEvokedMirrors.cs` each own one hook's registry, context,
-handlers, and hook-local state.
-The simple single-stage `AfterCardDiscarded`, `AfterCardGeneratedForCombat`,
-`AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterModifyingHpLostAfterOsty` hooks also use
-`HookMirrors`; their hook-name files under `InCombat/Mirrors/Hooks/Card/` and
-`InCombat/Mirrors/Hooks/Damage/` own their registries, contexts, handlers, and hook-local state.
-The damage-received lifecycle `BeforeDamageReceived`, `AfterDamageReceived`, and
-`AfterDamageReceivedLate` follows the same organization under `InCombat/Mirrors/Hooks/Damage/`;
-`HookMirrors` refreshes listeners between the normal and late post-damage phases.
-The block lifecycle `BeforeBlockGained` and `AfterBlockGained` is organized under
-`InCombat/Mirrors/Hooks/Block/`; `HookMirrors` owns separate listener enumeration for both stages.
-The card-pile lifecycle hooks `ShouldDraw`, `AfterCardDrawnEarly` / `AfterCardDrawn`,
-`AfterCardExhausted`, `ModifyShuffleOrder`, and `AfterShuffle` now follow the same organization under
-`InCombat/Mirrors/Hooks/Card/`. ShouldDraw short-circuiting and the listener refresh between draw
-phases remain responsibilities of `HookMirrors`.
-The attack lifecycle hooks `BeforeAttack`, `ModifyAttackHitCount`, and `AfterAttack` are organized
-under `InCombat/Mirrors/Hooks/Attack/`. `HookMirrors` owns the fresh listener enumeration for each
-stage and chains `ModifyAttackHitCount` results, while model-centric files colocate the cross-stage
-prediction state used by Vigor and Gigantification.
-The death lifecycle hooks `BeforeDeath`, `ShouldDie` / `ShouldDieLate`, `AfterDeath`, and
-`AfterPreventingDeath` are organized under `InCombat/Mirrors/Hooks/Death/`. `HookMirrors` owns
-listener enumeration, predicate phase refresh, first-preventer short-circuiting, and only-preventer
-dispatch, while model-centric files share potion/relic usage state across the predicate and
-follow-up hook.
-All currently used combat hook mirror families dispatch through `InCombat/Mirrors/HookMirrors.cs`
-and the shared model-method registries. Out-of-combat card-reward hooks independently use
-`OutOfCombat/Mirrors/HookMirrors.cs` with the same infrastructure; Early and Late each rebuild their
-modifier sequence, their bool results are ORed without skipping later modifiers, and true-returning
-models are collected in original invocation order. The former `HookRegistry<TContext>` compatibility
-adapter is no longer needed.
+- `Common/Mirrors/ModelMethodMirrorRegistry.cs` handles single-model virtual-method dispatch: exact
+  model-type registration, override detection, lookup caching, source scoping, and unsupported-risk
+  marking. Action registries may explicitly ignore reviewed overrides; result registries require a
+  handler that supplies the return value.
+- `HookMirrors` facades own hook-level control flow, including context construction, listener
+  enumeration, phase refresh, short-circuiting, result chaining, and only-modifier dispatch. The
+  registry only dispatches one listener at a time.
+- Hook mirrors are grouped first by domain and then by hook name under `Mirrors/Hooks/`. Each
+  hook-name file owns its method specification, registry, context, handlers, and hook-local state;
+  state or behavior shared by multiple hooks may use a separate model-centric file.
+- Combat and out-of-combat code have independent `HookMirrors` facades but share the registry
+  infrastructure. Mirrored model behavior that is not a hook, such as orb virtual methods, lives in
+  its model domain under `Mirrors/` and follows the same facade/registry split.
 
 ## Current implementation may differ from vanilla
 
@@ -101,7 +45,7 @@ adapter is no longer needed.
 | End-turn healing | `RegenPower` | 再生 | StS2 v0.108.0 resolves Regen in `BeforeSideTurnEndEarly`, before normal `DoomPower` checks. The mirror applies shadow healing before Doom, but does not persist the Regen power decrement because no later hook in this simulation consumes it. |
 | End-turn ignored listeners | `Regret`, `DiamondDiadem` | 悔恨 / 钻石头冠 | Acceptable for current scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. |
 | Card reward state commit | `SilverCrucible`, `SilkenTress` | 白银熔炉 / 华美发束 | Result modifiers are mirrored, but `Hook.AfterModifyingCardRewardOptions` is not. Chained previews can reuse live usage state until prediction owns a transaction-local state commit. |
-| Card reward risk surfacing | Unsupported card reward listeners | - | `CardRewardMirrorContext` records risk internally but callers do not consume a risk snapshot. |
+| Card reward risk surfacing | Unsupported card reward listeners | - | `TryModifyCardRewardOptionsMirrorContext` records risk internally but callers do not consume a risk snapshot. |
 | Card pile hook dispatch | Generated combat pile additions | - | Simulator generated-card helpers mirror supported `AfterCardGeneratedForCombat` listeners, but still skip `AfterCardEnteredCombat` and `AfterCardChangedPiles` by current scope. See the dedicated card-pile hook docs. |
 
 ## Related docs
