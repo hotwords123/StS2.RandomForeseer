@@ -73,7 +73,7 @@ internal sealed partial class CombatPredictionSimulator
             attackCommand.AddResultsInternal(results);
         }
 
-        RecordAttackHistory(
+        History.CreatureAttacked(
             attacker,
             attackCommand.ModelSource,
             attackCommand.Results.SelectMany(results => results).ToArray());

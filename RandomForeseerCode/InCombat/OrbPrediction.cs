@@ -360,7 +360,8 @@ internal sealed class OrbPrediction(
             .OfType<OrbChanneledEntry>()
             .Count(entry => entry.Actor.Player == source.Preview.Owner && entry.Orb is LightningOrb);
 
-        count += simulator.OrbChanneledHistory
+        count += simulator.History
+            .OfType<CombatPredictionOrbChanneledEntry>()
             .Count(entry => entry.Orb.Owner == source.Preview.Owner && entry.Orb is LightningOrb);
 
         simulator.OrbChannel<LightningOrb>(source.Preview.Owner, count);

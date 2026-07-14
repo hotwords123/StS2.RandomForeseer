@@ -260,7 +260,8 @@ internal static class AfterCardDrawnMirrors
                 entry.HappenedThisTurn(simulator.State.CombatState) &&
                 entry.Actor == player.Creature &&
                 entry.Card.Type == CardType.Status);
-        count += simulator.CardDrawnHistory
+        count += simulator.History
+            .OfType<CombatPredictionCardDrawnEntry>()
             .Count(entry => entry.Card.Preview.Owner == player && entry.Card.Preview.Type == CardType.Status);
         return count;
     }
@@ -273,7 +274,8 @@ internal static class AfterCardDrawnMirrors
                 entry.HappenedThisTurn(simulator.State.CombatState) &&
                 entry.Actor == player.Creature &&
                 entry.Affliction is Bound);
-        count += simulator.CardAfflictedHistory
+        count += simulator.History
+            .OfType<CombatPredictionCardAfflictedEntry>()
             .Count(entry => entry.Card.Preview.Owner == player && entry.Affliction is Bound);
         return count;
     }

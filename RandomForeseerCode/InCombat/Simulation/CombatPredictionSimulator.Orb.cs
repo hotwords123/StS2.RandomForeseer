@@ -61,7 +61,7 @@ internal sealed partial class CombatPredictionSimulator
             return false;
         }
 
-        RecordOrbChanneledHistory(orb);
+        History.OrbChanneled(orb);
         HookMirrors.AfterOrbChanneled(this, player, orb);
         return true;
     }

@@ -13,7 +13,7 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        var modifiedAmount = Hook.ModifyEnergyGain(combatState, player, amount, out var modifiers);
+        var modifiedAmount = Hook.ModifyEnergyGain(State.CombatState, player, amount, out var modifiers);
         // Mirrors PlayerCmd.GainEnergy's value hook. AfterModifyingEnergyGain is
         // intentionally not mirrored: reviewed vanilla listeners only flash UI and
         // do not mutate prediction-relevant state.

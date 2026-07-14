@@ -208,7 +208,7 @@ internal sealed partial class CombatPredictionSimulator
 
         var (resultPileType, resultPilePosition) = GetResultPileTypeAndPositionForCardPlay(previewCard);
         (resultPileType, resultPilePosition) = Hook.ModifyCardPlayResultPileTypeAndPosition(
-            combatState,
+            State.CombatState,
             previewCard,
             isAutoPlay,
             resources,
@@ -335,7 +335,7 @@ internal sealed partial class CombatPredictionSimulator
             card.MutablePreview.Affliction!._amount += (int)amount;
         }
 
-        RecordCardAfflictedHistory(card, affliction);
+        History.CardAfflicted(card, affliction);
         return card.Preview.Affliction;
     }
 }

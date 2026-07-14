@@ -17,7 +17,10 @@ internal sealed record DamagePredictionResult(
 
     public static DamagePredictionResult FromDamageHistory(CombatPredictionSimulator simulator)
     {
-        var targets = simulator.DamageHistory
+        var history = simulator.History
+            .OfType<CombatPredictionDamageReceivedEntry>()
+            .ToList();
+        var targets = history
             .GroupBy(static entry => entry.Receiver)
             .Select(group => new DamagePredictionTarget(
                 group.Key,
@@ -30,7 +33,7 @@ internal sealed record DamagePredictionResult(
                     .ToList()))
             .ToList();
 
-        return new DamagePredictionResult(targets, simulator.Snapshot());
+        return new DamagePredictionResult(targets, simulator.History.GetRiskAt(history.LastOrDefault()));
     }
 }
 

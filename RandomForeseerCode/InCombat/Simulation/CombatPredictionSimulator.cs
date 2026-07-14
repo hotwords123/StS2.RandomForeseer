@@ -6,15 +6,25 @@ using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal sealed partial class CombatPredictionSimulator(ICombatState combatState)
+internal sealed partial class CombatPredictionSimulator
 {
     private readonly PredictionSourceStack _sourceStack = new();
     private readonly PredictionRiskTracker _riskTracker = new();
-    public CombatPredictionState State { get; } = new(combatState);
 
-    public CombatPredictionRngSet Rng { get; } = CombatPredictionRngSet.From(combatState.RunState.Rng);
+    public CombatPredictionState State { get; }
+
+    public CombatPredictionRngSet Rng { get; }
 
     public PredictionStateStore StateStore { get; } = new();
+
+    public CombatPredictionHistory History { get; }
+
+    public CombatPredictionSimulator(ICombatState combatState)
+    {
+        State = new CombatPredictionState(combatState);
+        Rng = CombatPredictionRngSet.From(combatState.RunState.Rng);
+        History = new CombatPredictionHistory(_riskTracker);
+    }
 
     public PredictionRisk Snapshot()
     {

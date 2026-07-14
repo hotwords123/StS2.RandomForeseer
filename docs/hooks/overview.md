@@ -26,6 +26,9 @@
 - Combat and out-of-combat code have independent `HookMirrors` facades but share the registry
   infrastructure. Mirrored model behavior that is not a hook, such as orb virtual methods, lives in
   its model domain under `Mirrors/` and follows the same facade/registry split.
+- `CombatPredictionHistory` stores simulator events in one ordered timeline and records the current
+  risk checkpoint at the same list position, allowing a prediction result to use the risk state at
+  its last relevant history entry instead of the end of the whole simulation.
 
 ## Current implementation may differ from vanilla
 

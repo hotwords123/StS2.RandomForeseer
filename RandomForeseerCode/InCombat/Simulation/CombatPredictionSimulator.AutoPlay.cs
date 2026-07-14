@@ -17,7 +17,7 @@ internal sealed partial class CombatPredictionSimulator
         OnPlayDelegate? onPlay = null)
     {
         if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
-            !Hook.ShouldPlay(combatState, card.Preview, out var _, type) ||
+            !Hook.ShouldPlay(State.CombatState, card.Preview, out var _, type) ||
             !TryResolveAutoPlayTarget(card, ref target))
         {
             MoveToResultPileWithoutPlaying(card);

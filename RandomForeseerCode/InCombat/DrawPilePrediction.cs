@@ -38,8 +38,11 @@ internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, 
 
     public static DrawPilePredictionResult FromDrawHistory(CombatPredictionSimulator simulator)
     {
-        var cards = simulator.CardDrawnHistory.Select(entry => entry.Card.Preview).ToArray();
-        return new DrawPilePredictionResult(cards, simulator.Snapshot());
+        var history = simulator.History
+            .OfType<CombatPredictionCardDrawnEntry>()
+            .ToList();
+        var cards = history.Select(entry => entry.Card.Preview).ToArray();
+        return new DrawPilePredictionResult(cards, simulator.History.GetRiskAt(history.LastOrDefault()));
     }
 
     public IReadOnlyList<IHoverTip> ToHoverTips()

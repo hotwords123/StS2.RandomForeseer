@@ -92,7 +92,7 @@ internal sealed partial class CombatPredictionSimulator
             return [];
         }
 
-        var runState = combatState.RunState;
+        var runState = State.CombatState.RunState;
         var modifiedAmount = Hook.ModifyDamage(
             runState,
             State.CombatState,
@@ -196,7 +196,12 @@ internal sealed partial class CombatPredictionSimulator
         {
             // Mirrors CombatManager.Instance.History.DamageReceived in CreatureCmd.Damage,
             // but writes to simulator shadow history instead of the live combat history.
-            RecordDamageHistory(damageResult, dealer, cardSource);
+            History.DamageReceived(
+                damageResult.Receiver,
+                dealer,
+                damageResult,
+                cardSource,
+                _sourceStack.Current ?? cardSource?.Original);
         }
 
         return damageResults;
@@ -269,7 +274,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CreatureCmd.KillWithoutCheckingWinCondition, without recursion checks.
     private void KillWithoutCheckingWinCondition(Creature creature, bool force)
     {
-        var runState = combatState.RunState;
+        var runState = State.CombatState.RunState;
 
         var creatureState = State.GetCreature(creature);
         var currentHp = creatureState.CurrentHp;
@@ -283,7 +288,7 @@ internal sealed partial class CombatPredictionSimulator
 
         if (force || creature.MaxHp <= 0 || HookMirrors.ShouldDie(this, creature, out var preventer))
         {
-            var shouldRemoveFromCombat = Hook.ShouldCreatureBeRemovedFromCombatAfterDeath(combatState, creature);
+            var shouldRemoveFromCombat = Hook.ShouldCreatureBeRemovedFromCombatAfterDeath(State.CombatState, creature);
 
             HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: false);
 

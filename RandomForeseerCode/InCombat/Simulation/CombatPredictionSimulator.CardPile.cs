@@ -35,7 +35,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors the body of the draw loop in CardPileCmd.Draw.
     private bool DrawOne(Player player, bool fromHandDraw)
     {
-        if (_cardDrawnHistory.Count >= MaxSimulatedDraws)
+        if (History.OfType<CombatPredictionCardDrawnEntry>().Count() >= MaxSimulatedDraws)
         {
             _riskTracker.AddUnknown();
             return false;
@@ -51,7 +51,7 @@ internal sealed partial class CombatPredictionSimulator
 
         var predictedCard = state.DrawPile.Cards[0];
         AddToPile(predictedCard, state.Hand);
-        RecordCardDrawnHistory(predictedCard, fromHandDraw);
+        History.CardDrawn(predictedCard, fromHandDraw);
 
         HookMirrors.AfterCardDrawn(this, predictedCard, fromHandDraw);
         return true;

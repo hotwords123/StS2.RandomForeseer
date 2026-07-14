@@ -10,7 +10,7 @@ Mirror files:
 - `InCombat/Mirrors/Hooks/Attack/GigantificationPowerMirrors.cs`
 - `InCombat/Mirrors/Hooks/Attack/VigorPowerMirrors.cs`
 - `InCombat/Simulation/CombatPredictionSimulator.Attack.cs`
-- `InCombat/Simulation/CombatPredictionSimulator.History.cs`
+- `InCombat/Simulation/CombatPredictionHistory.cs`
 
 `CombatPredictionSimulator.ExecuteAttack(AttackCommand)` mirrors the prediction-relevant `AttackCommand.Execute` target loop and dispatches targeted attack hook mirrors through `HookMirrors`. Per-hit damage is still delegated to `CombatPredictionSimulator.Damage`. Callers must push the attack's card/monster source before invoking `ExecuteAttack`; the method itself only pushes hook listener sources through the method registries.
 
@@ -83,7 +83,7 @@ between `BeforeAttack` and the per-hit target loop.
   `AfterAttack`. Each hook rebuilds its listener sequence, matching vanilla and allowing changes from
   earlier attack stages to affect later stages.
 - Existing direct `Damage` calls still bypass `BeforeAttack`, `ModifyAttackHitCount`, `AfterAttack`, attack result grouping, and attack history. They are suitable for non-attack damage and partial hit previews, not full attack behavior.
-- The simulator has shadow `AttackHistory`, but original value hooks and card model methods still read live `CombatManager.Instance.History`, not this shadow history.
+- The simulator records shadow `CreatureAttacked` entries in `CombatPredictionHistory`, but original value hooks and card model methods still read live `CombatManager.Instance.History`, not this shadow history.
 - Original attack hooks must not be called directly during prediction. `VigorPower`, `GigantificationPower`, `Flatten`, `BoneFlute`, `SkittishPower`, and others mutate live power/card/creature state.
 - Target parity covers cloned random targeting, per-hit refresh of shadow living opponents, single-target vs multi-target result shape, and duplicate-disallowed random targeting behavior. If a command has no attacker or no targets configured, the simulator marks risk, logs a warning, and returns no hits instead of throwing, preserving existing hover-risk callers.
 - `CalculatedDamageVar.Calculate(target)` may read live combat state. The simulator calculates the value for parity, but marks the attack source risky.
