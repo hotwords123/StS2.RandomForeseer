@@ -1,6 +1,8 @@
 {
   "drift_warning.card_selection.title": "Notice",
   "drift_warning.card_selection.description": "This card's effect may change the target pile or advance RNG, so this prediction may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
+  "drift_warning.card_generation.title": "Notice",
+  "drift_warning.card_generation.description": "Combat side effects before or after card generation may change the generated cards, target pile, or RNG, so this prediction may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
   "drift_warning.draw_pile.title": "Notice",
   "drift_warning.draw_pile.description": "Draw, shuffle, or on-draw effects may change the pile, advance RNG, or trigger combat side effects, so this prediction may not be accurate.{HasModels:\nPossible sources include {Models:[gold]{}[/gold]|, |, and | and }{ExtraModelCount:cond:>0?, plus [blue]{ExtraModelCount}[/blue] more|}.|}\nYou can turn off this notice in settings.",
   "drift_warning.orb.title": "Notice",

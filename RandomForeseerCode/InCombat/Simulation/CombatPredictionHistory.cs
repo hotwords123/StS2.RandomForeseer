@@ -70,6 +70,22 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
             sourceModel));
     }
 
+    public EntryHandle CardsGenerated(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    {
+        return Record(new CombatPredictionCardsGeneratedEntry(
+            _entries.Count,
+            SnapshotCards(cards),
+            sourceModel));
+    }
+
+    public EntryHandle CardGenerationOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    {
+        return Record(new CombatPredictionCardGenerationOptionsEntry(
+            _entries.Count,
+            SnapshotCards(cards),
+            sourceModel));
+    }
+
     public EntryHandle CreatureAttacked(
         Creature attacker,
         AbstractModel? source,
@@ -170,6 +186,21 @@ internal sealed record CombatPredictionCardSelectionOptionsEntry(
     int Index,
     IReadOnlyList<PredictedCard> Cards,
     AbstractModel? SourceModel) : CombatPredictionCardSelectionEntry(Index, Cards, SourceModel);
+
+internal abstract record CombatPredictionCardGenerationEntry(
+    int Index,
+    IReadOnlyList<PredictedCard> Cards,
+    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+
+internal sealed record CombatPredictionCardsGeneratedEntry(
+    int Index,
+    IReadOnlyList<PredictedCard> Cards,
+    AbstractModel? SourceModel) : CombatPredictionCardGenerationEntry(Index, Cards, SourceModel);
+
+internal sealed record CombatPredictionCardGenerationOptionsEntry(
+    int Index,
+    IReadOnlyList<PredictedCard> Cards,
+    AbstractModel? SourceModel) : CombatPredictionCardGenerationEntry(Index, Cards, SourceModel);
 
 internal sealed record CombatPredictionCardAfflictedEntry(
     int Index,

@@ -88,6 +88,21 @@ internal static class CardOnPlayMirrors
         registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);
         registry.Register<Uproar>(CardSelectionCardMirrors.UproarOnPlay);
 
+        registry.Register<BundleOfJoy>(CardGenerationCardMirrors.BundleOfJoyOnPlay);
+        registry.Register<Distraction>(CardGenerationCardMirrors.DistractionOnPlay);
+        registry.Register<Discovery>(CardGenerationCardMirrors.DiscoveryOnPlay);
+        registry.Register<InfernalBlade>(CardGenerationCardMirrors.InfernalBladeOnPlay);
+        registry.Register<JackOfAllTrades>(CardGenerationCardMirrors.JackOfAllTradesOnPlay);
+        registry.Register<Jackpot>(CardGenerationCardMirrors.JackpotOnPlay);
+        registry.Register<Largesse>(CardGenerationCardMirrors.LargesseOnPlay);
+        registry.Register<MadScience>(CardGenerationCardMirrors.MadScienceOnPlay);
+        registry.Register<ManifestAuthority>(CardGenerationCardMirrors.ManifestAuthorityOnPlay);
+        registry.Register<Metamorphosis>(CardGenerationCardMirrors.MetamorphosisOnPlay);
+        registry.Register<Quasar>(CardGenerationCardMirrors.QuasarOnPlay);
+        registry.Register<Splash>(CardGenerationCardMirrors.SplashOnPlay);
+        registry.Register<Stoke>(CardGenerationCardMirrors.StokeOnPlay);
+        registry.Register<WhiteNoise>(CardGenerationCardMirrors.WhiteNoiseOnPlay);
+
         return registry;
     }
 }

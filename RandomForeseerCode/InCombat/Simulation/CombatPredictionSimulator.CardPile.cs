@@ -163,16 +163,18 @@ internal sealed partial class CombatPredictionSimulator
             throw new InvalidOperationException("Generated combat cards cannot already be in a pile.");
         }
 
+        var source = _sourceStack.Current;
         List<SimCardPileAddResult> results = [];
 
         foreach (var card in cards)
         {
-            // Vanilla records CombatManager.Instance.History.CardGenerated here. The simulator
-            // does not currently consume generated-card history, so this is intentionally omitted.
-
             results.Add(AddToPile(card, newPileType, position));
             HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
         }
+
+        // Vanilla records one CardGenerated entry before adding each card and running its generation hooks.
+        // Prediction groups this call into one presentation entry after every card finishes processing.
+        History.CardsGenerated(cards, source);
 
         return results;
     }

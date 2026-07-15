@@ -33,12 +33,6 @@ internal sealed class PredictedCard(
         return ReferenceEquals(original, card) || ReferenceEquals(preview, card);
     }
 
-    public PredictedCard Upgrade()
-    {
-        PredictionUtils.UpgradeCardInPlace(MutablePreview);
-        return this;
-    }
-
     // Clones the prediction wrapper state only. Combat effects that generate a gameplay
     // clone of a card should use CombatPredictedCardExtensions.CreateClone instead.
     public PredictedCard Clone()

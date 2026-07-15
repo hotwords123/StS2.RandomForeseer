@@ -72,7 +72,7 @@ internal static class CombatPredictedCardExtensions
         return playCount;
     }
 
-    // Mirrors CardEnergyCost.GetAmountToSpend().
+    // Mirrors CardEnergyCost.GetAmountToSpend.
     public static int GetEnergyCostWithModifiers(
         this PredictedCard card,
         CombatPredictionState state,
@@ -102,6 +102,7 @@ internal static class CombatPredictedCardExtensions
         return Math.Max(0, cost);
     }
 
+    // Mirrors CardModel.GetStarCostWithModifiers.
     public static int GetStarCostWithModifiers(
         this PredictedCard card,
         CombatPredictionState state,
@@ -136,5 +137,19 @@ internal static class CombatPredictedCardExtensions
         var keywords = card.Preview.LocalKeywords.ToHashSet();
         Hook.ModifyKeywordsInCombat(state.CombatState, card.Preview, keywords);
         return keywords;
+    }
+
+    // Forwards to CardModel.SetToFreeThisTurn, but returns the same PredictedCard for fluent chaining.
+    public static PredictedCard SetToFreeThisTurn(this PredictedCard card)
+    {
+        card.MutablePreview.SetToFreeThisTurn();
+        return card;
+    }
+
+    // Forwards to CardModel.SetToFreeThisCombat, but returns the same PredictedCard for fluent chaining.
+    public static PredictedCard SetToFreeThisCombat(this PredictedCard card)
+    {
+        card.MutablePreview.SetToFreeThisCombat();
+        return card;
     }
 }

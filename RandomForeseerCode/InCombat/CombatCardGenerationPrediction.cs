@@ -6,11 +6,10 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Events;
+using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.RandomForeseerCode.Common;
-using MegaCrit.Sts2.Core.Factories;
-using MegaCrit.Sts2.Core.Extensions;
-using MegaCrit.Sts2.Core.Models.Potions;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -18,12 +17,7 @@ internal static class CombatCardGenerationPrediction
 {
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardPrediction))
-        {
-            return [];
-        }
-
-        return PredictionHoverTips.Cards(PredictCards(card));
+        return Predict(card, target: null)?.ToHoverTips() ?? [];
     }
 
     public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
@@ -34,7 +28,7 @@ internal static class CombatCardGenerationPrediction
             return [];
         }
 
-        return PredictionHoverTips.Cards(PredictCards(potion));
+        return PredictionHoverTips.Cards(PredictPotionCards(potion));
     }
 
     private static bool ShouldShowPotionCardPrediction(PotionModel potion)
@@ -43,33 +37,50 @@ internal static class CombatCardGenerationPrediction
             CombatManager.Instance.IsInProgress && !potion.Owner.Creature.IsDead;
     }
 
-    private static IReadOnlyList<CardModel> PredictCards(CardModel card)
+    public static CombatCardGenerationPredictionResult? Predict(CardModel card, Creature? target)
     {
-        var owner = card.Owner;
-        var previewRng = PredictionUtils.CloneRng(owner.RunState.Rng.CombatCardGeneration);
-
-        return card switch
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableCombatCardPrediction) ||
+            !IsSupported(card) ||
+            !card.TryResolveTarget(ref target) ||
+            !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
-            BundleOfJoy => PredictColorlessCards(owner, card.DynamicVars.Cards.IntValue, previewRng),
-            Discovery => PredictCharacterCards(owner, null, 3, previewRng),
-            Distraction => PredictCharacterCards(owner, CardType.Skill, 1, previewRng),
-            InfernalBlade => PredictCharacterCards(owner, CardType.Attack, 1, previewRng),
-            JackOfAllTrades => PredictJackOfAllTrades(card, previewRng),
-            Jackpot => PredictJackpot(card, previewRng),
-            Largesse => PredictLargesseCards(card, previewRng),
-            MadScience madScience when madScience.TinkerTimeRider == TinkerTime.RiderEffect.Chaos =>
-                PredictCharacterCards(owner, null, 1, previewRng),
-            ManifestAuthority => PredictManifestAuthority(card, previewRng),
-            Metamorphosis => PredictMetamorphosis(card, previewRng),
-            Quasar => PredictQuasar(card, previewRng),
-            Splash => PredictSplash(card, previewRng),
-            Stoke => PredictStoke(card, previewRng),
-            WhiteNoise => PredictCharacterCards(owner, CardType.Power, 1, previewRng),
-            _ => []
-        };
+            return null;
+        }
+
+        var predictedCard = simulator.State.FindCard(card) ?? new PredictedCard(card);
+        simulator.ManualPlay(predictedCard, target);
+
+        var history = simulator.History
+            .OfType<CombatPredictionCardGenerationEntry>()
+            .Where(entry => ReferenceEquals(entry.SourceModel, card))
+            .ToList();
+        var cardBundles = history
+            .Select(entry => entry.Cards)
+            .ToList();
+
+        return new(cardBundles, simulator.History.GetRisk(history));
     }
 
-    private static IReadOnlyList<CardModel> PredictCards(PotionModel potion)
+    private static bool IsSupported(CardModel card)
+    {
+        return card is
+            BundleOfJoy or
+            Discovery or
+            Distraction or
+            InfernalBlade or
+            JackOfAllTrades or
+            Jackpot or
+            Largesse or
+            MadScience { TinkerTimeRider: TinkerTime.RiderEffect.Chaos } or
+            ManifestAuthority or
+            Metamorphosis or
+            Quasar or
+            Splash or
+            Stoke or
+            WhiteNoise;
+    }
+
+    private static IReadOnlyList<CardModel> PredictPotionCards(PotionModel potion)
     {
         var owner = potion.Owner;
         var previewRng = PredictionUtils.CloneRng(owner.RunState.Rng.CombatCardGeneration);
@@ -83,180 +94,47 @@ internal static class CombatCardGenerationPrediction
             CosmicConcoction => PredictColorlessCards(owner, potion.DynamicVars.Cards.IntValue, previewRng)
                 .Select(PredictionUtils.ToUpgradedCard)
                 .ToList(),
-            OrobicAcid => PredictOrobicAcid(potion, previewRng),
+            OrobicAcid => new[] { CardType.Attack, CardType.Skill, CardType.Power }
+                .SelectMany(type => PredictCharacterCards(owner, type, 1, previewRng))
+                .ToList(),
             _ => []
         };
     }
 
-    private static IReadOnlyList<CardModel> PredictCharacterCards(
-        Player player,
-        CardType? type,
-        int count,
-        Rng previewRng)
+    private static List<CardModel> PredictCharacterCards(Player player, CardType type, int count, Rng previewRng)
     {
-        var candidates = PredictionUtils.GetUnlockedCharacterCards(player);
-        if (type is { } cardType)
-        {
-            candidates = candidates.Where(card => card.Type == cardType);
-        }
-
-        return TakeRandomDistinctForCombat(player, candidates, count, previewRng);
-    }
-
-    private static IReadOnlyList<CardModel> PredictColorlessCards(Player player, int count, Rng previewRng)
-    {
-        var candidates = PredictionUtils.GetUnlockedColorlessCards(player);
-
-        return TakeRandomDistinctForCombat(player, candidates, count, previewRng);
-    }
-
-    private static IReadOnlyList<CardModel> PredictJackOfAllTrades(CardModel source, Rng previewRng)
-    {
-        var owner = source.Owner;
-        var candidates = PredictionUtils.GetUnlockedColorlessCards(owner)
-            .Where(card => card is not JackOfAllTrades);
-
-        return TakeRandomDistinctForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng);
-    }
-
-    private static IReadOnlyList<CardModel> PredictJackpot(CardModel source, Rng previewRng)
-    {
-        var owner = source.Owner;
-        var candidates = PredictionUtils.GetUnlockedCharacterCards(owner)
-            .Where(card => card.EnergyCost is { Canonical: 0, CostsX: false });
-        var cards = TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng);
-
-        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
-    }
-
-    private static IReadOnlyList<CardModel> PredictManifestAuthority(CardModel source, Rng previewRng)
-    {
-        var cards = PredictColorlessCards(source.Owner, 1, previewRng);
-        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
-    }
-
-    private static IReadOnlyList<CardModel> PredictMetamorphosis(CardModel source, Rng previewRng)
-    {
-        var owner = source.Owner;
-        var candidates = PredictionUtils.GetUnlockedCharacterCards(owner)
-            .Where(card => card.Type == CardType.Attack);
-
-        return TakeRandomForCombat(owner, candidates, source.DynamicVars.Cards.IntValue, previewRng);
-    }
-
-    private static IReadOnlyList<CardModel> PredictQuasar(CardModel source, Rng previewRng)
-    {
-        var cards = PredictColorlessCards(source.Owner, 3, previewRng);
-        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
-    }
-
-    private static IReadOnlyList<CardModel> PredictSplash(CardModel source, Rng previewRng)
-    {
-        var owner = source.Owner;
-        var pools = owner.UnlockState.CharacterCardPools.ToList();
-        if (pools.Count > 1)
-        {
-            pools.Remove(owner.Character.CardPool);
-        }
-
-        var candidates = pools
-            .SelectMany(pool => PredictionUtils.GetUnlockedCards(owner, pool))
-            .Where(card => card.Type == CardType.Attack);
-        var cards = TakeRandomDistinctForCombat(owner, candidates, 3, previewRng);
-
-        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
-    }
-
-    private static IReadOnlyList<CardModel> PredictStoke(CardModel source, Rng previewRng)
-    {
-        var owner = source.Owner;
-        var cardsToExhaust = PileType.Hand.GetPile(owner).Cards.Count(card => card != source);
-        if (cardsToExhaust <= 0)
-        {
-            return [];
-        }
-
-        var candidates = PredictionUtils.GetUnlockedCharacterCards(owner);
-        var cards = TakeRandomForCombat(owner, candidates, cardsToExhaust, previewRng);
-
-        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
-    }
-
-    private static IReadOnlyList<CardModel> PredictLargesseCards(CardModel source, Rng previewRng)
-    {
-        if (source.Owner.Creature.CombatState == null)
-        {
-            return [];
-        }
-
-        var validTargets = source.Owner.Creature.CombatState?.GetValidManualCardTargets(source) ?? [];
-        return validTargets
-            .SelectMany(target => PredictLargesseForTarget(source, target.Player!, previewRng))
-            .DistinctBy(card => card.Id)
+        return player.GetUnlockedCharacterCards()
+            .Where(candidate => candidate.Type == type)
+            .TakeRandomDistinctForCombat(player, count, previewRng)
             .ToList();
     }
 
-    private static IReadOnlyList<CardModel> PredictLargesseForTarget(CardModel source, Player target, Rng sourceRng)
+    private static List<CardModel> PredictColorlessCards(Player player, int count, Rng previewRng)
     {
-        var cards = TakeRandomDistinctForCombat(
-            target,
-            PredictionUtils.GetUnlockedColorlessCards(target),
-            1,
-            PredictionUtils.CloneRng(sourceRng));
-
-        return PredictionUtils.ToUpgradedCardsIf(cards, source.IsUpgraded);
-    }
-
-    private static IReadOnlyList<CardModel> PredictOrobicAcid(PotionModel potion, Rng previewRng)
-    {
-        var player = potion.Owner;
-        var cards = new List<CardModel>();
-        cards.AddRange(PredictCharacterCards(player, CardType.Attack, 1, previewRng));
-        cards.AddRange(PredictCharacterCards(player, CardType.Skill, 1, previewRng));
-        cards.AddRange(PredictCharacterCards(player, CardType.Power, 1, previewRng));
-        return cards;
-    }
-
-    private static IReadOnlyList<CardModel> TakeRandomDistinctForCombat(
-        Player player,
-        IEnumerable<CardModel> cards,
-        int count,
-        Rng rng)
-    {
-        return FilterForCombatAndPlayerCount(player, cards)
-            .ToList()
-            .UnstableShuffle(rng)
-            .Take(count)
+        return player.GetUnlockedColorlessCards()
+            .TakeRandomDistinctForCombat(player, count, previewRng)
             .ToList();
     }
+}
 
-    private static IReadOnlyList<CardModel> TakeRandomForCombat(
-        Player player,
-        IEnumerable<CardModel> cards,
-        int count,
-        Rng rng)
+internal sealed record CombatCardGenerationPredictionResult(
+    IReadOnlyList<IReadOnlyList<PredictedCard>> CardBundles,
+    PredictionRisk Risk)
+{
+    public bool IsEmpty => !CardBundles.Any(bundle => bundle.Count > 0);
+
+    public IReadOnlyList<IHoverTip> ToHoverTips()
     {
-        var options = FilterForCombatAndPlayerCount(player, cards).ToList();
-        if (options.Count == 0)
+        if (IsEmpty)
         {
             return [];
         }
 
-        var results = new List<CardModel>();
-        for (var i = 0; i < count; i++)
-        {
-            var card = rng.NextItem(options);
-            if (card != null)
-            {
-                results.Add(card);
-            }
-        }
-
-        return results;
-    }
-
-    private static IEnumerable<CardModel> FilterForCombatAndPlayerCount(Player player, IEnumerable<CardModel> cards)
-    {
-        return CardFactory.FilterForPlayerCount(player.RunState, CardFactory.FilterForCombat(cards));
+        var bundles = CardBundles
+            .Select(bundle => bundle.Select(card => card.Preview).ToList())
+            .ToList();
+        var tips = PredictionHoverTips.CardBundles(bundles).ToList();
+        PredictionHoverTips.AddDriftWarningIfNeeded(tips, "card_generation", Risk);
+        return tips;
     }
 }

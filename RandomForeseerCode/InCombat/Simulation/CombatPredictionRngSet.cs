@@ -7,6 +7,7 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 internal sealed class CombatPredictionRngSet
 {
     public required Rng Shuffle { get; init; }
+    public required Rng CombatCardGeneration { get; init; }
     public required Rng CombatCardSelection { get; init; }
     public required Rng CombatEnergyCosts { get; init; }
     public required Rng CombatTargets { get; init; }
@@ -17,6 +18,7 @@ internal sealed class CombatPredictionRngSet
         return new CombatPredictionRngSet
         {
             Shuffle = PredictionUtils.CloneRng(rng.Shuffle),
+            CombatCardGeneration = PredictionUtils.CloneRng(rng.CombatCardGeneration),
             CombatCardSelection = PredictionUtils.CloneRng(rng.CombatCardSelection),
             CombatEnergyCosts = PredictionUtils.CloneRng(rng.CombatEnergyCosts),
             CombatTargets = PredictionUtils.CloneRng(rng.CombatTargets),

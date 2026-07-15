@@ -16,7 +16,7 @@ internal static class CombatCardPredictionController
 
     private static bool _hasDamagePrediction;
 
-    private static List<IHoverTip> _cachedHoverTips = [];
+    private static readonly List<IHoverTip> _cachedHoverTips = [];
 
     public static void OnCardHover(NHandCardHolder holder, bool isHovered)
     {
@@ -75,6 +75,7 @@ internal static class CombatCardPredictionController
 
         ShowDamagePrediction(card, target);
         ShowSelectionHighlight(card, target);
+        AddCardGenerationHoverTips(card, target);
 
         // Card damage predictions share the same display surfaces as end-turn prediction.
         EndTurnPredictionController.SetCardDamageOverride(_hasDamagePrediction);
@@ -186,6 +187,21 @@ internal static class CombatCardPredictionController
             .ToList());
 
         _cachedHoverTips.AddRange(prediction.ToHoverTips());
+    }
+
+    private static void AddCardGenerationHoverTips(CardModel card, Creature? target)
+    {
+        try
+        {
+            if (CombatCardGenerationPrediction.Predict(card, target) is { } prediction)
+            {
+                _cachedHoverTips.AddRange(prediction.ToHoverTips());
+            }
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat card generation target prediction failed for {card.Id}: {ex}");
+        }
     }
 
     private static void ShowCardPlayHoverTips(NHandCardHolder holder)
