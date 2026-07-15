@@ -180,7 +180,10 @@ internal static class CombatCardPredictionController
             return;
         }
 
-        CombatCardPredictionHighlight.Show(prediction.SelectedCards);
+        CombatCardPredictionHighlight.Show(prediction.CardBundles
+            .SelectMany(static bundle => bundle)
+            .Select(static card => card.Original)
+            .ToList());
 
         _cachedHoverTips.AddRange(prediction.ToHoverTips());
     }

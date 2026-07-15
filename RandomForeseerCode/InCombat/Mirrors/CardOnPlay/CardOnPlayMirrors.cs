@@ -77,6 +77,15 @@ internal static class CardOnPlayMirrors
         registry.Register<Voltaic>(OrbCardMirrors.VoltaicOnPlay);
         registry.Register<Zap>(OrbCardMirrors.ZapOnPlay);
 
+        registry.Register<Anointed>(CardSelectionCardMirrors.AnointedOnPlay);
+        registry.Register<Cinder>(CardSelectionCardMirrors.CinderOnPlay);
+        registry.Register<DrainPower>(CardSelectionCardMirrors.DrainPowerOnPlay);
+        registry.Register<HiddenGem>(CardSelectionCardMirrors.HiddenGemOnPlay);
+        registry.Register<SeekerStrike>(CardSelectionCardMirrors.SeekerStrikeOnPlay);
+        registry.Register<Thrash>(CardSelectionCardMirrors.ThrashOnPlay);
+        registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);
+        registry.Register<Uproar>(CardSelectionCardMirrors.UproarOnPlay);
+
         return registry;
     }
 }

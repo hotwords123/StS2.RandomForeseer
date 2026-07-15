@@ -54,6 +54,22 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         return Record(new CombatPredictionCardDrawnEntry(_entries.Count, card, fromHandDraw));
     }
 
+    public EntryHandle CardsSelected(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    {
+        return Record(new CombatPredictionCardsSelectedEntry(
+            _entries.Count,
+            SnapshotCards(cards),
+            sourceModel));
+    }
+
+    public EntryHandle CardSelectionOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    {
+        return Record(new CombatPredictionCardSelectionOptionsEntry(
+            _entries.Count,
+            SnapshotCards(cards),
+            sourceModel));
+    }
+
     public EntryHandle CreatureAttacked(
         Creature attacker,
         AbstractModel? source,
@@ -95,6 +111,11 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         return new EntryHandle(this, entry.Index);
     }
 
+    private static IReadOnlyList<PredictedCard> SnapshotCards(IEnumerable<PredictedCard> cards)
+    {
+        return [.. cards.Select(static card => card.Clone())];
+    }
+
     private void Complete(int index)
     {
         _riskCheckpoints[index] = riskTracker.Checkpoint;
@@ -134,6 +155,21 @@ internal sealed record CombatPredictionCardDrawnEntry(
     int Index,
     PredictedCard Card,
     bool FromHandDraw) : CombatPredictionHistoryEntry(Index);
+
+internal abstract record CombatPredictionCardSelectionEntry(
+    int Index,
+    IReadOnlyList<PredictedCard> Cards,
+    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+
+internal sealed record CombatPredictionCardsSelectedEntry(
+    int Index,
+    IReadOnlyList<PredictedCard> Cards,
+    AbstractModel? SourceModel) : CombatPredictionCardSelectionEntry(Index, Cards, SourceModel);
+
+internal sealed record CombatPredictionCardSelectionOptionsEntry(
+    int Index,
+    IReadOnlyList<PredictedCard> Cards,
+    AbstractModel? SourceModel) : CombatPredictionCardSelectionEntry(Index, Cards, SourceModel);
 
 internal sealed record CombatPredictionCardAfflictedEntry(
     int Index,
