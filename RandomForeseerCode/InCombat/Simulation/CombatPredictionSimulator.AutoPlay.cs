@@ -43,7 +43,7 @@ internal sealed partial class CombatPredictionSimulator
     {
         foreach (var card in MoveCardsForAutoPlay(player, count, position))
         {
-            if (State.GetCreature(card.Original.Owner.Creature).IsDead)
+            if (State.GetCreature(card.Preview.Owner.Creature).IsDead)
             {
                 break;
             }
@@ -53,15 +53,15 @@ internal sealed partial class CombatPredictionSimulator
         }
     }
 
-    // Mirrors CardPileCmd.AutoPlayFromDrawPile until the card is moved to the play pile. Should be an internal
-    // helper for AutoPlayFromDrawPile, but is public for draw-pile prediction without autoplay.
-    public IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(Player player, int count, CardPilePosition position)
+    // Mirrors CardPileCmd.AutoPlayFromDrawPile until the card is moved to the play pile.
+    private IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(Player player, int count, CardPilePosition position)
     {
+        var source = _sourceStack.Current;
         var cards = new List<PredictedCard>(count);
         var playerCombatState = State.GetPlayerCombatState(player);
         var drawPile = playerCombatState.DrawPile;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             ShuffleIfNecessary(player);
             var card = position switch
@@ -72,13 +72,14 @@ internal sealed partial class CombatPredictionSimulator
                 _ => null
             };
 
-            if (card == null)
+            if (card is null)
             {
                 break;
             }
 
             cards.Add(card);
             AddToPile(card, playerCombatState.PlayPile);
+            History.AutoPlayFromDrawPile(card, source);
         }
 
         return cards;

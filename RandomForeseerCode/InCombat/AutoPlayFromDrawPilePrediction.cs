@@ -53,8 +53,8 @@ internal static class AutoPlayFromDrawPilePrediction
             return DrawPilePredictionResult.Empty;
         }
 
-        var predictedCards = simulator.MoveCardsForAutoPlay(player, count, CardPilePosition.Top);
-        return DrawPilePredictionResult.FromPredictedCards(predictedCards, simulator.Snapshot());
+        simulator.AutoPlayFromDrawPile(player, count, CardPilePosition.Top);
+        return DrawPilePredictionResult.FromAutoPlayHistory(simulator);
     }
 
     private static int PredictCascadeCount(Cascade cascade)

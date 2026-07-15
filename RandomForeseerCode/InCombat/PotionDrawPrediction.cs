@@ -82,7 +82,7 @@ internal sealed class PotionDrawPrediction(CombatPredictionSimulator simulator, 
             card.MutablePreview.EnergyCost.SetThisTurnOrUntilPlayed(simulator.Rng.CombatEnergyCosts.NextInt(4));
         }
 
-        return DrawPilePredictionResult.FromPredictedCards(hand.Cards, simulator.Snapshot());
+        return new(hand.Cards, simulator.Snapshot());
     }
 
     private DrawPilePredictionResult PredictBottledPotential()

@@ -23,31 +23,33 @@ internal static class DrawPilePrediction
 
         playerCombatState.DrawPile.Clear();
         simulator.Shuffle(player);
-        return DrawPilePredictionResult.FromPredictedCards(playerCombatState.DrawPile.Cards, simulator.Snapshot());
+        return new(playerCombatState.DrawPile.Cards, simulator.Snapshot());
     }
 }
 
-internal sealed record DrawPilePredictionResult(IReadOnlyList<CardModel> Cards, PredictionRisk Risk)
+internal sealed record DrawPilePredictionResult(IReadOnlyList<PredictedCard> Cards, PredictionRisk Risk)
 {
     public static DrawPilePredictionResult Empty { get; } = new([], PredictionRisk.None);
-
-    public static DrawPilePredictionResult FromPredictedCards(IEnumerable<PredictedCard> cards, PredictionRisk risk)
-    {
-        return new DrawPilePredictionResult(cards.Select(card => card.Preview).ToArray(), risk);
-    }
 
     public static DrawPilePredictionResult FromDrawHistory(CombatPredictionSimulator simulator)
     {
         var history = simulator.History
             .OfType<CombatPredictionCardDrawnEntry>()
             .ToList();
-        var cards = history.Select(entry => entry.Card.Preview).ToArray();
-        return new DrawPilePredictionResult(cards, simulator.History.GetRisk(history));
+        return new([.. history.Select(entry => entry.Card)], simulator.History.GetRisk(history));
+    }
+
+    public static DrawPilePredictionResult FromAutoPlayHistory(CombatPredictionSimulator simulator)
+    {
+        var history = simulator.History
+            .OfType<CombatPredictionAutoPlayFromDrawPileEntry>()
+            .ToList();
+        return new([.. history.Select(entry => entry.Card)], simulator.History.GetRisk(history));
     }
 
     public IReadOnlyList<IHoverTip> ToHoverTips()
     {
-        var tips = PredictionHoverTips.Cards(Cards).ToList();
+        var tips = PredictionHoverTips.Cards(Cards.Select(card => card.Preview)).ToList();
         PredictionHoverTips.AddDriftWarningIfNeeded(tips, "draw_pile", Risk);
         return tips;
     }

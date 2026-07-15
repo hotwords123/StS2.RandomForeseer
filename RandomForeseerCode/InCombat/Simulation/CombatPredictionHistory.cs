@@ -86,6 +86,14 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
             sourceModel));
     }
 
+    public EntryHandle AutoPlayFromDrawPile(PredictedCard card, AbstractModel? sourceModel)
+    {
+        return Record(new CombatPredictionAutoPlayFromDrawPileEntry(
+            _entries.Count,
+            card.Clone(),
+            sourceModel));
+    }
+
     public EntryHandle CreatureAttacked(
         Creature attacker,
         AbstractModel? source,
@@ -206,3 +214,8 @@ internal sealed record CombatPredictionCardAfflictedEntry(
     int Index,
     PredictedCard Card,
     AfflictionModel Affliction) : CombatPredictionHistoryEntry(Index);
+
+internal sealed record CombatPredictionAutoPlayFromDrawPileEntry(
+    int Index,
+    PredictedCard Card,
+    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
