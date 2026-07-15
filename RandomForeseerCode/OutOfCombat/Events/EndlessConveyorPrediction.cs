@@ -20,7 +20,7 @@ internal static class EndlessConveyorPrediction
                     player,
                     1,
                     card => card.IsUpgradable,
-                    PredictionUtils.CloneRng(endlessConveyor.Rng))),
+                    endlessConveyor.Rng.Clone())),
             "ENDLESS_CONVEYOR.pages.ALL.options.FRIED_EEL" =>
                 PredictionHoverTips.Cards(CardRewardPrediction.PredictCards(
                     player,
@@ -35,7 +35,7 @@ internal static class EndlessConveyorPrediction
                     player,
                     1,
                     card => card.IsUpgradable,
-                    PredictionUtils.CloneRng(endlessConveyor.Rng))),
+                    endlessConveyor.Rng.Clone())),
             _ => []
         };
     }

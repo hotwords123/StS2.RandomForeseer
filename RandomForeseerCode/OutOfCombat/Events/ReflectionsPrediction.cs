@@ -22,7 +22,7 @@ internal static class ReflectionsPrediction
 
     private static IReadOnlyList<CardModel> PredictTouchAMirror(IReadOnlyList<CardModel> deckCards, Rng realRng)
     {
-        var rng = PredictionUtils.CloneRng(realRng);
+        var rng = realRng.Clone();
         var deckState = PredictedCard.FromCards(deckCards);
         var previews = new List<CardModel>();
 

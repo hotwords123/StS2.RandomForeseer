@@ -27,7 +27,7 @@ internal static class DollRoomPrediction
 
     private static IReadOnlyList<RelicModel> PredictDoll(Rng realRng, int count)
     {
-        var rng = PredictionUtils.CloneRng(realRng);
+        var rng = realRng.Clone();
         var dolls = DollRoom._dolls.Select(doll => doll.relic).ToArray();
 
         return count == 1

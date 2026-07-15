@@ -83,7 +83,7 @@ internal static class CombatCardGenerationPrediction
     private static IReadOnlyList<CardModel> PredictPotionCards(PotionModel potion)
     {
         var owner = potion.Owner;
-        var previewRng = PredictionUtils.CloneRng(owner.RunState.Rng.CombatCardGeneration);
+        var previewRng = owner.RunState.Rng.CombatCardGeneration.Clone();
 
         return potion switch
         {

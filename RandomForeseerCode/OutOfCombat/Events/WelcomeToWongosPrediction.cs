@@ -20,7 +20,7 @@ internal static class WelcomeToWongosPrediction
                     player,
                     1,
                     card => card.IsUpgraded,
-                    PredictionUtils.CloneRng(welcomeToWongos.Rng))),
+                    welcomeToWongos.Rng.Clone())),
             _ => []
         };
     }

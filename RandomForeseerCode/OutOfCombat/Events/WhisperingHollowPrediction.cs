@@ -16,7 +16,7 @@ internal static class WhisperingHollowPrediction
                 PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
                     whisperingHollow.Owner!,
                     2,
-                    PredictionUtils.CloneRng(whisperingHollow.Owner!.PlayerRng.Rewards))),
+                    whisperingHollow.Owner!.PlayerRng.Rewards.Clone())),
             "WHISPERING_HOLLOW.pages.INITIAL.options.HUG" =>
                 PredictionHoverTips.Cards(PredictHug(whisperingHollow)),
             _ => []

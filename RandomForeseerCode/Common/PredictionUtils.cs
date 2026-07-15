@@ -7,22 +7,6 @@ namespace RandomForeseer.RandomForeseerCode.Common;
 
 internal static class PredictionUtils
 {
-    public static Rng CloneRng(Rng rng)
-    {
-        var clone = new Rng(rng.Seed)
-        {
-            Counter = rng.Counter
-        };
-
-        // STS2 0.107.1 stores Rng state in MegaRandom's Xoshiro** state.
-        // Copying it directly avoids replaying an ever-growing counter during predictions.
-        clone._random._s0 = rng._random._s0;
-        clone._random._s1 = rng._random._s1;
-        clone._random._s2 = rng._random._s2;
-        clone._random._s3 = rng._random._s3;
-        return clone;
-    }
-
     public static CardModel CreateCard(CardModel card, Player player)
     {
         card = (CardModel)card.MutableClone();

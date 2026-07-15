@@ -40,7 +40,7 @@ internal static class TinkerTimePrediction
             return [];
         }
 
-        var rng = PredictionUtils.CloneRng(tinkerTime.Rng);
+        var rng = tinkerTime.Rng.Clone();
         var chosen = riders.ToList().UnstableShuffle(rng).Take(2);
         var cardType = option.TextKey switch
         {

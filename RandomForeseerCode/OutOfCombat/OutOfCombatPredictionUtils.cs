@@ -28,7 +28,7 @@ internal static class OutOfCombatPredictionUtils
             .Where(card => card.Type != CardType.Quest && card.IsTransformable)
             .Select(card =>
             {
-                var rng = PredictionUtils.CloneRng(realRng);
+                var rng = realRng.Clone();
                 if (rngCounterOffset != 0)
                 {
                     rng.FastForwardCounter(rng.Counter + rngCounterOffset);
@@ -106,7 +106,7 @@ internal static class OutOfCombatPredictionUtils
         Func<CardModel, bool> filter,
         Rng? rng = null)
     {
-        rng ??= PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+        rng ??= player.RunState.Rng.Niche.Clone();
 
         return PileType.Deck.GetPile(player).Cards
             .Where(filter)
@@ -177,7 +177,7 @@ internal static class OutOfCombatPredictionUtils
         Rng? rng = null,
         Func<PotionModel, bool>? filter = null)
     {
-        rng ??= PredictionUtils.CloneRng(player.PlayerRng.Rewards);
+        rng ??= player.PlayerRng.Rewards.Clone();
         filter ??= (_ => true);
 
         var options = player.Character.PotionPool
@@ -203,7 +203,7 @@ internal static class OutOfCombatPredictionUtils
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count)
     {
-        return PredictRelicRewards(player, count, PredictionUtils.CloneRng(player.PlayerRng.Rewards));
+        return PredictRelicRewards(player, count, player.PlayerRng.Rewards.Clone());
     }
 
     public static IReadOnlyList<RelicModel> PredictRelicRewards(Player player, int count, Rng rng)

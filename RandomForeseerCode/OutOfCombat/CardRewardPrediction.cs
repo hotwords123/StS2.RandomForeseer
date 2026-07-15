@@ -113,7 +113,7 @@ internal static class CardRewardPrediction
         clone.WithFlags(options.Flags);
         if (options.RngOverride != null)
         {
-            clone.WithRngOverride(PredictionUtils.CloneRng(options.RngOverride));
+            clone.WithRngOverride(options.RngOverride.Clone());
         }
 
         return clone;

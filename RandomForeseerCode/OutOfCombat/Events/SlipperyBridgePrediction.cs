@@ -17,7 +17,7 @@ internal static class SlipperyBridgePrediction
         }
 
         var player = slipperyBridge.Owner!;
-        var rng = PredictionUtils.CloneRng(slipperyBridge.Rng);
+        var rng = slipperyBridge.Rng.Clone();
         var current = slipperyBridge._randomCardToLose;
         var skipped = slipperyBridge._skippedRemovals?.ToHashSet() ?? [];
         var cards = new List<CardModel>();

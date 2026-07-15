@@ -55,7 +55,7 @@ internal static class RelicPickupPrediction
                     PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
-                        PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))),
+                        player.RunState.Rng.CombatPotionGeneration.Clone())),
                 ScrollBoxes =>
                     PredictionHoverTips.CardBundles(PredictScrollBoxes(context), isVanillaCardBundle: true),
                 SilkenTress silkenTress when IsAllModesUnfairPredictionAllowed() =>
@@ -79,7 +79,7 @@ internal static class RelicPickupPrediction
                     PredictionHoverTips.Potions(PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["PotionSlots"].IntValue,
-                        PredictionUtils.CloneRng(player.RunState.Rng.CombatPotionGeneration))),
+                        player.RunState.Rng.CombatPotionGeneration.Clone())),
                 GlassEye => PredictionHoverTips.CardBundles(PredictGlassEyeBundles(context)),
                 SandCastle when IsSingleplayerUnfairPredictionAllowed() =>
                     PredictionHoverTips.Cards(PredictSandCastle(player, relic.DynamicVars.Cards.IntValue)),
@@ -97,7 +97,7 @@ internal static class RelicPickupPrediction
                 Cauldron => PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
                     player,
                     relic.DynamicVars["Potions"].IntValue,
-                    PredictionUtils.CloneRng(player.PlayerRng.Rewards))),
+                    player.PlayerRng.Rewards.Clone())),
                 FragrantMushroom => PredictionHoverTips.Cards(OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
                     player,
                     relic.DynamicVars.Cards.IntValue,
@@ -411,7 +411,7 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<CardModel> PredictPandorasBox(Player player)
     {
-        var rng = PredictionUtils.CloneRng(player.RunState.Rng.Niche);
+        var rng = player.RunState.Rng.Niche.Clone();
         return PileType.Deck.GetPile(player).Cards
             .Where(card => card.IsBasicStrikeOrDefend && card.IsRemovable)
             .Select(card => PredictionUtils.PredictTransformResult(card, rng, isInCombat: false))
@@ -430,7 +430,7 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<CardModel> PredictLeafyPoultice(Player player)
     {
-        var rng = PredictionUtils.CloneRng(player.PlayerRng.Transformations);
+        var rng = player.PlayerRng.Transformations.Clone();
         var source = PileType.Deck.GetPile(player).Cards
             .Where(card => card.Rarity == CardRarity.Basic)
             .ToList();

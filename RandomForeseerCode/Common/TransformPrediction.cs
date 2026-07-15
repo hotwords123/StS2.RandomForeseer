@@ -69,7 +69,7 @@ internal static class TransformPrediction
             return [];
         }
 
-        var previewRng = PredictionUtils.CloneRng(rng);
+        var previewRng = rng.Clone();
         return Enumerable.Range(0, maxSelect)
             .Select(_ => PredictionUtils.PredictTransformResult(card, previewRng, isInCombat))
             .Select(replacement => mapReplacement?.Invoke(replacement) ?? replacement)

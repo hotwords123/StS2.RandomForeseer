@@ -18,7 +18,7 @@ internal static class WarHistorianRepyPrediction
         var tips = PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
             player,
             2,
-            PredictionUtils.CloneRng(player.PlayerRng.Rewards))).ToList();
+            player.PlayerRng.Rewards.Clone())).ToList();
         tips.AddRange(OutOfCombatPredictionUtils.RelicTipsWithPickup(player, OutOfCombatPredictionUtils.PredictRelicRewards(player, 2)));
         return tips;
     }

@@ -17,12 +17,12 @@ internal sealed class CombatPredictionRngSet
     {
         return new CombatPredictionRngSet
         {
-            Shuffle = PredictionUtils.CloneRng(rng.Shuffle),
-            CombatCardGeneration = PredictionUtils.CloneRng(rng.CombatCardGeneration),
-            CombatCardSelection = PredictionUtils.CloneRng(rng.CombatCardSelection),
-            CombatEnergyCosts = PredictionUtils.CloneRng(rng.CombatEnergyCosts),
-            CombatTargets = PredictionUtils.CloneRng(rng.CombatTargets),
-            CombatOrbGeneration = PredictionUtils.CloneRng(rng.CombatOrbGeneration)
+            Shuffle = rng.Shuffle.Clone(),
+            CombatCardGeneration = rng.CombatCardGeneration.Clone(),
+            CombatCardSelection = rng.CombatCardSelection.Clone(),
+            CombatEnergyCosts = rng.CombatEnergyCosts.Clone(),
+            CombatTargets = rng.CombatTargets.Clone(),
+            CombatOrbGeneration = rng.CombatOrbGeneration.Clone()
         };
     }
 }

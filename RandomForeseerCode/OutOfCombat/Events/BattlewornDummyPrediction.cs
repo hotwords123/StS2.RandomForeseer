@@ -32,7 +32,7 @@ internal static class BattlewornDummyPrediction
     private static IReadOnlyList<CardModel> PredictSetting2(BattlewornDummy battlewornDummy)
     {
         var player = battlewornDummy.Owner!;
-        var eventRng = PredictionUtils.CloneRng(battlewornDummy.Rng);
+        var eventRng = battlewornDummy.Rng.Clone();
         var context = new RunPredictionContext(player);
 
         // Battleworn Dummy Setting 2 rolls after the event combat ends, not when the option is chosen.

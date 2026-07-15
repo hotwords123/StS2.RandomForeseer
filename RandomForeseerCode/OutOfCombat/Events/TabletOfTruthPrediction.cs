@@ -15,7 +15,7 @@ internal static class TabletOfTruthPrediction
                 tabletOfTruth.Owner!,
                 upgradeCount.Value,
                 card => card.IsUpgradable,
-                PredictionUtils.CloneRng(tabletOfTruth.Rng)))
+                tabletOfTruth.Rng.Clone()))
             : [];
     }
 

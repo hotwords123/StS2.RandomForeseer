@@ -14,7 +14,7 @@ internal static class DoorsOfLightAndDarkPrediction
                 doors.Owner!,
                 2,
                 card => card.IsUpgradable,
-                PredictionUtils.CloneRng(doors.Rng)))
+                doors.Rng.Clone()))
             : [];
     }
 }

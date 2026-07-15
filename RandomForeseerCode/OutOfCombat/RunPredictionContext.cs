@@ -114,7 +114,7 @@ internal sealed class RunPredictionSharedRngSet
     {
         return new RunPredictionSharedRngSet
         {
-            Niche = PredictionUtils.CloneRng(rng.Niche),
+            Niche = rng.Niche.Clone(),
         };
     }
 
@@ -122,7 +122,7 @@ internal sealed class RunPredictionSharedRngSet
     {
         return new RunPredictionSharedRngSet
         {
-            Niche = PredictionUtils.CloneRng(Niche),
+            Niche = Niche.Clone(),
         };
     }
 }
@@ -135,7 +135,7 @@ internal sealed class RunPredictionPlayerRngSet
     {
         return new RunPredictionPlayerRngSet
         {
-            Rewards = PredictionUtils.CloneRng(rng.Rewards)
+            Rewards = rng.Rewards.Clone()
         };
     }
 
@@ -143,7 +143,7 @@ internal sealed class RunPredictionPlayerRngSet
     {
         return new RunPredictionPlayerRngSet
         {
-            Rewards = PredictionUtils.CloneRng(Rewards)
+            Rewards = Rewards.Clone()
         };
     }
 }

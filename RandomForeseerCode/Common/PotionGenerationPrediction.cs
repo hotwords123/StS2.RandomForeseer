@@ -38,7 +38,7 @@ internal static class PotionGenerationPrediction
             EntropicBrew => PredictionUtils.PredictPotionRewards(
                 owner,
                 owner.PotionSlots.Count,
-                PredictionUtils.CloneRng(owner.RunState.Rng.CombatPotionGeneration)),
+                owner.RunState.Rng.CombatPotionGeneration.Clone()),
             _ => []
         };
     }
@@ -49,7 +49,7 @@ internal static class PotionGenerationPrediction
         {
             Alchemize => [PotionFactory.CreateRandomPotionInCombat(
                 card.Owner,
-                PredictionUtils.CloneRng(card.Owner.RunState.Rng.CombatPotionGeneration))],
+                card.Owner.RunState.Rng.CombatPotionGeneration.Clone())],
             _ => []
         };
     }

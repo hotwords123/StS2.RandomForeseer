@@ -8,7 +8,7 @@ namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
 internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview = false)
 {
-    private Rng _previewRng = PredictionUtils.CloneRng(realRng);
+    private Rng _previewRng = realRng.Clone();
 
     public static Func<CardModel, CardTransformation>? Make(
         Rng realRng,
@@ -28,7 +28,7 @@ internal sealed class TransformPreviewPredictor(Rng realRng, bool upgradePreview
 
     public void Reset()
     {
-        _previewRng = PredictionUtils.CloneRng(realRng);
+        _previewRng = realRng.Clone();
     }
 
     public IReadOnlyList<IHoverTip> GetHoverTips(CardModel card, IEnumerable<CardModel> selectedCards, int maxSelect)

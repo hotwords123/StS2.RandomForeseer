@@ -9,7 +9,7 @@ internal static class TrashHeapPrediction
 {
     public static IReadOnlyList<IHoverTip> GetHoverTips(TrashHeap trashHeap, EventOption option)
     {
-        var rng = PredictionUtils.CloneRng(trashHeap.Rng);
+        var rng = trashHeap.Rng.Clone();
         return option.TextKey switch
         {
             "TRASH_HEAP.pages.INITIAL.options.DIVE_IN" =>
