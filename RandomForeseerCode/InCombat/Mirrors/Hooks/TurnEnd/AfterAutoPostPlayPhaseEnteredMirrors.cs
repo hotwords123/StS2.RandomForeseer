@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -47,19 +46,7 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
             return;
         }
 
-        context.Simulator.AutoPlay(predictedCard, onPlay: (cardToPlay, cardPlay) =>
-        {
-            if (cardToPlay.Preview is not HowlFromBeyond previewCard)
-            {
-                context.Simulator.MarkCurrentSourceRisky();
-                return;
-            }
-
-            DamageCmd.Attack(previewCard.DynamicVars.Damage.BaseValue)
-                .FromCard(previewCard, cardPlay)
-                .TargetingAllOpponents(context.CombatState)
-                .Simulate(context.Simulator);
-        });
+        context.Simulator.AutoPlay(predictedCard);
     }
 
     private static void HandleIAmInvincible(IAmInvincible card, AfterAutoPostPlayMirrorContext context)
@@ -70,16 +57,7 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
             return;
         }
 
-        context.Simulator.AutoPlayFromDrawPile(card.Owner, 1, CardPilePosition.Top, onPlay: (cardToPlay, _) =>
-        {
-            if (cardToPlay.Preview is not IAmInvincible previewCard)
-            {
-                context.Simulator.MarkCurrentSourceRisky();
-                return;
-            }
-
-            context.Simulator.GainBlock(previewCard.Owner.Creature, previewCard.DynamicVars.Block, cardToPlay);
-        });
+        context.Simulator.AutoPlayFromDrawPile(card.Owner, 1, CardPilePosition.Top);
     }
 
     private static void HandleStampedePower(StampedePower power, AfterAutoPostPlayMirrorContext context)

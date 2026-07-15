@@ -42,6 +42,9 @@ internal static class CardOnPlayMirrors
     {
         var registry = new Registry(OnPlay);
 
+        registry.Register<HowlFromBeyond>(AutoPlayCardMirrors.HowlFromBeyondOnPlay);
+        registry.Register<IAmInvincible>(AutoPlayCardMirrors.IAmInvincibleOnPlay);
+
         registry.Register<FlakCannon>(RandomTargetAttackCardMirrors.FlakCannonOnPlay);
         registry.Register<Ricochet>(RandomTargetAttackCardMirrors.RicochetOnPlay);
         registry.Register<RipAndTear>(RandomTargetAttackCardMirrors.RipAndTearOnPlay);

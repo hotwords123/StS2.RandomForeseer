@@ -20,8 +20,8 @@ Mirror files:
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Implemented for immediate auto-play damage through simulator `AutoPlay` and a targeted `OnPlay` delegate. |
-| `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Implemented for draw-pile selection, play-pile movement, and immediate block gain through simulator `AutoPlayFromDrawPile` and a targeted `OnPlay` delegate. |
+| `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Implemented for immediate auto-play damage through simulator `AutoPlay` and the shared `CardOnPlayMirrors` handler. |
+| `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Implemented for draw-pile selection, play-pile movement, and immediate block gain through simulator `AutoPlayFromDrawPile` and the shared `CardOnPlayMirrors` handler. |
 | `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `Shuffle` RNG and calls generic simulator `AutoPlay`; unsupported generic `OnPlay` bodies are risk-marked, so this remains a partial mirror until individual attack effects or full card-play simulation are supported. |
 
 ## BeforeSideTurnEndVeryEarly listeners
@@ -72,7 +72,7 @@ Mirror files:
   mirrors the player phase-one `BeforeSideTurnEnd` path; phase-two
   `AfterSideTurnEnd` remains outside this prediction surface.
 - Damage handlers inherit current `Damage` post-hook omissions.
-- Autoplay handlers are intentionally incomplete and should stay marked risky until `CombatPredictionSimulator.Execute/AutoPlay` can mirror real card play effects.
+- Generic autoplay coverage remains intentionally incomplete and risk-marks cards whose `OnPlay` behavior has no registered mirror.
 - Current ignored registrations for `Regret` and `DiamondDiadem` are acceptable for the present scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. They should be revisited if prediction expands across that boundary.
 - `RegenPower` is a v0.108.0 ordering-sensitive listener: it heals in `BeforeSideTurnEndEarly`, before `DoomPower`'s normal `BeforeSideTurnEnd` kill check, and the mirror now applies that shadow HP change before Doom is evaluated.
 
