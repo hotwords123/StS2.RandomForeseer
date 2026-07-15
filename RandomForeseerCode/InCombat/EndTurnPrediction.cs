@@ -16,8 +16,8 @@ internal static class EndTurnPrediction
 
         var extraTurnPlayers = CombatManager.Instance.PlayersTakingExtraTurn;
         var playersEndingTurn = extraTurnPlayers.Count > 0
-            ? extraTurnPlayers.ToList()
-            : combatState.Players.ToList();
+            ? extraTurnPlayers
+            : combatState.Players;
 
         var simulator = new CombatPredictionSimulator(combatState);
         simulator.SimulateEndTurnEffects(playersEndingTurn);
@@ -27,14 +27,9 @@ internal static class EndTurnPrediction
 
     public static bool ShouldPredict()
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEndTurnPrediction) ||
-            CombatManager.Instance._state?.CurrentSide != CombatSide.Player ||
-            !CombatManager.Instance.IsInProgress ||
-            RunManager.Instance.ActionQueueSynchronizer.CombatState != ActionSynchronizerCombatState.PlayPhase)
-        {
-            return false;
-        }
-
-        return true;
+        return RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableEndTurnPrediction) &&
+            CombatManager.Instance._state?.CurrentSide is CombatSide.Player &&
+            CombatManager.Instance.IsInProgress &&
+            RunManager.Instance.ActionQueueSynchronizer.CombatState is ActionSynchronizerCombatState.PlayPhase;
     }
 }

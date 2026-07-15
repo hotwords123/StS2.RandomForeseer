@@ -35,10 +35,10 @@ internal static class EndTurnPredictionCreatureHoverTips
                 description.Add("TotalUnblockedDamage", target.TotalUnblockedDamage);
                 description.Add("BlockStatus", GetBlockStatus(target.TotalDamage, target.TotalUnblockedDamage));
                 description.Add("WasTargetKilled", target.WasTargetKilled);
-                description.Add("Lines", target.DamageLines.Select(FormatDamageLine).ToList());
+                description.Add("Lines", [.. target.DamageLines.Select(FormatDamageLine)]);
             });
 
-            TipsByTarget[target.Target] = warningTips.Prepend(detailTip).ToArray();
+            TipsByTarget[target.Target] = [detailTip, .. warningTips];
         }
     }
 

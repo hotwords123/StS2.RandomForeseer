@@ -120,7 +120,7 @@ internal static class EndTurnPredictionController
             DamagePredictionHealthBarForecast.Clear();
         }
 
-        if (RandomForeseerSettings.EndTurnPredictionDisplayMode == EndTurnPredictionDisplayMode.EndTurnButtonHover &&
+        if (RandomForeseerSettings.EndTurnPredictionDisplayMode is EndTurnPredictionDisplayMode.EndTurnButtonHover &&
             _focusedEndTurnButton != null)
         {
             List<IHoverTip> hoverTips = [PredictionHoverTips.Text("end_turn_prediction_indicator")];
