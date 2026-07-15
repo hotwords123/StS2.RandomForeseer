@@ -73,16 +73,7 @@ Mirror files:
 ## Parity notes
 
 - `CombatPredictionSimulator` updates shadow liveness, runs before/after death registries, records shadow creature removal for supported enemy death paths, and mirrors selected player death cleanup in shadow combat state.
-- Prediction omits death animations, so `HookMirrors.AfterDeath` receives a zero
-  `deathAnimLength`; no currently handled listener consumes this presentation-only value.
 - The simulator does not model power cleanup/removal, full creature revive, monster move/state transitions, hook deactivation, or combat loss. Most missing death listeners need those capabilities.
-- `GremlinHorn` mirrors energy and draw. `Melancholy` mutates only matching shadow `PredictedCard` previews and does not mutate the live card.
-- `FairyInABottle` and `LizardTail` use `PredictionStateStore` to avoid mutating live potion/relic used state while still preventing repeated use in the same simulation.
-- `HookMirrors.ShouldDie` preserves first-preventer short-circuiting and rebuilds the listener
-  sequence between the normal and late phases. The two predicate registries return their mirrored
-  bool results, while `AfterPreventingDeath` is dispatched only to the selected preventer if it is
-  still an active listener.
-- Unsupported `ShouldDie` / `ShouldDieLate` listeners are risk-marked rather than fully mirrored; adding one requires both predicate behavior and matching `AfterPreventingDeath` side effects.
 - `HeistPower` and `SwipePower` are intentionally ignored because they only affect combat rewards/deck return, which is outside the current prediction scope.
 
 ## Mock model list

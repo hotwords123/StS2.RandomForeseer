@@ -22,7 +22,6 @@ Mirror file: none. The card-pile simulator currently mutates simulated piles dir
 ## Parity notes
 
 - For combat piles, currently reviewed vanilla listeners are either VFX/music-only or deck-only.
-- The simulator still lacks a general `CardPileCmd.Add` mirror, so future combat-relevant listeners must be registered or risk-marked before this hook can be considered fully covered.
 - `AfterCardChangedPiles` runs before `AfterCardChangedPilesLate` in vanilla. If a future mirror dispatches this hook, it must preserve that order.
 
 ## Mock model list

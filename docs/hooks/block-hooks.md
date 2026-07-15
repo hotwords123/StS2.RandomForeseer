@@ -28,8 +28,7 @@ Mirror files:
 
 ## Parity notes
 
-- `CombatPredictionSimulator.GainBlock` correctly uses original `Hook.ModifyBlock` for read-only amount modifiers, then mirrors `AfterBlockGained` side effects.
-- `JuggernautPower` parity depends on `Damage`; current damage post-hook omissions still apply.
+- None.
 
 ## Mock model list
 

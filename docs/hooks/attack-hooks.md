@@ -78,17 +78,9 @@ between `BeforeAttack` and the per-hit target loop.
 
 ## Current attack simulation gaps
 
-- `CombatPredictionSimulator.ExecuteAttack(AttackCommand)` now resolves targets, consumes cloned `CombatTargets` RNG, calls mirrored attack hooks, calls `Damage`, appends each hit through `AttackCommand.AddResultsInternal`, and records shadow attack history from `AttackCommand.Results`.
-- `HookMirrors` owns listener enumeration for `BeforeAttack`, `ModifyAttackHitCount`, and
-  `AfterAttack`. Each hook rebuilds its listener sequence, matching vanilla and allowing changes from
-  earlier attack stages to affect later stages.
-- Existing direct `Damage` calls still bypass `BeforeAttack`, `ModifyAttackHitCount`, `AfterAttack`, attack result grouping, and attack history. They are suitable for non-attack damage and partial hit previews, not full attack behavior.
 - The simulator records shadow `CreatureAttacked` entries in `CombatPredictionHistory`, but original value hooks and card model methods still read live `CombatManager.Instance.History`, not this shadow history.
-- Original attack hooks must not be called directly during prediction. `VigorPower`, `GigantificationPower`, `Flatten`, `BoneFlute`, `SkittishPower`, and others mutate live power/card/creature state.
-- Target parity covers cloned random targeting, per-hit refresh of shadow living opponents, single-target vs multi-target result shape, and duplicate-disallowed random targeting behavior. If a command has no attacker or no targets configured, the simulator marks risk, logs a warning, and returns no hits instead of throwing, preserving existing hover-risk callers.
 - `CalculatedDamageVar.Calculate(target)` may read live combat state. The simulator calculates the value for parity, but marks the attack source risky.
 - Reviewed vanilla `_beforeDamage` and `_afterAttackerAnim` callbacks are command-local cosmetic effects only: VFX/SFX, waits, screen shake, radial blur, hit stop, and audio-only strength fields. The simulator does not execute them and does not mark risk solely because a vanilla attack command contains these callbacks.
-- Risk attribution assumes the caller has already pushed the attack source. The invalid-command entry checks record unknown risk when no source is active rather than inferring a source from `AttackCommand`; other risk paths still rely on the caller-owned source scope.
 - Attack-scoped power consumption requires shadow power amount/removal support or trigger-scoped risk. Until then, chained attack predictions can overuse live `VigorPower`, `GigantificationPower`, `PenNib`, and similar state.
 - `AttackContext` cards need a separate mirror shape. They share `BeforeAttack`/`AfterAttack`, but their hit generation is card-specific and does not pass through `AttackCommand.Execute`.
 
@@ -96,8 +88,6 @@ between `BeforeAttack` and the per-hit target loop.
 
 1. Add shadow power amount/removal support for `VigorPower`, `GigantificationPower`, and `SuckPower`.
 2. Teach history-dependent value hooks and card logic to read simulator shadow attack/card-play history where prediction chains need it.
-3. Re-review any new vanilla or modded `_beforeDamage` / `_afterAttackerAnim` callbacks used by
-   mirrored card-play attack commands; current reviewed vanilla callbacks are cosmetic-only.
 4. Add separate `AttackContext` mirrors for `EchoingSlash` and `Omnislice` if card-play prediction starts simulating their full attack bodies.
 
 ## Mock model list

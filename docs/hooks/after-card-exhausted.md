@@ -23,11 +23,8 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 
 ## Parity notes
 
-- Non-ethereal `DarkEmbracePower`, `JossPaper`, `FeelNoPainPower`, and `BurningSticks` match the original prediction-relevant state changes.
 - `DrumOfBattle` applies energy gain once per predicted generated play. Play-count modifier state commits are still not mirrored and are surfaced as risk.
-- `CharonsAshes` and `ForgottenSoul` now mirror damage and target RNG, but inherit the current damage post-hook gaps.
 - Ethereal exhaust delayed draws are intentionally not simulated by this draw/exhaust path, because their actual draw timing is in end-turn cleanup.
-- StS2 v0.108.0 added `Midnight`. Its `AfterCardEnteredCombat` initial cost adjustment is a separate combat-entry hook; this document covers only the per-exhaust `AfterCardExhausted` reduction.
 
 ## Mock model list
 

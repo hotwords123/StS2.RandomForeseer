@@ -27,8 +27,6 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 - The simulator adds every card and runs its generation hooks first, then records one grouped
   `CardsGenerated` prediction-history entry for the whole `AddGeneratedCardsToCombat` call.
 - Hook dispatch currently iterates only the live `CombatState` listeners; cards generated only inside the simulator are not included as later hook listeners.
-- `SoulboundPower` recursively generates cards through the simulator and uses prediction-local state rather than mutating the live `IsAddingSoul` flag.
-- `ArsenalPower` remains unsupported because Strength application requires power-state simulation.
 
 ## Mock model list
 

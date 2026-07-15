@@ -36,30 +36,7 @@ behavior, and `InCombat/Mirrors/Hooks/Orb/` for orb-related `AbstractModel` hook
 
 ## Parity notes
 
-- `ThunderPower` and any future orb damage inherit the current damage post-hook omissions.
-- `Metronome` mirrors only prediction state; display/status activation is intentionally not mutated.
-- `OrbMirrors` owns independent exact-type registries for `OrbModel.Passive`,
-  `OrbModel.Evoke`, and `OrbModel.BeforeTurnEndOrbTrigger`. Implementations are grouped by orb type
-  so each orb's passive, evoke, turn trigger, and shared helpers stay together. Unknown overrides
-  use the shared model-method mirror risk handling; the result-producing Evoke registry does not
-  permit ignored registrations.
-- `HookMirrors` owns listener enumeration for the orb hook family. Each hook-name mirror file under
-  `InCombat/Mirrors/Hooks/Orb/` owns its method spec, registry, context, handlers, and hook-local
-  prediction state; simulator callers pass ordinary hook arguments.
-- Turn-end orb queue simulation mirrors `OrbQueue.BeforeTurnEnd` by dispatching the
-  `BeforeTurnEndOrbTrigger` registry. Vanilla Lightning, Frost, Dark, and Glass orbs forward this
-  trigger through `OrbModel.TriggerPassive`; `PlasmaOrb` does not override the method, so the
-  registry treats it as `NotOverridden`.
-- StS2 v0.108.0 moved passive trigger-count handling into `OrbModel.TriggerPassive`.
-  `CombatPredictionSimulator.TriggerOrbPassive` mirrors that helper by applying the count hook and
-  dispatching one passive body per iteration. Turn-end orb overrides call this helper, while direct
-  `OrbPassive` calls still mirror `OrbCmd.Passive(..., countAffectedByHooks: false)`. The original
-  helper's `AfterModifyingOrbPassiveTriggerCount` dispatch is omitted because its only current
-  listener, `GoldPlatedCables`, only flashes the relic.
-- StS2 v0.108.0 made Frost orbs grant passive/evoke block to all players while
-  the owner has `HibernatePower`. `FrostOrbMirrors` preserves owner-first block gain
-  order and returns all player creatures for Frost evoke targets, matching
-  vanilla's `AfterOrbEvoked` target list.
+- StS2 v0.108.0 moved passive trigger-count handling into `OrbModel.TriggerPassive`. `CombatPredictionSimulator.TriggerOrbPassive` mirrors that helper by applying the count hook and dispatching one passive body per iteration. Turn-end orb overrides call this helper, while direct `OrbPassive` calls still mirror `OrbCmd.Passive(..., countAffectedByHooks: false)`. The original helper's `AfterModifyingOrbPassiveTriggerCount` dispatch is omitted because its only current listener, `GoldPlatedCables`, only flashes the relic.
 
 ## Mock model list
 

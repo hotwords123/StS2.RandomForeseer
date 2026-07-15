@@ -61,20 +61,8 @@ Mirror files:
 
 ## Parity notes
 
-- `HookMirrors.BeforeSideTurnEnd` preserves the vanilla VeryEarly → Early → Normal phase order and
-  rebuilds the combat listener sequence at the start of each phase. Listener changes caused by an
-  earlier phase therefore affect later phases. `AfterAutoPostPlayPhaseEnteredMirrors` and
-  `BeforeSideTurnEndMirrors` own their exact model registrations, contexts, and handlers, while
-  cross-phase Orichalcum behavior and prediction-local state live in `OrichalcumMirrors`.
-- End-turn block and all-enemy damage handlers are consistent with original predicates, aside from VFX/SFX/status UI.
-- StS2 v0.108.0 renamed the side-wide turn-end hooks from `BeforeTurnEnd` /
-  `AfterTurnEnd` to `BeforeSideTurnEnd` / `AfterSideTurnEnd`. The simulator
-  mirrors the player phase-one `BeforeSideTurnEnd` path; phase-two
-  `AfterSideTurnEnd` remains outside this prediction surface.
-- Damage handlers inherit current `Damage` post-hook omissions.
-- Generic autoplay coverage remains intentionally incomplete and risk-marks cards whose `OnPlay` behavior has no registered mirror.
+- StS2 v0.108.0 renamed the side-wide turn-end hooks from `BeforeTurnEnd` / `AfterTurnEnd` to `BeforeSideTurnEnd` / `AfterSideTurnEnd`. The simulator mirrors the player phase-one `BeforeSideTurnEnd` path; phase-two `AfterSideTurnEnd` remains outside this prediction surface.
 - Current ignored registrations for `Regret` and `DiamondDiadem` are acceptable for the present scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. They should be revisited if prediction expands across that boundary.
-- `RegenPower` is a v0.108.0 ordering-sensitive listener: it heals in `BeforeSideTurnEndEarly`, before `DoomPower`'s normal `BeforeSideTurnEnd` kill check, and the mirror now applies that shadow HP change before Doom is evaluated.
 
 ## Mock model list
 

@@ -33,16 +33,7 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 
 ## Parity notes
 
-- Implemented cost/draw/affliction/card-stat/energy handlers match the original gameplay predicates and use prediction-local state where the original would mutate model fields.
-- `HookMirrors.AfterCardDrawn` rebuilds the listener sequence between Early and Normal, matching
-  vanilla when an Early listener changes the active listener set.
 - Simulator draw calls `CombatPredictionHistory.CardDrawn` before dispatching mirrored `AfterCardDrawn` hooks, matching vanilla history timing for listeners that inspect cards drawn this turn, then completes the entry after those hooks so its risk checkpoint covers changes to the drawn preview card.
-- History-dependent draw and affliction predicates combine live combat history with simulator history, so prediction paths can account for events that happened before the preview and events produced inside the preview.
-- `CorrosiveWavePower` is not implementable under the current rule because it applies powers.
-- `CacophonyPower` uses the live counter as the initial shadow value and resets to the canonical card threshold after a simulated trigger, avoiding a hard-coded 33 if vanilla changes that value later.
-- `HellraiserPower` initializes its infinite-target autoplay counter from model internal data. It
-  mirrors vanilla increment/reset and cap ordering against shadow `HpDisplay`; status messages,
-  presentation-only attack customization, and the model's temporary autoplay-card set are omitted.
 
 ## Mock model list
 

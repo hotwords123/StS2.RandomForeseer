@@ -92,10 +92,7 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 
 ## Parity notes
 
-- `CombatPredictionSimulator.Damage` already mirrors the value path with original `Hook.ModifyDamage`, `Hook.ModifyHpLost`, and `Hook.ModifyUnblockedDamageTarget`; those are treated as read-only.
-- Each simulated result is recorded through `CombatPredictionHistory.DamageReceived`; damage output risk uses the maximum checkpoint recorded alongside the consumed damage entries, so later unrelated simulation risk does not taint an already determined result.
 - `CombatPredictionSimulator.Heal` mirrors `CreatureCmd.Heal`'s shadow HP change and positive-delta `AfterCurrentHpChanged` dispatch. It intentionally omits heal VFX/SFX, map-point healing history, waits, and player hook activation on revive.
-- `AfterDamageGiven` and `AfterDamageReceived` now mirror direct current-turn side effects that can be expressed without live model mutation and mark reviewed unsupported effects risky only when their original trigger predicates match.
 - `AfterDamageGiven` listeners that only affect achievements, later monster behavior, or max HP state not consumed by current hover predictions are registered ignored instead of surfaced as risk.
 - The remaining post-result mirrors are surfaced as risk only when their trigger conditions can affect the current player-turn prediction surface.
 - Not implementable without architecture changes: Apply/Remove Power, summon, revive, monster move/state transitions, max HP loss, and combat removal. This includes StS2 v0.108.0 `ConcoctPower` and `UnderworldPower` until prediction owns power application.

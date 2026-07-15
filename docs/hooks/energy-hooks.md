@@ -34,6 +34,4 @@ Mirror files: `InCombat/Simulation/SimPlayerCombatState.cs`, `InCombat/Simulatio
 
 ## Parity notes
 
-- Energy/star spending, card-play `ResourceInfo`, and turn-start energy reset are still outside full card-play simulation.
-- X-value previews that are owned by the simulator should read `SimPlayerCombatState.Energy` rather than live `PlayerCombatState.Energy`.
-- If vanilla adds an `AfterModifyingEnergyGain` listener with prediction-relevant state, add an exact mirror instead of continuing to rely on the current no-op assumption.
+- None.

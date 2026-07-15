@@ -162,11 +162,7 @@ Current mirror status: `AfterModifyingHpLostAfterOsty` is dispatched only to the
 - The simulator intentionally uses the original `Hook.Modify*` value path because vanilla previews also use these hooks without mutating RNG.
 - StS2 v0.108.0 added `CardPlay?` to damage modifiers. Real card execution passes the active `CardPlay`; hover forecasts and other vanilla previews pass `null`. The simulator forwards `AttackCommand.CardPlay` through `ExecuteAttack(AttackCommand)` for simulated card-play/autoplay attacks, but direct `Damage` calls and helper-created attacks without a `CardPlay` still pass `null`.
 - Direct original hook calls read live model state. History-dependent listeners such as `LethalityPower` and `PhantomBladesPower` do not read simulator shadow history, so chained simulated card plays or auto-plays can drift until those powers get targeted mirrors.
-- Attack-command scoped listeners such as `VigorPower`, `GigantificationPower`, and `PenNib` rely on live `BeforeAttack`/`BeforeCardPlayed`/`AfterAttack` state. `CombatPredictionSimulator.ExecuteAttack(AttackCommand)` now mirrors the attack lifecycle around per-hit `Damage`, but direct simulator `Damage` calls still bypass that lifecycle, and original value hooks still read live power/history state until targeted shadow-state mirrors exist. See `attack-hooks.md`.
-- `AfterModifyingHpLostAfterOstyMirrors` explicitly registers the reviewed vanilla listeners. Add
-  new exact registrations if vanilla gains more after-modifying listeners.
 - Missing shadow state for `BufferPower` is the only currently known `AfterModifying*` hook with immediate prediction-relevant state; it is surfaced as risk instead of silently diverging.
-- `HardenedShellPower`, `BeatingRemnant`, and `SlipperyPower` rely on damage post hooks to update counters or decrement powers after HP loss; those are tracked in `damage-hooks.md`, not in this modifier document.
 
 ## Mock model list
 

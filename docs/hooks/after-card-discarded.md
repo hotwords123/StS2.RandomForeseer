@@ -16,8 +16,7 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 
 ## Parity notes
 
-- `ToughBandages` is consistent with original logic, except VFX/flash are intentionally omitted.
-- Random target selection uses `State.HittableEnemies` with cloned `CombatTargets`, matching vanilla `CombatState.HittableEnemies`.
+- None.
 
 ## Mock model list
 
