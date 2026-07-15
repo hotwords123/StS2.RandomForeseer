@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
@@ -30,6 +31,64 @@ internal static class CardSelectionCardMirrors
 
         context.Simulator.History.CardsSelected(cardsToAdd, context.OriginalCard);
         context.Simulator.AddToPile(cardsToAdd, PileType.Hand);
+    }
+
+    public static void BeatDownOnPlay(BeatDown card, CardOnPlayMirrorContext context)
+    {
+        var selectedCards = context.OwnerState.DiscardPile.Cards
+            .Where(predictedCard =>
+                predictedCard.Preview.Type == CardType.Attack &&
+                !predictedCard.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
+            .ToList()
+            .StableShuffle(context.Rng.Shuffle)
+            .Take(card.DynamicVars.Cards.IntValue)
+            .ToList();
+        if (selectedCards.Count == 0)
+        {
+            return;
+        }
+
+        context.Simulator.History.CardsSelected(selectedCards, context.OriginalCard);
+
+        foreach (var selectedCard in selectedCards)
+        {
+            Creature? target = null;
+            if (selectedCard.Preview.TargetType == TargetType.AnyEnemy)
+            {
+                // BeatDown.OnPlay resolves this target before CardCmd.AutoPlay checks whether the
+                // selected card can play, so preserve that CombatTargets RNG consumption order.
+                target = context.Rng.CombatTargets.NextItem(context.State.HittableEnemies);
+            }
+
+            context.Simulator.AutoPlay(selectedCard, target);
+        }
+    }
+
+    public static void CatastropheOnPlay(Catastrophe card, CardOnPlayMirrorContext context)
+    {
+        for (var i = 0; i < card.DynamicVars.Cards.IntValue; i++)
+        {
+            var drawPileCards = context.OwnerState.DrawPile.Cards;
+            var selectedCard = drawPileCards
+                .Where(predictedCard =>
+                    !predictedCard.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
+                .ToList()
+                .StableShuffle(context.Rng.Shuffle)
+                .FirstOrDefault();
+
+            selectedCard ??= drawPileCards
+                .ToList()
+                .StableShuffle(context.Rng.Shuffle)
+                .FirstOrDefault();
+
+            if (selectedCard is null)
+            {
+                break;
+            }
+
+            context.Simulator.History.CardsSelected([selectedCard], context.OriginalCard);
+            context.Simulator.AutoPlay(selectedCard);
+        }
     }
 
     public static void CinderOnPlay(Cinder card, CardOnPlayMirrorContext context)

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 战斗随机选牌预测现在支持横祸和狠揍。<br>
+  Combat card selection prediction now supports Catastrophe and Beat Down.
+
 ### fix
 
 - 优化变牌预测提示及随机印牌、随机选牌和洗牌后牌序预测的设置文案，使预测范围和展示方式更清晰。<br>

@@ -42,6 +42,8 @@ internal static class CombatCardSelectionPrediction
     {
         return card is
             Anointed or
+            BeatDown or
+            Catastrophe or
             Cinder or
             DrainPower or
             HiddenGem or

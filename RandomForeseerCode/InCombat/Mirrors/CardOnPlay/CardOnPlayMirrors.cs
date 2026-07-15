@@ -78,6 +78,8 @@ internal static class CardOnPlayMirrors
         registry.Register<Zap>(OrbCardMirrors.ZapOnPlay);
 
         registry.Register<Anointed>(CardSelectionCardMirrors.AnointedOnPlay);
+        registry.Register<BeatDown>(CardSelectionCardMirrors.BeatDownOnPlay);
+        registry.Register<Catastrophe>(CardSelectionCardMirrors.CatastropheOnPlay);
         registry.Register<Cinder>(CardSelectionCardMirrors.CinderOnPlay);
         registry.Register<DrainPower>(CardSelectionCardMirrors.DrainPowerOnPlay);
         registry.Register<HiddenGem>(CardSelectionCardMirrors.HiddenGemOnPlay);

@@ -89,6 +89,8 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 - 天选（Anointed）
 - 探寻打击（Seeker Strike，显示随机候选）
 - 骚动（Uproar）
+- 横祸（Catastrophe）
+- 狠揍（Beat Down）
 
 ### 随机目标攻击
 

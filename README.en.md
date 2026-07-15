@@ -89,6 +89,8 @@ Each feature can be toggled independently from the mod settings page, and predic
 - Anointed
 - Seeker Strike (random candidates)
 - Uproar
+- Catastrophe
+- Beat Down
 
 ### Random-Target Attacks
 
