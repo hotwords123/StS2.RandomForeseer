@@ -9,8 +9,6 @@ using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.CardOnPlay;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal delegate void OnPlayDelegate(PredictedCard card, CardPlay cardPlay);
-
 internal sealed partial class CombatPredictionSimulator
 {
     private delegate (PileType PileType, CardPilePosition Position)
@@ -112,7 +110,7 @@ internal sealed partial class CombatPredictionSimulator
 
     // Mirrors PlayCardAction.ExecuteAction. This is the main entry point for simulating a card play.
     // Note: Resources, ShouldPlay hooks and IsPlayable checks are not simulated here.
-    public void ManualPlay(PredictedCard card, Creature? target, OnPlayDelegate? onPlay = null)
+    public void ManualPlay(PredictedCard card, Creature? target)
     {
         if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
             !card.Preview.IsValidTarget(target))
@@ -121,7 +119,7 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         var resources = SpendResources(card, isAutoPlay: false);
-        OnPlayWrapper(card, target, isAutoPlay: false, resources, onPlay);
+        OnPlayWrapper(card, target, isAutoPlay: false, resources);
     }
 
     // Mirrors CardModel.SpendResources, but returns ResourceInfo instead of (int, int) for convenience.
@@ -189,8 +187,7 @@ internal sealed partial class CombatPredictionSimulator
         PredictedCard card,
         Creature? target,
         bool isAutoPlay,
-        ResourceInfo resources,
-        OnPlayDelegate? onPlay)
+        ResourceInfo resources)
     {
         using var _ = PushSource(card.Original);
 
@@ -250,14 +247,7 @@ internal sealed partial class CombatPredictionSimulator
             // TODO: Dispatch BeforeCardPlayed hooks
             // TODO: Record CardPlayStarted history
 
-            if (onPlay is null)
-            {
-                CardOnPlayMirrors.Invoke(this, card, cardPlay);
-            }
-            else
-            {
-                onPlay(card, cardPlay);
-            }
+            CardOnPlayMirrors.Invoke(this, card, cardPlay);
 
             if (ownerCreature.IsDead)
             {

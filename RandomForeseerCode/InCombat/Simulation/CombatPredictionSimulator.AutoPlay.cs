@@ -13,8 +13,7 @@ internal sealed partial class CombatPredictionSimulator
         PredictedCard card,
         Creature? target = null,
         AutoPlayType type = AutoPlayType.Default,
-        bool skipXCapture = false,
-        OnPlayDelegate? onPlay = null)
+        bool skipXCapture = false)
     {
         if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
             !Hook.ShouldPlay(State.CombatState, card.Preview, out var _, type) ||
@@ -31,17 +30,16 @@ internal sealed partial class CombatPredictionSimulator
 
         // TODO: Dispatch Hook.BeforeCardAutoPlayed
         var resources = SpendResources(card, isAutoPlay: true, skipXCapture);
-        OnPlayWrapper(card, target, isAutoPlay: true, resources, onPlay);
+        OnPlayWrapper(card, target, isAutoPlay: true, resources);
     }
 
     // Mirrors CardPileCmd.AutoPlayFromDrawPile through selecting cards and moving them to
-    // the play pile. Actual card autoplay is still a risk marker in AutoPlay.
+    // the play pile, then runs each card through the shared AutoPlay path.
     public void AutoPlayFromDrawPile(
         Player player,
         int count,
         CardPilePosition position,
-        bool forceExhaust = false,
-        OnPlayDelegate? onPlay = null)
+        bool forceExhaust = false)
     {
         foreach (var card in MoveCardsForAutoPlay(player, count, position))
         {
@@ -51,7 +49,7 @@ internal sealed partial class CombatPredictionSimulator
             }
 
             card.MutablePreview.ExhaustOnNextPlay = forceExhaust;
-            AutoPlay(card, onPlay: onPlay);
+            AutoPlay(card);
         }
     }
 
