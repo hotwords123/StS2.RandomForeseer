@@ -116,7 +116,8 @@ internal static class PredictionCardHoverTipBundleFactory
         for (var i = 0; i < cards.Count; i++)
         {
             var cardNode = CreateAndAddCardTipControl(stack, cards[i]);
-            var offset = new Vector2(-1f, 1f) * BundleCardSeparation * (i - cards.Count / 2f) * BundleCardScale;
+            var centerIndex = (cards.Count - 1) / 2f;
+            var offset = new Vector2(-1f, 1f) * BundleCardSeparation * (i - centerIndex) * BundleCardScale;
             cardNode.Scale = Vector2.One * BundleCardScale;
             cardNode.Position = offset;
 

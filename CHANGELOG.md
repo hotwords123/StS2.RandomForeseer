@@ -9,6 +9,9 @@
 
 ### fix
 
+- 修复由单张牌组成的多组卡牌预测之间间距过大的问题。<br>
+  Fixed excessive spacing between multiple card prediction bundles containing one card each.
+
 - 优化变牌预测提示及随机印牌、随机选牌和洗牌后牌序预测的设置文案，使预测范围和展示方式更清晰。<br>
   Improved transform prediction tips and settings text for random card generation, random card selection, and post-shuffle draw order predictions to clarify their scope and presentation.
 
