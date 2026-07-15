@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Random;
 
 namespace RandomForeseer.RandomForeseerCode.Common;
@@ -22,21 +21,6 @@ internal static class PredictionUtils
         clone._random._s2 = rng._random._s2;
         clone._random._s3 = rng._random._s3;
         return clone;
-    }
-
-    public static IEnumerable<CardModel> GetUnlockedCards(Player player, CardPoolModel cardPool)
-    {
-        return cardPool.GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
-    }
-
-    public static IEnumerable<CardModel> GetUnlockedCharacterCards(Player player)
-    {
-        return GetUnlockedCards(player, player.Character.CardPool);
-    }
-
-    public static IEnumerable<CardModel> GetUnlockedColorlessCards(Player player)
-    {
-        return GetUnlockedCards(player, ModelDb.CardPool<ColorlessCardPool>());
     }
 
     public static CardModel CreateCard(CardModel card, Player player)

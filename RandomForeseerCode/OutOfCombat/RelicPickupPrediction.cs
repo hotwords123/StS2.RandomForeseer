@@ -303,7 +303,7 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<CardModel> PredictCurses(RunPredictionContext context, int count)
     {
-        var availableCurses = PredictionUtils.GetUnlockedCards(context.Player, ModelDb.CardPool<CurseCardPool>())
+        var availableCurses = context.Player.GetUnlockedCurseCards()
             .Where(card => card.CanBeGeneratedByModifiers)
             .OrderBy(card => card.Id)
             .ToList();

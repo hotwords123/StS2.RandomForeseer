@@ -2,7 +2,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Random;
 using RandomForeseer.RandomForeseerCode.Common;
 
@@ -10,21 +9,6 @@ namespace RandomForeseer.RandomForeseerCode.InCombat;
 
 internal static class CombatCardGenerationExtensions
 {
-    public static IEnumerable<CardModel> GetUnlockedCards(this Player player, CardPoolModel cardPool)
-    {
-        return cardPool.GetUnlockedCards(player.UnlockState, player.RunState.CardMultiplayerConstraint);
-    }
-
-    public static IEnumerable<CardModel> GetUnlockedCharacterCards(this Player player)
-    {
-        return player.GetUnlockedCards(player.Character.CardPool);
-    }
-
-    public static IEnumerable<CardModel> GetUnlockedColorlessCards(this Player player)
-    {
-        return player.GetUnlockedCards(ModelDb.CardPool<ColorlessCardPool>());
-    }
-
     public static IEnumerable<CardModel> FilterForCombatAndPlayerCount(
         this IEnumerable<CardModel> cards,
         Player player)
