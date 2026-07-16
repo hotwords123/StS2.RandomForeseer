@@ -30,6 +30,8 @@
 - `CombatPredictionHistory` stores simulator events in one ordered timeline and records the current
   risk checkpoint at the same list position. Entry handles may move that checkpoint past deferred
   processing; consumers use the maximum checkpoint among relevant entries instead of end-of-simulation risk.
+  It also maintains exact entry-type counts so simulator safety limits can be checked without repeatedly
+  scanning the full history.
 
 ## Related docs
 

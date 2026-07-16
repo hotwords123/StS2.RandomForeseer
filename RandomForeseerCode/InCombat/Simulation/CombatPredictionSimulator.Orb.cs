@@ -8,6 +8,8 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
+    private const int MaxSimulatedChanneledOrbs = 1000;
+
     // Mirrors OrbQueue.BeforeTurnEnd without waits, real queue mutation, or async hook execution.
     private void SimulateOrbQueueBeforeTurnEnd(Player player)
     {
@@ -35,13 +37,22 @@ internal sealed partial class CombatPredictionSimulator
     {
         for (var i = 0; i < count; i++)
         {
-            OrbChannel(player, ModelDb.Orb<T>().ToMutable());
+            if (!OrbChannel(player, ModelDb.Orb<T>().ToMutable()))
+            {
+                break;
+            }
         }
     }
 
     // Mirrors OrbCmd.Channel without VFX/SFX, waits, real queue mutation, or async hook execution.
     public bool OrbChannel(Player player, OrbModel orb)
     {
+        if (History.Count<CombatPredictionOrbChanneledEntry>() >= MaxSimulatedChanneledOrbs)
+        {
+            MarkCurrentSourceRisky();
+            return false;
+        }
+
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
         if (player.Character.BaseOrbSlotCount == 0 && orbQueue.Capacity == 0)
         {

@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -14,6 +15,7 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
 {
     private readonly List<CombatPredictionHistoryEntry> _entries = [];
     private readonly List<PredictionRiskCheckpoint> _riskCheckpoints = [];
+    private readonly Dictionary<Type, int> _entryCounts = [];
 
     public IReadOnlyList<CombatPredictionHistoryEntry> Entries => _entries;
 
@@ -21,6 +23,12 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         where TEntry : CombatPredictionHistoryEntry
     {
         return _entries.OfType<TEntry>();
+    }
+
+    public int Count<TEntry>()
+        where TEntry : CombatPredictionHistoryEntry
+    {
+        return _entryCounts.TryGetValue(typeof(TEntry), out var count) ? count : 0;
     }
 
     public PredictionRisk GetRisk(IReadOnlyList<CombatPredictionHistoryEntry> entries)
@@ -140,6 +148,7 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
 
         _entries.Add(entry);
         _riskCheckpoints.Add(riskTracker.Checkpoint);
+        CollectionsMarshal.GetValueRefOrAddDefault(_entryCounts, entry.GetType(), out _)++;
         return new EntryHandle(this, entry.Index);
     }
 

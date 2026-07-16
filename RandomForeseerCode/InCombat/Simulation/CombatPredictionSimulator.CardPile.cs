@@ -10,7 +10,7 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
-    private const int MaxSimulatedDraws = 10;
+    private const int MaxSimulatedDraws = 100;
 
     // Mirrors CardPileCmd.Draw.
     public void Draw(Player player, int drawCount, bool fromHandDraw = false)
@@ -35,7 +35,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors the body of the draw loop in CardPileCmd.Draw.
     private bool DrawOne(Player player, bool fromHandDraw)
     {
-        if (History.OfType<CombatPredictionCardDrawnEntry>().Count() >= MaxSimulatedDraws)
+        if (History.Count<CombatPredictionCardDrawnEntry>() >= MaxSimulatedDraws)
         {
             _riskTracker.AddUnknown();
             return false;

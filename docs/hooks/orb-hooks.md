@@ -37,6 +37,7 @@ behavior, and `InCombat/Mirrors/Hooks/Orb/` for orb-related `AbstractModel` hook
 ## Parity notes
 
 - StS2 v0.108.0 moved passive trigger-count handling into `OrbModel.TriggerPassive`. `CombatPredictionSimulator.TriggerOrbPassive` mirrors that helper by applying the count hook and dispatching one passive body per iteration. Turn-end orb overrides call this helper, while direct `OrbPassive` calls still mirror `OrbCmd.Passive(..., countAffectedByHooks: false)`. The original helper's `AfterModifyingOrbPassiveTriggerCount` dispatch is omitted because its only current listener, `GoldPlatedCables`, only flashes the relic.
+- A single simulation records at most 1000 successfully channeled orbs. Further channel attempts return `false` before queue mutation or hook dispatch and mark the current prediction source risky, preventing recursive channel and evoke effects from growing without bound.
 
 ## Mock model list
 
