@@ -200,8 +200,7 @@ internal sealed partial class CombatPredictionSimulator
                 damageResult.Receiver,
                 dealer,
                 damageResult,
-                cardSource,
-                _sourceStack.Current ?? cardSource?.Original);
+                cardSource);
         }
 
         return damageResults;

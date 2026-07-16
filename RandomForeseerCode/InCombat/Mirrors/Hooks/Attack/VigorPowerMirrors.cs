@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Attack;
 
@@ -22,7 +23,7 @@ internal static class VigorPowerMirrors
         if (context.Command == state.CommandToModify)
         {
             // Vanilla does not clear the command to modify here, which may be a bug.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 

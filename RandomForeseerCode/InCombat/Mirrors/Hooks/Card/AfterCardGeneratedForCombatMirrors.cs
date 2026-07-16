@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
@@ -59,7 +60,7 @@ internal static class AfterCardGeneratedForCombatMirrors
         // current state domain, so this remains a risk marker.
         if (context.Creator?.Creature == power.Owner)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 

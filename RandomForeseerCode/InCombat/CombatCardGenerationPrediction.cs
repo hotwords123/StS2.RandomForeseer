@@ -54,7 +54,7 @@ internal static class CombatCardGenerationPrediction
         [
             ..simulator.History
                 .OfType<CombatPredictionCardGeneratedEntry>()
-                .Where(entry => ReferenceEquals(entry.SourceModel, card))
+                .Where(entry => ReferenceEquals(entry.Trace?.Source, card))
                 .Select(entry =>
                 {
                     var resolved = simulator.History.GetResolvedEntry<CombatPredictionCardGenerationResolvedEntry>(entry);
@@ -62,7 +62,7 @@ internal static class CombatCardGenerationPrediction
                 }),
             ..simulator.History
                 .OfType<CombatPredictionCardGenerationOptionsEntry>()
-                .Where(entry => ReferenceEquals(entry.SourceModel, card))
+                .Where(entry => ReferenceEquals(entry.Trace?.Source, card))
                 .Select(entry => (entry.Index, entry.Cards, entry))
         ];
         entries.Sort(static (left, right) => left.Index.CompareTo(right.Index));

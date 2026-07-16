@@ -58,7 +58,7 @@ internal static class AfterDamageGivenMirrors
             context.Result.UnblockedDamage > 0)
         {
             // TODO: Mirror vanilla v0.108.0 ConcoctPower by applying Poison in prediction state.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -68,7 +68,7 @@ internal static class AfterDamageGivenMirrors
             context.Props.IsPoweredAttack() &&
             context.Result.UnblockedDamage > 0)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -78,7 +78,7 @@ internal static class AfterDamageGivenMirrors
             !context.Target.IsPlayer &&
             context.Result.WasBlockBroken)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -86,7 +86,7 @@ internal static class AfterDamageGivenMirrors
     {
         if (context.Dealer == power.Owner && context.Props.IsPoweredAttack())
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -97,7 +97,7 @@ internal static class AfterDamageGivenMirrors
             context.Props.IsPoweredAttack() &&
             context.Result.TotalDamage > 0)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -108,7 +108,7 @@ internal static class AfterDamageGivenMirrors
             osty.Creature.PetOwner?.Creature == power.Applier &&
             context.Target == power.Owner)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -121,7 +121,7 @@ internal static class AfterDamageGivenMirrors
             context.Result.TotalDamage > 0)
         {
             // TODO: Mirror vanilla v0.108.0 UnderworldPower by applying Doom in prediction state.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 }

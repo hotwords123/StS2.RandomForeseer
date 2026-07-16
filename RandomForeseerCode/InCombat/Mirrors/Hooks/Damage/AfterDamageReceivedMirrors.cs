@@ -88,7 +88,7 @@ internal static class AfterDamageReceivedMirrors
         if (context.Target == relic.Owner.Creature && context.Result.UnblockedDamage > 0)
         {
             // TODO: Track the amount of unblocked damage taken by the owner this turn.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -111,7 +111,7 @@ internal static class AfterDamageReceivedMirrors
     {
         if (context.Target == power.Owner && context.Props.IsPoweredAttack() && context.Source is not null)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -144,7 +144,7 @@ internal static class AfterDamageReceivedMirrors
             context.Result.UnblockedDamage != 0 &&
             context.Props.IsPoweredAttack())
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -153,7 +153,7 @@ internal static class AfterDamageReceivedMirrors
         if (context.Target == power.Owner && context.Result.UnblockedDamage > 0)
         {
             // TODO: Track the amount of unblocked damage taken by the owner this turn.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -206,7 +206,7 @@ internal static class AfterDamageReceivedMirrors
             context.Result.UnblockedDamage > 0 &&
             context.CombatState.CurrentSide == power.Owner.Side)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -223,7 +223,7 @@ internal static class AfterDamageReceivedMirrors
         if (context.Target == power.Owner && context.Result.UnblockedDamage >= 1)
         {
             // TODO: Mirror the power amount decrement in prediction state.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 
@@ -234,7 +234,7 @@ internal static class AfterDamageReceivedMirrors
             context.Result.UnblockedDamage > 0)
         {
             // TODO: Vanilla removes the power here.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
             context.Simulator.Kill(power.Owner);
         }
     }

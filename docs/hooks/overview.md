@@ -8,31 +8,17 @@
 - Do not simulate VFX, SFX, waits, achievement unlocks, or effects that cannot occur during the current player-turn prediction surface.
 - Treat Apply Power, Remove Power, summon, revive, monster move/state changes, combat removal, player death, and max HP mutation as unsupported until the simulator owns those state domains.
 - Use `PredictionStateStore` for model-local counters/flags instead of mutating live model fields.
-- If a listener has any unmodeled prediction-relevant side effect, mark the current source risky instead of silently ignoring it.
+- If a listener has any unmodeled prediction-relevant side effect, append an explicit `CombatPredictionRiskReason` to prediction history instead of silently ignoring it.
 - Keep Mock models out of implementation/ignore registries; list them only in docs.
 
 ## Mirror registry architecture
 
-- `Common/Mirrors/ModelMethodMirrorRegistry.cs` handles single-model virtual-method dispatch: exact
-  model-type registration, override detection, lookup caching, source scoping, and unsupported-risk
-  marking. Action registries may explicitly ignore reviewed overrides; result registries require a
-  handler that supplies the return value.
-- `HookMirrors` facades own hook-level control flow, including context construction, listener
-  enumeration, phase refresh, short-circuiting, result chaining, and only-modifier dispatch. The
-  registry only dispatches one listener at a time.
-- Hook mirrors are grouped first by domain and then by hook name under `Mirrors/Hooks/`. Each
-  hook-name file owns its method specification, registry, context, handlers, and hook-local state;
-  state or behavior shared by multiple hooks may use a separate model-centric file.
-- Combat and out-of-combat code have independent `HookMirrors` facades but share the registry
-  infrastructure. Mirrored model behavior that is not a hook, such as orb virtual methods and
-  `CardModel.OnPlay`, lives in its model domain under `Mirrors/` and follows the same
-  facade/registry split.
-- `CombatPredictionHistory` stores simulator events in one ordered timeline and records the current
-  risk checkpoint at the same list position. Deferred card draws and individual generated cards append
-  separate started and resolved entries; consumers use started order, resolved snapshots, and the
-  maximum resolved checkpoint instead of end-of-simulation risk. A reference-identity completion
-  index rejects unresolved, duplicate, and cross-history completion. History also maintains exact
-  entry-type counts so simulator safety limits can be checked without repeatedly scanning the full history.
+- `Common/Mirrors/ModelMethodMirrorRegistry.cs` handles single-model virtual-method dispatch: exact model-type registration, override detection, lookup caching, linked trace scoping, and unsupported-risk recording. Each dispatch frame stores the mapped source model and mirrored base method. Action registries may explicitly ignore reviewed overrides; result registries require a handler that supplies the return value.
+- `IPredictionMirrorContext<TBase>` is a dispatcher-only contract. Combat contexts explicitly map ordinary listeners to the listener, orb receivers to the shadow orb, and `CardModel.OnPlay` receivers to the original card rather than its detached mutable preview. Typed handlers use the context's `History` alias for explicit risk reasons.
+- `HookMirrors` facades own hook-level control flow, including context construction, listener enumeration, phase refresh, short-circuiting, result chaining, and only-modifier dispatch. The registry only dispatches one listener at a time.
+- Hook mirrors are grouped first by domain and then by hook name under `Mirrors/Hooks/`. Each hook-name file owns its method specification, registry, context, handlers, and hook-local state; state or behavior shared by multiple hooks may use a separate model-centric file.
+- Combat and out-of-combat code have independent `HookMirrors` facades but share the registry infrastructure. Mirrored model behavior that is not a hook, such as orb virtual methods and `CardModel.OnPlay`, lives in its model domain under `Mirrors/` and follows the same facade/registry split.
+- `CombatPredictionHistory` stores semantic events, resolved events, and explicit risk events in one ordered timeline. Entries recorded within a prediction source scope capture its current immutable trace frame; source-less operations may record entries with no trace. Deferred card draws and individual generated cards append separate original and resolved entries; consumers use original order, resolved snapshots, and the maximum resolved timeline position. A reference-identity completion index rejects unresolved, duplicate, and cross-history completion. History also maintains exact entry-type counts so simulator safety limits can be checked without repeatedly scanning the full history.
 
 ## Related docs
 

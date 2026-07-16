@@ -33,7 +33,7 @@ internal static class OrbPrediction
         {
             var channeledOrbs = simulator.History
                 .OfType<CombatPredictionOrbChanneledEntry>()
-                .Where(entry => ReferenceEquals(entry.SourceModel, card))
+                .Where(entry => ReferenceEquals(entry.Trace?.Source, card))
                 .Select(entry => entry.Orb);
             extraTips.AddRange(PredictionHoverTips.Orbs(channeledOrbs));
         }

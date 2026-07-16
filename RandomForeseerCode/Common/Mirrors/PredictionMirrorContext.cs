@@ -3,7 +3,7 @@ namespace RandomForeseer.RandomForeseerCode.Common.Mirrors;
 internal interface IPredictionMirrorContext<in TBase>
     where TBase : class
 {
-    IDisposable PushSource(TBase receiver);
+    IDisposable PushDispatchSource(TBase receiver, MirrorMethodSpec method);
 
-    void MarkCurrentSourceRisky();
+    void RecordMethodNotMirroredRisk();
 }

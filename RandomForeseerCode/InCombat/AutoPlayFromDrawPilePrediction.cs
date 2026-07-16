@@ -1,5 +1,4 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -40,17 +39,21 @@ internal static class AutoPlayFromDrawPilePrediction
             _ => 0
         };
 
-        return Predict(potion.Owner, count).ToHoverTips();
+        return Predict(potion, count).ToHoverTips();
     }
 
-    private static DrawPilePredictionResult Predict(Player player, int count)
+    private static DrawPilePredictionResult Predict(PotionModel potion, int count)
     {
-        if (count <= 0 || !CombatPredictionSimulator.TryCreate(player, out var simulator))
+        if (count <= 0 || !CombatPredictionSimulator.TryCreate(potion.Owner, out var simulator))
         {
             return DrawPilePredictionResult.Empty;
         }
 
-        simulator.AutoPlayFromDrawPile(player, count, CardPilePosition.Top);
+        using (simulator.PushActionSource(potion, PredictionActionKind.PotionUse))
+        {
+            simulator.AutoPlayFromDrawPile(potion.Owner, count, CardPilePosition.Top);
+        }
+
         return DrawPilePredictionResult.FromAutoPlayHistory(simulator);
     }
 }

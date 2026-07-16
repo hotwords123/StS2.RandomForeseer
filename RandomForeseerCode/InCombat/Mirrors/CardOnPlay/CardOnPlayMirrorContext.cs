@@ -10,9 +10,6 @@ internal sealed class CardOnPlayMirrorContext : CombatPredictionCardMirrorContex
 
     public SimPlayerCombatState OwnerState => State.GetPlayerCombatState(PreviewCard.Owner);
 
-    // Registry risk belongs to the card that caused the prediction, not its detached mutable preview.
-    public override IDisposable PushSource(CardModel _)
-    {
-        return Simulator.PushSource(OriginalCard);
-    }
+    // The dispatch trace belongs to the card that caused the prediction, not its detached mutable preview.
+    protected override AbstractModel GetDispatchSource(CardModel _) => OriginalCard;
 }

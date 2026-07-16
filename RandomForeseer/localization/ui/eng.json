@@ -18,7 +18,6 @@
   "end_turn_damage_details.title": "Prediction",
   "end_turn_damage_details.description": "At the end of the player turn, [gold]{Creature}[/gold] will take [blue]{TotalDamage}[/blue] damage{BlockStatus:choose(blocked|partial): (blocked)| ([blue]{TotalUnblockedDamage}[/blue] unblocked)|}{WasTargetKilled:cond: and be [red]killed[/red]|}.\n{Lines:list: ·{}|\n}",
   "end_turn_damage_details.line": "[gold]{Source}[/gold]: [blue]{Damage}[/blue] damage{BlockStatus:choose(blocked|partial): (blocked)| ([blue]{UnblockedDamage}[/blue] unblocked)|}",
-  "end_turn_damage_details.unknown_source": "Unknown source",
   "frozen_eye.draw_pile_info_order": "[gold](Cards shown are in draw order)[/gold]",
   "frozen_eye.draw_pile_info_order_with_shuffle_prediction": "[gold](Shown in draw order; gray cards predict the discard shuffle after depletion)[/gold]",
   "frozen_eye.draw_pile_hover_view": "Click to view the cards in your draw pile (in draw order).",

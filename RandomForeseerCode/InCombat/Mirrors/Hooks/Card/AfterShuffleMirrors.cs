@@ -55,7 +55,7 @@ internal static class AfterShuffleMirrors
         {
             // Stratagem opens a combat-pile card selection and moves chosen cards to hand;
             // combat pile selection is not mirrored here.
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
         }
     }
 

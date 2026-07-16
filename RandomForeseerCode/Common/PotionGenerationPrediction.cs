@@ -32,7 +32,7 @@ internal static class PotionGenerationPrediction
 
         var history = simulator.History
             .OfType<CombatPredictionPotionGeneratedEntry>()
-            .Where(entry => ReferenceEquals(entry.SourceModel, card))
+            .Where(entry => ReferenceEquals(entry.Trace?.Source, card))
             .ToList();
         var tips = PredictionHoverTips.Potions(history.Select(entry => entry.Potion)).ToList();
         var risk = simulator.History.GetRisk(history);

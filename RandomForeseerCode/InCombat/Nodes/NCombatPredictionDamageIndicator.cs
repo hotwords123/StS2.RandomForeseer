@@ -54,12 +54,12 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         }
 
         var sourceGroups = prediction.DamageLines
-            .GroupBy(static line => line.SourceModel?.Id)
-            .Select(static group => (group.First().SourceModel, group.Count()));
+            .GroupBy(static line => line.Source.Id)
+            .Select(static group => (group.First().Source, group.Count()));
 
-        foreach (var (sourceModel, hitCount) in sourceGroups)
+        foreach (var (source, hitCount) in sourceGroups)
         {
-            var sourceIcon = NCombatPredictionSourceIcon.Create(GetIcon(sourceModel), hitCount);
+            var sourceIcon = NCombatPredictionSourceIcon.Create(GetIcon(source), hitCount);
             _sourceIcons.AddChildSafely(sourceIcon);
         }
 
@@ -133,9 +133,9 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         return hasRisk ? $"{amountText}*" : amountText;
     }
 
-    private static Texture2D GetIcon(AbstractModel? sourceModel)
+    private static Texture2D GetIcon(AbstractModel source)
     {
-        return sourceModel switch
+        return source switch
         {
             OrbModel orb => orb.Icon,
             PowerModel power => power.Icon,

@@ -29,7 +29,7 @@ internal static class CardSelectionCardMirrors
             return;
         }
 
-        context.Simulator.History.CardsSelected(cardsToAdd, context.OriginalCard);
+        context.Simulator.History.CardsSelected(cardsToAdd);
         context.Simulator.AddToPile(cardsToAdd, PileType.Hand);
     }
 
@@ -48,7 +48,7 @@ internal static class CardSelectionCardMirrors
             return;
         }
 
-        context.Simulator.History.CardsSelected(selectedCards, context.OriginalCard);
+        context.Simulator.History.CardsSelected(selectedCards);
 
         foreach (var selectedCard in selectedCards)
         {
@@ -86,25 +86,25 @@ internal static class CardSelectionCardMirrors
                 break;
             }
 
-            context.Simulator.History.CardsSelected([selectedCard], context.OriginalCard);
+            context.Simulator.History.CardsSelected([selectedCard]);
             context.Simulator.AutoPlay(selectedCard);
         }
     }
 
     public static void CinderOnPlay(Cinder card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
 
         if (SelectRandomHandCard(context, static _ => true) is { } selectedCard)
         {
-            context.Simulator.History.CardsSelected([selectedCard], context.OriginalCard);
+            context.Simulator.History.CardsSelected([selectedCard]);
             context.Simulator.Exhaust(selectedCard);
         }
     }
 
     public static void DrainPowerOnPlay(DrainPower card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
 
         var cardsToUpgrade = context.OwnerState.DiscardPile.Cards
             .Where(predictedCard => predictedCard.Preview.IsUpgradable)
@@ -120,7 +120,7 @@ internal static class CardSelectionCardMirrors
             cardToUpgrade.Upgrade();
         }
 
-        context.Simulator.History.CardsSelected(cardsToUpgrade, context.OriginalCard);
+        context.Simulator.History.CardsSelected(cardsToUpgrade);
     }
 
     public static void HiddenGemOnPlay(HiddenGem card, CardOnPlayMirrorContext context)
@@ -150,17 +150,19 @@ internal static class CardSelectionCardMirrors
         }
 
         selectedCard.MutablePreview.BaseReplayCount += card.DynamicVars["Replay"].IntValue;
-        context.Simulator.History.CardsSelected([selectedCard], context.OriginalCard);
+        context.Simulator.History.CardsSelected([selectedCard]);
     }
 
     public static void SeekerStrikeOnPlay(SeekerStrike card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
 
-        var alreadyPredicted = context.Simulator.History
-            .OfType<CombatPredictionCardsSelectedEntry>()
-            .Any(entry => ReferenceEquals(entry.SourceModel, context.OriginalCard));
-        if (alreadyPredicted)
+        var hasUnresolvedChoice = context.Simulator.History
+            .OfType<CombatPredictionRiskEntry>()
+            .Any(entry =>
+                entry.Reason is PredictionRiskReason.UnresolvedPlayerChoice &&
+                ReferenceEquals(entry.Trace?.Source, context.OriginalCard));
+        if (hasUnresolvedChoice)
         {
             // The first unresolved choice changes the draw pile, so later replay options and their
             // CombatCardSelection RNG consumption cannot be predicted from the current shadow state.
@@ -177,15 +179,15 @@ internal static class CardSelectionCardMirrors
             return;
         }
 
-        context.Simulator.History.CardsSelected(cardOptions, context.OriginalCard);
+        context.Simulator.History.CardsSelected(cardOptions);
         // Vanilla next asks the player to choose an option and moves it to hand. Record the options
-        // first so that this unresolved choice does not contaminate their risk checkpoint.
-        context.MarkCurrentSourceRisky();
+        // first so that this unresolved choice falls after their risk boundary.
+        context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
     }
 
     public static void ThrashOnPlay(Thrash card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context, hitCount: 2);
+        context.AttackSingle(hitCount: 2);
 
         var cardToExhaust = SelectRandomHandCard(context, cardModel => cardModel.Type == CardType.Attack);
         if (cardToExhaust is null)
@@ -193,16 +195,13 @@ internal static class CardSelectionCardMirrors
             return;
         }
 
-        context.Simulator.History.CardsSelected([cardToExhaust], context.OriginalCard);
+        context.Simulator.History.CardsSelected([cardToExhaust]);
 
         var damage = default(decimal);
         var dynamicVars = cardToExhaust.Preview.DynamicVars;
         if (dynamicVars.ContainsKey("CalculatedDamage"))
         {
-            using (context.Simulator.PushSource(cardToExhaust.Original))
-            {
-                damage = dynamicVars.CalculatedDamage.SimulateCalculate(context.Simulator, null);
-            }
+            damage = dynamicVars.CalculatedDamage.InvokeCalculate(context.Simulator, cardToExhaust, null);
         }
         else if (dynamicVars.ContainsKey("Damage"))
         {
@@ -247,21 +246,21 @@ internal static class CardSelectionCardMirrors
             {
                 // Vanilla asks the player which hand card to exhaust. The choice and resulting
                 // pile state cannot be determined during prediction.
-                context.MarkCurrentSourceRisky();
+                context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
             }
             return;
         }
 
         if (SelectRandomHandCard(context, static _ => true) is { } selectedCard)
         {
-            context.Simulator.History.CardsSelected([selectedCard], context.OriginalCard);
+            context.Simulator.History.CardsSelected([selectedCard]);
             context.Simulator.Exhaust(selectedCard);
         }
     }
 
     public static void UproarOnPlay(Uproar card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context, hitCount: 2);
+        context.AttackSingle(hitCount: 2);
 
         var attackCards = context.OwnerState.DrawPile.Cards
             .Where(predictedCard => predictedCard.Preview.Type == CardType.Attack)
@@ -282,7 +281,7 @@ internal static class CardSelectionCardMirrors
             return;
         }
 
-        context.Simulator.History.CardsSelected([selectedCard], context.OriginalCard);
+        context.Simulator.History.CardsSelected([selectedCard]);
         context.Simulator.AutoPlay(selectedCard);
     }
 
@@ -292,12 +291,5 @@ internal static class CardSelectionCardMirrors
     {
         var candidates = context.OwnerState.Hand.Cards.Where(card => filter(card.Preview));
         return context.Rng.CombatCardSelection.NextItem(candidates);
-    }
-
-    private static void SimulateTargetedAttack(
-        CardOnPlayMirrorContext context,
-        int hitCount = 1)
-    {
-        context.Simulator.SimulateTargetedAttack(context.Card, context.CardPlay, hitCount);
     }
 }

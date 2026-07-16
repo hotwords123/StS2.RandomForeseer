@@ -18,18 +18,22 @@ internal abstract class CombatPredictionMirrorContext<TBase> : IPredictionMirror
 
     public PredictionStateStore StateStore => Simulator.StateStore;
 
+    public CombatPredictionHistory History => Simulator.History;
+
     public ICombatState CombatState => Simulator.State.CombatState;
 
     public IRunState RunState => CombatState.RunState;
 
-    public virtual IDisposable PushSource(TBase model)
+    protected virtual AbstractModel GetDispatchSource(TBase receiver) => receiver;
+
+    IDisposable IPredictionMirrorContext<TBase>.PushDispatchSource(TBase receiver, MirrorMethodSpec method)
     {
-        return Simulator.PushSource(model);
+        return Simulator.PushMethodSource(GetDispatchSource(receiver), method);
     }
 
-    public void MarkCurrentSourceRisky()
+    void IPredictionMirrorContext<TBase>.RecordMethodNotMirroredRisk()
     {
-        Simulator.MarkCurrentSourceRisky();
+        History.RecordRisk(PredictionRiskReason.MethodNotMirrored);
     }
 }
 

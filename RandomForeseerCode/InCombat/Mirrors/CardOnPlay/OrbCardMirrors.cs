@@ -1,6 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Combat.History.Entries;
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
@@ -12,7 +11,7 @@ internal static class OrbCardMirrors
 {
     public static void BallLightningOnPlay(BallLightning card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
         context.Simulator.OrbChannel<LightningOrb>(card.Owner);
     }
 
@@ -32,7 +31,7 @@ internal static class OrbCardMirrors
 
     public static void ColdSnapOnPlay(ColdSnap card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
         context.Simulator.OrbChannel<FrostOrb>(card.Owner);
     }
 
@@ -87,7 +86,7 @@ internal static class OrbCardMirrors
 
     public static void IceLanceOnPlay(IceLance card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
         context.Simulator.OrbChannel<FrostOrb>(card.Owner, card.DynamicVars.Repeat.IntValue);
     }
 
@@ -101,7 +100,7 @@ internal static class OrbCardMirrors
 
     public static void MeteorStrikeOnPlay(MeteorStrike card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
         context.Simulator.OrbChannel<PlasmaOrb>(card.Owner, 3);
     }
 
@@ -113,7 +112,7 @@ internal static class OrbCardMirrors
 
     public static void NullOnPlay(Null card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
         // Vanilla applies Weak before channeling; Weak does not affect this prediction's orb damage.
         context.Simulator.OrbChannel<DarkOrb>(card.Owner);
     }
@@ -132,7 +131,7 @@ internal static class OrbCardMirrors
 
     public static void RefractOnPlay(Refract card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context, hitCount: 2);
+        context.AttackSingle(hitCount: 2);
         context.Simulator.OrbChannel<GlassOrb>(card.Owner, card.DynamicVars.Repeat.IntValue);
     }
 
@@ -144,10 +143,7 @@ internal static class OrbCardMirrors
 
     public static void ShatterOnPlay(Shatter card, CardOnPlayMirrorContext context)
     {
-        DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
-            .FromCard(card, context.CardPlay)
-            .TargetingAllOpponents(context.CombatState)
-            .Simulate(context.Simulator);
+        context.AttackAllOpponents();
 
         var orbCount = context.OwnerState.OrbQueue.Orbs.Count;
         for (var i = 0; i < orbCount; i++)
@@ -174,7 +170,7 @@ internal static class OrbCardMirrors
 
     public static void TeslaCoilOnPlay(TeslaCoil card, CardOnPlayMirrorContext context)
     {
-        SimulateTargetedAttack(context);
+        context.AttackSingle();
 
         var triggerCount = card.IsUpgraded ? 2 : 1;
         var lightningOrbs = context.OwnerState.OrbQueue.Orbs.OfType<LightningOrb>().ToArray();
@@ -203,12 +199,5 @@ internal static class OrbCardMirrors
     public static void ZapOnPlay(Zap card, CardOnPlayMirrorContext context)
     {
         context.Simulator.OrbChannel<LightningOrb>(card.Owner);
-    }
-
-    private static void SimulateTargetedAttack(
-        CardOnPlayMirrorContext context,
-        int hitCount = 1)
-    {
-        context.Simulator.SimulateTargetedAttack(context.Card, context.CardPlay, hitCount);
     }
 }

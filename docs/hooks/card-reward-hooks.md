@@ -84,7 +84,7 @@ No vanilla non-mock listeners were found in StS2 v0.108.0 for:
 - `OutOfCombat.Mirrors.HookMirrors` owns context construction and rebuilds the modifier sequence for the Early and Late phases. `TryModifyCardRewardOptionsMirrors` owns both exact-method registries, their handlers, and shared helpers.
 - Both registries mirror the original bool-returning model methods. The facade executes every modifier and ORs the Early/Late results without short-circuiting. Models that return true are appended to the returned modifier list in phase/invocation order, matching vanilla without deduplication. The current prediction caller explicitly discards both outputs because `AfterModifyingCardRewardOptions` is still omitted.
 - `TryModifyCardRewardAlternatives` is separate from card option generation. `PaelsWing` sacrifice prediction works from the generated button and should be maintained with the alternative UI patches rather than the card-reward result mirrors.
-- `TryModifyCardRewardOptionsMirrorContext` has an internal `PredictionRiskTracker` but no public snapshot path; unsupported card reward listener risk is logged/recorded internally but not surfaced to callers.
+- `TryModifyCardRewardOptionsMirrorContext` records whether an unsupported listener was encountered, but card-reward prediction still has no public risk projection path, so that state is not surfaced to callers.
 
 ## Mock model list
 

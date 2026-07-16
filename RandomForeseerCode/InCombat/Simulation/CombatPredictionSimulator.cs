@@ -3,13 +3,13 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
-    private readonly PredictionSourceStack _sourceStack = new();
-    private readonly PredictionRiskTracker _riskTracker = new();
+    private readonly PredictionTrace _trace = new();
 
     public CombatPredictionState State { get; }
 
@@ -23,22 +23,22 @@ internal sealed partial class CombatPredictionSimulator
     {
         State = new CombatPredictionState(combatState);
         Rng = CombatPredictionRngSet.From(combatState.RunState.Rng);
-        History = new CombatPredictionHistory(_riskTracker);
+        History = new CombatPredictionHistory(_trace);
     }
 
     public PredictionRisk Snapshot()
     {
-        return _riskTracker.Snapshot();
+        return History.GetCurrentRisk();
     }
 
-    public IDisposable PushSource(AbstractModel model)
+    public IDisposable PushActionSource(AbstractModel model, PredictionActionKind action)
     {
-        return _sourceStack.Push(model);
+        return _trace.Push(model, PredictionInvocation.ForAction(action));
     }
 
-    public void MarkCurrentSourceRisky()
+    internal IDisposable PushMethodSource(AbstractModel model, MirrorMethodSpec method)
     {
-        _riskTracker.AddCurrentSources(_sourceStack);
+        return _trace.Push(model, PredictionInvocation.ForMethod(method.BaseMethod));
     }
 
     public static bool TryCreate(Player player, [NotNullWhen(true)] out CombatPredictionSimulator? simulator)

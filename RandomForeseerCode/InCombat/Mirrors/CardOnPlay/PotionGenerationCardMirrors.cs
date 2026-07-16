@@ -13,6 +13,6 @@ internal static class PotionGenerationCardMirrors
 
         // Vanilla calls PotionCmd.TryToProcure. The generated potion is already determined, but
         // potion-slot mutation and its hooks are outside the simulator's current state domains.
-        context.Simulator.History.PotionGenerated(potion, context.OriginalCard);
+        context.Simulator.History.PotionGenerated(potion);
     }
 }

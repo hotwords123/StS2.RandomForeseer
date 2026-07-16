@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using Cards = MegaCrit.Sts2.Core.Models.Cards;
@@ -243,7 +244,7 @@ internal static class AfterCardDrawnMirrors
         // side effects are not mirrored here.
         if (context.PreviewCard.Owner.Creature == power.Owner)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 

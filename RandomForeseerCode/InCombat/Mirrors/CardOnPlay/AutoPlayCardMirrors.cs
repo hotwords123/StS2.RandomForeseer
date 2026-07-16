@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models.Cards;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -9,10 +8,7 @@ internal static class AutoPlayCardMirrors
 {
     public static void HowlFromBeyondOnPlay(HowlFromBeyond card, CardOnPlayMirrorContext context)
     {
-        DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
-            .FromCard(card, context.CardPlay)
-            .TargetingAllOpponents(context.CombatState)
-            .Simulate(context.Simulator);
+        context.AttackAllOpponents();
     }
 
     public static void IAmInvincibleOnPlay(IAmInvincible card, CardOnPlayMirrorContext context)

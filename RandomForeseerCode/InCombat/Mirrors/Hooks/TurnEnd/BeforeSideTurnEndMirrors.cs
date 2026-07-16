@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -220,7 +221,7 @@ internal static class BeforeSideTurnEndMirrors
             .ToList();
         if (doomedCreatures.Count > 0)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 

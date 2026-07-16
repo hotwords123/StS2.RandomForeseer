@@ -67,7 +67,7 @@ internal static class CombatPredictedCardExtensions
             // Vanilla GeneratePlayCount would also run AfterModifyingCardPlayCount here.
             // Those listeners can decrement/remove live powers or relic state, so prediction
             // uses the value hook for energy amount and marks the missing state commit as risk.
-            simulator.MarkCurrentSourceRisky();
+            simulator.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
         return playCount;
     }

@@ -189,7 +189,7 @@ internal sealed partial class CombatPredictionSimulator
         bool isAutoPlay,
         ResourceInfo resources)
     {
-        using var _ = PushSource(card.Original);
+        using var _ = PushActionSource(card.Original, PredictionActionKind.CardPlayLifecycle);
 
         var previewCard = card.MutablePreview;
         previewCard.CurrentTarget = target;
@@ -215,11 +215,7 @@ internal sealed partial class CombatPredictionSimulator
             out var modifiers);
         foreach (var modifier in modifiers)
         {
-            // TODO: Dispatch Hook.AfterCardPlayResultPileTypeAndPositionModified.
-            using (PushSource(modifier))
-            {
-                MarkCurrentSourceRisky();
-            }
+            // TODO: Dispatch Hook.AfterModifyingCardPlayResultPileOrPosition.
         }
 
         var playCount = card.GeneratePlayCount(this, target);

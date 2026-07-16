@@ -57,18 +57,11 @@ internal static class EndTurnPredictionCreatureHoverTips
     private static string FormatDamageLine(DamagePredictionLine line)
     {
         var loc = PredictionLocalization.Text("end_turn_damage_details.line");
-        loc.Add("Source", GetSourceName(line.SourceModel));
+        loc.Add("Source", PredictionHoverTips.GetModelName(line.Source));
         loc.Add("Damage", line.Damage);
         loc.Add("UnblockedDamage", line.UnblockedDamage);
         loc.Add("BlockStatus", GetBlockStatus(line.Damage, line.UnblockedDamage));
         return loc.GetFormattedText();
-    }
-
-    private static string GetSourceName(AbstractModel? sourceModel)
-    {
-        return sourceModel != null
-            ? PredictionHoverTips.GetModelName(sourceModel)
-            : PredictionLocalization.Text("end_turn_damage_details.unknown_source").GetFormattedText();
     }
 
     private static string GetBlockStatus(decimal totalDamage, decimal totalUnblockedDamage)

@@ -1,6 +1,5 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -21,22 +20,22 @@ internal static class RandomTargetAttackCardMirrors
             context.Simulator.Exhaust(status);
         }
 
-        SimulateRandomAttack(card, context, statuses.Count);
+        context.AttackRandomOpponents(statuses.Count);
     }
 
     public static void RicochetOnPlay(Ricochet card, CardOnPlayMirrorContext context)
     {
-        SimulateRandomAttack(card, context, card.DynamicVars.Repeat.IntValue);
+        context.AttackRandomOpponents(card.DynamicVars.Repeat.IntValue);
     }
 
     public static void RipAndTearOnPlay(RipAndTear card, CardOnPlayMirrorContext context)
     {
-        SimulateRandomAttack(card, context, 2);
+        context.AttackRandomOpponents(hitCount: 2);
     }
 
     public static void StardustOnPlay(Stardust card, CardOnPlayMirrorContext context)
     {
-        SimulateRandomAttack(card, context, context.Card.ResolveStarXValue(context.State));
+        context.AttackRandomOpponents(context.Card.ResolveStarXValue(context.State));
     }
 
     public static void SweepingGazeOnPlay(SweepingGaze card, CardOnPlayMirrorContext context)
@@ -52,23 +51,11 @@ internal static class RandomTargetAttackCardMirrors
 
     public static void SwordBoomerangOnPlay(SwordBoomerang card, CardOnPlayMirrorContext context)
     {
-        SimulateRandomAttack(card, context, card.DynamicVars.Repeat.IntValue);
+        context.AttackRandomOpponents(card.DynamicVars.Repeat.IntValue);
     }
 
     public static void VolleyOnPlay(Volley card, CardOnPlayMirrorContext context)
     {
-        SimulateRandomAttack(card, context, context.Card.ResolveEnergyXValue(context.State));
-    }
-
-    private static void SimulateRandomAttack(
-        CardModel card,
-        CardOnPlayMirrorContext context,
-        int hitCount)
-    {
-        DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
-            .FromCard(card, context.CardPlay)
-            .WithHitCount(hitCount)
-            .TargetingRandomOpponents(context.CombatState)
-            .Simulate(context.Simulator);
+        context.AttackRandomOpponents(context.Card.ResolveEnergyXValue(context.State));
     }
 }

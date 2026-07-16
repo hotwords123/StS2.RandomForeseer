@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
 
@@ -49,7 +50,7 @@ internal sealed partial class CombatPredictionSimulator
     {
         if (History.Count<CombatPredictionOrbChanneledEntry>() >= MaxSimulatedChanneledOrbs)
         {
-            MarkCurrentSourceRisky();
+            History.RecordRisk(PredictionRiskReason.OrbChannelLimitExceeded);
             return false;
         }
 
@@ -72,7 +73,7 @@ internal sealed partial class CombatPredictionSimulator
             // reproducing that bug or inventing additional evokes to make room.
             if (orbQueue.Orbs.Count >= orbQueue.Capacity)
             {
-                MarkCurrentSourceRisky();
+                History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
                 return false;
             }
         }
@@ -82,7 +83,7 @@ internal sealed partial class CombatPredictionSimulator
             return false;
         }
 
-        History.OrbChanneled(orb, _sourceStack.Current);
+        History.OrbChanneled(orb);
         HookMirrors.AfterOrbChanneled(this, player, orb);
         return true;
     }

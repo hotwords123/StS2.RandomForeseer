@@ -66,7 +66,7 @@ internal static class CardGenerationCardMirrors
 
     public static void JackpotOnPlay(Jackpot card, CardOnPlayMirrorContext context)
     {
-        context.Simulator.SimulateTargetedAttack(context.Card, context.CardPlay);
+        context.AttackSingle();
 
         var cards = card.Owner.GetUnlockedCharacterCards()
             .Where(candidate => candidate.EnergyCost is { Canonical: 0, CostsX: false })
@@ -97,7 +97,7 @@ internal static class CardGenerationCardMirrors
     {
         if (card is not { TinkerTimeType: CardType.Skill, TinkerTimeRider: TinkerTime.RiderEffect.Chaos })
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
             return;
         }
 
@@ -206,9 +206,9 @@ internal static class CardGenerationCardMirrors
             return;
         }
 
-        context.Simulator.History.CardGenerationOptions(cards, context.OriginalCard);
+        context.Simulator.History.CardGenerationOptions(cards);
         // Vanilla next asks the player to choose an option. Record the deterministic options first,
         // then mark the unresolved choice so replayed or nested results inherit the uncertainty.
-        context.MarkCurrentSourceRisky();
+        context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
     }
 }

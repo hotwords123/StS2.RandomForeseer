@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
@@ -43,7 +44,7 @@ internal static class AfterCurrentHpChangedMirrors
         var shouldApplyStrength = ownerState.CurrentHp <= threshold;
         if (shouldApplyStrength != relic._strengthApplied)
         {
-            context.MarkCurrentSourceRisky();
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }
 

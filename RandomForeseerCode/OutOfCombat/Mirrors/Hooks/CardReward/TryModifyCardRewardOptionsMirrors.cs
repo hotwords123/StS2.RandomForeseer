@@ -297,8 +297,7 @@ internal static class TryModifyCardRewardOptionsMirrors
 
 internal sealed class TryModifyCardRewardOptionsMirrorContext : IPredictionMirrorContext<AbstractModel>
 {
-    private readonly PredictionSourceStack _sourceStack = new();
-    private readonly PredictionRiskTracker _riskTracker = new();
+    private readonly PredictionTrace _trace = new();
 
     public required RunPredictionContext RunContext { get; init; }
 
@@ -314,13 +313,17 @@ internal sealed class TryModifyCardRewardOptionsMirrorContext : IPredictionMirro
 
     public CardRarityOdds RarityOdds => RunContext.CardRarityOdds;
 
-    public IDisposable PushSource(AbstractModel model)
+    public bool HasRisk { get; private set; }
+
+    IDisposable IPredictionMirrorContext<AbstractModel>.PushDispatchSource(
+        AbstractModel model,
+        MirrorMethodSpec method)
     {
-        return _sourceStack.Push(model);
+        return _trace.Push(model, PredictionInvocation.ForMethod(method.BaseMethod));
     }
 
-    public void MarkCurrentSourceRisky()
+    void IPredictionMirrorContext<AbstractModel>.RecordMethodNotMirroredRisk()
     {
-        _riskTracker.AddCurrentSources(_sourceStack);
+        HasRisk = true;
     }
 }

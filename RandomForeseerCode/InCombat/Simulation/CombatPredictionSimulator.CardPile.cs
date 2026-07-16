@@ -37,7 +37,7 @@ internal sealed partial class CombatPredictionSimulator
     {
         if (History.Count<CombatPredictionCardDrawnEntry>() >= MaxSimulatedDraws)
         {
-            _riskTracker.AddUnknown();
+            History.RecordRisk(PredictionRiskReason.CardDrawLimitExceeded);
             return false;
         }
 
@@ -162,12 +162,11 @@ internal sealed partial class CombatPredictionSimulator
             throw new InvalidOperationException("Generated combat cards cannot already be in a pile.");
         }
 
-        var source = _sourceStack.Current;
         List<SimCardPileAddResult> results = [];
 
         foreach (var card in cards)
         {
-            var entry = History.CardGenerated(card, source);
+            var entry = History.CardGenerated(card);
             results.Add(AddToPile(card, newPileType, position));
 
             HookMirrors.AfterCardGeneratedForCombat(this, card, creator);

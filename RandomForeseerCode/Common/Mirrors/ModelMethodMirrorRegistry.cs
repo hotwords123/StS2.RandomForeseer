@@ -47,7 +47,7 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext>(MirrorMethodSpe
 
     public MirrorDispatchResult Invoke(TBase receiver, TContext context)
     {
-        using var _ = context.PushSource(receiver);
+        using var _ = context.PushDispatchSource(receiver, method);
         var lookup = Lookup(receiver.GetType());
         switch (lookup.Kind)
         {
@@ -55,7 +55,7 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext>(MirrorMethodSpe
                 lookup.Handler!(receiver, context);
                 break;
             case MirrorDispatchKind.Unsupported:
-                context.MarkCurrentSourceRisky();
+                context.RecordMethodNotMirroredRisk();
                 break;
         }
 
@@ -142,7 +142,7 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext, TResult>(Mirror
         TContext context,
         TResult defaultResult)
     {
-        using var _ = context.PushSource(receiver);
+        using var _ = context.PushDispatchSource(receiver, method);
         var lookup = Lookup(receiver.GetType());
         return lookup.Kind switch
         {
@@ -179,7 +179,7 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext, TResult>(Mirror
         TContext context,
         TResult defaultResult)
     {
-        context.MarkCurrentSourceRisky();
+        context.RecordMethodNotMirroredRisk();
         return new(MirrorDispatchKind.Unsupported, defaultResult);
     }
 

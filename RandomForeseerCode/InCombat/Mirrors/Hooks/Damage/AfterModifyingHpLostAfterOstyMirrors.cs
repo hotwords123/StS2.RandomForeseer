@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
@@ -37,7 +38,7 @@ internal static class AfterModifyingHpLostAfterOstyMirrors
     {
         // Vanilla decrements Buffer here. The simulator cannot shadow that into the original
         // ModifyHpLostAfterOstyLate hook without mutating the live power, so surface a warning.
-        context.MarkCurrentSourceRisky();
+        context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
     }
 }
 

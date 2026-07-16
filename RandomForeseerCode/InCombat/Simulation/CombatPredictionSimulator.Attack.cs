@@ -17,7 +17,7 @@ internal sealed partial class CombatPredictionSimulator
         if (attackCommand.Attacker is not { } attacker)
         {
             Entry.Logger.Warn("AttackCommand prediction skipped: command has no attacker.");
-            MarkCurrentSourceRisky();
+            History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
             return;
         }
 
@@ -30,7 +30,7 @@ internal sealed partial class CombatPredictionSimulator
         if (!attackCommand.IsSingleTargeted && !attackCommand.IsMultiTargeted)
         {
             Entry.Logger.Warn("AttackCommand prediction skipped: command has no targets configured.");
-            MarkCurrentSourceRisky();
+            History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
             return;
         }
 
@@ -65,7 +65,7 @@ internal sealed partial class CombatPredictionSimulator
 
             var results = Damage(
                 singleTarget != null ? [singleTarget] : validTargets,
-                GetAttackDamageAmount(attackCommand, singleTarget),
+                GetAttackDamageAmount(attackCommand, cardSource, singleTarget),
                 attackCommand.DamageProps,
                 attacker,
                 cardSource,
@@ -75,7 +75,6 @@ internal sealed partial class CombatPredictionSimulator
 
         History.CreatureAttacked(
             attacker,
-            attackCommand.ModelSource,
             attackCommand.Results.SelectMany(results => results).ToArray());
 
         HookMirrors.AfterAttack(this, attackCommand);
@@ -127,7 +126,7 @@ internal sealed partial class CombatPredictionSimulator
             if (validTargets.Count == 0)
             {
                 Entry.Logger.Warn("No valid targets available for randomly-targeted attack.");
-                MarkCurrentSourceRisky();
+                History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
                 return null;
             }
         }
@@ -135,11 +134,19 @@ internal sealed partial class CombatPredictionSimulator
         return Rng.CombatTargets.NextItem(validTargets);
     }
 
-    private decimal GetAttackDamageAmount(AttackCommand attackCommand, Creature? singleTarget)
+    private decimal GetAttackDamageAmount(
+        AttackCommand attackCommand,
+        PredictedCard? cardSource,
+        Creature? singleTarget)
     {
         if (attackCommand._calculatedDamageVar is {} calculatedDamageVar)
         {
-            return calculatedDamageVar.SimulateCalculate(this, singleTarget);
+            if (cardSource is null)
+            {
+                throw new InvalidOperationException("CalculatedDamage simulation requires a card source.");
+            }
+
+            return calculatedDamageVar.InvokeCalculate(this, cardSource, singleTarget);
         }
 
         return attackCommand._damagePerHit;

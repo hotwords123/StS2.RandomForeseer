@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Potions;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
@@ -30,7 +31,7 @@ internal sealed class PotionDrawPrediction(CombatPredictionSimulator simulator, 
             return DrawPilePredictionResult.Empty;
         }
 
-        using (simulator.PushSource(potion))
+        using (simulator.PushActionSource(potion, PredictionActionKind.PotionUse))
         {
             return new PotionDrawPrediction(simulator, player, potion).Predict();
         }

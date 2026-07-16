@@ -29,7 +29,7 @@ internal sealed record DamagePredictionResult(
                         entry.Result.TotalDamage,
                         entry.Result.UnblockedDamage,
                         entry.Result.WasTargetKilled,
-                        entry.SourceModel))
+                        entry.Trace!.Source))
                     .ToList()))
             .ToList();
 
@@ -52,4 +52,4 @@ internal sealed record DamagePredictionLine(
     decimal Damage,
     decimal UnblockedDamage,
     bool WasTargetKilled,
-    AbstractModel? SourceModel);
+    AbstractModel Source);

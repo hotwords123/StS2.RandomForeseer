@@ -29,7 +29,7 @@ internal static class CombatCardSelectionPrediction
 
         var history = simulator.History
             .OfType<CombatPredictionCardsSelectedEntry>()
-            .Where(entry => ReferenceEquals(entry.SourceModel, card))
+            .Where(entry => ReferenceEquals(entry.Trace?.Source, card))
             .ToList();
         var cardBundles = history
             .Select(entry => entry.Cards)
