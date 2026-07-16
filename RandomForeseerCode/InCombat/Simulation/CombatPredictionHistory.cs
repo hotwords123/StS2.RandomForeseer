@@ -54,60 +54,82 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
 
     public EntryHandle CardAfflicted(PredictedCard card, AfflictionModel affliction)
     {
-        return Record(new CombatPredictionCardAfflictedEntry(_entries.Count, card, affliction));
+        return Record(new CombatPredictionCardAfflictedEntry
+        {
+            Index = _entries.Count,
+            Card = card.Clone(),
+            Affliction = affliction
+        });
     }
 
     public EntryHandle CardDrawn(PredictedCard card, bool fromHandDraw)
     {
-        return Record(new CombatPredictionCardDrawnEntry(_entries.Count, card, fromHandDraw));
+        return Record(new CombatPredictionCardDrawnEntry
+        {
+            Index = _entries.Count,
+            Card = card.Clone(),
+            FromHandDraw = fromHandDraw
+        });
     }
 
     public EntryHandle CardsSelected(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionCardsSelectedEntry(
-            _entries.Count,
-            SnapshotCards(cards),
-            sourceModel));
+        return Record(new CombatPredictionCardsSelectedEntry
+        {
+            Index = _entries.Count,
+            Cards = SnapshotCards(cards),
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle CardSelectionOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionCardSelectionOptionsEntry(
-            _entries.Count,
-            SnapshotCards(cards),
-            sourceModel));
+        return Record(new CombatPredictionCardSelectionOptionsEntry
+        {
+            Index = _entries.Count,
+            Cards = SnapshotCards(cards),
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle CardsGenerated(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionCardsGeneratedEntry(
-            _entries.Count,
-            SnapshotCards(cards),
-            sourceModel));
+        return Record(new CombatPredictionCardsGeneratedEntry
+        {
+            Index = _entries.Count,
+            Cards = SnapshotCards(cards),
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle CardGenerationOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionCardGenerationOptionsEntry(
-            _entries.Count,
-            SnapshotCards(cards),
-            sourceModel));
+        return Record(new CombatPredictionCardGenerationOptionsEntry
+        {
+            Index = _entries.Count,
+            Cards = SnapshotCards(cards),
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle AutoPlayFromDrawPile(PredictedCard card, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionAutoPlayFromDrawPileEntry(
-            _entries.Count,
-            card.Clone(),
-            sourceModel));
+        return Record(new CombatPredictionAutoPlayFromDrawPileEntry
+        {
+            Index = _entries.Count,
+            Card = card.Clone(),
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle PotionGenerated(PotionModel potion, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionPotionGeneratedEntry(
-            _entries.Count,
-            potion,
-            sourceModel));
+        return Record(new CombatPredictionPotionGeneratedEntry
+        {
+            Index = _entries.Count,
+            Potion = potion,
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle CreatureAttacked(
@@ -115,7 +137,13 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         AbstractModel? source,
         IReadOnlyList<DamageResult> hitResults)
     {
-        return Record(new CombatPredictionCreatureAttackedEntry(_entries.Count, attacker, source, hitResults));
+        return Record(new CombatPredictionCreatureAttackedEntry
+        {
+            Index = _entries.Count,
+            Attacker = attacker,
+            SourceModel = source,
+            HitResults = hitResults
+        });
     }
 
     public EntryHandle DamageReceived(
@@ -125,18 +153,25 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         PredictedCard? cardSource,
         AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionDamageReceivedEntry(
-            _entries.Count,
-            receiver,
-            result,
-            dealer,
-            cardSource,
-            sourceModel));
+        return Record(new CombatPredictionDamageReceivedEntry
+        {
+            Index = _entries.Count,
+            Receiver = receiver,
+            Result = result,
+            Dealer = dealer,
+            CardSource = cardSource,
+            SourceModel = sourceModel
+        });
     }
 
     public EntryHandle OrbChanneled(OrbModel orb, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionOrbChanneledEntry(_entries.Count, orb, sourceModel));
+        return Record(new CombatPredictionOrbChanneledEntry
+        {
+            Index = _entries.Count,
+            Orb = orb,
+            SourceModel = sourceModel
+        });
     }
 
     private EntryHandle Record(CombatPredictionHistoryEntry entry)
@@ -171,73 +206,73 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
     }
 }
 
-internal abstract record CombatPredictionHistoryEntry(int Index);
+internal abstract class CombatPredictionHistoryEntry
+{
+    public required int Index { get; init; }
+}
 
-internal sealed record CombatPredictionDamageReceivedEntry(
-    int Index,
-    Creature Receiver,
-    DamageResult Result,
-    Creature? Dealer,
-    PredictedCard? CardSource,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionDamageReceivedEntry : CombatPredictionHistoryEntry
+{
+    public required Creature Receiver { get; init; }
+    public required DamageResult Result { get; init; }
+    public required Creature? Dealer { get; init; }
+    public required PredictedCard? CardSource { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+}
 
-internal sealed record CombatPredictionCreatureAttackedEntry(
-    int Index,
-    Creature Attacker,
-    AbstractModel? SourceModel,
-    IReadOnlyList<DamageResult> HitResults) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionCreatureAttackedEntry : CombatPredictionHistoryEntry
+{
+    public required Creature Attacker { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+    public required IReadOnlyList<DamageResult> HitResults { get; init; }
+}
 
-internal sealed record CombatPredictionOrbChanneledEntry(
-    int Index,
-    OrbModel Orb,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionOrbChanneledEntry : CombatPredictionHistoryEntry
+{
+    public required OrbModel Orb { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+}
 
-internal sealed record CombatPredictionCardDrawnEntry(
-    int Index,
-    PredictedCard Card,
-    bool FromHandDraw) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionCardDrawnEntry : CombatPredictionHistoryEntry
+{
+    public required PredictedCard Card { get; init; }
+    public required bool FromHandDraw { get; init; }
+}
 
-internal abstract record CombatPredictionCardSelectionEntry(
-    int Index,
-    IReadOnlyList<PredictedCard> Cards,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+internal abstract class CombatPredictionCardSelectionEntry : CombatPredictionHistoryEntry
+{
+    public required IReadOnlyList<PredictedCard> Cards { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+}
 
-internal sealed record CombatPredictionCardsSelectedEntry(
-    int Index,
-    IReadOnlyList<PredictedCard> Cards,
-    AbstractModel? SourceModel) : CombatPredictionCardSelectionEntry(Index, Cards, SourceModel);
+internal sealed class CombatPredictionCardsSelectedEntry : CombatPredictionCardSelectionEntry;
 
-internal sealed record CombatPredictionCardSelectionOptionsEntry(
-    int Index,
-    IReadOnlyList<PredictedCard> Cards,
-    AbstractModel? SourceModel) : CombatPredictionCardSelectionEntry(Index, Cards, SourceModel);
+internal sealed class CombatPredictionCardSelectionOptionsEntry : CombatPredictionCardSelectionEntry;
 
-internal abstract record CombatPredictionCardGenerationEntry(
-    int Index,
-    IReadOnlyList<PredictedCard> Cards,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+internal abstract class CombatPredictionCardGenerationEntry : CombatPredictionHistoryEntry
+{
+    public required IReadOnlyList<PredictedCard> Cards { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+}
 
-internal sealed record CombatPredictionCardsGeneratedEntry(
-    int Index,
-    IReadOnlyList<PredictedCard> Cards,
-    AbstractModel? SourceModel) : CombatPredictionCardGenerationEntry(Index, Cards, SourceModel);
+internal sealed class CombatPredictionCardsGeneratedEntry : CombatPredictionCardGenerationEntry;
 
-internal sealed record CombatPredictionCardGenerationOptionsEntry(
-    int Index,
-    IReadOnlyList<PredictedCard> Cards,
-    AbstractModel? SourceModel) : CombatPredictionCardGenerationEntry(Index, Cards, SourceModel);
+internal sealed class CombatPredictionCardGenerationOptionsEntry : CombatPredictionCardGenerationEntry;
 
-internal sealed record CombatPredictionCardAfflictedEntry(
-    int Index,
-    PredictedCard Card,
-    AfflictionModel Affliction) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionCardAfflictedEntry : CombatPredictionHistoryEntry
+{
+    public required PredictedCard Card { get; init; }
+    public required AfflictionModel Affliction { get; init; }
+}
 
-internal sealed record CombatPredictionAutoPlayFromDrawPileEntry(
-    int Index,
-    PredictedCard Card,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionAutoPlayFromDrawPileEntry : CombatPredictionHistoryEntry
+{
+    public required PredictedCard Card { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+}
 
-internal sealed record CombatPredictionPotionGeneratedEntry(
-    int Index,
-    PotionModel Potion,
-    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+internal sealed class CombatPredictionPotionGeneratedEntry : CombatPredictionHistoryEntry
+{
+    public required PotionModel Potion { get; init; }
+    public required AbstractModel? SourceModel { get; init; }
+}
