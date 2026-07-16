@@ -49,6 +49,9 @@ internal static class CardOnPlayMirrors
 
         registry.Register<Alchemize>(PotionGenerationCardMirrors.AlchemizeOnPlay);
 
+        registry.Register<CalculatedGamble>(CardDrawCardMirrors.CalculatedGambleOnPlay);
+        registry.Register<Reboot>(CardDrawCardMirrors.RebootOnPlay);
+
         registry.Register<FlakCannon>(RandomTargetAttackCardMirrors.FlakCannonOnPlay);
         registry.Register<Ricochet>(RandomTargetAttackCardMirrors.RicochetOnPlay);
         registry.Register<RipAndTear>(RandomTargetAttackCardMirrors.RipAndTearOnPlay);
