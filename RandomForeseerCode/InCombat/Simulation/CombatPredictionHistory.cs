@@ -7,15 +7,16 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 /// <summary>
 /// Stores prediction-only combat events in simulation order without touching live combat history.
-/// Parallel risk checkpoints let consumers evaluate risk through their relevant entries without entry producers
-/// needing to know which prediction consumes them. A returned handle can move an entry's checkpoint to the point
-/// where deferred processing finishes; otherwise the entry is considered complete when recorded.
+/// Deferred events use separate original and resolved entries; the resolved entry carries the final snapshot and
+/// risk checkpoint while the original entry determines semantic order.
 /// </summary>
 internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
 {
     private readonly List<CombatPredictionHistoryEntry> _entries = [];
     private readonly List<PredictionRiskCheckpoint> _riskCheckpoints = [];
     private readonly Dictionary<Type, int> _entryCounts = [];
+    private readonly Dictionary<CombatPredictionHistoryEntry, CombatPredictionHistoryEntry> _completions =
+        new(ReferenceEqualityComparer.Instance);
 
     public IReadOnlyList<CombatPredictionHistoryEntry> Entries => _entries;
 
@@ -38,23 +39,18 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
             return PredictionRisk.None;
         }
 
-        var latestCheckpoint = entries.Max(entry =>
+        foreach (var entry in entries)
         {
-            var index = entry.Index;
-            if (index < 0 || index >= _entries.Count || !ReferenceEquals(_entries[index], entry))
-            {
-                throw new InvalidOperationException("The history entry does not belong to this history.");
-            }
+            ValidateOwnership(entry);
+        }
 
-            return _riskCheckpoints[index];
-        });
-
+        var latestCheckpoint = entries.Max(entry => _riskCheckpoints[entry.Index]);
         return riskTracker.Snapshot(latestCheckpoint);
     }
 
-    public EntryHandle CardAfflicted(PredictedCard card, AfflictionModel affliction)
+    public void CardAfflicted(PredictedCard card, AfflictionModel affliction)
     {
-        return Record(new CombatPredictionCardAfflictedEntry
+        Record(new CombatPredictionCardAfflictedEntry
         {
             Index = _entries.Count,
             Card = card.Clone(),
@@ -62,7 +58,7 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle CardDrawn(PredictedCard card, bool fromHandDraw)
+    public CombatPredictionCardDrawnEntry CardDrawn(PredictedCard card, bool fromHandDraw)
     {
         return Record(new CombatPredictionCardDrawnEntry
         {
@@ -72,9 +68,19 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle CardsSelected(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    public void CardDrawResolved(CombatPredictionCardDrawnEntry originalEntry, PredictedCard card)
     {
-        return Record(new CombatPredictionCardsSelectedEntry
+        Complete(originalEntry, new CombatPredictionCardDrawResolvedEntry
+        {
+            Index = _entries.Count,
+            OriginalEntry = originalEntry,
+            Card = card.Clone()
+        });
+    }
+
+    public void CardsSelected(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    {
+        Record(new CombatPredictionCardsSelectedEntry
         {
             Index = _entries.Count,
             Cards = SnapshotCards(cards),
@@ -82,39 +88,9 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle CardSelectionOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    public CombatPredictionCardGeneratedEntry CardGenerated(PredictedCard card, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionCardSelectionOptionsEntry
-        {
-            Index = _entries.Count,
-            Cards = SnapshotCards(cards),
-            SourceModel = sourceModel
-        });
-    }
-
-    public EntryHandle CardsGenerated(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
-    {
-        return Record(new CombatPredictionCardsGeneratedEntry
-        {
-            Index = _entries.Count,
-            Cards = SnapshotCards(cards),
-            SourceModel = sourceModel
-        });
-    }
-
-    public EntryHandle CardGenerationOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
-    {
-        return Record(new CombatPredictionCardGenerationOptionsEntry
-        {
-            Index = _entries.Count,
-            Cards = SnapshotCards(cards),
-            SourceModel = sourceModel
-        });
-    }
-
-    public EntryHandle AutoPlayFromDrawPile(PredictedCard card, AbstractModel? sourceModel)
-    {
-        return Record(new CombatPredictionAutoPlayFromDrawPileEntry
+        return Record(new CombatPredictionCardGeneratedEntry
         {
             Index = _entries.Count,
             Card = card.Clone(),
@@ -122,9 +98,39 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle PotionGenerated(PotionModel potion, AbstractModel? sourceModel)
+    public void CardGenerationResolved(CombatPredictionCardGeneratedEntry originalEntry, PredictedCard card)
     {
-        return Record(new CombatPredictionPotionGeneratedEntry
+        Complete(originalEntry, new CombatPredictionCardGenerationResolvedEntry
+        {
+            Index = _entries.Count,
+            OriginalEntry = originalEntry,
+            Card = card.Clone()
+        });
+    }
+
+    public void CardGenerationOptions(IReadOnlyList<PredictedCard> cards, AbstractModel? sourceModel)
+    {
+        Record(new CombatPredictionCardGenerationOptionsEntry
+        {
+            Index = _entries.Count,
+            Cards = SnapshotCards(cards),
+            SourceModel = sourceModel
+        });
+    }
+
+    public void AutoPlayFromDrawPile(PredictedCard card, AbstractModel? sourceModel)
+    {
+        Record(new CombatPredictionAutoPlayFromDrawPileEntry
+        {
+            Index = _entries.Count,
+            Card = card.Clone(),
+            SourceModel = sourceModel
+        });
+    }
+
+    public void PotionGenerated(PotionModel potion, AbstractModel? sourceModel)
+    {
+        Record(new CombatPredictionPotionGeneratedEntry
         {
             Index = _entries.Count,
             Potion = potion,
@@ -132,12 +138,12 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle CreatureAttacked(
+    public void CreatureAttacked(
         Creature attacker,
         AbstractModel? source,
         IReadOnlyList<DamageResult> hitResults)
     {
-        return Record(new CombatPredictionCreatureAttackedEntry
+        Record(new CombatPredictionCreatureAttackedEntry
         {
             Index = _entries.Count,
             Attacker = attacker,
@@ -146,14 +152,14 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle DamageReceived(
+    public void DamageReceived(
         Creature receiver,
         Creature? dealer,
         DamageResult result,
         PredictedCard? cardSource,
         AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionDamageReceivedEntry
+        Record(new CombatPredictionDamageReceivedEntry
         {
             Index = _entries.Count,
             Receiver = receiver,
@@ -164,9 +170,9 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    public EntryHandle OrbChanneled(OrbModel orb, AbstractModel? sourceModel)
+    public void OrbChanneled(OrbModel orb, AbstractModel? sourceModel)
     {
-        return Record(new CombatPredictionOrbChanneledEntry
+        Record(new CombatPredictionOrbChanneledEntry
         {
             Index = _entries.Count,
             Orb = orb,
@@ -174,7 +180,18 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         });
     }
 
-    private EntryHandle Record(CombatPredictionHistoryEntry entry)
+    public TResolved GetResolvedEntry<TResolved>(CombatPredictionHistoryEntry originalEntry)
+        where TResolved : CombatPredictionHistoryEntry
+    {
+        var resolvedEntry = _completions.GetValueOrDefault(originalEntry)
+            ?? throw new InvalidOperationException("The deferred history entry has not been resolved.");
+
+        return resolvedEntry as TResolved
+            ?? throw new InvalidOperationException("The deferred history entry has an invalid resolution type.");
+    }
+
+    private TEntry Record<TEntry>(TEntry entry)
+        where TEntry : CombatPredictionHistoryEntry
     {
         if (entry.Index != _entries.Count)
         {
@@ -184,7 +201,7 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         _entries.Add(entry);
         _riskCheckpoints.Add(riskTracker.Checkpoint);
         CollectionsMarshal.GetValueRefOrAddDefault(_entryCounts, entry.GetType(), out _)++;
-        return new EntryHandle(this, entry.Index);
+        return entry;
     }
 
     private static IReadOnlyList<PredictedCard> SnapshotCards(IEnumerable<PredictedCard> cards)
@@ -192,16 +209,24 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
         return [.. cards.Select(static card => card.Clone())];
     }
 
-    private void Complete(int index)
+    private void Complete(CombatPredictionHistoryEntry originalEntry, CombatPredictionHistoryEntry resolvedEntry)
     {
-        _riskCheckpoints[index] = riskTracker.Checkpoint;
+        ValidateOwnership(originalEntry);
+        if (_completions.ContainsKey(originalEntry))
+        {
+            throw new InvalidOperationException("The deferred history entry has already been resolved.");
+        }
+
+        Record(resolvedEntry);
+        _completions.Add(originalEntry, resolvedEntry);
     }
 
-    internal readonly struct EntryHandle(CombatPredictionHistory history, int index)
+    private void ValidateOwnership(CombatPredictionHistoryEntry entry)
     {
-        public void Complete()
+        var index = entry.Index;
+        if (index < 0 || index >= _entries.Count || !ReferenceEquals(_entries[index], entry))
         {
-            history.Complete(index);
+            throw new InvalidOperationException("The history entry does not belong to this history.");
         }
     }
 }
@@ -239,25 +264,38 @@ internal sealed class CombatPredictionCardDrawnEntry : CombatPredictionHistoryEn
     public required bool FromHandDraw { get; init; }
 }
 
-internal abstract class CombatPredictionCardSelectionEntry : CombatPredictionHistoryEntry
+internal sealed class CombatPredictionCardDrawResolvedEntry : CombatPredictionHistoryEntry
+{
+    public required CombatPredictionCardDrawnEntry OriginalEntry { get; init; }
+    public required PredictedCard Card { get; init; }
+}
+
+internal sealed class CombatPredictionCardsSelectedEntry : CombatPredictionHistoryEntry
 {
     public required IReadOnlyList<PredictedCard> Cards { get; init; }
     public required AbstractModel? SourceModel { get; init; }
 }
-
-internal sealed class CombatPredictionCardsSelectedEntry : CombatPredictionCardSelectionEntry;
-
-internal sealed class CombatPredictionCardSelectionOptionsEntry : CombatPredictionCardSelectionEntry;
 
 internal abstract class CombatPredictionCardGenerationEntry : CombatPredictionHistoryEntry
 {
-    public required IReadOnlyList<PredictedCard> Cards { get; init; }
     public required AbstractModel? SourceModel { get; init; }
 }
 
-internal sealed class CombatPredictionCardsGeneratedEntry : CombatPredictionCardGenerationEntry;
+internal sealed class CombatPredictionCardGeneratedEntry : CombatPredictionCardGenerationEntry
+{
+    public required PredictedCard Card { get; init; }
+}
 
-internal sealed class CombatPredictionCardGenerationOptionsEntry : CombatPredictionCardGenerationEntry;
+internal sealed class CombatPredictionCardGenerationResolvedEntry : CombatPredictionHistoryEntry
+{
+    public required CombatPredictionCardGeneratedEntry OriginalEntry { get; init; }
+    public required PredictedCard Card { get; init; }
+}
+
+internal sealed class CombatPredictionCardGenerationOptionsEntry : CombatPredictionCardGenerationEntry
+{
+    public required IReadOnlyList<PredictedCard> Cards { get; init; }
+}
 
 internal sealed class CombatPredictionCardAfflictedEntry : CombatPredictionHistoryEntry
 {

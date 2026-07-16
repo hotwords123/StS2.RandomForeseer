@@ -28,10 +28,11 @@
   `CardModel.OnPlay`, lives in its model domain under `Mirrors/` and follows the same
   facade/registry split.
 - `CombatPredictionHistory` stores simulator events in one ordered timeline and records the current
-  risk checkpoint at the same list position. Entry handles may move that checkpoint past deferred
-  processing; consumers use the maximum checkpoint among relevant entries instead of end-of-simulation risk.
-  It also maintains exact entry-type counts so simulator safety limits can be checked without repeatedly
-  scanning the full history.
+  risk checkpoint at the same list position. Deferred card draws and individual generated cards append
+  separate started and resolved entries; consumers use started order, resolved snapshots, and the
+  maximum resolved checkpoint instead of end-of-simulation risk. A reference-identity completion
+  index rejects unresolved, duplicate, and cross-history completion. History also maintains exact
+  entry-type counts so simulator safety limits can be checked without repeatedly scanning the full history.
 
 ## Related docs
 

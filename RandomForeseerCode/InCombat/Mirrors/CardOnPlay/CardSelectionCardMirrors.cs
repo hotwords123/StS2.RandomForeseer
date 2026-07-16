@@ -158,7 +158,7 @@ internal static class CardSelectionCardMirrors
         SimulateTargetedAttack(context);
 
         var alreadyPredicted = context.Simulator.History
-            .OfType<CombatPredictionCardSelectionOptionsEntry>()
+            .OfType<CombatPredictionCardsSelectedEntry>()
             .Any(entry => ReferenceEquals(entry.SourceModel, context.OriginalCard));
         if (alreadyPredicted)
         {
@@ -177,7 +177,7 @@ internal static class CardSelectionCardMirrors
             return;
         }
 
-        context.Simulator.History.CardSelectionOptions(cardOptions, context.OriginalCard);
+        context.Simulator.History.CardsSelected(cardOptions, context.OriginalCard);
         // Vanilla next asks the player to choose an option and moves it to hand. Record the options
         // first so that this unresolved choice does not contaminate their risk checkpoint.
         context.MarkCurrentSourceRisky();

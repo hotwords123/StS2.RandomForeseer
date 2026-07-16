@@ -51,11 +51,10 @@ internal sealed partial class CombatPredictionSimulator
 
         var predictedCard = state.DrawPile.Cards[0];
         AddToPile(predictedCard, state.Hand);
-        var historyHandle = History.CardDrawn(predictedCard, fromHandDraw);
+        var entry = History.CardDrawn(predictedCard, fromHandDraw);
 
         HookMirrors.AfterCardDrawn(this, predictedCard, fromHandDraw);
-        // AfterCardDrawn can modify the same preview card, so its history entry is complete only after these hooks.
-        historyHandle.Complete();
+        History.CardDrawResolved(entry, predictedCard);
         return true;
     }
 
@@ -168,13 +167,12 @@ internal sealed partial class CombatPredictionSimulator
 
         foreach (var card in cards)
         {
+            var entry = History.CardGenerated(card, source);
             results.Add(AddToPile(card, newPileType, position));
-            HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
-        }
 
-        // Vanilla records one CardGenerated entry before adding each card and running its generation hooks.
-        // Prediction groups this call into one presentation entry after every card finishes processing.
-        History.CardsGenerated(cards, source);
+            HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
+            History.CardGenerationResolved(entry, card);
+        }
 
         return results;
     }

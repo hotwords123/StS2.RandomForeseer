@@ -33,7 +33,10 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 
 ## Parity notes
 
-- Simulator draw calls `CombatPredictionHistory.CardDrawn` before dispatching mirrored `AfterCardDrawn` hooks, matching vanilla history timing for listeners that inspect cards drawn this turn, then completes the entry after those hooks so its risk checkpoint covers changes to the drawn preview card.
+- Simulator draw appends `CombatPredictionCardDrawnEntry` before dispatching mirrored `AfterCardDrawn`
+  hooks, matching vanilla history timing for listeners that inspect cards drawn this turn. After the
+  hooks it appends `CombatPredictionCardDrawResolvedEntry` with the final card snapshot. Projection
+  keeps started-entry order but uses the resolved snapshot and checkpoint.
 - A single simulation records at most 100 card draws. Further draw attempts stop the current draw loop and add unknown prediction risk, preventing recursive draw listeners and auto-play effects from running without bound.
 
 ## Mock model list

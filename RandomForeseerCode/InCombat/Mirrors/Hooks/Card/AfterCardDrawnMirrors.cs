@@ -262,7 +262,9 @@ internal static class AfterCardDrawnMirrors
                 entry.Card.Type == CardType.Status);
         count += simulator.History
             .OfType<CombatPredictionCardDrawnEntry>()
-            .Count(entry => entry.Card.Preview.Owner == player && entry.Card.Preview.Type == CardType.Status);
+            .Count(entry =>
+                entry.Card.Preview.Owner == player &&
+                entry.Card.Preview.Type == CardType.Status);
         return count;
     }
 

@@ -1,6 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -35,6 +34,7 @@ internal sealed record DrawPilePredictionResult(IReadOnlyList<PredictedCard> Car
     {
         var history = simulator.History
             .OfType<CombatPredictionCardDrawnEntry>()
+            .Select(simulator.History.GetResolvedEntry<CombatPredictionCardDrawResolvedEntry>)
             .ToList();
         return new([.. history.Select(entry => entry.Card)], simulator.History.GetRisk(history));
     }

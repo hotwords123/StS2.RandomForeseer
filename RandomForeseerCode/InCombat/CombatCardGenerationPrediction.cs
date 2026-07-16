@@ -50,15 +50,26 @@ internal static class CombatCardGenerationPrediction
         var predictedCard = simulator.State.FindCard(card) ?? new PredictedCard(card);
         simulator.ManualPlay(predictedCard, target);
 
-        var history = simulator.History
-            .OfType<CombatPredictionCardGenerationEntry>()
-            .Where(entry => ReferenceEquals(entry.SourceModel, card))
-            .ToList();
-        var cardBundles = history
-            .Select(entry => entry.Cards)
-            .ToList();
+        List<(int Index, IReadOnlyList<PredictedCard> Cards, CombatPredictionHistoryEntry Resolved)> entries =
+        [
+            ..simulator.History
+                .OfType<CombatPredictionCardGeneratedEntry>()
+                .Where(entry => ReferenceEquals(entry.SourceModel, card))
+                .Select(entry =>
+                {
+                    var resolved = simulator.History.GetResolvedEntry<CombatPredictionCardGenerationResolvedEntry>(entry);
+                    return (entry.Index, new[] { resolved.Card }, resolved);
+                }),
+            ..simulator.History
+                .OfType<CombatPredictionCardGenerationOptionsEntry>()
+                .Where(entry => ReferenceEquals(entry.SourceModel, card))
+                .Select(entry => (entry.Index, entry.Cards, entry))
+        ];
+        entries.Sort(static (left, right) => left.Index.CompareTo(right.Index));
 
-        return new(cardBundles, simulator.History.GetRisk(history));
+        return new(
+            [.. entries.Select(entry => entry.Cards)],
+            simulator.History.GetRisk([.. entries.Select(entry => entry.Resolved)]));
     }
 
     private static bool IsSupported(CardModel card)
