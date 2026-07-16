@@ -1,10 +1,10 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
@@ -13,19 +13,16 @@ internal static class AutoPlayFromDrawPilePrediction
 {
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
     {
-        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableAutoPlayFromDrawPilePrediction))
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableAutoPlayFromDrawPilePrediction) ||
+            card is not (Havoc or Cascade) ||
+            !CombatPredictionSimulator.TryCreate(card.Owner, out var simulator))
         {
             return [];
         }
 
-        var count = card switch
-        {
-            Havoc => 1,
-            Cascade cascade => PredictCascadeCount(cascade),
-            _ => 0
-        };
-
-        return Predict(card.Owner, count).ToHoverTips();
+        var predictedCard = simulator.State.FindCard(card) ?? new PredictedCard(card);
+        simulator.ManualPlay(predictedCard, target: null);
+        return DrawPilePredictionResult.FromAutoPlayHistory(simulator).ToHoverTips();
     }
 
     public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
@@ -55,19 +52,5 @@ internal static class AutoPlayFromDrawPilePrediction
 
         simulator.AutoPlayFromDrawPile(player, count, CardPilePosition.Top);
         return DrawPilePredictionResult.FromAutoPlayHistory(simulator);
-    }
-
-    private static int PredictCascadeCount(Cascade cascade)
-    {
-        if (cascade.Owner.Creature.CombatState is not { } combatState)
-        {
-            return 0;
-        }
-
-        var capturedXValue = cascade.Owner.PlayerCombatState?.Energy ?? 0;
-        var count = Hook.ModifyXValue(combatState, cascade, capturedXValue);
-        return cascade.IsUpgraded
-            ? count + 1
-            : count;
     }
 }

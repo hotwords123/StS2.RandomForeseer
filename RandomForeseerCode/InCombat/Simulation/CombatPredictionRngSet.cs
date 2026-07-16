@@ -8,6 +8,7 @@ internal sealed class CombatPredictionRngSet
 {
     public required Rng Shuffle { get; init; }
     public required Rng CombatCardGeneration { get; init; }
+    public required Rng CombatPotionGeneration { get; init; }
     public required Rng CombatCardSelection { get; init; }
     public required Rng CombatEnergyCosts { get; init; }
     public required Rng CombatTargets { get; init; }
@@ -19,6 +20,7 @@ internal sealed class CombatPredictionRngSet
         {
             Shuffle = rng.Shuffle.Clone(),
             CombatCardGeneration = rng.CombatCardGeneration.Clone(),
+            CombatPotionGeneration = rng.CombatPotionGeneration.Clone(),
             CombatCardSelection = rng.CombatCardSelection.Clone(),
             CombatEnergyCosts = rng.CombatEnergyCosts.Clone(),
             CombatTargets = rng.CombatTargets.Clone(),

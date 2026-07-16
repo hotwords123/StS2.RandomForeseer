@@ -44,6 +44,10 @@ internal static class CardOnPlayMirrors
 
         registry.Register<HowlFromBeyond>(AutoPlayCardMirrors.HowlFromBeyondOnPlay);
         registry.Register<IAmInvincible>(AutoPlayCardMirrors.IAmInvincibleOnPlay);
+        registry.Register<Havoc>(AutoPlayCardMirrors.HavocOnPlay);
+        registry.Register<Cascade>(AutoPlayCardMirrors.CascadeOnPlay);
+
+        registry.Register<Alchemize>(PotionGenerationCardMirrors.AlchemizeOnPlay);
 
         registry.Register<FlakCannon>(RandomTargetAttackCardMirrors.FlakCannonOnPlay);
         registry.Register<Ricochet>(RandomTargetAttackCardMirrors.RicochetOnPlay);

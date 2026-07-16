@@ -94,6 +94,14 @@ internal sealed class CombatPredictionHistory(PredictionRiskTracker riskTracker)
             sourceModel));
     }
 
+    public EntryHandle PotionGenerated(PotionModel potion, AbstractModel? sourceModel)
+    {
+        return Record(new CombatPredictionPotionGeneratedEntry(
+            _entries.Count,
+            potion,
+            sourceModel));
+    }
+
     public EntryHandle CreatureAttacked(
         Creature attacker,
         AbstractModel? source,
@@ -218,4 +226,9 @@ internal sealed record CombatPredictionCardAfflictedEntry(
 internal sealed record CombatPredictionAutoPlayFromDrawPileEntry(
     int Index,
     PredictedCard Card,
+    AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
+
+internal sealed record CombatPredictionPotionGeneratedEntry(
+    int Index,
+    PotionModel Potion,
     AbstractModel? SourceModel) : CombatPredictionHistoryEntry(Index);
