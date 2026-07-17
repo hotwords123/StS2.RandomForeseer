@@ -1,4 +1,3 @@
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Hooks;
@@ -11,14 +10,6 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
-    private delegate (PileType PileType, CardPilePosition Position)
-        GetResultPileTypeAndPositionForCardPlayDelegate(CardModel card);
-
-    private static readonly GetResultPileTypeAndPositionForCardPlayDelegate
-        GetResultPileTypeAndPositionForCardPlay =
-            AccessTools.Method(typeof(CardModel), "GetResultPileTypeAndPositionForCardPlay")
-                .CreateDelegate<GetResultPileTypeAndPositionForCardPlayDelegate>();
-
     // Mirrors CardPileCmd.AddDuringManualCardPlay, which is called when a card is manually played
     // from hand and is added to the play pile.
     public void AddDuringManualCardPlay(PredictedCard card)
@@ -192,6 +183,7 @@ internal sealed partial class CombatPredictionSimulator
         using var _ = PushActionSource(card.Original, PredictionActionKind.CardPlayLifecycle);
 
         var previewCard = card.MutablePreview;
+        var originalOwner = previewCard.Owner;
         previewCard.CurrentTarget = target;
         previewCard.CurrentPlayIndex = 0;
 
@@ -204,22 +196,21 @@ internal sealed partial class CombatPredictionSimulator
             AddDuringManualCardPlay(card);
         }
 
-        var (resultPileType, resultPilePosition) = GetResultPileTypeAndPositionForCardPlay(previewCard);
-        (resultPileType, resultPilePosition) = Hook.ModifyCardPlayResultPileTypeAndPosition(
+        var resultLocation = CardResultLocationMirrors.GetResultLocation(this, card);
+        resultLocation = Hook.ModifyCardPlayResultLocation(
             State.CombatState,
             previewCard,
             isAutoPlay,
             resources,
-            resultPileType,
-            resultPilePosition,
+            resultLocation,
             out var modifiers);
         foreach (var modifier in modifiers)
         {
-            // TODO: Dispatch Hook.AfterModifyingCardPlayResultPileOrPosition.
+            // TODO: Dispatch Hook.AfterModifyingCardPlayResultLocation.
         }
 
         var playCount = card.GeneratePlayCount(this, target);
-        var ownerCreature = State.GetCreature(previewCard.Owner.Creature);
+        var ownerCreature = State.GetCreature(originalOwner.Creature);
         if (ownerCreature.IsDead)
         {
             return;
@@ -232,8 +223,9 @@ internal sealed partial class CombatPredictionSimulator
             var cardPlay = new CardPlay
             {
                 Card = previewCard,
+                Player = originalOwner,
                 Target = target,
-                ResultPile = resultPileType,
+                ResultPile = resultLocation.pileType,
                 Resources = resources,
                 IsAutoPlay = isAutoPlay,
                 PlayIndex = i,
@@ -269,9 +261,19 @@ internal sealed partial class CombatPredictionSimulator
             }
         }
 
+        if (originalOwner != resultLocation.player && resultLocation.pileType != PileType.None)
+        {
+            GiveToAnotherPlayer(
+                card,
+                originalOwner,
+                resultLocation.player,
+                resultLocation.pileType,
+                resultLocation.position);
+        }
+
         if (card.GetPile(State)?.Type is PileType.Play)
         {
-            switch (resultPileType)
+            switch (resultLocation.pileType)
             {
                 case PileType.None:
                     RemoveFromCombat(card);
@@ -280,7 +282,7 @@ internal sealed partial class CombatPredictionSimulator
                     Exhaust(card);
                     break;
                 default:
-                    AddToPile(card, resultPileType, resultPilePosition);
+                    AddToPile(card, resultLocation.pileType, resultLocation.position);
                     break;
             }
         }

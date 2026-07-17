@@ -1,6 +1,7 @@
 # Damage and HP hooks
 
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
+`InCombat/Mirrors/Hooks/Block/AfterBlockBrokenMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/AfterCurrentHpChangedMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/AfterDamageGivenMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/BeforeDamageReceivedMirrors.cs`,
@@ -8,14 +9,14 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Simulation/CombatPredictionSimulator.Damage.cs`, and
 `InCombat/Simulation/CombatPredictionSimulator.Heal.cs`.
 
-This document covers the implemented `BeforeDamageReceived`, `AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterDamageReceived` mirrors plus the remaining damage/hp/block gaps.
+This document covers the implemented `BeforeDamageReceived`, `AfterBlockBroken`, `AfterCurrentHpChanged`, `AfterDamageGiven`, and `AfterDamageReceived` mirrors plus the remaining damage/hp/block gaps.
 
 Damage hooks use the current player-turn prediction scope from `overview.md`: only effects that can feed back into predictions before the current player turn finishes need to be mirrored or marked risky. Enemy intent/stun changes, next-turn counters, later orb-passive triggers, and later reward-screen state can be ignored here unless another current-turn prediction consumes them.
 
 ## Hook specs
 
 - `AbstractModel.BeforeDamageReceived(PlayerChoiceContext, Creature, decimal, ValueProp, Creature?, CardModel?)`
-- `AbstractModel.AfterBlockBroken(Creature)`
+- `AbstractModel.AfterBlockBroken(PlayerChoiceContext, Creature target, Creature? breaker)`
 - `AbstractModel.AfterCurrentHpChanged(Creature, decimal delta)`
 - `AbstractModel.AfterDamageGiven(PlayerChoiceContext, Creature?, DamageResult, ValueProp, Creature, CardModel?)`
 - `AbstractModel.AfterDamageReceived(PlayerChoiceContext, Creature, DamageResult, ValueProp, Creature?, CardModel?)`
@@ -31,7 +32,8 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 
 | Model | 中文名 | Original effect | Current status and feasibility |
 | --- | --- | --- | --- |
-| `BurrowedPower` | 埋地 | When owner's block breaks, removes/stuns burrowed monster state. | Ignored by comment. Not implementable without power removal/monster state support. |
+| `BurrowedPower` | 埋地 | When owner's block breaks, removes/stuns burrowed monster state. | Ignored. Not implementable without power removal/monster state support, and only affects later enemy behavior. |
+| `HandDrill` | 手钻 | Owner or pet breaking enemy block applies Vulnerable. | Risk only when trigger condition matches. Apply Power unsupported. StS2 v0.109.0 moved this listener from `AfterDamageGiven` and added the `breaker` argument. |
 
 ## AfterCurrentHpChanged listeners
 
@@ -54,9 +56,8 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 | `ImbalancedPower` | 失衡 | On fully blocked owner attack, triggers monster-specific state. | Ignored by current-turn scope: stun/off-balance state affects later monster behavior, not current player-turn predictions. |
 | `PaperCutsPower` | 纸伤难愈 | Owner's powered unblocked attack makes player lose max HP. | Ignored by current prediction scope: max HP mutation is not consumed by current combat hover predictions. |
 | `ReaperFormPower` | 死神形态 | Applies Doom on attack. | Risk only when trigger condition matches. Apply Power unsupported. |
-| `HandDrill` | 手钻 | Owner or pet breaking enemy block applies Vulnerable. | Risk only when trigger condition matches. Apply Power unsupported. |
 | `SicEmPower` | 紧追不放 | Osty hitting marked target summons/acts. | Risk only when trigger condition matches. Summon unsupported. |
-| `UnderworldPower` | 幽冥之界 | Other players' or non-owner pets' powered attacks apply Doom equal to total damage times amount. | Risk only when trigger condition matches. Apply Power unsupported. StS2 v0.108.0 added this listener. |
+| `UnderworldPower` | 幽冥之界 | Powered attacks from allied creatures other than owner or owner's own pet apply Doom equal to total damage times amount. | Risk only when trigger condition matches. Apply Power unsupported. StS2 v0.108.0 added this listener; v0.109.0 added the same-side gate. |
 
 ## AfterDamageReceived listeners
 
@@ -93,6 +94,9 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 ## Parity notes
 
 - `CombatPredictionSimulator.Heal` mirrors `CreatureCmd.Heal`'s shadow HP change and positive-delta `AfterCurrentHpChanged` dispatch. It intentionally omits heal VFX/SFX, map-point healing history, waits, and player hook activation on revive.
+- Damage processing dispatches `AfterBlockBroken` before `AfterCurrentHpChanged` and
+  `AfterDamageGiven`, matching `CreatureCmd.Damage`. Its listener details and unguarded iteration
+  rule are also recorded in `block-hooks.md`.
 - `AfterDamageGiven` listeners that only affect achievements, later monster behavior, or max HP state not consumed by current hover predictions are registered ignored instead of surfaced as risk.
 - The remaining post-result mirrors are surfaced as risk only when their trigger conditions can affect the current player-turn prediction surface.
 - Not implementable without architecture changes: Apply/Remove Power, summon, revive, monster move/state transitions, max HP loss, and combat removal. This includes StS2 v0.108.0 `ConcoctPower` and `UnderworldPower` until prediction owns power application.

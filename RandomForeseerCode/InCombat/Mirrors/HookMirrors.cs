@@ -68,6 +68,26 @@ internal static class HookMirrors
         }
     }
 
+    // Mirrors Hook.AfterBlockBroken. Vanilla deliberately iterates the combat state directly
+    // so the hook still fires for a block-breaking hit that is also ending combat.
+    public static void AfterBlockBroken(
+        CombatPredictionSimulator simulator,
+        Creature target,
+        Creature? breaker)
+    {
+        var context = new AfterBlockBrokenMirrorContext
+        {
+            Simulator = simulator,
+            Target = target,
+            Breaker = breaker
+        };
+
+        foreach (var listener in context.State.IterateHookListeners())
+        {
+            AfterBlockBrokenMirrors.Invoke(listener, context);
+        }
+    }
+
     // Mirrors Hook.ShouldDraw with listener short-circuiting.
     public static bool ShouldDraw(
         CombatPredictionSimulator simulator,

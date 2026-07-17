@@ -52,7 +52,7 @@ Current mirror status: implemented by directly calling original `Hook.ModifyDama
 | `LeadershipPower` | 领袖气质 | Owner buffs allied powered attacks by flat damage. | Implemented by original hook. |
 | `MiniatureCannon` | 微型大炮 | Owner upgraded-card powered attacks gain flat damage. | Implemented by original hook. |
 | `MysticLighter` | 神秘打火机 | Owner enchanted-card powered attacks gain flat damage. | Implemented by original hook. |
-| `OneForAllPower` | 一心化万 | Owner's powered 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Implemented by original hook. StS2 v0.108.0 added the `CardPlay?` branch; simulated `AttackCommand` damage forwards `CardPlay`, while generic/direct damage forecasts still follow vanilla preview semantics. |
+| `OneForAllPower` | 一心化万 | Owner's powered non-X 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Implemented by original hook. StS2 v0.108.0 added the `CardPlay?` branch and v0.109.0 excluded X-cost cards; simulated `AttackCommand` damage forwards `CardPlay`, while generic/direct damage forecasts still follow vanilla preview semantics. |
 | `PhantomBladesPower` | 幻影之刃 | Owner's first Shiv attack this turn gains flat damage. | Implemented by original hook, but reads live `CombatManager.Instance.History.CardPlaysFinished`. |
 | `StrikeDummy` | 打击木偶 | Owner Strike-tag attacks gain flat damage. | Implemented by original hook. |
 | `StrengthPower` | 力量 | Owner powered attacks gain flat damage; negative amounts reduce damage. | Implemented by original hook. |
@@ -66,7 +66,6 @@ Current mirror status: implemented by directly calling original `Hook.ModifyDama
 | `ColossusPower` | 巨像 | Powered attacks from Vulnerable dealers against owner are reduced. | Implemented by original hook. |
 | `ConquerorPower` | 征服者 | `SovereignBlade` powered attacks against owner are doubled. | Implemented by original hook. |
 | `CoveredPower` | 掩护 | Powered attacks against owner are reduced to zero. | Implemented by original hook. |
-| `DiamondDiademPower` | 钻石头冠 | Powered attacks against owner are halved. | Implemented by original hook. |
 | `DoubleDamagePower` | 双倍伤害 | Owner or pet powered card attacks are doubled. | Implemented by original hook. |
 | `FlankingPower` | 夹击 | Powered attacks against owner are multiplied unless dealt by applier. | Implemented by original hook. |
 | `FlutterPower` | 振翅 | Powered attacks against owner are reduced by configured percentage. | Implemented by original hook; post-hit decrement/stun is covered in `damage-hooks.md`. |
@@ -85,7 +84,7 @@ Current mirror status: implemented by directly calling original `Hook.ModifyDama
 | `TrackingPower` | 跟踪 | Owner or pet powered card attacks against Weak targets are multiplied. | Implemented by original hook. |
 | `UndyingSigil` | 不死符文 | Incoming powered attacks from doomed enemies are reduced. | Implemented by original hook. |
 | `VitruvianMinion` | 维特鲁威仆从 | Owner Minion-tag card attacks are doubled. | Implemented by original hook. |
-| `VulnerablePower` | 易伤 | Powered attacks against owner are multiplied, with Paper Phrog, Cruelty, and Debilitate adjustments. | Implemented by original hook. |
+| `VulnerablePower` | 易伤 | Powered attacks against owner are multiplied, with Paper Phrog, dealer or pet owner's Cruelty, and Debilitate adjustments. | Implemented by original hook. StS2 v0.109.0 made attacking pets inherit their owner's Cruelty adjustment. |
 | `WeakPower` | 虚弱 | Owner's powered attacks are reduced, with Paper Krane and Debilitate adjustments. | Implemented by original hook. |
 
 ### ModifyDamageCap listeners
@@ -161,6 +160,8 @@ Current mirror status: `AfterModifyingHpLostAfterOsty` is dispatched only to the
 
 - The simulator intentionally uses the original `Hook.Modify*` value path because vanilla previews also use these hooks without mutating RNG.
 - StS2 v0.108.0 added `CardPlay?` to damage modifiers. Real card execution passes the active `CardPlay`; hover forecasts and other vanilla previews pass `null`. The simulator forwards `AttackCommand.CardPlay` through `ExecuteAttack(AttackCommand)` for simulated card-play/autoplay attacks, but direct `Damage` calls and helper-created attacks without a `CardPlay` still pass `null`.
+- StS2 v0.109.0 deleted `DiamondDiademPower`; `DiamondDiadem` no longer contributes a
+  multiplicative damage listener.
 - Direct original hook calls read live model state. History-dependent listeners such as `LethalityPower` and `PhantomBladesPower` do not read simulator shadow history, so chained simulated card plays or auto-plays can drift until those powers get targeted mirrors.
 - Missing shadow state for `BufferPower` is the only currently known `AfterModifying*` hook with immediate prediction-relevant state; it is surfaced as risk instead of silently diverging.
 

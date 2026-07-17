@@ -31,7 +31,7 @@ internal static class OutOfCombatPredictionUtils
                 var rng = realRng.Clone();
                 if (rngCounterOffset != 0)
                 {
-                    rng.FastForwardCounter(rng.Counter + rngCounterOffset);
+                    rng.Advance(rngCounterOffset);
                 }
 
                 return PredictionUtils.PredictTransformResult(card, rng, isInCombat: false);
@@ -64,7 +64,7 @@ internal static class OutOfCombatPredictionUtils
             transformCount,
             PileType.Deck.GetPile(context.Player).Cards
                 .Count(card => card.Type != CardType.Quest && card.IsTransformable));
-        context.SharedRng.Niche.FastForwardCounter(context.SharedRng.Niche.Counter + transformCount);
+        context.SharedRng.Niche.Advance(transformCount);
     }
 
     public static CardCreationOptions CreateCharacterCardRewardOptions(Player player)

@@ -1,3 +1,5 @@
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
@@ -90,7 +92,12 @@ internal static class AfterCardGeneratedForCombatMirrors
         state.IsAddingSoul = true;
         try
         {
-            context.Simulator.AddToCombat<Soul>(power.Owner, PileType.Draw, power.Amount, player);
+            context.Simulator.AddToCombat<Soul>(
+                power.Owner,
+                PileType.Draw,
+                power.Amount,
+                player,
+                CardPilePosition.Random);
         }
         finally
         {
@@ -100,8 +107,15 @@ internal static class AfterCardGeneratedForCombatMirrors
 
     private static void HandlePillarOfCreationPower(PillarOfCreationPower power, AfterCardGeneratedForCombatMirrorContext context)
     {
-        if (context.Creator?.Creature == power.Owner)
+        if (context.Creator?.Creature != power.Owner)
         {
+            return;
+        }
+
+        var state = context.StateStore.Get(power, () => new PillarOfCreationPredictionState(power));
+        if (!state.HasTriggeredThisTurn)
+        {
+            state.HasTriggeredThisTurn = true;
             context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
         }
     }
@@ -150,4 +164,13 @@ internal sealed class AfterCardGeneratedForCombatMirrorContext : CombatPredictio
 internal sealed class SoulboundPredictionState(SoulboundPower power)
 {
     public bool IsAddingSoul { get; set; } = power._isAddingSoul;
+}
+
+internal sealed class PillarOfCreationPredictionState(PillarOfCreationPower power)
+{
+    public bool HasTriggeredThisTurn { get; set; } = CombatManager.Instance.History.Entries
+        .OfType<CardGeneratedEntry>()
+        .Any(entry =>
+            entry.Creator?.Creature == power.Owner &&
+            entry.HappenedThisTurn(power.CombatState));
 }

@@ -90,8 +90,8 @@ internal static class RelicPickupPrediction
                     PredictionHoverTips.Relics(PredictToyBoxRelics(context, relic.DynamicVars["Relics"].IntValue)),
 
                 // Vakuu
-                SereTalon when IsSingleplayerUnfairPredictionAllowed() =>
-                    PredictionHoverTips.Cards(PredictSereTalon(context, relic)),
+                DistinguishedCape when IsSingleplayerUnfairPredictionAllowed() =>
+                    PredictionHoverTips.Cards(PredictCurses(context, relic.DynamicVars["Curses"].IntValue)),
 
                 // Non-Ancient relics
                 Cauldron => PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
@@ -421,11 +421,6 @@ internal static class RelicPickupPrediction
     private static IReadOnlyList<CardModel> PredictSandCastle(Player player, int count)
     {
         return OutOfCombatPredictionUtils.PredictUpgradedDeckCards(player, count, card => card.IsUpgradable);
-    }
-
-    private static IReadOnlyList<CardModel> PredictSereTalon(RunPredictionContext context, RelicModel relic)
-    {
-        return PredictCurses(context, relic.DynamicVars["Curses"].IntValue);
     }
 
     private static IReadOnlyList<CardModel> PredictLeafyPoultice(Player player)

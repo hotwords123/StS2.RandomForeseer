@@ -11,18 +11,21 @@ internal static class PredictionExtensions
 {
     public static Rng Clone(this Rng rng)
     {
-        var clone = new Rng(rng.Seed)
-        {
-            Counter = rng.Counter
-        };
+        // StS2 v0.109.0 serializes the complete Xoshiro state instead of rebuilding it from a
+        // seed and counter. Round-tripping that state keeps prediction cloning constant-time.
+        return new Rng(rng.ToSerializable());
+    }
 
-        // STS2 0.107.1 stores Rng state in MegaRandom's Xoshiro** state.
-        // Copying it directly avoids replaying an ever-growing counter during predictions.
-        clone._random._s0 = rng._random._s0;
-        clone._random._s1 = rng._random._s1;
-        clone._random._s2 = rng._random._s2;
-        clone._random._s3 = rng._random._s3;
-        return clone;
+    public static void Advance(this Rng rng, int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+
+        // StS2 v0.108.0 FastForwardCounter advanced MegaRandom once per discarded value.
+        // v0.109.0 removed counter-based reconstruction, so discard raw draws directly.
+        for (var i = 0; i < count; i++)
+        {
+            _ = rng.NextUnsignedLong();
+        }
     }
 
     public static RelicGrabBag Clone(this RelicGrabBag grabBag)

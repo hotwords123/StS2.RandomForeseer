@@ -180,23 +180,26 @@ internal sealed partial class CombatPredictionSimulator
     public SimCardPileAddResult AddToPile(
         PredictedCard card,
         PileType newPileType,
-        CardPilePosition position = CardPilePosition.Bottom)
+        CardPilePosition position = CardPilePosition.Bottom,
+        bool isChangingOwners = false)
     {
-        return AddToPile([card], newPileType, position)[0];
+        return AddToPile([card], newPileType, position, isChangingOwners)[0];
     }
 
     public SimCardPileAddResult AddToPile(
         PredictedCard card,
         SimCardPile newPile,
-        CardPilePosition position = CardPilePosition.Bottom)
+        CardPilePosition position = CardPilePosition.Bottom,
+        bool isChangingOwners = false)
     {
-        return AddToPile([card], newPile, position)[0];
+        return AddToPile([card], newPile, position, isChangingOwners)[0];
     }
 
     public IReadOnlyList<SimCardPileAddResult> AddToPile(
         IReadOnlyList<PredictedCard> cards,
         PileType newPileType,
-        CardPilePosition position = CardPilePosition.Bottom)
+        CardPilePosition position = CardPilePosition.Bottom,
+        bool isChangingOwners = false)
     {
         if (cards.Count == 0)
         {
@@ -206,14 +209,15 @@ internal sealed partial class CombatPredictionSimulator
         var newPile = State.GetPlayerCombatState(cards[0].Preview.Owner).GetCardPile(newPileType)
             ?? throw new InvalidOperationException(
                 $"Cannot find combat pile {newPileType} for player {cards[0].Preview.Owner}.");
-        return AddToPile(cards, newPile, position);
+        return AddToPile(cards, newPile, position, isChangingOwners);
     }
 
     // Mirrors the combat-pile branch of CardPileCmd.Add(IEnumerable<CardModel>, CardPile, ...).
     public IReadOnlyList<SimCardPileAddResult> AddToPile(
         IReadOnlyList<PredictedCard> cards,
         SimCardPile newPile,
-        CardPilePosition position = CardPilePosition.Bottom)
+        CardPilePosition position = CardPilePosition.Bottom,
+        bool isChangingOwners = false)
     {
         if (cards.Count == 0)
         {
@@ -280,7 +284,7 @@ internal sealed partial class CombatPredictionSimulator
             // Vanilla CardPile.AddInternal updates CombatManager.StateTracker and raises pile UI events.
             // Prediction piles are plain model mirrors, and those UI-facing side effects are ignored.
 
-            if (result.OldPileType == PileType.None)
+            if (result.OldPileType == PileType.None && !isChangingOwners)
             {
                 // Vanilla dispatches Hook.AfterCardEnteredCombat here. Current reviewed vanilla
                 // implementations only mutate the entering card, and this is low-impact for current
@@ -326,6 +330,23 @@ internal sealed partial class CombatPredictionSimulator
             // as in AddToPile.
             card.MutablePreview.HasBeenRemovedFromState = true;
         }
+    }
+
+    // Mirrors CardPileCmd.GiveToAnotherPlayer for the post-play result-location path.
+    public void GiveToAnotherPlayer(
+        PredictedCard card,
+        Player originalOwner,
+        Player newOwner,
+        PileType pileType,
+        CardPilePosition position)
+    {
+        var oldPile = card.GetPile(State.GetPlayerCombatState(originalOwner))
+            ?? throw new InvalidOperationException(
+                $"Cannot transfer {card.Preview.Id} because it is not in {originalOwner}'s combat piles.");
+
+        oldPile.Remove(card);
+        card.MutablePreview.GiveToAnotherPlayer(newOwner);
+        AddToPile(card, pileType, position, isChangingOwners: true);
     }
 }
 

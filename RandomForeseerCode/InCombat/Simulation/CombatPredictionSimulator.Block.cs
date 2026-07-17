@@ -18,7 +18,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CreatureCmd.GainBlock without mutating real Creature state.
     public decimal GainBlock(Creature creature, decimal amount, ValueProp props, PredictedCard? cardSource = null)
     {
-        if (amount <= 0m)
+        if (State.GetCreature(creature).IsDead || amount <= 0m)
         {
             return 0m;
         }

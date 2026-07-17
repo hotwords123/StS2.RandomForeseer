@@ -216,9 +216,7 @@ internal sealed partial class CombatPredictionSimulator
 
             if (damageResult.WasBlockBroken)
             {
-                // Vanilla calls Hook.AfterBlockBroken here. Only BurrowedPower currently
-                // overrides it, and that stun/power-removal flow does not affect current
-                // prediction results, so it is intentionally not mirrored.
+                HookMirrors.AfterBlockBroken(this, originalTarget, dealer);
             }
 
             if (damageResult.UnblockedDamage > 0)

@@ -90,7 +90,6 @@ internal static class BeforeSideTurnEndMirrors
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
 
         registry.RegisterIgnored<Regret>();
-        registry.RegisterIgnored<DiamondDiadem>();
         registry.RegisterIgnored<PaelsTears>();
         registry.RegisterIgnored<SandpitPower>();
 
@@ -249,7 +248,7 @@ internal static class BeforeSideTurnEndMirrors
         return CombatManager.Instance.History.CardPlaysFinished.Any(entry =>
             entry.HappenedThisTurn(owner.Creature.CombatState) &&
             entry.CardPlay.Card.Type == CardType.Attack &&
-            entry.CardPlay.Card.Owner == owner);
+            entry.CardPlay.Player == owner);
     }
 
     private static bool AnyCardsPlayedThisTurn(Player owner)

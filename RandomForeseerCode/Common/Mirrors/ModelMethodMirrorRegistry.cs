@@ -101,16 +101,16 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext>(MirrorMethodSpe
 
     private static bool TryGetMod(MethodInfo overrideMethod, [NotNullWhen(true)] out Mod? mod)
     {
-        var declaringAssembly = overrideMethod.DeclaringType?.Assembly;
-        if (declaringAssembly is null || declaringAssembly == AssemblyInfo.BaseGame)
+        var declaringType = overrideMethod.DeclaringType;
+        if (declaringType is null)
         {
             mod = null;
             return false;
         }
 
-        // StS2 v0.108.0 initializes AssemblyInfo after mod loading and maintains a direct
-        // assembly-to-mod map, including additional assemblies associated by mods.
-        return AssemblyInfo.ModMap!.TryGetValue(declaringAssembly, out mod);
+        // StS2 v0.109.0 centralizes base-game, mod, and test mock type lookup here.
+        mod = AssemblyInfo.ModForType(declaringType, out var isBaseGame);
+        return !isBaseGame && mod is not null;
     }
 
     private readonly record struct LookupResult(

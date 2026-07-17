@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Achievements;
 using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
@@ -40,7 +39,6 @@ internal static class AfterDamageGivenMirrors
         registry.RegisterIgnored<SkillIronclad2Achievement>();
         registry.Register<ConcoctPower>(HandleConcoctPower);
         registry.Register<EnvenomPower>(HandleEnvenomPower);
-        registry.Register<HandDrill>(HandleHandDrill);
         registry.RegisterIgnored<ImbalancedPower>();
         registry.Register<MonarchsGazePower>(HandleMonarchsGazePower);
         registry.RegisterIgnored<PaperCutsPower>();
@@ -67,16 +65,6 @@ internal static class AfterDamageGivenMirrors
         if (context.Dealer == power.Owner &&
             context.Props.IsPoweredAttack() &&
             context.Result.UnblockedDamage > 0)
-        {
-            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
-        }
-    }
-
-    private static void HandleHandDrill(HandDrill relic, AfterDamageGivenMirrorContext context)
-    {
-        if ((context.Dealer == relic.Owner.Creature || context.Dealer?.PetOwner == relic.Owner) &&
-            !context.Target.IsPlayer &&
-            context.Result.WasBlockBroken)
         {
             context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
@@ -115,12 +103,13 @@ internal static class AfterDamageGivenMirrors
     private static void HandleUnderworldPower(UnderworldPower power, AfterDamageGivenMirrorContext context)
     {
         if (context.Dealer != null &&
+            context.Dealer.Side == power.Owner.Side &&
             context.Dealer != power.Owner &&
             context.Dealer.PetOwner != power.Owner.Player &&
             context.Props.IsPoweredAttack() &&
             context.Result.TotalDamage > 0)
         {
-            // TODO: Mirror vanilla v0.108.0 UnderworldPower by applying Doom in prediction state.
+            // TODO: Mirror vanilla v0.109.0 UnderworldPower by applying Doom in prediction state.
             context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
     }

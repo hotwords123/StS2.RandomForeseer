@@ -54,7 +54,6 @@ Mirror files:
 | `TheBombPower` | 炸弹 | At final countdown, damages all hittable enemies. | Implemented via `Damage`. |
 | `DoomPower` | 灾厄 | Kills the first doomed creature on the side. | Risk only. Kill/death/combat-structure simulation is incomplete. |
 | `Regret` | 悔恨 | Stores hand size so its turn-end-in-hand effect later deals unblockable self damage. | Currently ignored. This can affect HP/death and damage hooks; it should be risk or a mirror if end-turn-in-hand damage becomes part of prediction. |
-| `DiamondDiadem` | 钻石头冠 | If few enough cards were played, applies `DiamondDiademPower`, then resets its counter. | Currently ignored. Apply Power is unsupported, but silently ignoring can miss later power effects. |
 | `PaelsTears` | 佩尔之泪 | Gains energy. | Ignored. Energy does not affect current predictions. |
 | `ChainsOfBindingPower` | 魂缚锁链 | Clears Bound from all cards and resets internal flag. | Implemented for mirror pile state by clearing Bound on `PredictedCard` previews. Live internal flag reset is not mutated. |
 | `SandpitPower` | 沙坑 | Updates creature positions on enemy side turn end. | Ignored. Enemy-side positioning does not affect current player-turn predictions. |
@@ -62,7 +61,11 @@ Mirror files:
 ## Parity notes
 
 - StS2 v0.108.0 renamed the side-wide turn-end hooks from `BeforeTurnEnd` / `AfterTurnEnd` to `BeforeSideTurnEnd` / `AfterSideTurnEnd`. The simulator mirrors the player phase-one `BeforeSideTurnEnd` path; phase-two `AfterSideTurnEnd` remains outside this prediction surface.
-- Current ignored registrations for `Regret` and `DiamondDiadem` are acceptable for the present scope: `Regret` only records hand size in this hook, and `DiamondDiademPower` matters on later enemy attacks. They should be revisited if prediction expands across that boundary.
+- StS2 v0.109.0 removed `DiamondDiadem` from `BeforeSideTurnEnd` and deleted
+  `DiamondDiademPower`. The relic now grants block and Blur at the first side-turn start, outside
+  the current end-turn prediction surface, so it is no longer registered here.
+- The ignored `Regret` registration remains acceptable for the present scope because this hook
+  only records hand size; revisit it if end-turn-in-hand damage enters the prediction surface.
 
 ## Mock model list
 
