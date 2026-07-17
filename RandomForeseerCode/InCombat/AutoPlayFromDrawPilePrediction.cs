@@ -24,34 +24,35 @@ internal static class AutoPlayFromDrawPilePrediction
         return DrawPilePredictionResult.FromAutoPlayHistory(simulator).ToHoverTips();
     }
 
-    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionPredictionContext context)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableAutoPlayFromDrawPilePrediction) ||
-            !potion.IsMutable ||
-            potion.Owner.Creature.CombatState == null)
+            !context.Source.IsMutable ||
+            context.SourceOwner.Creature.CombatState == null ||
+            context.Target.Creature.CombatState == null)
         {
             return [];
         }
 
-        var count = potion switch
+        var count = context.Source switch
         {
-            DistilledChaos => potion.DynamicVars.Repeat.IntValue,
+            DistilledChaos => context.Source.DynamicVars.Repeat.IntValue,
             _ => 0
         };
 
-        return Predict(potion, count).ToHoverTips();
+        return Predict(context, count).ToHoverTips();
     }
 
-    private static DrawPilePredictionResult Predict(PotionModel potion, int count)
+    private static DrawPilePredictionResult Predict(PotionPredictionContext context, int count)
     {
-        if (count <= 0 || !CombatPredictionSimulator.TryCreate(potion.Owner, out var simulator))
+        if (count <= 0 || !CombatPredictionSimulator.TryCreate(context.Target, out var simulator))
         {
             return DrawPilePredictionResult.Empty;
         }
 
-        using (simulator.PushActionSource(potion, PredictionActionKind.PotionUse))
+        using (simulator.PushActionSource(context.Source, PredictionActionKind.PotionUse))
         {
-            simulator.AutoPlayFromDrawPile(potion.Owner, count, CardPilePosition.Top);
+            simulator.AutoPlayFromDrawPile(context.Target, count, CardPilePosition.Top);
         }
 
         return DrawPilePredictionResult.FromAutoPlayHistory(simulator);

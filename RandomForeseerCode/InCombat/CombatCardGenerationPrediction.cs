@@ -20,21 +20,23 @@ internal static class CombatCardGenerationPrediction
         return Predict(card, target: null)?.ToHoverTips() ?? [];
     }
 
-    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionPredictionContext context)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionCardPrediction) ||
-            !ShouldShowPotionCardPrediction(potion))
+            !ShouldShowPotionCardPrediction(context))
         {
             return [];
         }
 
-        return PredictionHoverTips.Cards(PredictPotionCards(potion));
+        return PredictionHoverTips.Cards(PredictPotionCards(context));
     }
 
-    private static bool ShouldShowPotionCardPrediction(PotionModel potion)
+    private static bool ShouldShowPotionCardPrediction(PotionPredictionContext context)
     {
         return RandomForeseerSettings.IsFairPredictionAllowed(PredictionFairness.UnfairInAllModes) ||
-            CombatManager.Instance.IsInProgress && !potion.Owner.Creature.IsDead;
+            CombatManager.Instance.IsInProgress &&
+            !context.SourceOwner.Creature.IsDead &&
+            !context.Target.Creature.IsDead;
     }
 
     public static CombatCardGenerationPredictionResult? Predict(CardModel card, Creature? target)
@@ -75,6 +77,7 @@ internal static class CombatCardGenerationPrediction
     private static bool IsSupported(CardModel card)
     {
         return card is
+            Abundance or
             BundleOfJoy or
             Discovery or
             Distraction or
@@ -91,22 +94,23 @@ internal static class CombatCardGenerationPrediction
             WhiteNoise;
     }
 
-    private static IReadOnlyList<CardModel> PredictPotionCards(PotionModel potion)
+    private static IReadOnlyList<CardModel> PredictPotionCards(PotionPredictionContext context)
     {
-        var owner = potion.Owner;
-        var previewRng = owner.RunState.Rng.CombatCardGeneration.Clone();
+        var source = context.Source;
+        var target = context.Target;
+        var previewRng = target.RunState.Rng.CombatCardGeneration.Clone();
 
-        return potion switch
+        return source switch
         {
-            AttackPotion => PredictCharacterCards(owner, CardType.Attack, 3, previewRng),
-            SkillPotion => PredictCharacterCards(owner, CardType.Skill, 3, previewRng),
-            PowerPotion => PredictCharacterCards(owner, CardType.Power, 3, previewRng),
-            ColorlessPotion => PredictColorlessCards(owner, 3, previewRng),
-            CosmicConcoction => PredictColorlessCards(owner, potion.DynamicVars.Cards.IntValue, previewRng)
+            AttackPotion => PredictCharacterCards(target, CardType.Attack, 3, previewRng),
+            SkillPotion => PredictCharacterCards(target, CardType.Skill, 3, previewRng),
+            PowerPotion => PredictCharacterCards(target, CardType.Power, 3, previewRng),
+            ColorlessPotion => PredictColorlessCards(target, 3, previewRng),
+            CosmicConcoction => PredictColorlessCards(target, source.DynamicVars.Cards.IntValue, previewRng)
                 .Select(PredictionUtils.ToUpgradedCard)
                 .ToList(),
             OrobicAcid => new[] { CardType.Attack, CardType.Skill, CardType.Power }
-                .SelectMany(type => PredictCharacterCards(owner, type, 1, previewRng))
+                .SelectMany(type => PredictCharacterCards(target, type, 1, previewRng))
                 .ToList(),
             _ => []
         };

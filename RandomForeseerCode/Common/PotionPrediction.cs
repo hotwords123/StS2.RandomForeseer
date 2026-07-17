@@ -7,11 +7,11 @@ namespace RandomForeseer.RandomForeseerCode.Common;
 
 internal static class PotionPrediction
 {
-    private static readonly PredictionHoverTipRegistry<PotionModel> PredictionProviders = CreateRegistry();
+    private static readonly PredictionHoverTipRegistry<PotionPredictionContext> PredictionProviders = CreateRegistry();
 
-    private static PredictionHoverTipRegistry<PotionModel> CreateRegistry()
+    private static PredictionHoverTipRegistry<PotionPredictionContext> CreateRegistry()
     {
-        var registry = new PredictionHoverTipRegistry<PotionModel>();
+        var registry = new PredictionHoverTipRegistry<PotionPredictionContext>();
 
         registry.Register("potion card generation", CombatCardGenerationPrediction.GetPotionHoverTips);
         registry.Register("potion generation", PotionGenerationPrediction.GetPotionHoverTips);
@@ -23,12 +23,22 @@ internal static class PotionPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(PotionModel potion)
     {
-        return PredictionProviders.GetHoverTips(potion);
+        return GetHoverTips(potion, potion.Owner);
+    }
+
+    public static IReadOnlyList<IHoverTip> GetHoverTips(PotionModel potion, Player target)
+    {
+        return PredictionProviders.GetHoverTips(new PotionPredictionContext(potion, target));
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, PotionModel potion)
     {
         var previewPotion = PredictionUtils.CreatePotion(potion, player);
-        return PredictionProviders.GetHoverTips(previewPotion);
+        return GetHoverTips(previewPotion, player);
     }
+}
+
+internal readonly record struct PotionPredictionContext(PotionModel Source, Player Target)
+{
+    public Player SourceOwner => Source.Owner;
 }

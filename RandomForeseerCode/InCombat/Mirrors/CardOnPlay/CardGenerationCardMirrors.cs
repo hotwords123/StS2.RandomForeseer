@@ -8,6 +8,17 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.CardOnPlay;
 
 internal static class CardGenerationCardMirrors
 {
+    public static void AbundanceOnPlay(Abundance card, CardOnPlayMirrorContext context)
+    {
+        var cards = card.Owner.GetUnlockedCharacterCards()
+            .Where(candidate => candidate.Type == CardType.Power)
+            .GetDistinctForCombat(card.Owner, 3, context.Rng.CombatCardGeneration)
+            .UpgradeIf(card.IsUpgraded)
+            .ToList();
+
+        RecordOptions(context, cards);
+    }
+
     public static void BundleOfJoyOnPlay(BundleOfJoy card, CardOnPlayMirrorContext context)
     {
         var cards = card.Owner.GetUnlockedColorlessCards()

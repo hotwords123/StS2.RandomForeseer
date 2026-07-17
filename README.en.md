@@ -64,6 +64,7 @@ Each feature can be toggled independently from the mod settings page, and predic
 
 ### Combat Card Generation
 
+- Abundance
 - Bundle of Joy
 - Discovery
 - Distraction

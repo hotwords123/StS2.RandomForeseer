@@ -8,32 +8,31 @@ using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
-internal sealed class PotionDrawPrediction(CombatPredictionSimulator simulator, Player player, PotionModel source)
+internal sealed class PotionDrawPrediction(CombatPredictionSimulator simulator, Player target, PotionModel source)
 {
-    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionPredictionContext context)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionDrawPrediction) ||
-            !potion.IsMutable ||
-            potion.Owner.Creature.CombatState == null)
+            !context.Source.IsMutable ||
+            context.SourceOwner.Creature.CombatState == null ||
+            context.Target.Creature.CombatState == null)
         {
             return [];
         }
 
-        return Predict(potion).ToHoverTips();
+        return Predict(context).ToHoverTips();
     }
 
-    private static DrawPilePredictionResult Predict(PotionModel potion)
+    private static DrawPilePredictionResult Predict(PotionPredictionContext context)
     {
-        var player = potion.Owner;
-
-        if (!CombatPredictionSimulator.TryCreate(player, out var simulator))
+        if (!CombatPredictionSimulator.TryCreate(context.Target, out var simulator))
         {
             return DrawPilePredictionResult.Empty;
         }
 
-        using (simulator.PushActionSource(potion, PredictionActionKind.PotionUse))
+        using (simulator.PushActionSource(context.Source, PredictionActionKind.PotionUse))
         {
-            return new PotionDrawPrediction(simulator, player, potion).Predict();
+            return new PotionDrawPrediction(simulator, context.Target, context.Source).Predict();
         }
     }
 
@@ -53,24 +52,24 @@ internal sealed class PotionDrawPrediction(CombatPredictionSimulator simulator, 
 
     private DrawPilePredictionResult PredictDraw()
     {
-        simulator.Draw(player, source.DynamicVars.Cards.IntValue);
+        simulator.Draw(target, source.DynamicVars.Cards.IntValue);
         return DrawPilePredictionResult.FromDrawHistory(simulator);
     }
 
     private DrawPilePredictionResult PredictGlowwaterPotion()
     {
         // Mirrors GlowwaterPotion.OnUse: exhaust current hand, then draw.
-        simulator.ExhaustHand(source.Owner);
-        simulator.Draw(source.Owner, source.DynamicVars.Cards.IntValue);
+        simulator.ExhaustHand(target);
+        simulator.Draw(target, source.DynamicVars.Cards.IntValue);
         return DrawPilePredictionResult.FromDrawHistory(simulator);
     }
 
     private DrawPilePredictionResult PredictSneckoOil()
     {
         // Mirrors SneckoOil.OnUse: draw first, then randomize the full hand's non-X costs.
-        var hand = simulator.State.GetPlayerCombatState(player).Hand;
+        var hand = simulator.State.GetPlayerCombatState(target).Hand;
 
-        simulator.Draw(player, source.DynamicVars.Cards.IntValue);
+        simulator.Draw(target, source.DynamicVars.Cards.IntValue);
 
         foreach (var card in hand.Cards)
         {
@@ -89,9 +88,9 @@ internal sealed class PotionDrawPrediction(CombatPredictionSimulator simulator, 
     private DrawPilePredictionResult PredictBottledPotential()
     {
         // Mirrors BottledPotential.OnUse: CardPileCmd.Add(hand, Draw), CardPileCmd.Shuffle, CardPileCmd.Draw.
-        simulator.MoveHandToDrawPile(player);
-        simulator.Shuffle(player);
-        simulator.Draw(player, source.DynamicVars.Cards.IntValue);
+        simulator.MoveHandToDrawPile(target);
+        simulator.Shuffle(target);
+        simulator.Draw(target, source.DynamicVars.Cards.IntValue);
         return DrawPilePredictionResult.FromDrawHistory(simulator);
     }
 }

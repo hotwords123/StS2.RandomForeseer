@@ -98,6 +98,7 @@ internal static class CardOnPlayMirrors
         registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);
         registry.Register<Uproar>(CardSelectionCardMirrors.UproarOnPlay);
 
+        registry.Register<Abundance>(CardGenerationCardMirrors.AbundanceOnPlay);
         registry.Register<BundleOfJoy>(CardGenerationCardMirrors.BundleOfJoyOnPlay);
         registry.Register<Distraction>(CardGenerationCardMirrors.DistractionOnPlay);
         registry.Register<Discovery>(CardGenerationCardMirrors.DiscoveryOnPlay);

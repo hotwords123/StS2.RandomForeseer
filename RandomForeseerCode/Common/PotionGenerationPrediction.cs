@@ -8,14 +8,14 @@ namespace RandomForeseer.RandomForeseerCode.Common;
 
 internal static class PotionGenerationPrediction
 {
-    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionModel potion)
+    public static IReadOnlyList<IHoverTip> GetPotionHoverTips(PotionPredictionContext context)
     {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnablePotionGenerationPrediction))
         {
             return [];
         }
 
-        return PredictionHoverTips.Potions(PredictPotions(potion));
+        return PredictionHoverTips.Potions(PredictPotions(context));
     }
 
     public static IReadOnlyList<IHoverTip> GetCardHoverTips(CardModel card)
@@ -40,16 +40,19 @@ internal static class PotionGenerationPrediction
         return tips;
     }
 
-    private static IReadOnlyList<PotionModel> PredictPotions(PotionModel potion)
+    private static IReadOnlyList<PotionModel> PredictPotions(PotionPredictionContext context)
     {
-        var owner = potion.Owner;
+        var source = context.Source;
+        var target = context.Target;
 
-        return potion switch
+        return source switch
         {
             EntropicBrew => PredictionUtils.PredictPotionRewards(
-                owner,
-                owner.PotionSlots.Count,
-                owner.RunState.Rng.CombatPotionGeneration.Clone()),
+                target,
+                // The player may discard existing potions before drinking Entropic Brew, so show
+                // enough future results to fill the entire potion belt rather than only open slots.
+                target.PotionSlots.Count,
+                target.RunState.Rng.CombatPotionGeneration.Clone()),
             _ => []
         };
     }

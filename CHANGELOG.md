@@ -4,10 +4,19 @@
 
 ### feat
 
+- 战斗随机印牌预测现在支持富足，包括升级后的能力牌候选。<br>
+  Combat card generation prediction now supports Abundance, including its upgraded Power card options.
+
 - 战斗随机选牌预测现在支持横祸和狠揍。<br>
   Combat card selection prediction now supports Catastrophe and Beat Down.
 
+- 药水预测现在支持给队友使用的药水，并在选择目标时显示对应队友的预测结果。<br>
+  Potion prediction now supports potions used on teammates and shows the corresponding teammate's predicted results while selecting a target.
+
 ### fix
+
+- 适配《杀戮尖塔 2》0.109.0。<br>
+  Adapted to Slay the Spire 2 0.109.0.
 
 - 修复由单张牌组成的多组卡牌预测之间间距过大的问题。<br>
   Fixed excessive spacing between multiple card prediction bundles containing one card each.

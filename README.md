@@ -64,6 +64,7 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 
 ### 战斗随机印牌
 
+- 富足（Abundance）
 - 新生之喜（Bundle of Joy）
 - 发现（Discovery）
 - 声东击西（Distraction）

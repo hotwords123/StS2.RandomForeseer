@@ -1,7 +1,10 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Runs;
+using RandomForeseer.RandomForeseerCode.InCombat;
 
 namespace RandomForeseer.RandomForeseerCode.Common;
 
@@ -20,5 +23,19 @@ internal static class PotionPredictionHoverTipsPatch
         {
             __result = __result.Concat(predictionTips);
         }
+    }
+}
+
+[HarmonyPatch(typeof(NPotionHolder), "TargetNode", [typeof(TargetType)])]
+internal static class PotionTargetPredictionPatch
+{
+    private static void Prefix(NPotionHolder __instance, TargetType targetType, out long __state)
+    {
+        __state = PotionTargetPredictionController.Begin(__instance, targetType);
+    }
+
+    private static void Postfix(NPotionHolder __instance, long __state, ref Task __result)
+    {
+        __result = PotionTargetPredictionController.CleanupAfterCompletion(__instance, __state, __result);
     }
 }
