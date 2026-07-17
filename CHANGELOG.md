@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.11.0
 
 ### feat
 
@@ -23,6 +23,11 @@
 
 - 优化变牌预测提示及随机印牌、随机选牌和洗牌后牌序预测的设置文案，使预测范围和展示方式更清晰。<br>
   Improved transform prediction tips and settings text for random card generation, random card selection, and post-shuffle draw order predictions to clarify their scope and presentation.
+
+### misc
+
+- 更新 RitsuLib 依赖到 0.4.58。<br>
+  Updated the RitsuLib dependency to 0.4.58.
 
 ## v0.10.0
 
