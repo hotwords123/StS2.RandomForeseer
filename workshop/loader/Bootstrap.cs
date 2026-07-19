@@ -51,7 +51,6 @@ public static class Bootstrap
 
         var loadContext = AssemblyLoadContext.GetLoadContext(typeof(Bootstrap).Assembly) ?? AssemblyLoadContext.Default;
         var realAssembly = loadContext.LoadFromAssemblyPath(selected.DllPath);
-        AssociateAssemblyWhenSupported(realAssembly);
 
         LoadResourcePack(selected.PckPath);
 
@@ -305,17 +304,6 @@ public static class Bootstrap
             Log.Warn($"[{ModId}.Loader] Failed to read the host game version: {ex.Message}");
             return null;
         }
-    }
-
-    private static void AssociateAssemblyWhenSupported(Assembly assembly)
-    {
-        var method = typeof(ModManager).GetMethod(
-            "AssociateAssemblyWithMod",
-            BindingFlags.Public | BindingFlags.Static,
-            null,
-            [typeof(string), typeof(Assembly)],
-            null);
-        method?.Invoke(null, [ModId, assembly]);
     }
 
     private static void LoadResourcePack(string pckPath)

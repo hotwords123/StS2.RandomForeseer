@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复创意工坊版本启动时重复关联 Mod 程序集的问题。<br>
+  Fixed duplicate mod assembly association during Workshop version startup.
+
 ## v0.11.0
 
 ### feat

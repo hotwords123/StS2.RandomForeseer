@@ -27,7 +27,7 @@ The generated `mod-variants.manifest` records each bundled package's Mod version
 
 The dispatcher resolves the host version through `ReleaseInfoManager`, then selects the highest bundled Mod SemVer satisfying the same minimum-game-version test. If the host version is unknown or older than every bundled minimum, it logs a warning and loads the highest bundled Mod SemVer as a best-effort fallback.
 
-The dispatcher loads the selected business DLL into its own `AssemblyLoadContext`, associates it with the Mod through `ModManager.AssociateAssemblyWithMod` when that API exists, mounts the selected PCK, and forwards all discovered `ModInitializer` methods. The business assembly keeps the `RandomForeseer` identity; the root file is named `RandomForeseer.dll` as required by the game but has the distinct assembly identity `RandomForeseer.Loader`.
+The dispatcher loads the selected business DLL into its own `AssemblyLoadContext`, mounts the selected PCK, and forwards all discovered `ModInitializer` methods. The selected business initializer registers its own assembly through RitsuLib; the dispatcher does not associate it separately, avoiding duplicate assembly registration during the host's loading phase. The business assembly keeps the `RandomForeseer` identity; the root file is named `RandomForeseer.dll` as required by the game but has the distinct assembly identity `RandomForeseer.Loader`.
 
 The loader project is compiled against the oldest supported game API under `Sts2ApiSignatureRoot`, not the currently installed game branch. This keeps the root dispatcher loadable by every active branch while the selected business assembly remains version-specific.
 
