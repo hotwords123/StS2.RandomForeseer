@@ -10,7 +10,7 @@ internal enum PredictionActionKind
     DynamicVariableCalculation
 }
 
-internal sealed record PredictionInvocation(
+internal readonly record struct PredictionInvocation(
     MethodInfo? Method,
     PredictionActionKind? Action)
 {

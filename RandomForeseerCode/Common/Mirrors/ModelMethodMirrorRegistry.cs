@@ -47,19 +47,23 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext>(MirrorMethodSpe
 
     public MirrorDispatchResult Invoke(TBase receiver, TContext context)
     {
-        using var _ = context.PushDispatchSource(receiver, method);
-        var lookup = Lookup(receiver.GetType());
-        switch (lookup.Kind)
+        var (kind, handler) = Lookup(receiver.GetType());
+        if (kind is MirrorDispatchKind.NotOverridden or MirrorDispatchKind.Ignored)
         {
-            case MirrorDispatchKind.Handled:
-                lookup.Handler!(receiver, context);
-                break;
-            case MirrorDispatchKind.Unsupported:
-                context.RecordMethodNotMirroredRisk();
-                break;
+            return new(kind);
         }
 
-        return new(lookup.Kind);
+        using (context.PushDispatchSource(receiver, method))
+        {
+            if (kind is MirrorDispatchKind.Handled)
+            {
+                handler!(receiver, context);
+                return new(kind);
+            }
+
+            context.RecordMethodNotMirroredRisk();
+            return new(kind);
+        }
     }
 
     private LookupResult Lookup(Type type)
@@ -142,15 +146,22 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext, TResult>(Mirror
         TContext context,
         TResult defaultResult)
     {
-        using var _ = context.PushDispatchSource(receiver, method);
-        var lookup = Lookup(receiver.GetType());
-        return lookup.Kind switch
+        var (kind, handler) = Lookup(receiver.GetType());
+        if (kind is MirrorDispatchKind.NotOverridden or MirrorDispatchKind.Ignored)
         {
-            MirrorDispatchKind.Handled =>
-                new(lookup.Kind, lookup.Handler!(receiver, context)),
-            MirrorDispatchKind.Unsupported => MarkUnsupported(context, defaultResult),
-            _ => new(lookup.Kind, defaultResult)
-        };
+            return new(kind, defaultResult);
+        }
+
+        using (context.PushDispatchSource(receiver, method))
+        {
+            if (kind is MirrorDispatchKind.Handled)
+            {
+                return new(kind, handler!(receiver, context));
+            }
+
+            context.RecordMethodNotMirroredRisk();
+            return new(kind, defaultResult);
+        }
     }
 
     private LookupResult Lookup(Type type)
@@ -173,14 +184,6 @@ internal sealed class ModelMethodMirrorRegistry<TBase, TContext, TResult>(Mirror
 
         _lookups.Add(type, result);
         return result;
-    }
-
-    private static MirrorDispatchResult<TResult> MarkUnsupported(
-        TContext context,
-        TResult defaultResult)
-    {
-        context.RecordMethodNotMirroredRisk();
-        return new(MirrorDispatchKind.Unsupported, defaultResult);
     }
 
     private void ValidateOverride(Type type)

@@ -7,6 +7,11 @@
 - 修复创意工坊版本启动时重复关联 Mod 程序集的问题。<br>
   Fixed duplicate mod assembly association during Workshop version startup.
 
+### perf
+
+- 优化预测期间的模型方法分发，减少不必要的追踪与内存分配。<br>
+  Improved model method dispatch during prediction by reducing unnecessary tracing and allocations.
+
 ## v0.11.0
 
 ### feat
