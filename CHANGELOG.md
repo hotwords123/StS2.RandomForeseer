@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复“战史学家 付袭”事件打开宝箱时，遗物预测未计入先生成的两瓶药水所推进的奖励随机数的问题。<br>
+  Fixed relic predictions for the chest in War Historian, Repy not accounting for reward RNG consumed by the two preceding potion rewards.
+
 - 修复创意工坊版本启动时重复关联 Mod 程序集的问题。<br>
   Fixed duplicate mod assembly association during Workshop version startup.
 

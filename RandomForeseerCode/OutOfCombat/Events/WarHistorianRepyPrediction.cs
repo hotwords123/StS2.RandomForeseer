@@ -15,11 +15,12 @@ internal static class WarHistorianRepyPrediction
         }
 
         var player = warHistorianRepy.Owner!;
-        var tips = PredictionHoverTips.Potions(PredictionUtils.PredictPotionRewards(
-            player,
-            2,
-            player.PlayerRng.Rewards.Clone())).ToList();
-        tips.AddRange(OutOfCombatPredictionUtils.RelicTipsWithPickup(player, OutOfCombatPredictionUtils.PredictRelicRewards(player, 2)));
-        return tips;
+        var rewardRng = player.PlayerRng.Rewards.Clone();
+        var potions = PredictionUtils.PredictPotionRewards(player, 2, rewardRng);
+        var relics = OutOfCombatPredictionUtils.PredictRelicRewards(player, 2, rewardRng);
+        return [
+            .. PredictionHoverTips.Potions(potions),
+            .. OutOfCombatPredictionUtils.RelicTipsWithPickup(player, relics)
+        ];
     }
 }
