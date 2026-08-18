@@ -9,6 +9,7 @@ using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.InCombat;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.Common;
 
@@ -34,6 +35,7 @@ internal static class PotionPrediction
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Out-of-combat potion prediction failed for {potion.Id}: {ex}");
+            ModTelemetry.CaptureException(ex, "potion_prediction", "build_out_of_combat_hover_tips");
             return [];
         }
     }

@@ -12,5 +12,9 @@
 
     <!-- 可选：RitsuLib 本机部署目录，默认是 $(Sts2Dir)/mods/STS2-RitsuLib。 -->
     <!--<RitsuLibDeployDir>$(Sts2Dir)/mods/STS2-RitsuLib</RitsuLibDeployDir>-->
+
+    <!-- 可选：构建时注入的 PostHog host 和公开项目 API key；缺失任一项时禁用遥测发送。 -->
+    <RandomForeseerPostHogHost></RandomForeseerPostHogHost>
+    <RandomForeseerPostHogProjectApiKey></RandomForeseerPostHogProjectApiKey>
   </PropertyGroup>
 </Project>

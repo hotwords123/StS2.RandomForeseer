@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 新增基于 RitsuLib 授权机制的可选遥测，分别申请基础使用信息、Mod 清单和诊断信息，用于了解功能启用情况、分析兼容性并定位 Mod 错误。<br>
+  Added optional telemetry through RitsuLib's consent system, with separate requests for basic usage, mod inventory, and diagnostics to understand feature adoption, analyze compatibility, and diagnose mod errors.
+
 ## v0.13.4
 
 ### fix

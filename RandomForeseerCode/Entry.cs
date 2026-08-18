@@ -8,6 +8,7 @@ using RandomForeseer.RandomForeseerCode.Integrations;
 using RandomForeseer.RandomForeseerCode.Integrations.LemonSpire;
 using RandomForeseer.RandomForeseerCode.Localization;
 using RandomForeseer.RandomForeseerCode.Settings;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib;
 using STS2RitsuLib.Interop;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
@@ -42,6 +43,7 @@ public partial class Entry
 
         ModData.Register();
         ModLocalization.Register();
+        ModTelemetry.Register();
         SettingsBootstrap.Register();
         ModSettingsLoggingController.Register();
         CombatCardPredictionSettingsController.Register();

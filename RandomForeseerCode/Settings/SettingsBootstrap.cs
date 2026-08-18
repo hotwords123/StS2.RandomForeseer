@@ -197,6 +197,17 @@ internal static class SettingsBootstrap
                 .AddButton(
                     "open_relic_trader_pickup_test",
                     Debug.RelicPickupDebugRewards.OpenRelicTraderPickupTest,
+                    ModSettingsButtonTone.Danger))
+            .AddSection("telemetry_debug", section => section
+                .WithTitle(T("section.telemetry_debug.title"))
+                .WithDescription(T("section.telemetry_debug.description"))
+                .AddButton(
+                    "capture_manual_telemetry_exception",
+                    Debug.TelemetryDebugActions.CaptureManualException,
+                    ModSettingsButtonTone.Danger)
+                .AddButton(
+                    "capture_automatic_telemetry_exception",
+                    Debug.TelemetryDebugActions.CaptureAutomaticException,
                     ModSettingsButtonTone.Danger)),
             "debug");
     }

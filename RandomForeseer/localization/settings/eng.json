@@ -1,6 +1,11 @@
 {
   "mod.name": "Random Foreseer",
 
+  "telemetry.applicant.display_name": "Random Foreseer",
+  "telemetry.basic_usage.description": "Game version, runtime environment, anonymous install ID, and mod settings values for usage analysis.",
+  "telemetry.mod_inventory.description": "Registered mod inventory, load states, versions, and gameplay impact flags for compatibility analysis.",
+  "telemetry.diagnostics.description": "Exception messages, stack traces, and runtime diagnostics related to this mod for issue diagnosis and fixes.",
+
   "page.title": "Random Foreseer",
   "page.description": "Configure predictions for random outcomes. Some settings may require you to save and reload before they take effect.",
 
@@ -150,5 +155,14 @@
   "button.open_predicted_treasure_room.description": "Available only during a run. Opens a treasure room that randomly selects either War Paint or Whetstone as the target relic.",
   "button.open_relic_trader_pickup_test.label": "Open Relic Trader pickup test",
   "button.open_relic_trader_pickup_test.text": "Open",
-  "button.open_relic_trader_pickup_test.description": "Available only during a run. Gives you a Circlet, then opens a Relic Trader event where it can be traded for War Paint or Whetstone."
+  "button.open_relic_trader_pickup_test.description": "Available only during a run. Gives you a Circlet, then opens a Relic Trader event where it can be traded for War Paint or Whetstone.",
+
+  "section.telemetry_debug.title": "Telemetry exception capture",
+  "section.telemetry_debug.description": "Verifies Random Foreseer's diagnostics telemetry. Events are sent only when diagnostics consent is granted; repeated exceptions from the same path are deduplicated for the current game process.",
+  "button.capture_manual_telemetry_exception.label": "Trigger manually captured exception",
+  "button.capture_manual_telemetry_exception.text": "Trigger",
+  "button.capture_manual_telemetry_exception.description": "Throws and catches a test exception, then reports it through Random Foreseer's manual exception capture entry point.",
+  "button.capture_automatic_telemetry_exception.label": "Trigger automatically captured exception",
+  "button.capture_automatic_telemetry_exception.text": "Trigger",
+  "button.capture_automatic_telemetry_exception.description": "Throws and catches a test exception, then passes it to vanilla Sentry, where RitsuLib mirrors it automatically. Whether vanilla Sentry sends it still follows the game's own settings."
 }

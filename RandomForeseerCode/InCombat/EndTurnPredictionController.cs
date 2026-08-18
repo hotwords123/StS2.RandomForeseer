@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.Settings;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Settings;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
@@ -106,6 +107,7 @@ internal static class EndTurnPredictionController
         catch (Exception ex)
         {
             Entry.Logger.Warn($"End-turn prediction refresh failed: {ex}");
+            ModTelemetry.CaptureException(ex, "end_turn_prediction", "refresh");
             prediction = null;
         }
 

@@ -1,6 +1,11 @@
 {
   "mod.name": "随机数预测",
 
+  "telemetry.applicant.display_name": "随机数预测",
+  "telemetry.basic_usage.description": "游戏版本、运行环境、匿名安装 ID 及 Mod 设置值，用于使用情况分析。",
+  "telemetry.mod_inventory.description": "已注册模组清单、加载状态、版本和玩法影响标记，用于兼容性分析。",
+  "telemetry.diagnostics.description": "与本 Mod 有关的异常消息、堆栈和运行时诊断，用于问题定位与修复。",
+
   "page.title": "随机数预测",
   "page.description": "配置随机结果预测功能。部分设置可能需要保存并读档后才会生效。",
 
@@ -150,5 +155,14 @@
   "button.open_predicted_treasure_room.description": "仅在跑局中生效。打开一个宝箱房，目标遗物会从战纹涂料和磨刀石中随机选择。",
   "button.open_relic_trader_pickup_test.label": "打开遗物交换商拾起测试",
   "button.open_relic_trader_pickup_test.text": "打开",
-  "button.open_relic_trader_pickup_test.description": "仅在跑局中生效。给予一个头环，然后打开一个遗物交换商事件，其中可用头环交换战纹涂料和磨刀石。"
+  "button.open_relic_trader_pickup_test.description": "仅在跑局中生效。给予一个头环，然后打开一个遗物交换商事件，其中可用头环交换战纹涂料和磨刀石。",
+
+  "section.telemetry_debug.title": "遥测异常捕获",
+  "section.telemetry_debug.description": "用于验证 Random Foreseer 的 diagnostics 遥测。仅在已授权 diagnostics 时发送；同一路径的重复异常会在当前游戏进程中去重。",
+  "button.capture_manual_telemetry_exception.label": "触发手动捕获异常",
+  "button.capture_manual_telemetry_exception.text": "触发",
+  "button.capture_manual_telemetry_exception.description": "抛出并捕获一个测试异常，再通过 Random Foreseer 的手动异常捕获入口上报。",
+  "button.capture_automatic_telemetry_exception.label": "触发自动捕获异常",
+  "button.capture_automatic_telemetry_exception.text": "触发",
+  "button.capture_automatic_telemetry_exception.description": "抛出并捕获一个测试异常，再交给原版 Sentry；RitsuLib 会从该边界自动镜像异常。原版 Sentry 是否发送仍遵循游戏自身设置。"
 }

@@ -28,6 +28,17 @@
         <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">true</SyncManifestDependenciesOnBuild>
     </PropertyGroup>
 
+    <ItemGroup Condition="'$(RandomForeseerPostHogHost)' != '' and '$(RandomForeseerPostHogProjectApiKey)' != ''">
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>RandomForeseerPostHogHost</_Parameter1>
+            <_Parameter2>$(RandomForeseerPostHogHost)</_Parameter2>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>RandomForeseerPostHogProjectApiKey</_Parameter1>
+            <_Parameter2>$(RandomForeseerPostHogProjectApiKey)</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all" />
         <PackageReference Include="Nothing.STS2RitsuLib.ModAnalyzers" Version="*" PrivateAssets="all" />

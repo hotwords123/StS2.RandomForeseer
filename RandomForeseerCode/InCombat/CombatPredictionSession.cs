@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -136,6 +137,7 @@ internal abstract class CombatPredictionSession(CombatPredictionSessionMode mode
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat prediction failed for {Source.Id} targeting {Target?.Name}: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_prediction_session", "refresh_projection");
             projection = null;
         }
 

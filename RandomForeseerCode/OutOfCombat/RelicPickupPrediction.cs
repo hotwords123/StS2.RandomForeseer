@@ -16,6 +16,7 @@ using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
@@ -130,6 +131,7 @@ internal static class RelicPickupPrediction
         catch (Exception ex)
         {
             WarnOnce(relic.GetType(), $"Could not predict relic pickup effect for {relic.Id}: {ex}");
+            ModTelemetry.CaptureException(ex, "relic_pickup_prediction", "build_hover_tips");
             return [];
         }
     }

@@ -13,6 +13,7 @@ using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -64,6 +65,7 @@ internal static class CombatCardPrediction
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Combat card play prediction failed for {card.Id}: {ex}");
+                ModTelemetry.CaptureException(ex, "combat_card_prediction", "build_play_hover_tips");
             }
         }
 
@@ -74,6 +76,7 @@ internal static class CombatCardPrediction
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat transform prediction failed for {card.Id}: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_card_prediction", "build_transform_hover_tips");
         }
 
         return predictionTips;

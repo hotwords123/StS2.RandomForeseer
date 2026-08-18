@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models.Events;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
@@ -36,6 +37,7 @@ internal sealed class EventPredictionRegistry
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
+                ModTelemetry.CaptureException(ex, "event_option_prediction", "build_hover_tips");
             }
         }
 

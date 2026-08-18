@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -28,6 +29,7 @@ internal static class CombatPotionPrediction
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat potion prediction failed for {potion.Id}: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_potion_prediction", "build_hover_tips");
             return [];
         }
     }
