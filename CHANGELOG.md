@@ -7,6 +7,9 @@
 - 修复正在施加模仿学习且目标玩家尚未初始化时，战斗卡牌预测可能失败的问题。<br>
   Fixed combat card prediction potentially failing while applying Imitation Learning before its target player had been initialized.
 
+- 现在下一阶段预测会正确处理没有先古之民或终点 Boss 的 Act，并在无可用预测时隐藏图标。<br>
+  Next-Act prediction now correctly handles Acts without an Ancient or ending boss and hides the icon when no prediction is available.
+
 ## v0.13.5
 
 ### feat

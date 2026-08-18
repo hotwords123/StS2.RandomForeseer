@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
@@ -9,18 +8,25 @@ using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.OutOfCombat.Nodes;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
 internal static class NextActPrediction
 {
-    private static readonly ConditionalWeakTable<NTopBar, NextActPredictionIcons> IconsByTopBar = new();
-    private static readonly List<NextActPredictionIcons> ActiveIcons = [];
+    private static NextActPredictionIcons? _icons;
     private static bool _isSubscribed;
 
     public static void Initialize(NTopBar topBar)
     {
-        IconsByTopBar.GetValue(topBar, static key => new NextActPredictionIcons(key));
+        if (ReferenceEquals(_icons?.TopBar, topBar))
+        {
+            return;
+        }
+
+        _icons = new NextActPredictionIcons(topBar);
+
+        topBar.Connect(Node.SignalName.TreeExiting, Callable.From(() => Release(topBar)));
 
         if (!_isSubscribed)
         {
@@ -33,26 +39,17 @@ internal static class NextActPrediction
 
     public static void ShowIfEligible(bool isTerminal, IRunState runState)
     {
-        if (!ShouldShow(isTerminal, runState))
+        if (_icons is null || !ShouldShow(isTerminal, runState))
         {
             Hide();
             return;
         }
 
         var nextAct = runState.Acts[runState.CurrentActIndex + 1];
-        foreach (var icons in ActiveIcons.ToList())
-        {
-            icons.Show(nextAct);
-        }
+        _icons.ShowIcons(nextAct);
     }
 
-    public static void Hide()
-    {
-        foreach (var icons in ActiveIcons.ToList())
-        {
-            icons.Hide();
-        }
-    }
+    public static void Hide() => _icons?.HideIcons();
 
     private static bool ShouldShow(bool isTerminal, IRunState runState)
     {
@@ -72,22 +69,30 @@ internal static class NextActPrediction
             return false;
         }
 
-        var map = runState.Map;
-        return map.SecondBossMapPoint != null
-            ? currentCoord == map.SecondBossMapPoint.coord
-            : currentCoord == map.BossMapPoint.coord;
+        var finalBossMapPoint = runState.Map.SecondBossMapPoint ?? runState.Map.BossMapPoint;
+        return currentCoord == finalBossMapPoint.coord;
+    }
+
+    private static void Release(NTopBar topBar)
+    {
+        if (ReferenceEquals(_icons?.TopBar, topBar))
+        {
+            // The icons are children of the top bar and are freed with its scene. Drop the controller reference so a
+            // subsequent run can initialize its own top bar without retaining the previous Godot objects.
+            _icons = null;
+        }
     }
 
     private sealed class NextActPredictionIcons
     {
-        private readonly NTopBar _topBar;
         private readonly NNextActPredictionIcon _ancientIcon;
         private readonly NNextActPredictionIcon _bossIcon;
-        private bool _isVisible;
+
+        public NTopBar TopBar { get; }
 
         public NextActPredictionIcons(NTopBar topBar)
         {
-            _topBar = topBar;
+            TopBar = topBar;
 
             _ancientIcon = NNextActPredictionIcon.Create(NextActPredictionIconKind.Ancient);
             _ancientIcon.Name = $"{Entry.ModId}_NextActPrediction_AncientIcon";
@@ -105,78 +110,79 @@ internal static class NextActPrediction
 
             _ancientIcon.FocusNeighborTop = _ancientIcon.GetPath();
             _bossIcon.FocusNeighborTop = _bossIcon.GetPath();
-
-            Subscribe();
         }
 
-        public void Show(ActModel nextAct)
+        public void ShowIcons(ActModel nextAct)
         {
-            _isVisible = true;
-
-            _ancientIcon.SetPrediction(nextAct);
-            _ancientIcon.Visible = true;
-            _ancientIcon.FocusMode = Control.FocusModeEnum.All;
-            _ancientIcon.MouseFilter = Control.MouseFilterEnum.Stop;
-
-            _bossIcon.SetPrediction(nextAct);
-            _bossIcon.Visible = true;
-            _bossIcon.FocusMode = Control.FocusModeEnum.All;
-            _bossIcon.MouseFilter = Control.MouseFilterEnum.Stop;
-
-            UpdateNavigation();
-        }
-
-        public void Hide()
-        {
-            if (!_isVisible)
+            if (nextAct._rooms._ancient is not null)
             {
-                return;
+                _ancientIcon.SetPrediction(nextAct);
+                ShowIcon(_ancientIcon);
+            }
+            else
+            {
+                HideIcon(_ancientIcon);
             }
 
-            _isVisible = false;
-
-            _ancientIcon.Visible = false;
-            _ancientIcon.FocusMode = Control.FocusModeEnum.None;
-            _ancientIcon.MouseFilter = Control.MouseFilterEnum.Ignore;
-
-            _bossIcon.Visible = false;
-            _bossIcon.FocusMode = Control.FocusModeEnum.None;
-            _bossIcon.MouseFilter = Control.MouseFilterEnum.Ignore;
+            if (nextAct._rooms._boss is not null)
+            {
+                _bossIcon.SetPrediction(nextAct);
+                ShowIcon(_bossIcon);
+            }
+            else
+            {
+                HideIcon(_bossIcon);
+            }
 
             UpdateNavigation();
         }
 
-        private void Subscribe()
+        public void HideIcons()
         {
-            _ancientIcon.Connect(Node.SignalName.TreeExiting, Callable.From(Unsubscribe));
-            _bossIcon.Connect(Node.SignalName.TreeExiting, Callable.From(Unsubscribe));
-
-            ActiveIcons.Add(this);
+            HideIcon(_ancientIcon);
+            HideIcon(_bossIcon);
+            UpdateNavigation();
         }
 
-        private void Unsubscribe()
+        private static void ShowIcon(NNextActPredictionIcon icon)
         {
-            ActiveIcons.Remove(this);
+            icon.Visible = true;
+            icon.FocusMode = Control.FocusModeEnum.All;
+            icon.MouseFilter = Control.MouseFilterEnum.Stop;
+        }
+
+        private static void HideIcon(NNextActPredictionIcon icon)
+        {
+            icon.Visible = false;
+            icon.FocusMode = Control.FocusModeEnum.None;
+            icon.MouseFilter = Control.MouseFilterEnum.Ignore;
         }
 
         private void UpdateNavigation()
         {
-            if (_isVisible)
+            if (!_ancientIcon.Visible && !_bossIcon.Visible)
             {
-                _topBar.FloorIcon.FocusNeighborRight = _ancientIcon.GetPath();
-                _ancientIcon.FocusNeighborLeft = _topBar.FloorIcon.GetPath();
+                TopBar.FloorIcon.FocusNeighborRight = TopBar.BossIcon.GetPath();
+                TopBar.BossIcon.FocusNeighborLeft = TopBar.FloorIcon.GetPath();
+                return;
+            }
+
+            var firstIcon = _ancientIcon.Visible ? _ancientIcon : _bossIcon;
+            var lastIcon = _bossIcon.Visible ? _bossIcon : _ancientIcon;
+
+            TopBar.FloorIcon.FocusNeighborRight = firstIcon.GetPath();
+            firstIcon.FocusNeighborLeft = TopBar.FloorIcon.GetPath();
+
+            if (_ancientIcon.Visible && _bossIcon.Visible)
+            {
                 _ancientIcon.FocusNeighborRight = _bossIcon.GetPath();
                 _bossIcon.FocusNeighborLeft = _ancientIcon.GetPath();
-                _bossIcon.FocusNeighborRight = _topBar.BossIcon.IsVisible()
-                    ? _topBar.BossIcon.GetPath()
-                    : _bossIcon.GetPath();
-                _topBar.BossIcon.FocusNeighborLeft = _bossIcon.GetPath();
             }
-            else
-            {
-                _topBar.FloorIcon.FocusNeighborRight = _topBar.BossIcon.GetPath();
-                _topBar.BossIcon.FocusNeighborLeft = _topBar.FloorIcon.GetPath();
-            }
+
+            lastIcon.FocusNeighborRight = TopBar.BossIcon.IsVisible()
+                ? TopBar.BossIcon.GetPath()
+                : lastIcon.GetPath();
+            TopBar.BossIcon.FocusNeighborLeft = lastIcon.GetPath();
         }
     }
 }
@@ -188,7 +194,15 @@ internal static class NextActPredictionTopBarPatches
     [HarmonyPostfix]
     private static void Initialize(NTopBar __instance)
     {
-        NextActPrediction.Initialize(__instance);
+        try
+        {
+            NextActPrediction.Initialize(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Next-Act prediction failed to initialize: {ex}");
+            ModTelemetry.CaptureException(ex, "next_act_prediction", "initialize");
+        }
     }
 }
 
@@ -199,6 +213,14 @@ internal static class NextActPredictionRewardsScreenPatches
     [HarmonyPostfix]
     private static void ShowPrediction(bool isTerminal, IRunState runState)
     {
-        NextActPrediction.ShowIfEligible(isTerminal, runState);
+        try
+        {
+            NextActPrediction.ShowIfEligible(isTerminal, runState);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Next-Act prediction failed on the rewards screen: {ex}");
+            ModTelemetry.CaptureException(ex, "next_act_prediction", "show_on_rewards_screen");
+        }
     }
 }
