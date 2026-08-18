@@ -55,7 +55,9 @@ internal sealed class CombatPredictionState(ICombatState combatState)
     {
         if (!_playerCombatStates.TryGetValue(player, out var state))
         {
-            state = new SimPlayerCombatState(player.PlayerCombatState!);
+            var liveState = player.PlayerCombatState
+                ?? throw new InvalidOperationException($"Player {player.Creature.Name} has no combat state to simulate.");
+            state = new SimPlayerCombatState(liveState);
             _playerCombatStates.Add(player, state);
         }
 

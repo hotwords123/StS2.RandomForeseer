@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
@@ -44,7 +45,8 @@ internal static class CombatPotionPrediction
     /// <remarks>Target-aware adapters catch failures through their shared combat prediction session.</remarks>
     public static CombatPredictionProjection? Predict(PotionModel potion, Creature? target)
     {
-        if (potion.Owner.Creature.CombatState is not { } combatState ||
+        if (!CombatManager.Instance.IsInProgress ||
+            potion.Owner.Creature.CombatState is not { } combatState ||
             (target is not null && target.CombatState != combatState) ||
             !PotionOnUseMirrors.CanMirror(potion))
         {

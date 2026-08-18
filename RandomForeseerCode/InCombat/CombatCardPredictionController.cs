@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -83,6 +84,7 @@ internal static class CombatCardPredictionController
         var settings = ModData.Settings;
 
         if (!settings.IsPredictionEnabled || !settings.CardPlayPredictionEnabled ||
+            !CombatManager.Instance.IsInProgress ||
             holder.CardModel is not { Owner.Creature.CombatState: not null } card ||
             _session?.Mode > mode)
         {

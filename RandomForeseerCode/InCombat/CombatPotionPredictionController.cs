@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
@@ -97,6 +98,7 @@ internal static class CombatPotionPredictionController
         var settings = ModData.Settings;
 
         if (!settings.IsPredictionEnabled || !settings.PotionPredictionEnabled ||
+            !CombatManager.Instance.IsInProgress ||
             holder.Potion?.Model is not { Owner.Creature.CombatState: not null } potion ||
             _session?.Mode > mode)
         {

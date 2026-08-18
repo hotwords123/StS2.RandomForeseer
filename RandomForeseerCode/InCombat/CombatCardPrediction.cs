@@ -1,4 +1,5 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -46,7 +47,8 @@ internal static class CombatCardPrediction
     /// </remarks>
     public static IReadOnlyList<IHoverTip> GetHoverTips(CardModel card)
     {
-        if (!card.IsMutable || card is not { Owner.Creature.CombatState: not null })
+        if (!CombatManager.Instance.IsInProgress ||
+            !card.IsMutable || card is not { Owner.Creature.CombatState: not null })
         {
             return [];
         }
@@ -94,7 +96,8 @@ internal static class CombatCardPrediction
     /// <remarks>Simulation and projection exceptions are intentionally handled by the calling UI injection boundary.</remarks>
     public static CombatPredictionProjection? Predict(CardModel card, Creature? target)
     {
-        if (card.Owner.Creature.CombatState is not { } combatState ||
+        if (!CombatManager.Instance.IsInProgress ||
+            card.Owner.Creature.CombatState is not { } combatState ||
             !card.TryResolveTarget(ref target))
         {
             return null;

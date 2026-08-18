@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复战斗尚未完成初始化时，卡牌或药水预测可能访问尚未创建的玩家战斗状态并失败的问题。<br>
+  Fixed card or potion predictions potentially failing by accessing player combat state before combat initialization completed.
+
 - 修复 Mod 卡牌使用非标准动态变量时，卡牌打出效果推断可能因类型不匹配或缺少键而中断战斗预测的问题。<br>
   Fixed combat predictions potentially being interrupted by type mismatches or missing keys while inferring card-play effects for Mod cards with nonstandard dynamic variables.
 
