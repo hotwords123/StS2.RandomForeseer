@@ -18,6 +18,7 @@ using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using RandomForeseer.RandomForeseerCode.Localization;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
@@ -100,6 +101,7 @@ internal static class FrozenEyeDrawPileView
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Failed to predict draw pile shuffle for {player.Creature.Name}: {ex}");
+            ModTelemetry.CaptureException(ex, "frozen_eye_prediction", "predict_draw_pile_shuffle");
             return [];
         }
     }
@@ -190,6 +192,7 @@ internal static class FrozenEyeEmptyDrawPileOpenPatch
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Frozen Eye empty draw pile transpiler failed for {original.FullDescription()}: {ex}");
+            ModTelemetry.CaptureException(ex, "frozen_eye_patch", "rewrite_empty_draw_pile_open");
             return instructionList;
         }
     }
@@ -296,6 +299,7 @@ internal static class FrozenEyeDrawPileRawTextPatch
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Failed to replace raw text for {__instance}: {ex}");
+            ModTelemetry.CaptureException(ex, "frozen_eye_patch", "replace_draw_pile_text");
         }
     }
 

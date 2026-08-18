@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.HoverTips;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
 
@@ -56,6 +57,7 @@ internal sealed class PredictionHoverTipRegistry<TInput>
             {
                 Entry.Logger.Warn(
                     $"Hover tip prediction provider '{provider.Name}' failed for {Describe(input)}: {ex}");
+                ModTelemetry.CaptureException(ex, "prediction_hover_tip_registry", "build_hover_tips");
             }
         }
 

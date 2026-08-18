@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
@@ -29,6 +30,7 @@ internal static class CardOnPlayInferrer
         {
             Entry.Logger.Warn(
                 $"Could not inspect original OnPlay IL for inferred card mirror {runtimeType.FullName}: {ex}");
+            ModTelemetry.CaptureException(ex, "card_on_play_inferrer", "read_original_il");
             return null;
         }
 

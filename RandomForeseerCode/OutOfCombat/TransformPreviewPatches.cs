@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
@@ -72,6 +73,7 @@ internal static class TransformPreviewPatchShared
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Transform preview transpiler failed for {original.FullDescription()}: {ex}");
+            ModTelemetry.CaptureException(ex, "transform_preview_patch", "rewrite_transpiler");
             return instructionList;
         }
     }

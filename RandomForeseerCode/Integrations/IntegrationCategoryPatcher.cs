@@ -1,6 +1,7 @@
 using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Modding;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.Integrations;
 
@@ -77,6 +78,7 @@ internal sealed class IntegrationCategoryPatcher(Harmony harmony, Assembly assem
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Could not patch integration category {category} for {modId}: {ex}");
+                ModTelemetry.CaptureException(ex, "integration_category_patcher", "patch_category");
             }
 
             _patched = true;

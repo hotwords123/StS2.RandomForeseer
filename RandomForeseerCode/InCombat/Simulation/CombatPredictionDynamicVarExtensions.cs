@@ -2,6 +2,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -39,6 +40,7 @@ internal static class CombatPredictionDynamicVarExtensions
         catch (Exception ex)
         {
             Entry.Logger.Warn($"CalculatedVar simulation failed: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_dynamic_var_prediction", "calculate");
             return 0m;
         }
     }
