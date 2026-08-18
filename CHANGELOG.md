@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复正在施加模仿学习且目标玩家尚未初始化时，战斗卡牌预测可能失败的问题。<br>
+  Fixed combat card prediction potentially failing while applying Imitation Learning before its target player had been initialized.
+
 ## v0.13.5
 
 ### feat

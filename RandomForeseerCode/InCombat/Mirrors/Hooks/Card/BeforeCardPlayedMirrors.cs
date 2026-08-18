@@ -161,7 +161,7 @@ internal static class BeforeCardPlayedMirrors
         ImitationLearningPower power,
         BeforeCardPlayedMirrorContext context)
     {
-        if (context.PreviewCard.Owner != power.PlayerTarget ||
+        if (context.PreviewCard.Owner != power._playerTarget ||
             context.PreviewCard.Type != CardType.Power ||
             !context.CardPlay.IsFirstInSeries ||
             power.Owner.Player is not { } owner)
