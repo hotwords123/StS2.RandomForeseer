@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复 Mod 卡牌使用非标准动态变量时，卡牌打出效果推断可能因类型不匹配或缺少键而中断战斗预测的问题。<br>
+  Fixed combat predictions potentially being interrupted by type mismatches or missing keys while inferring card-play effects for Mod cards with nonstandard dynamic variables.
+
 - 修复正在施加模仿学习且目标玩家尚未初始化时，战斗卡牌预测可能失败的问题。<br>
   Fixed combat card prediction potentially failing while applying Imitation Learning before its target player had been initialized.
 

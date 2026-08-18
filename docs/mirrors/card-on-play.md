@@ -46,6 +46,11 @@ Candidates are deduplicated by effect kind and executed in their first direct-ca
 the same recognized kind produce one general effect. Missing standard vars, unsupported targets and an unavailable
 Osty skip the affected general action and retain incomplete risk.
 
+Inferred execution also has a runtime exception boundary for Mod-defined or otherwise unexpected dynamic-var shapes.
+It logs and captures the exception, stops the remaining inferred `OnPlay` actions, and allows the surrounding shadow
+card-play lifecycle to continue. The registry records `MethodMirrorIncomplete` before entering the inferred handler,
+so a contained failure remains visible as prediction risk.
+
 The owner-draw matcher accepts the two-argument one-card overload and the four-argument overload when the count is a
 decimal constant of one, direct `DynamicVars.Cards.BaseValue`/`IntValue`, or the compiler-generated async state field
 used by cards such as `Prepared`. The player slot must end in a `CardModel.Owner` getter and the four-argument

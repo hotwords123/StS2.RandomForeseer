@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Telemetry;
+using STS2RitsuLib.Cards.DynamicVars;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -15,6 +16,22 @@ internal static class CombatPredictionDynamicVarExtensions
 
     private static readonly GetDynamicVarDelegate GetExtraVar =
         AccessTools.Method(typeof(CalculatedVar), "GetExtraVar").CreateDelegate<GetDynamicVarDelegate>();
+
+    public static decimal InvokeCalculate(
+        this DynamicVar dynamicVar,
+        CombatPredictionSimulator simulator,
+        PredictedCard card,
+        Creature? target)
+    {
+        return dynamicVar switch
+        {
+            CalculatedVar calculatedVar =>
+                calculatedVar.InvokeCalculate(simulator, card, target),
+            IComputedDynamicVar computedDynamicVar =>
+                computedDynamicVar.InvokeCalculate(simulator, card, target),
+            _ => dynamicVar.BaseValue
+        };
+    }
 
     public static decimal InvokeCalculate(
         this CalculatedVar calculatedVar,
@@ -40,6 +57,27 @@ internal static class CombatPredictionDynamicVarExtensions
         catch (Exception ex)
         {
             Entry.Logger.Warn($"CalculatedVar simulation failed: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_dynamic_var_prediction", "calculate");
+            return 0m;
+        }
+    }
+
+    public static decimal InvokeCalculate(
+        this IComputedDynamicVar computedDynamicVar,
+        CombatPredictionSimulator simulator,
+        PredictedCard card,
+        Creature? target)
+    {
+        using var _ = simulator.PushActionSource(card.Original, PredictionActionKind.DynamicVariableCalculation);
+        simulator.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+
+        try
+        {
+            return computedDynamicVar.Calculate(target);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"IComputedDynamicVar simulation failed: {ex}");
             ModTelemetry.CaptureException(ex, "combat_dynamic_var_prediction", "calculate");
             return 0m;
         }

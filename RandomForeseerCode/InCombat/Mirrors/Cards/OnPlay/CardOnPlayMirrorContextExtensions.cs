@@ -54,7 +54,7 @@ internal static class CardOnPlayMirrorContextExtensions
     }
 
     /// <summary>
-    /// See <see cref="CombatPredictionSimulator.GainBlock(Creature, int, ValueProp, PredictedCard?, CardPlay?)"/>.
+    /// See <see cref="CombatPredictionSimulator.GainBlock(Creature, decimal, ValueProp, PredictedCard?, CardPlay?)"/>.
     /// </summary>
     public static decimal GainBlock(this CardOnPlayMirrorContext context, Creature target, decimal amount, ValueProp props)
     {
@@ -67,12 +67,12 @@ internal static class CardOnPlayMirrorContextExtensions
     }
 
     /// <summary>
-    /// See <see cref="CombatPredictionDynamicVarExtensions.InvokeCalculate"/>.
+    /// See <see cref="CombatPredictionDynamicVarExtensions.InvokeCalculate(DynamicVar, CombatPredictionSimulator, PredictedCard, Creature?)"/>.
     /// </summary>
-    public static decimal Calculate(this CardOnPlayMirrorContext context, CalculatedVar calculatedVar)
+    public static decimal Calculate(this CardOnPlayMirrorContext context, DynamicVar dynamicVar)
     {
         // We use context.CardPlay.Target here instead of context.Target because the card play may not have a target,
         // and context.Target will throw in that case.
-        return calculatedVar.InvokeCalculate(context.Simulator, context.Card, context.CardPlay.Target);
+        return dynamicVar.InvokeCalculate(context.Simulator, context.Card, context.CardPlay.Target);
     }
 }

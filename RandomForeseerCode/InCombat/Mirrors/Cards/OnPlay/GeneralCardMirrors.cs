@@ -1,10 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -25,7 +26,14 @@ internal static class GeneralCardMirrors
     /// </summary>
     public static void GeneralOwnerDrawOnPlay(CardModel card, CardOnPlayMirrorContext context)
     {
-        context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
+        if (!card.DynamicVars.TryGetValue("Cards", out var cardsVar))
+        {
+            Entry.Logger.Warn($"Card {card.Id} has no cards var to simulate a draw.");
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+            return;
+        }
+
+        context.Simulator.Draw(card.Owner, context.Calculate(cardsVar));
     }
 
     /// <summary>
@@ -41,25 +49,16 @@ internal static class GeneralCardMirrors
     /// </remarks>
     public static void GeneralAttackOnPlay(CardModel card, CardOnPlayMirrorContext context)
     {
-        AttackCommand? command;
-        if (card.DynamicVars.ContainsKey("CalculatedDamage"))
+        if (!TryGetDynamicVar(card, ["CalculatedDamage", "Damage", "OstyDamage"], out var damage))
         {
-            command = DamageCmd.Attack(card.DynamicVars.CalculatedDamage);
-        }
-        else if (card.DynamicVars.ContainsKey("Damage"))
-        {
-            command = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue);
-        }
-        else if (card.DynamicVars.ContainsKey("OstyDamage"))
-        {
-            command = DamageCmd.Attack(card.DynamicVars.OstyDamage.BaseValue);
-        }
-        else
-        {
-            Entry.Logger.Warn($"Card {card.Title} has no damage var to simulate an attack command.");
+            Entry.Logger.Warn($"Card {card.Id} has no damage var to simulate an attack command.");
             context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
             return;
         }
+
+        var command = damage is CalculatedDamageVar calculatedDamageVar
+            ? DamageCmd.Attack(calculatedDamageVar)
+            : DamageCmd.Attack(context.Calculate(damage));
 
         if (card.Tags.Contains(CardTag.OstyAttack))
         {
@@ -75,14 +74,9 @@ internal static class GeneralCardMirrors
             command.FromCard(card, context.CardPlay);
         }
 
-        if (card.DynamicVars.ContainsKey("Repeat"))
+        if (TryGetDynamicVar(card, ["Repeat", "CalculatedHits"], out var repeat))
         {
-            command.WithHitCount(card.DynamicVars.Repeat.IntValue);
-        }
-        else if (card.DynamicVars.ContainsKey("CalculatedHits") &&
-                 card.DynamicVars["CalculatedHits"] is CalculatedVar calculatedVar)
-        {
-            command.WithHitCount((int)context.Calculate(calculatedVar));
+            command.WithHitCount((int)context.Calculate(repeat));
         }
         else if (card.EnergyCost.CostsX)
         {
@@ -108,7 +102,7 @@ internal static class GeneralCardMirrors
                 break;
 
             default:
-                Entry.Logger.Warn($"Attack {card.Title} has an unsupported target type: {card.TargetType}");
+                Entry.Logger.Warn($"Attack {card.Id} has an unsupported target type: {card.TargetType}");
                 context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
                 return;
         }
@@ -134,19 +128,20 @@ internal static class GeneralCardMirrors
     public static void GeneralBlockOnPlay(CardModel card, CardOnPlayMirrorContext context)
     {
         Action<Creature> blockAction;
-        if (card.DynamicVars.ContainsKey("CalculatedBlock"))
+        if (TryGetDynamicVar(card, ["CalculatedBlock", "Block"], out var block))
         {
-            var amount = context.Calculate(card.DynamicVars.CalculatedBlock);
-            var props = card.DynamicVars.CalculatedBlock.Props;
+            var amount = context.Calculate(block);
+            var props = block switch
+            {
+                CalculatedBlockVar calculatedBlockVar => calculatedBlockVar.Props,
+                BlockVar blockVar => blockVar.Props,
+                _ => ValueProp.Move
+            };
             blockAction = target => context.GainBlock(target, amount, props);
-        }
-        else if (card.DynamicVars.ContainsKey("Block"))
-        {
-            blockAction = target => context.GainBlock(target);
         }
         else
         {
-            Entry.Logger.Warn($"Card {card.Title} has no block var to simulate a block gain.");
+            Entry.Logger.Warn($"Card {card.Id} has no block var to simulate a block gain.");
             context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
             return;
         }
@@ -172,9 +167,26 @@ internal static class GeneralCardMirrors
                 break;
 
             default:
-                Entry.Logger.Warn($"Block {card.Title} has an unsupported target type: {card.TargetType}");
+                Entry.Logger.Warn($"Block {card.Id} has an unsupported target type: {card.TargetType}");
                 context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
                 return;
         }
+    }
+
+    private static bool TryGetDynamicVar(
+        CardModel card,
+        IEnumerable<string> candidateKeys,
+        [NotNullWhen(true)] out DynamicVar? dynamicVar)
+    {
+        foreach (var key in candidateKeys)
+        {
+            if (card.DynamicVars.TryGetValue(key, out dynamicVar))
+            {
+                return true;
+            }
+        }
+
+        dynamicVar = null;
+        return false;
     }
 }
