@@ -4,6 +4,9 @@
 
 ### fix
 
+- Steam 创意工坊多版本加载器现在会将游戏内报告的 Mod 版本与实际加载的版本保持一致。<br>
+  The Steam Workshop multi-version loader now aligns the in-game reported Mod version with the version actually loaded.
+
 - 优化冻结之眼本地化文本替换的健壮性。<br>
   Improved the robustness of Frozen Eye localization text replacement.
 

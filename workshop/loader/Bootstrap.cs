@@ -43,6 +43,8 @@ public static class Bootstrap
             $"[{ModId}.Loader] Host version {hostVersion?.ToString() ?? "<unknown>"}; " +
             $"selected Mod variant {selected.ModVersion} (minimum game version {selected.MinGameVersion}).");
 
+        SynchronizeModManagerVersion(loaderDirectory, selected);
+
         if (!TryValidateDependencies(selected, out var dependencyErrors))
         {
             ReportDependencyFailure(dependencyErrors);
@@ -55,6 +57,29 @@ public static class Bootstrap
         LoadResourcePack(selected.PckPath);
 
         InvokeRealInitializer(realAssembly);
+    }
+
+    private static void SynchronizeModManagerVersion(string loaderDirectory, VariantCandidate selected)
+    {
+        var detectedMod = ModManager.Mods.SingleOrDefault(mod =>
+            mod.manifest?.id == ModId && PathsEqual(mod.path, loaderDirectory));
+        if (detectedMod?.manifest is null)
+        {
+            Log.Warn(
+                $"[{ModId}.Loader] Could not find the detected ModManager entry for {loaderDirectory}.");
+            return;
+        }
+
+        var rootManifestVersion = detectedMod.manifest.version;
+        detectedMod.manifest.version = selected.ModVersion;
+        detectedMod.version = selected.ModSemanticVersion;
+
+        if (rootManifestVersion != selected.ModVersion)
+        {
+            Log.Info(
+                $"[{ModId}.Loader] Updated the reported Mod version from " +
+                $"{rootManifestVersion ?? "<null>"} to {selected.ModVersion}.");
+        }
     }
 
     private static List<VariantCandidate> LoadVariants(string loaderDirectory)
@@ -380,6 +405,17 @@ public static class Bootstrap
         var normalizedPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
             Path.DirectorySeparatorChar;
         return normalizedPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool PathsEqual(string left, string right)
+    {
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        return string.Equals(
+            Path.TrimEndingDirectorySeparator(Path.GetFullPath(left)),
+            Path.TrimEndingDirectorySeparator(Path.GetFullPath(right)),
+            comparison);
     }
 
     private sealed record VariantCandidate(
