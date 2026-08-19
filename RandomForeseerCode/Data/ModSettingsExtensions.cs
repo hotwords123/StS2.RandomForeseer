@@ -40,8 +40,8 @@ internal static class ModSettingsExtensions
 
     private static NetGameType GetCurrentNetGameType()
     {
-        return RunManager.Instance.IsInProgress
-            ? RunManager.Instance.NetService.Type
+        return RunManager.Instance is { IsInProgress: true, NetService: { } netService }
+            ? netService.Type
             : NetGameType.None;
     }
 }
