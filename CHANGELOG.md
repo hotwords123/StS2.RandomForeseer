@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## v0.13.7
+
+### feat
+
+- 诊断遥测现在会附带小型结构化异常上下文，并在发送的事件中附加 Mod 版本，以便更可靠地归类和定位问题。<br>
+  Diagnostic telemetry now includes small structured exception contexts and tags events sent with the mod version for more reliable issue classification and diagnosis.
 
 ### fix
 
