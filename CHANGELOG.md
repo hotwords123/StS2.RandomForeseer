@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 优化冻结之眼本地化文本替换的健壮性。<br>
+  Improved the robustness of Frozen Eye localization text replacement.
+
 ## v0.13.6
 
 ### fix
