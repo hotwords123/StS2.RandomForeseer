@@ -1,4 +1,3 @@
-using System.Reflection;
 using STS2RitsuLib.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.Telemetry;
@@ -10,13 +9,8 @@ internal static class TelemetryBuildConfiguration
 
     public static ITelemetryAdapter CreateAdapter()
     {
-        var metadata = typeof(TelemetryBuildConfiguration).Assembly
-            .GetCustomAttributes<AssemblyMetadataAttribute>()
-            .ToArray();
-        var host = metadata.FirstOrDefault(attribute => attribute.Key == PostHogHostMetadataName)?.Value;
-        var projectApiKey = metadata
-            .FirstOrDefault(attribute => attribute.Key == PostHogProjectApiKeyMetadataName)
-            ?.Value;
+        Entry.AssemblyMetadata.TryGetValue(PostHogHostMetadataName, out var host);
+        Entry.AssemblyMetadata.TryGetValue(PostHogProjectApiKeyMetadataName, out var projectApiKey);
 
         if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(projectApiKey))
         {

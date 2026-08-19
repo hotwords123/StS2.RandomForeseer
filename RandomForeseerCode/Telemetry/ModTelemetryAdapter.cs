@@ -4,9 +4,13 @@ using STS2RitsuLib.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.Telemetry;
 
-internal sealed class ModTelemetryFilter(ITelemetryAdapter inner) : ITelemetryAdapter
+internal sealed class ModTelemetryAdapter(ITelemetryAdapter inner) : ITelemetryAdapter
 {
+    private const string ModVersionMetadataName = "RandomForeseerModVersion";
     private const string StackTraceMarker = "RandomForeseer.";
+    private const string UnknownModVersion = "<unknown>";
+
+    private readonly string _modVersion = ResolveModVersion();
 
     public string AdapterId => inner.AdapterId;
 
@@ -18,9 +22,27 @@ internal sealed class ModTelemetryFilter(ITelemetryAdapter inner) : ITelemetryAd
         CancellationToken cancellationToken = default)
     {
         var filteredEvents = events.Where(ShouldSend).ToArray();
+        foreach (var telemetryEvent in filteredEvents)
+        {
+            telemetryEvent.Properties["random_foreseer_version"] = _modVersion;
+        }
+
         return filteredEvents.Length == 0
             ? ValueTask.FromResult(TelemetrySendResult.Ok())
             : inner.SendAsync(applicant, filteredEvents, cancellationToken);
+    }
+
+    private static string ResolveModVersion()
+    {
+        Entry.AssemblyMetadata.TryGetValue(ModVersionMetadataName, out var version);
+        version = version?.Trim();
+        if (!string.IsNullOrWhiteSpace(version))
+        {
+            return version;
+        }
+
+        Entry.Logger.Warn("Could not resolve the Random Foreseer version for telemetry events.");
+        return UnknownModVersion;
     }
 
     internal static bool ShouldSend(TelemetryEnvelope telemetryEvent)

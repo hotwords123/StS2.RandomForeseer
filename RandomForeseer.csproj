@@ -28,6 +28,22 @@
         <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">true</SyncManifestDependenciesOnBuild>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <RandomForeseerManifestPath>$(MSBuildProjectDirectory)\RandomForeseer.json</RandomForeseerManifestPath>
+        <_RandomForeseerManifestJson>$([System.IO.File]::ReadAllText('$(RandomForeseerManifestPath)'))</_RandomForeseerManifestJson>
+        <_RandomForeseerVersionSearchPattern>"version"\s*:\s*"([^"]+)"</_RandomForeseerVersionSearchPattern>
+        <_RandomForeseerVersionExtractPattern>(?s).*?"version"\s*:\s*"([^"]+)".*</_RandomForeseerVersionExtractPattern>
+        <_HasRandomForeseerModVersion>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_RandomForeseerManifestJson)', '$(_RandomForeseerVersionSearchPattern)'))</_HasRandomForeseerModVersion>
+        <RandomForeseerModVersion Condition="'$(_HasRandomForeseerModVersion)' == 'True'">$([System.Text.RegularExpressions.Regex]::Replace('$(_RandomForeseerManifestJson)', '$(_RandomForeseerVersionExtractPattern)', '$1'))</RandomForeseerModVersion>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(RandomForeseerModVersion)' != ''">
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>RandomForeseerModVersion</_Parameter1>
+            <_Parameter2>$(RandomForeseerModVersion)</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+
     <ItemGroup Condition="'$(RandomForeseerPostHogHost)' != '' and '$(RandomForeseerPostHogProjectApiKey)' != ''">
         <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
             <_Parameter1>RandomForeseerPostHogHost</_Parameter1>
@@ -82,6 +98,10 @@
 
     <Target Name="ValidateSts2GameInstall" BeforeTargets="ResolveAssemblyReferences">
         <Error Condition="!Exists('$(Sts2DataDir)\sts2.dll')" Text="Could not find sts2.dll under '$(Sts2DataDir)'. Copy local.props.template to local.props and set Sts2Dir/Sts2DataDir for your local game install." />
+    </Target>
+
+    <Target Name="ValidateRandomForeseerModVersion" BeforeTargets="GenerateAssemblyInfo">
+        <Error Condition="'$(_HasRandomForeseerModVersion)' != 'True'" Text="Could not read version from '$(RandomForeseerManifestPath)'." />
     </Target>
 
     <Target Name="CopyMod" AfterTargets="Build" Condition="'$(CopyModOnBuild)' != 'false'">

@@ -34,7 +34,7 @@ internal static class ModTelemetry
             OwnerModId = Entry.ModId,
             DisplayName = "Random Foreseer",
             DisplayNameText = T("telemetry.applicant.display_name"),
-            Adapter = new ModTelemetryFilter(TelemetryBuildConfiguration.CreateAdapter()),
+            Adapter = new ModTelemetryAdapter(TelemetryBuildConfiguration.CreateAdapter()),
             Requests =
             [
                 new TelemetryRequest

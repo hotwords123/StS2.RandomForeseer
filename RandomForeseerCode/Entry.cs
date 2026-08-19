@@ -23,6 +23,14 @@ public partial class Entry
     public const string ModId = "RandomForeseer";
     public const string ResPath = $"res://{ModId}";
 
+    internal static IReadOnlyDictionary<string, string> AssemblyMetadata { get; } =
+        typeof(Entry).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .ToDictionary(
+                attribute => attribute.Key,
+                attribute => attribute.Value ?? string.Empty,
+                StringComparer.Ordinal);
+
     public static Logger Logger { get; } = new(ModId, LogType.Generic);
 
     public static void Initialize()
