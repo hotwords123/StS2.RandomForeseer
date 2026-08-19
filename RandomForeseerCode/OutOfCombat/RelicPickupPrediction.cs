@@ -131,7 +131,11 @@ internal static class RelicPickupPrediction
         catch (Exception ex)
         {
             WarnOnce(relic.GetType(), $"Could not predict relic pickup effect for {relic.Id}: {ex}");
-            ModTelemetry.CaptureException(ex, "relic_pickup_prediction", "build_hover_tips");
+            ModTelemetry.CaptureException(
+                ex,
+                "relic_pickup_prediction",
+                "build_hover_tips",
+                TelemetryContext.ForModel(relic));
             return [];
         }
     }

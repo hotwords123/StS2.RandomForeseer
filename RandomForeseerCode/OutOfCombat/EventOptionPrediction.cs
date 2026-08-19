@@ -37,7 +37,15 @@ internal sealed class EventPredictionRegistry
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Event option prediction failed for {eventModel.Id} {option.TextKey}: {ex}");
-                ModTelemetry.CaptureException(ex, "event_option_prediction", "build_hover_tips");
+                ModTelemetry.CaptureException(
+                    ex,
+                    "event_option_prediction",
+                    "build_hover_tips",
+                    new
+                    {
+                        Event = TelemetryContext.ForModel(eventModel),
+                        Option = option.TextKey
+                    });
             }
         }
 

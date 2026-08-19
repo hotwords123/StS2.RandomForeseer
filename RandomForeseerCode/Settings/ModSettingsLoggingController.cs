@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using RandomForeseer.RandomForeseerCode.Data;
 using STS2RitsuLib.Settings;
 
@@ -10,6 +11,7 @@ internal static class ModSettingsLoggingController
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = false,
+        Converters = { new JsonStringEnumConverter() }
     };
 
     private static JsonObject? _snapshot;

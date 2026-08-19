@@ -73,7 +73,11 @@ internal static class TransformPreviewPatchShared
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Transform preview transpiler failed for {original.FullDescription()}: {ex}");
-            ModTelemetry.CaptureException(ex, "transform_preview_patch", "rewrite_transpiler");
+            ModTelemetry.CaptureException(
+                ex,
+                "transform_preview_patch",
+                "rewrite_transpiler",
+                TelemetryContext.ForMethod(original));
             return instructionList;
         }
     }

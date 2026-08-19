@@ -55,18 +55,21 @@ internal sealed class PredictionHoverTipRegistry<TInput>
             }
             catch (Exception ex)
             {
-                Entry.Logger.Warn(
-                    $"Hover tip prediction provider '{provider.Name}' failed for {Describe(input)}: {ex}");
-                ModTelemetry.CaptureException(ex, "prediction_hover_tip_registry", "build_hover_tips");
+                var inputType = input?.GetType() ?? typeof(TInput);
+                Entry.Logger.Warn($"Hover tip prediction provider '{provider.Name}' failed for {inputType}: {ex}");
+                ModTelemetry.CaptureException(
+                    ex,
+                    "prediction_hover_tip_registry",
+                    "build_hover_tips",
+                    new
+                    {
+                        Provider = provider.Name,
+                        InputType = TelemetryContext.ForType(inputType)
+                    });
             }
         }
 
         return predictionTips;
-    }
-
-    private static string Describe(TInput input)
-    {
-        return (input?.GetType() ?? typeof(TInput)).ToString();
     }
 
     private readonly record struct Provider(string Name, Func<TInput, IEnumerable<IHoverTip>> GetHoverTips);

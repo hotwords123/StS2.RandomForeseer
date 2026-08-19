@@ -192,7 +192,11 @@ internal static class FrozenEyeEmptyDrawPileOpenPatch
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Frozen Eye empty draw pile transpiler failed for {original.FullDescription()}: {ex}");
-            ModTelemetry.CaptureException(ex, "frozen_eye_patch", "rewrite_empty_draw_pile_open");
+            ModTelemetry.CaptureException(
+                ex,
+                "frozen_eye_patch",
+                "rewrite_empty_draw_pile_open",
+                TelemetryContext.ForMethod(original));
             return instructionList;
         }
     }
@@ -304,7 +308,11 @@ internal static class FrozenEyeDrawPileRawTextPatch
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Failed to replace raw text for {__instance}: {ex}");
-            ModTelemetry.CaptureException(ex, "frozen_eye_patch", "replace_draw_pile_text");
+            ModTelemetry.CaptureException(
+                ex,
+                "frozen_eye_patch",
+                "replace_draw_pile_text",
+                new { __instance.LocTable, __instance.LocEntryKey });
         }
     }
 

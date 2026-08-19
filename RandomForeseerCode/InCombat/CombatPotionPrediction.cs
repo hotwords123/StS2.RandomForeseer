@@ -30,7 +30,11 @@ internal static class CombatPotionPrediction
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat potion prediction failed for {potion.Id}: {ex}");
-            ModTelemetry.CaptureException(ex, "combat_potion_prediction", "build_hover_tips");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "build_hover_tips",
+                TelemetryContext.ForModel(potion));
             return [];
         }
     }

@@ -67,7 +67,11 @@ internal static class CombatCardPrediction
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Combat card play prediction failed for {card.Id}: {ex}");
-                ModTelemetry.CaptureException(ex, "combat_card_prediction", "build_play_hover_tips");
+                ModTelemetry.CaptureException(
+                    ex,
+                    "combat_card_prediction",
+                    "build_play_hover_tips",
+                    TelemetryContext.ForModel(card));
             }
         }
 
@@ -78,7 +82,11 @@ internal static class CombatCardPrediction
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat transform prediction failed for {card.Id}: {ex}");
-            ModTelemetry.CaptureException(ex, "combat_card_prediction", "build_transform_hover_tips");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_card_prediction",
+                "build_transform_hover_tips",
+                TelemetryContext.ForModel(card));
         }
 
         return predictionTips;

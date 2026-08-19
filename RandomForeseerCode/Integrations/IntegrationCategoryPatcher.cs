@@ -78,7 +78,15 @@ internal sealed class IntegrationCategoryPatcher(Harmony harmony, Assembly assem
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Could not patch integration category {category} for {modId}: {ex}");
-                ModTelemetry.CaptureException(ex, "integration_category_patcher", "patch_category");
+                ModTelemetry.CaptureException(
+                    ex,
+                    "integration_category_patcher",
+                    "patch_category",
+                    new
+                    {
+                        ModId = modId,
+                        PatchCategory = category
+                    });
             }
 
             _patched = true;

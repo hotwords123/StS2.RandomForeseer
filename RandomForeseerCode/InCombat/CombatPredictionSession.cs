@@ -137,7 +137,15 @@ internal abstract class CombatPredictionSession(CombatPredictionSessionMode mode
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat prediction failed for {Source.Id} targeting {Target?.Name}: {ex}");
-            ModTelemetry.CaptureException(ex, "combat_prediction_session", "refresh_projection");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_prediction_session",
+                "refresh_projection",
+                new
+                {
+                    Source = TelemetryContext.ForModel(Source),
+                    Target = Target is null ? null : TelemetryContext.ForCreature(Target)
+                });
             projection = null;
         }
 

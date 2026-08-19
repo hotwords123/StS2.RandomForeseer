@@ -30,7 +30,11 @@ internal static class CardOnPlayInferrer
         {
             Entry.Logger.Warn(
                 $"Could not inspect original OnPlay IL for inferred card mirror {runtimeType.FullName}: {ex}");
-            ModTelemetry.CaptureException(ex, "card_on_play_inferrer", "read_original_il");
+            ModTelemetry.CaptureException(
+                ex,
+                "card_on_play_inferrer",
+                "read_original_il",
+                TelemetryContext.ForModel(runtimeType));
             return null;
         }
 
@@ -84,7 +88,11 @@ internal static class CardOnPlayInferrer
             catch (Exception ex)
             {
                 Entry.Logger.Warn($"Inferred card mirror failed for {card.Id}: {ex}");
-                ModTelemetry.CaptureException(ex, "card_on_play_inferrer", "execute_inferred_mirror");
+                ModTelemetry.CaptureException(
+                    ex,
+                    "card_on_play_inferrer",
+                    "execute_inferred_mirror",
+                    TelemetryContext.ForModel(card));
             }
         };
     }

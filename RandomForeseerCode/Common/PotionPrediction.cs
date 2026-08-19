@@ -35,7 +35,11 @@ internal static class PotionPrediction
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Out-of-combat potion prediction failed for {potion.Id}: {ex}");
-            ModTelemetry.CaptureException(ex, "potion_prediction", "build_out_of_combat_hover_tips");
+            ModTelemetry.CaptureException(
+                ex,
+                "potion_prediction",
+                "build_out_of_combat_hover_tips",
+                TelemetryContext.ForModel(potion));
             return [];
         }
     }

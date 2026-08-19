@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using RandomForeseer.RandomForeseerCode.Localization;
 using STS2RitsuLib;
 using STS2RitsuLib.Settings;
@@ -12,6 +15,13 @@ internal static class ModTelemetry
     private static readonly Lock ExceptionFingerprintLock = new();
     private static readonly Queue<string> RecentExceptionFingerprintOrder = [];
     private static readonly HashSet<string> RecentExceptionFingerprints = new(StringComparer.Ordinal);
+
+    private static readonly JsonSerializerOptions ContextJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
     private static ITelemetryClient? _client;
 
@@ -43,24 +53,42 @@ internal static class ModTelemetry
         _client = RitsuLibFramework.GetTelemetryClient(Entry.ModId);
     }
 
-    public static void CaptureException(Exception exception, string subsystem, string operation)
+    /// <summary>
+    /// Captures one diagnostics-authorized exception with an optional small, serialization-safe context snapshot.
+    /// Live game models, Godot objects, and other mutable object graphs must not be passed as context.
+    /// </summary>
+    public static void CaptureException(
+        Exception exception,
+        string subsystem,
+        string operation,
+        object? context = null)
     {
         try
         {
-            if (_client is not { } client ||
-                !client.IsEnabled("diagnostics") ||
-                !TryMarkRecent(exception, subsystem, operation))
+            if (_client is not { } client || !client.IsEnabled("diagnostics"))
             {
                 return;
             }
 
-            client.CaptureException(exception, new Dictionary<string, object?>
+            var contextPayload = SerializeContext(context);
+            if (!TryMarkRecent(exception, subsystem, operation, contextPayload))
+            {
+                return;
+            }
+
+            var properties = new Dictionary<string, object?>
             {
                 ["capture_mode"] = "manual",
                 ["capture_source"] = $"random_foreseer/{subsystem}",
                 ["subsystem"] = subsystem,
                 ["operation"] = operation
-            });
+            };
+            if (contextPayload is not null)
+            {
+                properties["exception_context"] = contextPayload;
+            }
+
+            client.CaptureException(exception, properties);
         }
         catch (Exception telemetryException)
         {
@@ -69,7 +97,31 @@ internal static class ModTelemetry
         }
     }
 
-    private static bool TryMarkRecent(Exception exception, string subsystem, string operation)
+    private static JsonNode? SerializeContext(object? context)
+    {
+        if (context is null)
+        {
+            return null;
+        }
+
+        var contextType = context.GetType();
+
+        try
+        {
+            return JsonSerializer.SerializeToNode(context, contextType, ContextJsonOptions);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Telemetry exception context serialization failed for {contextType}: {ex.Message}");
+            return new JsonObject
+            {
+                ["type"] = contextType.FullName ?? contextType.Name,
+                ["serialization_error"] = ex.Message
+            };
+        }
+    }
+
+    private static bool TryMarkRecent(Exception exception, string subsystem, string operation, JsonNode? context)
     {
         var stackHead = exception.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? string.Empty;
         var fingerprint = string.Join(
@@ -78,7 +130,8 @@ internal static class ModTelemetry
             operation,
             exception.GetType().FullName ?? exception.GetType().Name,
             exception.Message,
-            stackHead);
+            stackHead,
+            context?.ToJsonString(ContextJsonOptions) ?? string.Empty);
 
         lock (ExceptionFingerprintLock)
         {

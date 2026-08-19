@@ -57,7 +57,11 @@ internal static class CombatPredictionDynamicVarExtensions
         catch (Exception ex)
         {
             Entry.Logger.Warn($"CalculatedVar simulation failed: {ex}");
-            ModTelemetry.CaptureException(ex, "combat_dynamic_var_prediction", "calculate");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_dynamic_var_prediction",
+                "calculate",
+                GetTelemetryContext(card, calculatedVar, target));
             return 0m;
         }
     }
@@ -78,8 +82,23 @@ internal static class CombatPredictionDynamicVarExtensions
         catch (Exception ex)
         {
             Entry.Logger.Warn($"IComputedDynamicVar simulation failed: {ex}");
-            ModTelemetry.CaptureException(ex, "combat_dynamic_var_prediction", "calculate");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_dynamic_var_prediction",
+                "calculate",
+                GetTelemetryContext(card, (DynamicVar)computedDynamicVar, target));
             return 0m;
         }
+    }
+
+    private static object GetTelemetryContext(PredictedCard card, DynamicVar dynamicVar, Creature? target)
+    {
+        return new
+        {
+            Card = TelemetryContext.ForModel(card.Original),
+            DynamicVar = dynamicVar.Name,
+            DynamicVarType = TelemetryContext.ForType(dynamicVar.GetType()),
+            Target = target is null ? null : TelemetryContext.ForCreature(target)
+        };
     }
 }
