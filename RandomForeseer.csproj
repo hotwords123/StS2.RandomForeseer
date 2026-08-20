@@ -105,8 +105,12 @@
     </Target>
 
     <Target Name="CopyMod" AfterTargets="Build" Condition="'$(CopyModOnBuild)' != 'false'">
+        <PropertyGroup>
+            <_ModPdbPath>$(TargetDir)$(TargetName).pdb</_ModPdbPath>
+        </PropertyGroup>
         <MakeDir Directories="$(ModOutputDir)" />
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModOutputDir)" />
+        <Copy SourceFiles="$(_ModPdbPath)" DestinationFolder="$(ModOutputDir)" Condition="Exists('$(_ModPdbPath)')" />
         <Copy SourceFiles="$(MSBuildProjectDirectory)\$(MSBuildProjectName).json" DestinationFolder="$(ModOutputDir)" />
     </Target>
 

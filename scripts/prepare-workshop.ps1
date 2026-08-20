@@ -251,6 +251,10 @@ function Get-VersionedPackages {
         if (!(Test-Path $dllPath)) {
             throw "Package DLL not found: $dllPath"
         }
+        $pdbPath = Join-Path $packageDirectory "$ModId.pdb"
+        if (!(Test-Path $pdbPath)) {
+            $pdbPath = $null
+        }
 
         if (!$manifest.has_pck) {
             throw "Workshop variants require a PCK package: $manifestPath"
@@ -269,6 +273,7 @@ function Get-VersionedPackages {
             Directory = $packageDirectory
             Manifest = $manifest
             DllPath = $dllPath
+            PdbPath = $pdbPath
             PckPath = $pckPath
             BuildInfoPath = Join-Path $packageDirectory "build-info.txt"
         }
@@ -380,7 +385,9 @@ New-Item -ItemType Directory -Path $loaderBuildDir -Force | Out-Null
 
 Invoke-Checked dotnet @("build", $loaderProject, "-c", "Release", "-o", $loaderBuildDir)
 $loaderDll = Join-Path $loaderBuildDir "RandomForeseer.Loader.dll"
+$loaderPdb = Join-Path $loaderBuildDir "RandomForeseer.Loader.pdb"
 Copy-RequiredFile $loaderDll (Join-Path $contentDir "$modId.dll")
+Copy-RequiredFile $loaderPdb (Join-Path $contentDir "RandomForeseer.Loader.pdb")
 Copy-RequiredFile $loaderNoticesPath (Join-Path $contentDir "THIRD_PARTY_NOTICES.md")
 
 $compositeManifest = $currentPackage.Manifest.PSObject.Copy()
@@ -408,6 +415,9 @@ foreach ($package in $selectedPackages) {
     New-Item -ItemType Directory -Path $variantDirectory -Force | Out-Null
 
     Copy-RequiredFile $package.DllPath (Join-Path $variantDirectory "$modId.dll")
+    if ($null -ne $package.PdbPath) {
+        Copy-RequiredFile $package.PdbPath (Join-Path $variantDirectory "$modId.pdb")
+    }
     Copy-RequiredFile $package.PckPath (Join-Path $variantDirectory "$modId.pck")
 
     if (Test-Path $package.BuildInfoPath) {
