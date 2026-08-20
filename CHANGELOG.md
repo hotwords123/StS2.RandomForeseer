@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复某些罕见情况下伤害预测指示器可能刷新失败的问题。<br>
+  Fixed damage prediction indicators potentially failing to refresh in rare cases.
+
 ## v0.13.8
 
 ### fix

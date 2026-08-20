@@ -41,9 +41,24 @@ internal static class CombatPredictionOverlay
 
         foreach (var target in prediction.Targets)
         {
-            var indicator = GetOrCreateIndicator(target.Target);
-            indicator?.SetPrediction(target, risk.HasRisk);
-            indicator?.SetHoverTips(getHoverTips?.Invoke(target.Target) ?? []);
+            if (!Indicators.TryGetValue(target.Target, out var indicator))
+            {
+                indicator = CreateIndicator(target.Target);
+                if (indicator == null)
+                {
+                    continue;
+                }
+
+                if (!indicator.IsNodeReady())
+                {
+                    indicator.Connect(
+                        Node.SignalName.Ready,
+                        Callable.From(() => PositionIndicator(target.Target, indicator)));
+                }
+            }
+
+            indicator.SetPrediction(target, risk.HasRisk);
+            indicator.SetHoverTips(getHoverTips?.Invoke(target.Target) ?? []);
         }
 
         RefreshPositions();
@@ -68,27 +83,12 @@ internal static class CombatPredictionOverlay
 
         foreach (var (target, indicator) in Indicators.ToList())
         {
-            var creatureNode = NCombatRoom.Instance.GetCreatureNode(target);
-            if (creatureNode == null || !indicator.IsInsideTree())
-            {
-                indicator.QueueFreeSafely();
-                Indicators.Remove(target);
-                continue;
-            }
-
-            var indicatorSize = indicator.GetGlobalRect().Size;
-            indicator.GlobalPosition = GetIndicatorPosition(creatureNode, indicatorSize);
-            indicator.Modulate = creatureNode.Visuals.Modulate with { A = indicator.Modulate.A };
+            PositionIndicator(target, indicator);
         }
     }
 
-    private static NCombatPredictionDamageIndicator? GetOrCreateIndicator(Creature target)
+    private static NCombatPredictionDamageIndicator? CreateIndicator(Creature target)
     {
-        if (Indicators.TryGetValue(target, out var existing) && existing.IsInsideTree())
-        {
-            return existing;
-        }
-
         var parent = NCombatRoom.Instance?.GetCreatureNode(target)?.GetParent();
         if (parent == null)
         {
@@ -96,9 +96,39 @@ internal static class CombatPredictionOverlay
         }
 
         var indicator = NCombatPredictionDamageIndicator.Create(target);
+        indicator.Connect(Node.SignalName.TreeExited, Callable.From(() => RemoveIndicator(target, indicator)));
         parent.AddChildSafely(indicator);
+
         Indicators[target] = indicator;
         return indicator;
+    }
+
+    private static void RemoveIndicator(Creature target, NCombatPredictionDamageIndicator indicator)
+    {
+        if (Indicators.TryGetValue(target, out var existing) && ReferenceEquals(existing, indicator))
+        {
+            Indicators.Remove(target);
+        }
+    }
+
+    private static void PositionIndicator(Creature target, NCombatPredictionDamageIndicator indicator)
+    {
+        var creatureNode = NCombatRoom.Instance?.GetCreatureNode(target);
+        if (creatureNode == null)
+        {
+            indicator.QueueFreeSafely();
+            RemoveIndicator(target, indicator);
+            return;
+        }
+
+        if (!indicator.IsNodeReady())
+        {
+            return;
+        }
+
+        var indicatorSize = indicator.GetGlobalRect().Size;
+        indicator.GlobalPosition = GetIndicatorPosition(creatureNode, indicatorSize);
+        indicator.Modulate = creatureNode.Visuals.Modulate with { A = indicator.Modulate.A };
     }
 
     private static Vector2 GetIndicatorPosition(NCreature creatureNode, Vector2 indicatorSize)

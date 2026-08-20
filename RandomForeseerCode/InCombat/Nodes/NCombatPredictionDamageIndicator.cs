@@ -23,6 +23,10 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
     private Creature _target = null!;
     private HBoxContainer _sourceIcons = null!;
     private MegaLabel _damageLabel = null!;
+
+    private DamagePredictionTarget? _prediction;
+    private bool _hasRisk;
+
     private IEnumerable<IHoverTip> _hoverTips = [];
     private bool _isHovering;
 
@@ -41,13 +45,36 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
         Connect(Control.SignalName.MouseEntered, Callable.From(OnMouseEntered));
         Connect(Control.SignalName.MouseExited, Callable.From(OnMouseExited));
+
+        ShowPrediction();
     }
 
     public void SetPrediction(DamagePredictionTarget prediction, bool hasRisk)
     {
+        _prediction = prediction;
+        _hasRisk = hasRisk;
+
+        if (IsNodeReady())
+        {
+            ShowPrediction();
+        }
+    }
+
+    public void SetHoverTips(IEnumerable<IHoverTip> hoverTips)
+    {
+        _hoverTips = hoverTips;
+
+        if (_isHovering)
+        {
+            ShowHoverTips();
+        }
+    }
+
+    private void ShowPrediction()
+    {
         ClearSourceIcons();
 
-        if (prediction.DamageLines.Count == 0)
+        if (_prediction is not { DamageLines.Count: > 0 } prediction)
         {
             Visible = false;
             Size = Vector2.Zero;
@@ -65,7 +92,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
             _sourceIcons.AddChildSafely(sourceIcon);
         }
 
-        var amountText = GetAmountText(prediction, hasRisk);
+        var amountText = GetAmountText(prediction, _hasRisk);
         var outlineColor = GetOutlineColor(prediction);
 
         _damageLabel.Text = amountText;
@@ -74,15 +101,6 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         Visible = true;
         CustomMinimumSize = Vector2.Zero;
         Size = GetCombinedMinimumSize();
-    }
-
-    public void SetHoverTips(IEnumerable<IHoverTip> hoverTips)
-    {
-        _hoverTips = hoverTips;
-        if (_isHovering)
-        {
-            ShowHoverTips();
-        }
     }
 
     private void ClearSourceIcons()
