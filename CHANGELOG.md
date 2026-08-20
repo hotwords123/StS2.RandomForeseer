@@ -4,6 +4,9 @@
 
 ### fix
 
+- 关闭预测偏移提示后，战斗伤害预测数值不再显示表示预测偏移风险的星号。<br>
+  Combat damage prediction values no longer show the drift-risk asterisk when prediction drift warnings are disabled.
+
 - 战斗预测现在会正确跳过因战斗结束而取消的结算效果。<br>
   Combat predictions now correctly skip resolving effects canceled when combat ends.
 
