@@ -330,7 +330,7 @@ internal static class AfterCardPlayedMirrors
             context.PreviewCard.Type is CardType.Attack or CardType.Skill &&
             context.PreviewCard.IsUpgradable)
         {
-            context.Card.Upgrade();
+            context.Simulator.Upgrade(context.Card);
         }
     }
 

@@ -248,7 +248,7 @@ internal static class BeforeCardPlayedMirrors
     {
         if (context.PreviewCard.Owner == power.Owner.Player)
         {
-            context.State.GetPlayerCombatState(context.PreviewCard.Owner).GainStars(power.Amount);
+            context.Simulator.GainStars(context.PreviewCard.Owner, power.Amount);
         }
     }
 

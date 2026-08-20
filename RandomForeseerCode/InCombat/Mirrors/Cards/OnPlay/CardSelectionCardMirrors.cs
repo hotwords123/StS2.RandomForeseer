@@ -52,6 +52,11 @@ internal static class CardSelectionCardMirrors
 
         foreach (var selectedCard in selectedCards)
         {
+            if (context.Simulator.IsOverOrEnding)
+            {
+                break;
+            }
+
             Creature? target = null;
             if (selectedCard.Preview.TargetType == TargetType.AnyEnemy)
             {
@@ -117,7 +122,7 @@ internal static class CardSelectionCardMirrors
 
         foreach (var cardToUpgrade in cardsToUpgrade)
         {
-            cardToUpgrade.Upgrade();
+            context.Simulator.Upgrade(cardToUpgrade);
         }
 
         context.Simulator.History.CardsSelected(cardsToUpgrade);

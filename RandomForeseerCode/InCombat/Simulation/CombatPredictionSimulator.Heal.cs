@@ -9,6 +9,11 @@ internal sealed partial class CombatPredictionSimulator
     // VFX/SFX, map-point history, waits, and player hook activation on revive are intentionally omitted.
     public void Heal(Creature creature, decimal amount)
     {
+        if (IsEnding && !creature.IsPlayer)
+        {
+            return;
+        }
+
         var creatureState = State.GetCreature(creature);
         creatureState.Heal(amount);
 

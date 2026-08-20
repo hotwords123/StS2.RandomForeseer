@@ -77,6 +77,10 @@ These handlers take priority over inference, including when their original IL al
 recipe. `CombatPredictionSimulator.Draw` returns the drawn `PredictedCard` objects for these follow-up mirrors while
 preserving the existing history and hook order.
 
+Beat Down retains its own per-selected-card ending check before resolving each random target. Relying only on the
+shared auto-play command would incorrectly consume an extra `CombatTargets` RNG value after an earlier selected card
+ends combat.
+
 ## Deliberate limits and risks
 
 - Only calls directly present in the original `OnPlay`/`MoveNext` body are considered. Same-card helpers, virtual/interface dispatch, delegates, reflection and arbitrary transitive calls are not followed.

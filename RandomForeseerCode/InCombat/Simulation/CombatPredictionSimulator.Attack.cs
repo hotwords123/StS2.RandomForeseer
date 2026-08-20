@@ -24,6 +24,13 @@ internal sealed partial class CombatPredictionSimulator
             throw new InvalidOperationException("AttackCommand must have an attacker.");
         }
 
+        // Prediction always mirrors a live-combat command, so the detached-combat exception in
+        // AttackCommand.Execute does not apply here.
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         if (attackCommand.ModelSource is not CardModel card)
         {
             throw new InvalidOperationException("AttackCommand simulation requires a card source.");

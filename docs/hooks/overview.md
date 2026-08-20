@@ -33,6 +33,15 @@
   the guarded iterator. In particular, `AfterBlockBroken` and the two passes inside `AfterCardPlayed`
   directly iterate the combat state so a killing hit/card can still finish its listeners. The paired
   `BeforeCardPlayed` hook uses the guarded iterator.
+- `CombatPredictionSimulator.IsEnding` dynamically derives the vanilla victory boundary from shadow primary-enemy
+  liveness and `ShouldStopCombatFromEnding`, while all-player death records a shadow pending loss. The shared guarded
+  listener iterator checks `IsOverOrEnding` once when each dispatch begins; direct damage, death,
+  `AfterBlockBroken`, and `AfterCardPlayed` iteration remains unguarded. `CheckWinCondition` is the separate safe-point
+  operation that commits `IsInProgress = false`; callers invoke it only before continuing into a later simulation
+  phase. The current card/potion entries end after their root action and do not need that commit, while the end-turn
+  main loop invokes it at the corresponding vanilla safe points. Command mirrors read the simulator's shadow
+  `IsEnding` / `IsOverOrEnding` at their original boundaries; direct damage, death, and explicitly unguarded hook
+  iteration remain able to finish the current action.
 - Hook mirrors are grouped first by domain and then by hook name under `Mirrors/Hooks/`. Each hook-name file owns its method specification, registry, context, handlers, and hook-local state; state or behavior shared by multiple hooks may use a separate model-centric file.
 - Combat and out-of-combat code have independent `HookMirrors` facades but share the registry infrastructure. Mirrored model behavior that is not a hook, such as orb virtual methods, `CardModel.IsPlayable`, `CardModel.OnPlay`, `CardModel.OnTurnEndInHand` and `PotionModel.OnUse`, lives in its model domain under `Mirrors/` and follows the same facade/registry split.
 - `CombatPredictionHistory` stores semantic events, resolved events, and explicit risk events in one ordered timeline. Entries recorded within a prediction source scope capture its current immutable trace frame; source-less operations may record entries with no trace. Deferred card draws and individual generated cards append separate original and resolved entries; consumers use original order, resolved snapshots, and the maximum resolved timeline position. A reference-identity completion index rejects unresolved, duplicate, and cross-history completion. History also maintains exact entry-type counts so simulator safety limits can be checked without repeatedly scanning the full history.

@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -8,13 +9,20 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
-    // Mirrors CardCmd.AutoPlay.
+    /// <summary>
+    /// Mirrors <see cref="CardCmd.AutoPlay"/>.
+    /// </summary>
     public void AutoPlay(
         PredictedCard card,
         Creature? target = null,
         AutoPlayType type = AutoPlayType.Default,
         bool skipXCapture = false)
     {
+        if (IsOverOrEnding || State.GetCreature(card.Preview.Owner.Creature).IsDead)
+        {
+            return;
+        }
+
         if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
             !HookMirrors.ShouldPlay(this, card, out _, type) ||
             !TryResolveAutoPlayTarget(card, ref target))
@@ -33,14 +41,20 @@ internal sealed partial class CombatPredictionSimulator
         OnPlayWrapper(card, target, isAutoPlay: true, resources, out _);
     }
 
-    // Mirrors CardPileCmd.AutoPlayFromDrawPile through selecting cards and moving them to
-    // the play pile, then runs each card through the shared AutoPlay path.
+    /// <summary>
+    /// Mirrors <see cref="CardPileCmd.AutoPlayFromDrawPile"/>.
+    /// </summary>
     public void AutoPlayFromDrawPile(
         Player player,
         int count,
         CardPilePosition position,
         bool forceExhaust = false)
     {
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         foreach (var card in MoveCardsForAutoPlay(player, count, position))
         {
             if (State.GetCreature(card.Preview.Owner.Creature).IsDead)

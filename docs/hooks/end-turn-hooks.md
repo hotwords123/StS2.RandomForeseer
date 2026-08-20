@@ -73,9 +73,10 @@ Mirror files:
   same shadow-pile order and now documents the new ownership explicitly.
 - The end-turn simulator follows the prediction-relevant ordering of StS2 v0.111.0
   `CombatManager.EndPlayerTurnPhaseOneInternal`: auto-post-play hooks, `BeforeSideTurnEnd`, per-player orb triggers,
-  ethereal exhaust, then turn-end card resolution. The win-condition boundary after `BeforeSideTurnEnd` and the
-  combat-ending check after each player's orb triggers are not yet mirrored; their call sites retain TODO markers for
-  the planned centralized combat-ending checks.
+  ethereal exhaust, then turn-end card resolution. It invokes the simulator's `CheckWinCondition` safe point after
+  `BeforeSideTurnEnd` and after all per-player turn-end tasks, and each player's `DoTurnEnd` independently stops after
+  its orb triggers when the shadow combat is already over or ending. This preserves vanilla's task boundary without
+  running ethereal exhaust or turn-end card effects after combat-ending damage.
 - Vanilla next calls `BeforeFlush` for each ending player. Its only vanilla listener is `SlumberingEssence` (沉眠精华),
   which is not used by the current version of the base game, so the simulator omits this hook.
 

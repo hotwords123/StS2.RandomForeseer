@@ -66,9 +66,11 @@ The before hook is suppressed when combat is already over or ending at dispatch 
 bypasses that guard so listeners can finish resolving the card that caused a kill. It pushes each listener into the
 `PlayerChoiceContext`; the before hook does not use a choice context.
 
-The simulator preserves one before/ordinary-after/late-after cycle per play index, including replayed cards, and runs
-the ordinary phase for every listener before beginning the fresh late pass. The guarded before phase also suppresses
-dispatch after the shadow combat has ended; both after passes use direct listener iteration.
+The simulator preserves one before/ordinary-after/late-after cycle per simulated play index, including replayed cards,
+and runs the ordinary phase for every listener before beginning the fresh late pass. The guarded before phase
+suppresses dispatch after the shadow combat has started ending; both after passes use direct listener iteration. The
+simulator also mirrors `CardModel.OnPlayWrapper`'s `IsOverOrEnding` check at the head of every play index, so a replay
+does not enter its next lifecycle after an earlier index ends combat.
 
 ## Feasibility labels
 
@@ -108,7 +110,7 @@ The labels remain useful for architecture, while each row now records its implem
 | `StranglePower` | 紧勒 | Snapshots amount for each applier card; the after hook deals unblockable damage to the power owner. | **Local feasible.** Pair state plus simulator `Damage`. |
 | `SubroutinePower` | 子程序 | Snapshots amount when owner plays a Power; the after hook grants that much energy. | **Local feasible.** Pair state plus simulator `GainEnergy`. |
 | `SurroundedPower` | 遭到包围 | Before owner's targeted card resolves, turns the power owner and pets toward that target, changing subsequent back-attack damage against the owner. | **Implemented cross-hook.** Retaliation/reaction damage reads shadow facing; visual flipping/music are ignored. |
-| `TheSealedThronePower` | 封印王座 | Grants owner stars before every owner card effect. | **Local feasible.** Simulator player state already owns stars. |
+| `TheSealedThronePower` | 封印王座 | Grants owner stars before every owner card effect. | **Implemented.** Uses simulator `GainStars`; `AfterStarsGained` remains outside current mirror coverage. |
 | `VeilpiercerPower` | 刺破帷幕 | Consumes one stack when owner plays an Ethereal card from hand/play. | **Implemented cross-hook.** Shadow amount feeds its zero-cost modifier. |
 | `ChemicalX` | 化学物X | Flashes when owner plays an energy-X or star-X card. | **Ignorable.** The actual X increase is the separate read-only `ModifyXValue` hook. |
 | `IntimidatingHelmet` | 骇人头盔 | If owner spends at least the configured energy, grants block before the card effect. | **Local feasible.** `CardPlay.Resources` and simulator `GainBlock` are sufficient. |
@@ -140,7 +142,7 @@ The labels remain useful for architecture, while each row now records its implem
 | `Permafrost` | 永冻冰晶 | The first owner Power each combat grants block and consumes the trigger. | **Local feasible.** State-store once/combat flag plus simulator `GainBlock`. |
 | `Pocketwatch` | 怀表 | Counts owner cards for next-turn hand draw. | **Ignorable.** Only a later turn is affected. |
 | `RainbowRing` | 彩虹戒指 | After owner has played Attack, Skill, and Power this turn, applies Strength and Dexterity once. | **Risk on trigger.** Shadow counters and once-per-turn consumption are maintained; completion records risk. |
-| `RazorTooth` | 剃刀牙 | Upgrades an upgradable owner Attack or Skill after it is played. | **Local feasible.** Upgrade only the detached predicted card; never mutate the live/deck card. |
+| `RazorTooth` | 剃刀牙 | Upgrades an upgradable owner Attack or Skill after it is played. | **Implemented.** Upgrades only the detached predicted card through the simulator command; the live/deck card is never mutated. |
 | `RippleBasin` | 波纹水盆 | Changes display status after an owner Attack. | **Ignorable.** End-turn gameplay checks card-play history directly; the status is cosmetic. |
 | `Shuriken` | 手里剑 | Every configured number of owner Attacks applies Strength. | **Risk on trigger.** Shadow counter is maintained; only threshold hits record risk. |
 | `TuningFork` | 音叉 | Counts owner Skills persistently and grants block at each threshold. | **Local feasible.** Initialize the shadow counter from `SkillsPlayed`; use simulator `GainBlock`. |

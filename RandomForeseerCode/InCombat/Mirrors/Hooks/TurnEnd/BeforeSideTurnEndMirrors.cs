@@ -206,7 +206,8 @@ internal static class BeforeSideTurnEndMirrors
 
     private static void HandleDoomPower(DoomPower power, BeforeSideTurnEndMirrorContext context)
     {
-        if (context.Side == CombatSide.Player ||
+        if (context.Simulator.IsOverOrEnding ||
+            context.Side == CombatSide.Player ||
             !context.Participants.Contains(power.Owner) ||
             !context.State.GetCreature(power.Owner).IsAlive)
         {

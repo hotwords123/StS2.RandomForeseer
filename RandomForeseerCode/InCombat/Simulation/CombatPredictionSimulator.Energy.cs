@@ -8,7 +8,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors PlayerCmd.GainEnergy.
     public void GainEnergy(Player player, decimal amount)
     {
-        if (amount <= 0m)
+        if (IsEnding || amount <= 0m)
         {
             return;
         }
@@ -28,11 +28,23 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors PlayerCmd.LoseEnergy.
     public void LoseEnergy(Player player, decimal amount)
     {
-        if (amount <= 0m)
+        if (IsEnding || amount <= 0m)
         {
             return;
         }
 
         State.GetPlayerCombatState(player).LoseEnergy(amount);
+    }
+
+    // Mirrors PlayerCmd.GainStars's ending guard, read-only predicate, and state mutation.
+    // AfterStarsGained remains outside the current hook-mirror coverage.
+    public void GainStars(Player player, decimal amount)
+    {
+        if (IsEnding || !Hook.ShouldGainStars(State.CombatState, amount, player))
+        {
+            return;
+        }
+
+        State.GetPlayerCombatState(player).GainStars(amount);
     }
 }

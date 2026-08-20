@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions;
@@ -19,6 +20,11 @@ internal sealed partial class CombatPredictionSimulator
     // from hand and is added to the play pile.
     public void AddDuringManualCardPlay(PredictedCard card)
     {
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         card.GetPile(State)?.Remove(card);
         State.GetPlayerCombatState(card.Preview.Owner).PlayPile.Add(card);
 
@@ -64,7 +70,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CardCmd.DiscardAndDraw.
     public void DiscardAndDraw(IReadOnlyList<PredictedCard> cardsToDiscard, int cardsToDraw)
     {
-        if (cardsToDiscard.Count == 0 && cardsToDraw == 0)
+        if (IsOverOrEnding || cardsToDiscard.Count == 0 && cardsToDraw == 0)
         {
             return;
         }
@@ -98,6 +104,11 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CardCmd.Exhaust.
     public void Exhaust(PredictedCard card, bool causedByEthereal = false)
     {
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         AddToPile(card, PileType.Exhaust);
         // Vanilla records CardExhaustedHistory here. There are currently no simulated consumers of this history,
         // so it is skipped for now.
@@ -277,6 +288,11 @@ internal sealed partial class CombatPredictionSimulator
 
         for (var i = 0; i < playCount; i++)
         {
+            if (IsOverOrEnding)
+            {
+                break;
+            }
+
             previewCard.CurrentPlayIndex = i;
 
             var cardPlay = new CardPlay
@@ -374,9 +390,16 @@ internal sealed partial class CombatPredictionSimulator
         return Afflict(ModelDb.Affliction<T>().ToMutable(), card, amount) as T;
     }
 
-    // Mirrors CardModel.Afflict.
+    /// <summary>
+    /// Mirrors <see cref="CardCmd.Afflict(AfflictionModel, CardModel, decimal)"/>.
+    /// </summary>
     public AfflictionModel? Afflict(AfflictionModel affliction, PredictedCard card, decimal amount)
     {
+        if (IsOverOrEnding)
+        {
+            return null;
+        }
+
         affliction.AssertMutable();
 
         if (!Hook.ShouldAfflict(State.CombatState, card.Preview, affliction) ||
@@ -405,5 +428,19 @@ internal sealed partial class CombatPredictionSimulator
 
         History.CardAfflicted(card, affliction);
         return card.Preview.Affliction;
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="CardCmd.Upgrade(CardModel, MegaCrit.Sts2.Core.Nodes.CommonUi.CardPreviewStyle)"/>.
+    /// </summary>
+    public bool Upgrade(PredictedCard card)
+    {
+        if (IsEnding)
+        {
+            return false;
+        }
+
+        card.Upgrade();
+        return true;
     }
 }

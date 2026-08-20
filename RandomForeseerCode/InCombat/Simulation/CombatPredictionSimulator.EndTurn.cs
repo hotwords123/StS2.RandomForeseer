@@ -31,11 +31,19 @@ internal sealed partial class CombatPredictionSimulator
             State.CombatState.CurrentSide,
             [.. playersEndingTurn.Select(static player => player.Creature)]);
 
-        // TODO: Mirror CombatManager's win-condition check here once combat-ending checks are centralized.
+        if (CheckWinCondition())
+        {
+            return;
+        }
 
         foreach (var player in playersEndingTurn)
         {
             DoTurnEnd(player);
+        }
+
+        if (CheckWinCondition())
+        {
+            return;
         }
 
         // Vanilla next calls Hook.BeforeFlush for each ending player. Its only vanilla listener is
@@ -50,7 +58,10 @@ internal sealed partial class CombatPredictionSimulator
         var playerState = State.GetPlayerCombatState(player);
         playerState.OrbQueue.BeforeTurnEnd(this);
 
-        // TODO: Mirror CombatManager.DoTurnEnd's combat-ending check here once those checks are centralized.
+        if (IsOverOrEnding)
+        {
+            return;
+        }
 
         List<PredictedCard> turnEndCards = [];
         List<PredictedCard> etherealCards = [];

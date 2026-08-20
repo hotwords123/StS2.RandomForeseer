@@ -47,13 +47,11 @@ internal sealed partial class CombatPredictionSimulator
         PredictedCard? cardSource,
         CardPlay? cardPlay)
     {
-        if (State.GetCreature(creature).IsDead || amount <= 0m)
+        if (IsOverOrEnding || State.GetCreature(creature).IsDead || amount <= 0m)
         {
             return 0m;
         }
 
-        // Vanilla first checks CombatManager.IsOverOrEnding. The simulator is detached from
-        // CombatManager end-state and is only called from live prediction paths.
         HookMirrors.BeforeBlockGained(this, creature, amount, props, cardSource);
 
         var modifiedBlock = HookMirrors.ModifyBlock(

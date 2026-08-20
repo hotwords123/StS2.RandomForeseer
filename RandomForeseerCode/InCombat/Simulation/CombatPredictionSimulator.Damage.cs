@@ -250,6 +250,11 @@ internal sealed partial class CombatPredictionSimulator
             KillWithoutCheckingWinCondition(creature, force);
         }
 
+        if (State.Players.All(player => State.GetCreature(player.Creature).IsDead))
+        {
+            LoseCombat();
+        }
+
         // Vanilla ends a player's turn when the player is killed, which is not simulated here.
     }
 

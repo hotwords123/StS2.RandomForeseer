@@ -30,7 +30,7 @@ internal sealed partial class CombatPredictionSimulator
     /// </summary>
     public IReadOnlyList<PredictedCard> Draw(Player player, int drawCount, bool fromHandDraw = false)
     {
-        if (!HookMirrors.ShouldDraw(this, player, fromHandDraw, out _))
+        if (IsOverOrEnding || !HookMirrors.ShouldDraw(this, player, fromHandDraw, out _))
         {
             // Vanilla calls Hook.AfterPreventingDraw here, but all current listeners are cosmetic.
             return [];
@@ -41,6 +41,11 @@ internal sealed partial class CombatPredictionSimulator
 
         for (var i = 0; i < drawCount; i++)
         {
+            if (IsOverOrEnding)
+            {
+                break;
+            }
+
             if (state.Hand.Cards.Count >= CardPile.MaxCardsInHand)
             {
                 break;
@@ -76,6 +81,11 @@ internal sealed partial class CombatPredictionSimulator
     /// </summary>
     public void Shuffle(Player player)
     {
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         // Mirrors CardPileCmd.Shuffle: merge discard cards with current draw-pile cards,
         // shuffle the combined list, then place all cards back into the draw pile.
         var state = State.GetPlayerCombatState(player);
@@ -91,7 +101,10 @@ internal sealed partial class CombatPredictionSimulator
 
         AddToPile(shuffledCards, state.DrawPile);
 
-        HookMirrors.AfterShuffle(this, player);
+        if (!IsOverOrEnding)
+        {
+            HookMirrors.AfterShuffle(this, player);
+        }
     }
 
     /// <summary>
@@ -177,7 +190,7 @@ internal sealed partial class CombatPredictionSimulator
         CardPilePosition position = CardPilePosition.Bottom,
         CardGenerationResultKind resultKind = CardGenerationResultKind.Random)
     {
-        if (cards.Count == 0)
+        if (!IsInProgress || cards.Count == 0)
         {
             return [];
         }
@@ -252,6 +265,11 @@ internal sealed partial class CombatPredictionSimulator
         if (cards.Count == 0)
         {
             return [];
+        }
+
+        if (IsEnding)
+        {
+            return [.. cards.Select(card => new SimCardPileAddResult(false, card))];
         }
 
         var owner = cards[0].Preview.Owner
@@ -369,6 +387,11 @@ internal sealed partial class CombatPredictionSimulator
         PileType pileType,
         CardPilePosition position)
     {
+        if (IsOverOrEnding || State.GetCreature(newOwner.Creature).IsDead)
+        {
+            return;
+        }
+
         var oldPile = card.GetPile(State.GetPlayerCombatState(originalOwner))
             ?? throw new InvalidOperationException(
                 $"Cannot transfer {card.Preview.Id} because it is not in {originalOwner}'s combat piles.");
@@ -386,4 +409,10 @@ internal readonly record struct SimCardPileAddResult(
     bool Success,
     PredictedCard CardAdded,
     PileType OldPileType,
-    PileType TargetPileType);
+    PileType TargetPileType)
+{
+    public SimCardPileAddResult(bool success, PredictedCard cardAdded)
+        : this(success, cardAdded, PileType.None, PileType.None)
+    {
+    }
+}

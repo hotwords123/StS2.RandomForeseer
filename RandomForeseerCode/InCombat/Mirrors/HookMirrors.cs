@@ -45,7 +45,7 @@ internal static class HookMirrors
             block *= enchantment.EnchantBlockMultiplicative(block);
         }
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             var additive = listener.ModifyBlockAdditive(target, block, props, cardModel, cardPlay);
             block += additive;
@@ -65,7 +65,7 @@ internal static class HookMirrors
             CardPlay = cardPlay
         };
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             context.Amount = block;
             var multiplier = ModifyBlockMultiplicativeMirrors.Invoke(listener, context);
@@ -97,7 +97,7 @@ internal static class HookMirrors
             CardPlay = cardPlay
         };
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             if (modifiers.Contains(listener))
             {
@@ -123,7 +123,7 @@ internal static class HookMirrors
             Source = source
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeBlockGainedMirrors.Invoke(listener, context);
         }
@@ -146,7 +146,7 @@ internal static class HookMirrors
             Source = source
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterBlockGainedMirrors.Invoke(listener, context);
         }
@@ -186,7 +186,7 @@ internal static class HookMirrors
             FromHandDraw = fromHandDraw
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             if (!ShouldDrawMirrors.Invoke(listener, context))
             {
@@ -212,12 +212,12 @@ internal static class HookMirrors
             FromHandDraw = fromHandDraw
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterCardDrawnMirrors.InvokeEarly(listener, context);
         }
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterCardDrawnMirrors.Invoke(listener, context);
         }
@@ -236,7 +236,7 @@ internal static class HookMirrors
             CausedByEthereal = causedByEthereal
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterCardExhaustedMirrors.Invoke(listener, context);
         }
@@ -257,7 +257,7 @@ internal static class HookMirrors
             IsInitialShuffle = isInitialShuffle
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             ModifyShuffleOrderMirrors.Invoke(listener, context);
         }
@@ -268,7 +268,7 @@ internal static class HookMirrors
     {
         var context = new AfterShuffleMirrorContext { Simulator = simulator, Player = player };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterShuffleMirrors.Invoke(listener, context);
         }
@@ -279,7 +279,7 @@ internal static class HookMirrors
     {
         var context = new AfterCardDiscardedMirrorContext { Simulator = simulator, Card = card };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterCardDiscardedMirrors.Invoke(listener, context);
         }
@@ -300,7 +300,7 @@ internal static class HookMirrors
 
         // Prediction-local generated cards are not included as later listeners until simulated
         // hook iteration owns prediction-local card listeners.
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterCardGeneratedForCombatMirrors.Invoke(listener, context);
         }
@@ -322,7 +322,7 @@ internal static class HookMirrors
             AutoPlayType = autoPlayType
         };
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             if (!ShouldPlayMirrors.Invoke(listener, context))
             {
@@ -355,12 +355,12 @@ internal static class HookMirrors
             Cost = originalCost
         };
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             context.Cost = ModifyEnergyCostInCombatMirrors.Invoke(listener, context);
         }
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             context.Cost = ModifyEnergyCostInCombatMirrors.InvokeLate(listener, context);
         }
@@ -387,7 +387,7 @@ internal static class HookMirrors
             Card = card,
             Cost = originalCost
         };
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             context.Cost = ModifyStarCostMirrors.Invoke(listener, context);
         }
@@ -414,7 +414,7 @@ internal static class HookMirrors
         };
         modifiers = [];
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             var previousPlayCount = context.PlayCount;
             context.PlayCount = ModifyCardPlayCountMirrors.Invoke(listener, context);
@@ -441,7 +441,7 @@ internal static class HookMirrors
             Card = card
         };
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             if (modifiers.Contains(listener))
             {
@@ -471,7 +471,7 @@ internal static class HookMirrors
         };
         modifiers = [];
 
-        foreach (var listener in simulator.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             var previousLocation = context.Location;
             context.Location = ModifyCardPlayResultLocationMirrors.Invoke(listener, context);
@@ -512,12 +512,6 @@ internal static class HookMirrors
         PredictedCard card,
         CardPlay cardPlay)
     {
-        if (simulator.State.Enemies.Count == 0 ||
-            simulator.State.PlayerCreatures.All(creature => simulator.State.GetCreature(creature).IsDead))
-        {
-            return;
-        }
-
         var context = new BeforeCardPlayedMirrorContext
         {
             Simulator = simulator,
@@ -525,7 +519,7 @@ internal static class HookMirrors
             CardPlay = cardPlay
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeCardPlayedMirrors.Invoke(listener, context);
         }
@@ -569,7 +563,7 @@ internal static class HookMirrors
             Delta = delta
         };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             AfterCurrentHpChangedMirrors.Invoke(listener, context);
         }
@@ -587,8 +581,6 @@ internal static class HookMirrors
         PredictedCard? cardSource,
         CardPlay? cardPlay)
     {
-        var combatState = simulator.State.CombatState;
-        var runState = combatState.RunState;
         var cardModel = cardSource?.Preview;
         if (cardModel?.Enchantment is { } enchantment)
         {
@@ -606,20 +598,20 @@ internal static class HookMirrors
             CardSource = cardSource,
             CardPlay = cardPlay
         };
-        foreach (var listener in runState.IterateHookListeners(combatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             context.Amount = damage;
             damage += ModifyDamageMirrors.InvokeAdditive(listener, context);
         }
 
-        foreach (var listener in runState.IterateHookListeners(combatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             context.Amount = damage;
             damage *= ModifyDamageMirrors.InvokeMultiplicative(listener, context);
         }
 
         var cap = decimal.MaxValue;
-        foreach (var listener in runState.IterateHookListeners(combatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             cap = Math.Min(cap, listener.ModifyDamageCap(target, props, dealer, cardModel, cardPlay));
         }
@@ -653,7 +645,7 @@ internal static class HookMirrors
 
         if (phases.HasFlag(HpLossHookPhase.BeforeOsty))
         {
-            foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+            foreach (var listener in IterateRunHookListeners(simulator))
             {
                 var previousAmount = context.Amount;
                 context.Amount = ModifyHpLostMirrors.InvokeBeforeOsty(listener, context);
@@ -663,7 +655,7 @@ internal static class HookMirrors
                 }
             }
 
-            foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+            foreach (var listener in IterateRunHookListeners(simulator))
             {
                 var previousAmount = context.Amount;
                 context.Amount = ModifyHpLostMirrors.InvokeBeforeOstyLate(listener, context);
@@ -676,7 +668,7 @@ internal static class HookMirrors
 
         if (phases.HasFlag(HpLossHookPhase.AfterOsty))
         {
-            foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+            foreach (var listener in IterateRunHookListeners(simulator))
             {
                 var previousAmount = context.Amount;
                 context.Amount = ModifyHpLostMirrors.InvokeAfterOsty(listener, context);
@@ -686,7 +678,7 @@ internal static class HookMirrors
                 }
             }
 
-            foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+            foreach (var listener in IterateRunHookListeners(simulator))
             {
                 var previousAmount = context.Amount;
                 context.Amount = ModifyHpLostMirrors.InvokeAfterOstyLate(listener, context);
@@ -719,7 +711,7 @@ internal static class HookMirrors
             Source = source
         };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             AfterDamageGivenMirrors.Invoke(listener, context);
         }
@@ -734,7 +726,7 @@ internal static class HookMirrors
     {
         var context = new AfterModifyingHpLostMirrorContext { Simulator = simulator };
 
-        foreach (var modifier in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var modifier in IterateRunHookListeners(simulator))
         {
             if (modifiers.Contains(modifier))
             {
@@ -762,7 +754,7 @@ internal static class HookMirrors
             Source = source
         };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             BeforeDamageReceivedMirrors.Invoke(listener, context);
         }
@@ -787,12 +779,12 @@ internal static class HookMirrors
             Source = source
         };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             AfterDamageReceivedMirrors.Invoke(listener, context);
         }
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             AfterDamageReceivedMirrors.InvokeLate(listener, context);
         }
@@ -803,7 +795,7 @@ internal static class HookMirrors
     {
         var context = new BeforeAttackMirrorContext { Simulator = simulator, Command = command };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeAttackMirrors.Invoke(listener, context);
         }
@@ -822,7 +814,7 @@ internal static class HookMirrors
             HitCount = originalHitCount
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             context.HitCount = ModifyAttackHitCountMirrors.Invoke(listener, context);
         }
@@ -835,7 +827,7 @@ internal static class HookMirrors
     {
         var context = new AfterAttackMirrorContext { Simulator = simulator, Command = command };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterAttackMirrors.Invoke(listener, context);
         }
@@ -849,7 +841,7 @@ internal static class HookMirrors
     {
         var context = new ShouldDieMirrorContext { Simulator = simulator, Creature = creature };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             if (!ShouldDieMirrors.Invoke(listener, context))
             {
@@ -858,7 +850,7 @@ internal static class HookMirrors
             }
         }
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             if (!ShouldDieMirrors.InvokeLate(listener, context))
             {
@@ -883,7 +875,7 @@ internal static class HookMirrors
             Creature = creature
         };
 
-        if (context.RunState.IterateHookListeners(context.CombatState).Contains(preventer))
+        if (IterateRunHookListeners(simulator).Contains(preventer))
         {
             AfterPreventingDeathMirrors.Invoke(preventer, context);
         }
@@ -894,7 +886,7 @@ internal static class HookMirrors
     {
         var context = new BeforeDeathMirrorContext { Simulator = simulator, Creature = creature };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             BeforeDeathMirrors.Invoke(listener, context);
         }
@@ -913,7 +905,7 @@ internal static class HookMirrors
             WasRemovalPrevented = wasRemovalPrevented
         };
 
-        foreach (var listener in context.RunState.IterateHookListeners(context.CombatState))
+        foreach (var listener in IterateRunHookListeners(simulator))
         {
             AfterDeathMirrors.Invoke(listener, context);
         }
@@ -934,7 +926,7 @@ internal static class HookMirrors
         };
         modifiers = [];
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             var newTriggerCount = ModifyOrbPassiveTriggerCountMirrors.Invoke(listener, context);
             if (newTriggerCount != context.TriggerCount)
@@ -957,7 +949,7 @@ internal static class HookMirrors
             Orb = orb
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterOrbChanneledMirrors.Invoke(listener, context);
         }
@@ -976,7 +968,7 @@ internal static class HookMirrors
             Targets = targets
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterOrbEvokedMirrors.Invoke(listener, context);
         }
@@ -987,7 +979,7 @@ internal static class HookMirrors
     {
         var context = new AfterAutoPostPlayMirrorContext { Simulator = simulator, Player = player };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             AfterAutoPostPlayPhaseEnteredMirrors.Invoke(listener, context);
         }
@@ -1006,19 +998,44 @@ internal static class HookMirrors
             Participants = participants
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeSideTurnEndMirrors.InvokeVeryEarly(listener, context);
         }
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeSideTurnEndMirrors.InvokeEarly(listener, context);
         }
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeSideTurnEndMirrors.Invoke(listener, context);
         }
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.IterateCombatHookListeners"/>.
+    /// </summary>
+    private static IEnumerable<AbstractModel> IterateCombatHookListeners(CombatPredictionSimulator simulator)
+    {
+        if (simulator.IsOverOrEnding)
+        {
+            yield break;
+        }
+
+        foreach (var listener in simulator.State.IterateHookListeners())
+        {
+            yield return listener;
+        }
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="MegaCrit.Sts2.Core.Runs.IRunState.IterateHookListeners"/> with the simulator's combat state.
+    /// </summary>
+    private static IEnumerable<AbstractModel> IterateRunHookListeners(CombatPredictionSimulator simulator)
+    {
+        var combatState = simulator.State.CombatState;
+        return combatState.RunState.IterateHookListeners(combatState);
     }
 }

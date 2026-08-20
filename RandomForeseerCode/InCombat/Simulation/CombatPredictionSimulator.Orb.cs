@@ -38,6 +38,11 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbCmd.Channel without VFX/SFX, waits, real queue mutation, or async hook execution.
     public bool OrbChannel(Player player, OrbModel orb)
     {
+        if (IsOverOrEnding)
+        {
+            return false;
+        }
+
         if (History.Count<CombatPredictionOrbChanneledEntry>() >= MaxSimulatedChanneledOrbs)
         {
             History.RecordRisk(PredictionRiskReason.OrbChannelLimitExceeded);
@@ -95,8 +100,11 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbCmd.Evoke without VFX/SFX, choice-context model stack updates, or real queue mutation.
     public void OrbEvoke(Player player, OrbModel evokedOrb, bool dequeue = true)
     {
-        // Vanilla exits when CombatManager is over/ending. The simulator is used only from
-        // live hover prediction and avoids consulting global combat-manager state.
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
         if (orbQueue.Orbs.Count <= 0)
         {
@@ -119,6 +127,11 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors OrbCmd.Passive without VFX/SFX, choice-context model stack updates, or real orb mutation.
     public void OrbPassive(OrbModel orb, Creature? target = null)
     {
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
         OrbMirrors.InvokePassive(this, orb, target);
     }
 }
