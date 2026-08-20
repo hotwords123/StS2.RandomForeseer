@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复与部分卡图 Mod 的兼容性问题，现在会在卡图资源不可用时采用默认回退。<br>
+  Fixed compatibility issues with certain card portrait mods, now falling back to default when card portrait resources are unavailable.
+
 ## v0.13.7
 
 ### feat

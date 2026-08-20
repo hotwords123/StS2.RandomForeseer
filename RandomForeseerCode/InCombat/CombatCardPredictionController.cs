@@ -5,10 +5,12 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -174,7 +176,19 @@ internal static class CombatCardPredictionHandPatches
     [HarmonyPrefix]
     private static void UpdatePredictionOnCardHover(NHandCardHolder __instance, bool isHovered)
     {
-        CombatCardPredictionController.OnCardHover(__instance, isHovered);
+        try
+        {
+            CombatCardPredictionController.OnCardHover(__instance, isHovered);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Error updating combat card prediction on hover: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_card_prediction_controller",
+                "on_card_hover",
+                __instance is { CardModel: { } card } ? TelemetryContext.ForModel(card) : null);
+        }
     }
 }
 
@@ -185,7 +199,19 @@ internal static class CombatCardPredictionPlayerHandPatches
     [HarmonyPrefix]
     private static void UpdatePredictionsOnCardPlayStarted(NHandCardHolder holder)
     {
-        CombatCardPredictionController.OnCardPlayStarted(holder);
+        try
+        {
+            CombatCardPredictionController.OnCardPlayStarted(holder);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Error updating combat card prediction on play start: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_card_prediction_controller",
+                "on_card_play_started",
+                holder is { CardModel: { } card } ? TelemetryContext.ForModel(card) : null);
+        }
     }
 }
 
@@ -196,7 +222,15 @@ internal static class CombatCardPredictionCardPlayPatches
     [HarmonyPostfix]
     private static void CleanupPredictions(NCardPlay __instance)
     {
-        CombatCardPredictionController.OnCardPlayCleanedUp(__instance.Holder);
+        try
+        {
+            CombatCardPredictionController.OnCardPlayCleanedUp(__instance.Holder);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Error updating combat card prediction on play cleanup: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_card_prediction_controller", "on_card_play_cleaned_up");
+        }
     }
 }
 
@@ -211,16 +245,26 @@ internal static class CombatCardPredictionTargetManagerPatches
     // Subscribing in a postfix would miss that initial target event.
     [HarmonyPatch(
         nameof(NTargetManager.StartTargeting),
-        [
-            typeof(TargetType),
-            typeof(Control),
-            typeof(TargetMode),
-            typeof(Func<bool>),
-            typeof(Func<Node, bool>)
-        ])]
+        typeof(TargetType),
+        typeof(Control),
+        typeof(TargetMode),
+        typeof(Func<bool>),
+        typeof(Func<Node, bool>))]
     [HarmonyPrefix]
     private static void ObservePredictionTargetsBeforeTargetingStarts(Control control)
     {
-        CombatCardPredictionController.OnCardPlayTargetingStarting(control);
+        try
+        {
+            CombatCardPredictionController.OnCardPlayTargetingStarting(control);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Error updating combat card prediction on targeting start: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_card_prediction_controller",
+                "on_card_play_targeting_starting",
+                control is NCard { Model: { } card } ? TelemetryContext.ForModel(card) : null);
+        }
     }
 }

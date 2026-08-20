@@ -38,8 +38,8 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         // DamageLabel styling in the scene mirrors res://scenes/combat/health_bar.tscn's HpLabel.
         _damageLabel = GetNode<MegaLabel>("Content/DamageLabel");
 
-        Connect(SignalName.MouseEntered, Callable.From(OnMouseEntered));
-        Connect(SignalName.MouseExited, Callable.From(OnMouseExited));
+        Connect(Control.SignalName.MouseEntered, Callable.From(OnMouseEntered));
+        Connect(Control.SignalName.MouseExited, Callable.From(OnMouseExited));
     }
 
     public void SetPrediction(DamagePredictionTarget prediction, bool hasRisk)
@@ -136,7 +136,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
     private static Texture2D GetIcon(AbstractModel source)
     {
-        return source switch
+        var icon = source switch
         {
             CardModel card => GetCardIcon(card),
             PotionModel potion => potion.Image,
@@ -144,13 +144,18 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
             OrbModel orb => orb.Icon,
             PowerModel power => power.Icon,
             RelicModel relic => relic.Icon,
-            _ => ModelDb.Power<StrengthPower>().Icon
+            _ => null
         };
+        return icon ?? ModelDb.Power<StrengthPower>().Icon;
     }
 
-    private static Texture2D GetCardIcon(CardModel card)
+    private static Texture2D? GetCardIcon(CardModel card)
     {
-        var portrait = card.Portrait;
+        if (!ResourceLoader.Exists(card.PortraitPath) || card.Portrait is not { } portrait)
+        {
+            return null;
+        }
+
         var portraitSize = portrait.GetSize();
         if (card.Rarity is not CardRarity.Ancient || portraitSize.Y <= portraitSize.X)
         {
