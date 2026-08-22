@@ -369,8 +369,12 @@ internal sealed partial class CombatPredictionSimulator
                 case PileType.Exhaust:
                     Exhaust(card);
                     break;
-                default:
+                case PileType.Draw or PileType.Hand or PileType.Discard:
                     AddToPile(card, resultLocation.pileType, resultLocation.position);
+                    break;
+                default:
+                    Entry.Logger.Warn($"Unexpected result pile type {resultLocation.pileType} for {previewCard.Id}.");
+                    RemoveFromCombat(card);
                     break;
             }
         }
