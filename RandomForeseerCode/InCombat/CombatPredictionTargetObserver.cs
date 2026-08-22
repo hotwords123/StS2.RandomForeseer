@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Godot;
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
@@ -127,19 +126,13 @@ internal sealed class CombatPredictionTargetObserver : IDisposable
         TargetingFinishing?.Invoke();
     }
 
-    [HarmonyPatch(typeof(NTargetManager))]
-    internal static class NTargetManagerPatches
+    internal static void OnTargetingFinishing(NTargetManager targetManager)
     {
-        [HarmonyPatch(nameof(NTargetManager.FinishTargeting))]
-        [HarmonyPrefix]
-        private static void OnTargetingFinishing(NTargetManager __instance)
+        foreach (var observer in _activeObservers.ToArray())
         {
-            foreach (var observer in _activeObservers.ToArray())
+            if (ReferenceEquals(observer._targetManager, targetManager))
             {
-                if (ReferenceEquals(observer._targetManager, __instance))
-                {
-                    observer.OnTargetingFinishing();
-                }
+                observer.OnTargetingFinishing();
             }
         }
     }

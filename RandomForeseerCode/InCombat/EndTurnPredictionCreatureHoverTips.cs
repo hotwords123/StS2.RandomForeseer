@@ -1,4 +1,3 @@
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -74,18 +73,5 @@ internal static class EndTurnPredictionCreatureHoverTips
         return totalUnblockedDamage == 0
             ? BlockStatusBlocked
             : BlockStatusPartial;
-    }
-}
-
-[HarmonyPatch(typeof(Creature), nameof(Creature.HoverTips), MethodType.Getter)]
-internal static class EndTurnPredictionCreatureHoverTipsPatch
-{
-    private static void Postfix(Creature __instance, ref IEnumerable<IHoverTip> __result)
-    {
-        var predictionTips = EndTurnPredictionCreatureHoverTips.GetHoverTips(__instance);
-        if (predictionTips.Count > 0)
-        {
-            __result = __result.Concat(predictionTips);
-        }
     }
 }

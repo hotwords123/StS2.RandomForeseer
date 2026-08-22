@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.RandomForeseerCode.Common.HoverTips.Patches;
 
 /// <summary>
 /// Bridges vanilla card-container creation and layout to prediction-aware controls.

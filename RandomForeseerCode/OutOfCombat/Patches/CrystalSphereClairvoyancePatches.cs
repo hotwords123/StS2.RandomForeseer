@@ -3,7 +3,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
 using RandomForeseer.RandomForeseerCode.Data;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(NCrystalSphereMask), nameof(NCrystalSphereMask._Ready))]
 internal static class CrystalSphereClairvoyancePatch

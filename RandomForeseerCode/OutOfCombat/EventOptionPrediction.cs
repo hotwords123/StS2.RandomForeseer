@@ -1,10 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
 using RandomForeseer.RandomForeseerCode.Telemetry;
@@ -97,9 +96,10 @@ internal static class EventOptionPrediction
         return registry;
     }
 
-    public static IReadOnlyList<IHoverTip> GetHoverTips(EventModel eventModel, EventOption option)
+    public static IReadOnlyList<IHoverTip> GetHoverTips(EventOption option)
     {
-        if (eventModel.Owner == null || option.IsLocked)
+        if (!EventOptionEventModelMap.TryGetEventModel(option, out var eventModel) ||
+            eventModel.Owner is not {} owner || option.IsLocked)
         {
             return [];
         }
@@ -108,7 +108,7 @@ internal static class EventOptionPrediction
 
         if (GetRelicForOption(eventModel, option) is { } relic)
         {
-            tips.AddRange(RelicPickupPrediction.GetHoverTips(eventModel.Owner, relic));
+            tips.AddRange(RelicPickupPrediction.GetHoverTips(owner, relic));
         }
 
         var settings = ModData.Settings;
@@ -141,40 +141,9 @@ internal static class EventOptionEventModelMap
 {
     private static readonly ConditionalWeakTable<EventOption, EventModel> EventModels = [];
 
-    public static void Register(EventOption option, EventModel eventModel) => EventModels.AddOrUpdate(option, eventModel);
+    public static void Register(EventOption option, EventModel eventModel) =>
+        EventModels.AddOrUpdate(option, eventModel);
 
-    public static bool TryGetEventModel(EventOption option, out EventModel eventModel) =>
-        EventModels.TryGetValue(option, out eventModel!);
-}
-
-[HarmonyPatch(typeof(EventOption), "AddLocVars")]
-internal static class EventOptionAddLocVarsPatch
-{
-    private static void Postfix(EventOption __instance, EventModel eventModel)
-    {
-        EventOptionEventModelMap.Register(__instance, eventModel);
-    }
-}
-
-[HarmonyPatch(typeof(EventOption), nameof(EventOption.HoverTips), MethodType.Getter)]
-internal static class EventOptionPredictionHoverTipsPatch
-{
-    private static void Postfix(EventOption __instance, ref IEnumerable<IHoverTip> __result)
-    {
-        if (!EventOptionEventModelMap.TryGetEventModel(__instance, out var eventModel))
-        {
-            return;
-        }
-
-        // Event options may reuse a model's HoverTips, which can already include predictions from global patches.
-        // Remove those nested prediction tips here so the option only shows its own event prediction and avoids
-        // confusing mixed results.
-        __result = __result.Where(static tip => !tip.IsPredictionHoverTip());
-
-        var predictionTips = EventOptionPrediction.GetHoverTips(eventModel, __instance);
-        if (predictionTips.Count > 0)
-        {
-            __result = __result.Concat(predictionTips);
-        }
-    }
+    public static bool TryGetEventModel(EventOption option, [NotNullWhen(true)] out EventModel? eventModel) =>
+        EventModels.TryGetValue(option, out eventModel);
 }

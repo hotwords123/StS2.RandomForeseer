@@ -1,10 +1,8 @@
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Potions;
-using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.InCombat;
@@ -72,23 +70,5 @@ internal static class PotionPrediction
         }
 
         return hoverTips;
-    }
-}
-
-[HarmonyPatch(typeof(PotionModel), nameof(PotionModel.HoverTips), MethodType.Getter)]
-internal static class PotionPredictionHoverTipsPatch
-{
-    private static void Postfix(PotionModel __instance, ref IEnumerable<IHoverTip> __result)
-    {
-        if (!__instance.IsMutable || __instance is not { Owner.RunState: RunState })
-        {
-            return;
-        }
-
-        var predictionTips = PotionPrediction.GetHoverTips(__instance);
-        if (predictionTips.Count > 0)
-        {
-            __result = __result.Concat(predictionTips);
-        }
     }
 }

@@ -1,26 +1,9 @@
-using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.Data;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
-
-internal static class RestSiteHoverTips
-{
-    public static IReadOnlyList<IHoverTip> GetHoverTips(Control owner)
-    {
-        var settings = ModData.Settings;
-        if (!settings.IsPredictionEnabled || !settings.RestSitePredictionEnabled ||
-            owner is not NRestSiteButton button)
-        {
-            return [];
-        }
-
-        return RestSitePrediction.GetHoverTips(button.Option);
-    }
-}
+namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(NRestSiteButton))]
 internal static class RestSitePredictionPatches

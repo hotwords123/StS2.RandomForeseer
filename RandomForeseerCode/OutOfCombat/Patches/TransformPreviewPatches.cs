@@ -13,18 +13,17 @@ using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
 
 internal static class TransformPreviewPatchShared
 {
     // All current targets call the three-argument overload at IL level. When source code omits
     // cardToTransformation, the C# compiler emits an explicit ldnull for the optional argument.
-    private static readonly MethodInfo FromDeckForTransformation3 =
+    private static readonly MethodInfo? FromDeckForTransformation3 =
         AccessTools.Method(
             typeof(CardSelectCmd),
             nameof(CardSelectCmd.FromDeckForTransformation),
-            [typeof(Player), typeof(CardSelectorPrefs), typeof(Func<CardModel, CardTransformation>)])
-        ?? throw new MissingMethodException(nameof(CardSelectCmd), nameof(CardSelectCmd.FromDeckForTransformation));
+            [typeof(Player), typeof(CardSelectorPrefs), typeof(Func<CardModel, CardTransformation>)]);
 
     // Replaces the default preview factory argument:
     //   ldnull
@@ -46,6 +45,10 @@ internal static class TransformPreviewPatchShared
 
         try
         {
+            var targetMethod = FromDeckForTransformation3
+                ?? throw new InvalidOperationException(
+                    $"Could not find {nameof(CardSelectCmd)}.{nameof(CardSelectCmd.FromDeckForTransformation)}");
+
             // Async instance methods store their original "this" in the generated state machine.
             var ownerField = AccessTools.Field(original.DeclaringType, "<>4__this")
                 ?? throw new InvalidOperationException(
@@ -54,7 +57,7 @@ internal static class TransformPreviewPatchShared
             var rewriter = HarmonyIlRewriter.From(instructionList, original);
             var pattern = HarmonyIlPattern.Sequence(
                 instruction => instruction.opcode == OpCodes.Ldnull,
-                HarmonyIl.IsCall(FromDeckForTransformation3));
+                HarmonyIl.IsCall(targetMethod));
             var callWithNull = rewriter
                 .FindMatches(pattern, $"transform selector call in {original.FullDescription()}")
                 .RequireSingle();
@@ -83,7 +86,7 @@ internal static class TransformPreviewPatchShared
     }
 }
 
-[HarmonyPatch(typeof(NDeckTransformSelectScreen), "OpenPreviewScreen")]
+[HarmonyPatch(typeof(NDeckTransformSelectScreen), nameof(NDeckTransformSelectScreen.OpenPreviewScreen))]
 internal static class DeckTransformSelectScreenResetPredictionPatch
 {
     private static void Prefix(NDeckTransformSelectScreen __instance)

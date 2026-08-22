@@ -4,7 +4,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.RandomForeseerCode.Common.HoverTips.Patches;
 
 [HarmonyPatch(typeof(NHoverTipSet), nameof(NHoverTipSet.Init))]
 internal static class PredictionHoverTipInitPatch

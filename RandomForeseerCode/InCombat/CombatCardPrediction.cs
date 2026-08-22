@@ -1,4 +1,3 @@
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -213,17 +212,4 @@ internal static class CombatCardPrediction
     private readonly record struct ChoiceSimulationPlan(Player Creator, ChoiceSourceBehavior Behavior);
 
     private readonly record struct ChoiceSourceBehavior(bool SetsCardToFreeThisTurn = false);
-}
-
-[HarmonyPatch(typeof(CardModel), nameof(CardModel.HoverTips), MethodType.Getter)]
-internal static class CombatCardPredictionHoverTipsPatch
-{
-    private static void Postfix(CardModel __instance, ref IEnumerable<IHoverTip> __result)
-    {
-        var predictionTips = CombatCardPrediction.GetHoverTips(__instance);
-        if (predictionTips.Count > 0)
-        {
-            __result = __result.Concat(predictionTips);
-        }
-    }
 }

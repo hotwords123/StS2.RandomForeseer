@@ -7,7 +7,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using RandomForeseer.RandomForeseerCode.Data;
 
-namespace RandomForeseer.RandomForeseerCode.Debug;
+namespace RandomForeseer.RandomForeseerCode.Debug.Patches;
 
 [HarmonyPatch(typeof(NEventLayout), nameof(NEventLayout.AddOptions))]
 internal static class AncientEventDebugRerollPatch

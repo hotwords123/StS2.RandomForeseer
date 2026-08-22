@@ -1,5 +1,4 @@
 using Godot;
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -154,14 +153,5 @@ internal static class CombatPredictionOverlay
         }
 
         return position;
-    }
-}
-
-[HarmonyPatch(typeof(NCombatRoom), nameof(NCombatRoom.RemoveCreatureNode))]
-internal static class CombatPredictionOverlayRefreshOnCreatureRemovedPatch
-{
-    private static void Postfix()
-    {
-        CombatPredictionOverlay.RefreshPositions();
     }
 }

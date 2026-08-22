@@ -1,5 +1,4 @@
 using Godot;
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions;
@@ -340,41 +339,5 @@ internal static class EndTurnButtonHoverTipHelper
     {
         tipSet._textHoverTipContainer.GlobalPosition += offset;
         tipSet._cardHoverTipContainer.GlobalPosition += offset;
-    }
-}
-
-[HarmonyPatch(typeof(NCombatRoom))]
-internal static class EndTurnPredictionCombatRoomPatches
-{
-    [HarmonyPatch("_EnterTree")]
-    [HarmonyPostfix]
-    private static void Subscribe()
-    {
-        EndTurnPredictionController.Subscribe();
-    }
-
-    [HarmonyPatch("_ExitTree")]
-    [HarmonyPostfix]
-    private static void Unsubscribe()
-    {
-        EndTurnPredictionController.Unsubscribe();
-    }
-}
-
-[HarmonyPatch(typeof(NEndTurnButton))]
-internal static class EndTurnPredictionButtonPatches
-{
-    [HarmonyPatch("OnFocus")]
-    [HarmonyPostfix]
-    private static void OnFocus(NEndTurnButton __instance)
-    {
-        EndTurnPredictionController.OnEndTurnButtonFocused(__instance);
-    }
-
-    [HarmonyPatch("OnUnfocus")]
-    [HarmonyPostfix]
-    private static void OnUnfocus()
-    {
-        EndTurnPredictionController.OnEndTurnButtonUnfocused();
     }
 }

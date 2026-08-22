@@ -1,0 +1,8 @@
+[*.cs]
+resharper_csharp_naming_rule.parameters = aaBb, __+aaBb, ___+aaBb, ____+aaBb
+
+[RandomForeseerCode/**/Patches/**/*.cs]
+resharper_unused_type_global_highlighting = none
+resharper_unused_type_local_highlighting = none
+resharper_unused_member_global_highlighting = none
+resharper_unused_member_local_highlighting = none
