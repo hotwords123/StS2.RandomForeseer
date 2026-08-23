@@ -11,7 +11,7 @@ internal static class TransformSelectionHoverTips
     {
         if (owner is not NGridCardHolder holder ||
             FindTransformSelectScreen(holder) is not { } screen ||
-            screen._cardToTransformation.Target is not TransformPreviewPredictor predictor)
+            screen._cardToTransformation.Target is not DeckTransformPreviewPredictor predictor)
         {
             return [];
         }

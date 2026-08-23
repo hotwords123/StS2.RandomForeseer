@@ -98,7 +98,7 @@ internal static class EventOptionPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(EventOption option)
     {
-        if (!EventOptionEventModelMap.TryGetEventModel(option, out var eventModel) ||
+        if (!EventOptionEventModelMap.TryGetEvent(option, out var eventModel) ||
             eventModel.Owner is not {} owner || option.IsLocked)
         {
             return [];
@@ -144,6 +144,6 @@ internal static class EventOptionEventModelMap
     public static void Register(EventOption option, EventModel eventModel) =>
         EventModels.AddOrUpdate(option, eventModel);
 
-    public static bool TryGetEventModel(EventOption option, [NotNullWhen(true)] out EventModel? eventModel) =>
+    public static bool TryGetEvent(EventOption option, [NotNullWhen(true)] out EventModel? eventModel) =>
         EventModels.TryGetValue(option, out eventModel);
 }
