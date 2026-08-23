@@ -10,22 +10,17 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
 internal static class ChooseACardPredictionContextPatch
 {
     [HarmonyPrefix]
-    private static void Prefix(
-        PlayerChoiceContext context,
-        IReadOnlyList<CardModel> cards,
-        out ChooseACardPredictionContext.Registration? __state)
+    private static void Prefix(PlayerChoiceContext context, IReadOnlyList<CardModel> cards, out IDisposable? __state)
     {
-        __state = ChooseACardPredictionContext.Register(cards, context.LastInvolvedModel);
+        __state = ChooseACardPredictionContext.Enter(cards, context.LastInvolvedModel);
     }
 
     [HarmonyPostfix]
-    private static void Postfix(
-        ref Task<CardModel?> __result,
-        ChooseACardPredictionContext.Registration? __state)
+    private static void Postfix(ref Task<CardModel?> __result, IDisposable? __state)
     {
         if (__state is not null)
         {
-            __result = __result.WithFinally(() => ChooseACardPredictionContext.Unregister(__state));
+            __result = __result.WithFinally(__state.Dispose);
         }
     }
 }

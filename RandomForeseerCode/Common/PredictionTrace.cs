@@ -1,5 +1,6 @@
 using System.Reflection;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Utils;
 
 namespace RandomForeseer.RandomForeseerCode.Common;
 
@@ -87,7 +88,7 @@ internal sealed class PredictionTrace
             Invocation = invocation
         };
         Current = frame;
-        return new TraceScope(this, frame);
+        return new DisposableAction(() => Pop(frame));
     }
 
     private void Pop(PredictionTraceFrame frame)
@@ -98,21 +99,5 @@ internal sealed class PredictionTrace
         }
 
         Current = frame.Parent;
-    }
-
-    private sealed class TraceScope(PredictionTrace trace, PredictionTraceFrame frame) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            trace.Pop(frame);
-            _disposed = true;
-        }
     }
 }

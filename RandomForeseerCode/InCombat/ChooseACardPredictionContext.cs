@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Utils;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
@@ -22,7 +23,7 @@ internal static class ChooseACardPredictionContext
         return false;
     }
 
-    public static Registration? Register(IReadOnlyList<CardModel> cards, AbstractModel? source)
+    public static IDisposable? Enter(IReadOnlyList<CardModel> cards, AbstractModel? source)
     {
         if (cards.Count == 0 || source is null)
         {
@@ -35,18 +36,16 @@ internal static class ChooseACardPredictionContext
             Registrations.Add(registration);
         }
 
-        return registration;
-    }
-
-    public static void Unregister(Registration registration)
-    {
-        lock (Registrations)
+        return new DisposableAction(() =>
         {
-            Registrations.Remove(registration);
-        }
+            lock (Registrations)
+            {
+                Registrations.Remove(registration);
+            }
+        });
     }
 
-    internal sealed class Registration(IEnumerable<CardModel> cards, AbstractModel source)
+    private sealed class Registration(IEnumerable<CardModel> cards, AbstractModel source)
     {
         public HashSet<CardModel> Cards { get; } = [.. cards];
 

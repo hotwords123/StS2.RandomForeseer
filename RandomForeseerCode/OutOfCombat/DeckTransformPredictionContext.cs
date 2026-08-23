@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Utils;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
@@ -28,23 +29,7 @@ internal static class DeckTransformPredictionContext
     {
         var previous = Current.Value;
         Current.Value = source;
-        return new SourceScope(previous);
-    }
-
-    private sealed class SourceScope(DeckTransformPredictionSource? previous) : IDisposable
-    {
-        private bool _isDisposed;
-
-        public void Dispose()
-        {
-            if (_isDisposed)
-            {
-                return;
-            }
-
-            _isDisposed = true;
-            Current.Value = previous;
-        }
+        return new DisposableAction(() => Current.Value = previous);
     }
 }
 
