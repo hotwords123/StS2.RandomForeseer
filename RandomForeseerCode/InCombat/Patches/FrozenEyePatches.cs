@@ -24,7 +24,16 @@ internal static class FrozenEyeCardPileScreenPatches
     [HarmonyPrefix]
     private static bool RefreshDrawPileView(NCardPileScreen __instance)
     {
-        return !FrozenEyeDrawPileView.TryRefresh(__instance);
+        try
+        {
+            return !FrozenEyeDrawPileView.TryRefresh(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Frozen Eye draw pile view refresh failed: {ex}");
+            ModTelemetry.CaptureException(ex, "frozen_eye_patch", "refresh_draw_pile_view");
+            return true;
+        }
     }
 
     [HarmonyPatch(nameof(NCardPileScreen._EnterTree))]
@@ -82,7 +91,8 @@ internal static class FrozenEyeCardPileScreenPatches
 [HarmonyPatch(typeof(NCombatCardPile), "OnRelease")]
 internal static class FrozenEyeEmptyDrawPileOpenPatch
 {
-    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions,
+        MethodBase original)
     {
         var instructionList = instructions.ToList();
 

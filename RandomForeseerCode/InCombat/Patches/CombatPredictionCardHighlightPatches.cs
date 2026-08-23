@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
 
@@ -10,6 +11,25 @@ internal static class CombatPredictionCardHighlightPatches
     [HarmonyPostfix]
     private static void ShowHighlightAfterCardUpdate(NHandCardHolder __instance)
     {
-        CombatPredictionCardHighlight.ApplyHighlightToHolder(__instance);
+        try
+        {
+            CombatPredictionCardHighlight.ApplyHighlightToHolder(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat card highlight failed on update: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_card_highlight",
+                "update_card",
+                GetTelemetryContext(__instance));
+        }
+    }
+
+    private static object? GetTelemetryContext(NHandCardHolder holder)
+    {
+        return holder is { CardNode.Model: { } card }
+            ? TelemetryContext.ForModel(card)
+            : null;
     }
 }

@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
 
@@ -13,21 +14,49 @@ internal static class CombatTransformPredictionPlayerHandPatch
     [HarmonyPrefix]
     private static void BeginSession(NPlayerHand __instance, AbstractModel? source)
     {
-        CombatTransformPrediction.BeginSession(__instance, source);
+        try
+        {
+            CombatTransformPrediction.BeginSession(__instance, source);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat transform prediction failed to begin session: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_transform_prediction",
+                "begin_session",
+                source is not null ? TelemetryContext.ForModel(source) : null);
+        }
     }
 
     [HarmonyPatch(nameof(NPlayerHand.AfterCardsSelected))]
     [HarmonyPrefix]
     private static void EndSession(NPlayerHand __instance)
     {
-        CombatTransformPrediction.EndSession(__instance);
+        try
+        {
+            CombatTransformPrediction.EndSession(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat transform prediction failed to end session: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_transform_prediction", "end_session");
+        }
     }
 
     [HarmonyPatch(nameof(NPlayerHand._ExitTree))]
     [HarmonyPrefix]
     private static void CleanupSession(NPlayerHand __instance)
     {
-        CombatTransformPrediction.EndSession(__instance);
+        try
+        {
+            CombatTransformPrediction.EndSession(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat transform prediction failed to cleanup session: {ex}");
+            ModTelemetry.CaptureException(ex, "combat_transform_prediction", "cleanup_session");
+        }
     }
 }
 

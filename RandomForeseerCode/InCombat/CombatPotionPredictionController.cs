@@ -17,6 +17,11 @@ internal static class CombatPotionPredictionController
 
     public static void OnPotionFocus(NPotionHolder holder)
     {
+        if (holder._isFocused)
+        {
+            return;
+        }
+
         BeginSession(CombatPredictionSessionMode.Hover, holder);
     }
 

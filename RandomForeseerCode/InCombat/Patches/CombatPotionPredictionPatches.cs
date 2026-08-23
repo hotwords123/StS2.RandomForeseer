@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Potions;
+using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
 
@@ -11,9 +12,18 @@ internal static class CombatPotionPredictionHolderPatches
     [HarmonyPrefix]
     private static void BeginHoverPrediction(NPotionHolder __instance)
     {
-        if (!__instance._isFocused)
+        try
         {
             CombatPotionPredictionController.OnPotionFocus(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on focus: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "begin_hover_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
         }
     }
 
@@ -21,7 +31,19 @@ internal static class CombatPotionPredictionHolderPatches
     [HarmonyPrefix]
     private static void EndHoverPrediction(NPotionHolder __instance)
     {
-        CombatPotionPredictionController.OnPotionUnfocus(__instance);
+        try
+        {
+            CombatPotionPredictionController.OnPotionUnfocus(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on unfocus: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "end_hover_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
+        }
     }
 
     // A prefix is required before TargetNode calls StartTargeting: StartTargeting re-emits an already-focused
@@ -30,7 +52,19 @@ internal static class CombatPotionPredictionHolderPatches
     [HarmonyPrefix]
     private static void BeginTargetPrediction(NPotionHolder __instance)
     {
-        CombatPotionPredictionController.OnPotionTargetingStart(__instance);
+        try
+        {
+            CombatPotionPredictionController.OnPotionTargetingStart(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on targeting start: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "begin_target_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
+        }
     }
 
     // Clear prediction state before vanilla replaces the potion with the empty-slot presentation.
@@ -38,14 +72,38 @@ internal static class CombatPotionPredictionHolderPatches
     [HarmonyPrefix]
     private static void EndUsedPotionPrediction(NPotionHolder __instance)
     {
-        CombatPotionPredictionController.OnPotionRemoved(__instance);
+        try
+        {
+            CombatPotionPredictionController.OnPotionRemoved(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on used potion removal: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "end_used_potion_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
+        }
     }
 
     [HarmonyPatch(nameof(NPotionHolder.DiscardPotion))]
     [HarmonyPrefix]
     private static void EndDiscardedPotionPrediction(NPotionHolder __instance)
     {
-        CombatPotionPredictionController.OnPotionRemoved(__instance);
+        try
+        {
+            CombatPotionPredictionController.OnPotionRemoved(__instance);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on discarded potion removal: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "end_discarded_potion_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
+        }
     }
 }
 
@@ -58,20 +116,71 @@ internal static class CombatPotionPredictionPopupPatches
     [HarmonyPrefix]
     private static void BeginActionPrediction(NPotionHolder holder)
     {
-        CombatPotionPredictionController.OnPotionPopupOpen(holder);
+        try
+        {
+            CombatPotionPredictionController.OnPotionPopupOpen(holder);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on popup open: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "begin_action_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(holder));
+        }
     }
 
     [HarmonyPatch(nameof(NPotionPopup.Remove))]
     [HarmonyPrefix]
     private static void EndActionPrediction(NPotionPopup __instance)
     {
-        CombatPotionPredictionController.OnPotionPopupClose(__instance._holder);
+        try
+        {
+            CombatPotionPredictionController.OnPotionPopupClose(__instance._holder);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on popup close: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "end_action_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
+        }
     }
 
     [HarmonyPatch(nameof(NPotionPopup._ExitTree))]
     [HarmonyPrefix]
     private static void EndExitedPopupPrediction(NPotionPopup __instance)
     {
-        CombatPotionPredictionController.OnPotionPopupClose(__instance._holder);
+        try
+        {
+            CombatPotionPredictionController.OnPotionPopupClose(__instance._holder);
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Combat potion prediction failed on popup exit: {ex}");
+            ModTelemetry.CaptureException(
+                ex,
+                "combat_potion_prediction",
+                "end_exited_popup_prediction",
+                CombatPotionPredictionTelemetry.GetTelemetryContext(__instance));
+        }
+    }
+}
+
+internal static class CombatPotionPredictionTelemetry
+{
+    public static object? GetTelemetryContext(NPotionHolder holder)
+    {
+        return holder is { Potion.Model: { } potion }
+            ? TelemetryContext.ForModel(potion)
+            : null;
+    }
+
+    public static object? GetTelemetryContext(NPotionPopup popup)
+    {
+        return GetTelemetryContext(popup._holder);
     }
 }
