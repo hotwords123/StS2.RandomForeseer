@@ -70,8 +70,7 @@ internal static class ModTelemetry
                 return;
             }
 
-            var contextPayload = SerializeContext(context);
-            if (!TryMarkRecent(exception, subsystem, operation, contextPayload))
+            if (!TryMarkRecent(exception, subsystem, operation))
             {
                 return;
             }
@@ -83,9 +82,9 @@ internal static class ModTelemetry
                 ["subsystem"] = subsystem,
                 ["operation"] = operation
             };
-            if (contextPayload is not null)
+            if (context is not null)
             {
-                properties["exception_context"] = contextPayload;
+                properties["exception_context"] = SerializeContext(context);
             }
 
             client.CaptureException(exception, properties);
@@ -121,7 +120,7 @@ internal static class ModTelemetry
         }
     }
 
-    private static bool TryMarkRecent(Exception exception, string subsystem, string operation, JsonNode? context)
+    private static bool TryMarkRecent(Exception exception, string subsystem, string operation)
     {
         var stackHead = exception.StackTrace?.Split('\n').FirstOrDefault()?.Trim() ?? string.Empty;
         var fingerprint = string.Join(
@@ -130,8 +129,7 @@ internal static class ModTelemetry
             operation,
             exception.GetType().FullName ?? exception.GetType().Name,
             exception.Message,
-            stackHead,
-            context?.ToJsonString(ContextJsonOptions) ?? string.Empty);
+            stackHead);
 
         lock (ExceptionFingerprintLock)
         {
