@@ -179,7 +179,8 @@ internal static class CardRewardPrediction
             {
                 throw new InvalidOperationException(
                     $"Could not predict a valid card reward rarity. Odds: {options.RarityOdds}, " +
-                    $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
+                    $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}, " +
+                    $"options: {options}");
             }
 
             candidates = filteredCards.Where(card => card.Rarity == selectedRarity);
@@ -190,7 +191,8 @@ internal static class CardRewardPrediction
         {
             throw new InvalidOperationException(
                 $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, " +
-                $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}");
+                $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}, " +
+                $"options: {options}");
         }
 
         return PredictionUtils.CreateCard(canonical, player);
