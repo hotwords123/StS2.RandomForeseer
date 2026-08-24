@@ -58,7 +58,7 @@ internal static class CardResultLocationMirrors
             return new(preview.Owner, PileType.None, CardPilePosition.Bottom);
         }
 
-        if (preview.ExhaustOnNextPlay || card.GetKeywords(simulator.State).Contains(CardKeyword.Exhaust))
+        if (preview.ExhaustOnNextPlay || card.GetKeywords(simulator).Contains(CardKeyword.Exhaust))
         {
             preview.ExhaustOnNextPlay = false;
             return new(preview.Owner, PileType.Exhaust, CardPilePosition.Bottom);

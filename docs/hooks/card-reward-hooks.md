@@ -18,7 +18,7 @@ Mirror files:
 - `AbstractModel.TryModifyCardRewardAlternatives(Player, CardReward, List<CardRewardAlternative>)`
 - `AbstractModel.ShouldAllowSelectingMoreCardRewards(Player, CardReward)`
 
-The project intentionally keeps using original pure-ish creation-option and upgrade-odds hooks:
+The project reproduces the pure-ish creation-option and upgrade-odds listener passes in the out-of-combat facade:
 
 - `Hook.ModifyCardRewardCreationOptions`
 - `Hook.ModifyCardRewardUpgradeOdds`
@@ -45,7 +45,9 @@ The project intentionally keeps using original pure-ish creation-option and upgr
 
 ## ModifyCardRewardCreationOptions listeners
 
-Current mirror status: delegated to original `Hook.ModifyCardRewardCreationOptions` during base card creation. These listeners mutate only the caller-owned `CardCreationOptions`, so prediction callers must pass a fresh options instance for each reward preview.
+Current mirror status: manually enumerated by `HookMirrors.ModifyCardRewardCreationOptions` during base card creation.
+These listeners mutate only the caller-owned `CardCreationOptions`, so prediction callers must pass a fresh options
+instance for each reward preview.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
@@ -79,7 +81,9 @@ No vanilla non-mock listeners were found in StS2 v0.108.0 for:
 
 ## Parity notes
 
-- `ModifyCardRewardCreationOptions` listeners are delegated to the original hook because vanilla treats them as option transforms. They may mutate `CardCreationOptions`; prediction callers protect parity by passing a fresh options instance and not reusing it.
+- `ModifyCardRewardCreationOptions` and `ModifyCardRewardUpgradeOdds` reproduce vanilla listener order and phase
+  chaining in the prediction facade. They may mutate `CardCreationOptions`; prediction callers protect parity by
+  passing a fresh options instance and not reusing it. Compatibility filtering may omit Mod listeners.
 - StS2 v0.108.0 moved `LastingCandy` from `AfterCombatEnd` / `CombatsSeen` to `BeforeCombatRewardOffered` / `CombatRewardsSeen`. Combat reward option factories must include `CardCreationFlags.IsFromCombat` for this mirror to trigger.
 - `AfterModifyingCardRewardOptions` is not called during prediction. This intentionally avoids mutating live relic state, but leaves `SilverCrucible`/`SilkenTress` usage state unshadowed across chained reward previews.
 - `OutOfCombat.Mirrors.HookMirrors` owns context construction and rebuilds the modifier sequence for the Early and Late phases. `TryModifyCardRewardOptionsMirrors` owns both exact-method registries and their hook-specific gates; result upgrade/enchantment operations shared with merchant card creation live in `CardCreationResultUtils`.

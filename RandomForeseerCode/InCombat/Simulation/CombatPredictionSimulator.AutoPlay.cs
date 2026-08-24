@@ -23,7 +23,7 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        if (card.GetKeywords(State).Contains(CardKeyword.Unplayable) ||
+        if (card.GetKeywords(this).Contains(CardKeyword.Unplayable) ||
             !HookMirrors.ShouldPlay(this, card, out _, type) ||
             !TryResolveAutoPlayTarget(card, ref target))
         {

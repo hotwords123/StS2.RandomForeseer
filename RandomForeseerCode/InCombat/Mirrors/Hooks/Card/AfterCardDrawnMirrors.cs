@@ -144,7 +144,7 @@ internal static class AfterCardDrawnMirrors
     {
         if (power.Owner.Player is { } player &&
             context.PreviewCard.Owner == player &&
-            context.Card.GetKeywords(context.State).Contains(CardKeyword.Ethereal))
+            context.Card.GetKeywords(context.Simulator).Contains(CardKeyword.Ethereal))
         {
             context.Simulator.Draw(player, power.Amount);
         }

@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Helpers;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Odds;
 using MegaCrit.Sts2.Core.Random;
@@ -153,7 +152,7 @@ internal static class CardRewardPrediction
         Rng rewardRng,
         CardRarityOdds rarityOdds)
     {
-        options = Hook.ModifyCardRewardCreationOptions(player.RunState, player, options);
+        options = HookMirrors.ModifyCardRewardCreationOptions(player.RunState, player, options);
 
         var possibleCards = options.GetPossibleCards(player)
             .Except(blacklist)
@@ -252,7 +251,7 @@ internal static class CardRewardPrediction
                 AscensionHelper.GetValueIfAscension(AscensionLevel.Scarcity, 0.125m, 0.25m);
         }
 
-        originalOdds = Hook.ModifyCardRewardUpgradeOdds(player.RunState, player, card, originalOdds);
+        originalOdds = HookMirrors.ModifyCardRewardUpgradeOdds(player.RunState, player, card, originalOdds);
         if (roll <= originalOdds)
         {
             PredictionUtils.UpgradeCard(card);

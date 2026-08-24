@@ -3,7 +3,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.CardPools;
@@ -16,6 +15,7 @@ using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
@@ -499,11 +499,11 @@ internal static class RelicPickupPrediction
         var commonOptions = CardCreationOptions
             .ForNonCombatWithUniformOdds([cardPool], card => card.Rarity == CardRarity.Common)
             .WithFlags(CardCreationFlags.NoRarityModification);
-        commonOptions = Hook.ModifyCardRewardCreationOptions(player.RunState, player, commonOptions);
+        commonOptions = HookMirrors.ModifyCardRewardCreationOptions(player.RunState, player, commonOptions);
         var uncommonOptions = CardCreationOptions
             .ForNonCombatWithUniformOdds([cardPool], card => card.Rarity == CardRarity.Uncommon)
             .WithFlags(CardCreationFlags.NoRarityModification);
-        uncommonOptions = Hook.ModifyCardRewardCreationOptions(player.RunState, player, uncommonOptions);
+        uncommonOptions = HookMirrors.ModifyCardRewardCreationOptions(player.RunState, player, uncommonOptions);
 
         var commonCards = commonOptions.GetPossibleCards(player).ToList();
         var uncommonCards = uncommonOptions.GetPossibleCards(player).ToList();

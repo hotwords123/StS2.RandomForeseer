@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -42,7 +42,7 @@ internal sealed partial class CombatPredictionSimulator
 
     public CombatPredictionSimulator(ICombatState combatState)
     {
-        State = new CombatPredictionState(combatState);
+        State = new CombatPredictionState(this, combatState);
         Rng = CombatPredictionRngSet.From(combatState.RunState.Rng);
         History = new CombatPredictionHistory(_trace);
     }
@@ -104,6 +104,6 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         return !State.Enemies.Any(enemy => State.GetCreature(enemy).IsAlive && enemy.IsPrimaryEnemy) &&
-               !Hook.ShouldStopCombatFromEnding(State.CombatState);
+               !HookMirrors.ShouldStopCombatFromEnding(this);
     }
 }

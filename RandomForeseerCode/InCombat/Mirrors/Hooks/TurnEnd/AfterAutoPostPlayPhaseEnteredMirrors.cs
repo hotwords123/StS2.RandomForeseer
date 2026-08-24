@@ -74,7 +74,7 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
             var candidates = hand.Cards
                 .Where(card =>
                     card.Preview.Type == CardType.Attack &&
-                    !card.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
+                    !card.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
                 .ToList();
             var card = context.Rng.Shuffle.NextItem(candidates);
 

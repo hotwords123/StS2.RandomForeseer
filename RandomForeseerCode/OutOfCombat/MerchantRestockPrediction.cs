@@ -2,7 +2,6 @@ using Godot;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Factories;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rooms;
@@ -23,7 +22,7 @@ internal static class MerchantRestockPrediction
             entry is not { IsStocked: true, EnoughGold: true } ||
             entry._player is not { RunState.CurrentRoom: MerchantRoom room } player ||
             room.Inventories.Find(inventory => inventory.Player == player) is not { } inventory ||
-            !Hook.ShouldRefillMerchantEntry(player.RunState, entry, player))
+            !HookMirrors.ShouldRefillMerchantEntry(player.RunState, entry, player))
         {
             return [];
         }
@@ -50,7 +49,7 @@ internal static class MerchantRestockPrediction
             .ToHashSet();
 
         var options = entry._cardPool.Except(blacklist);
-        options = Hook.ModifyMerchantCardPool(player.RunState, player, options);
+        options = HookMirrors.ModifyMerchantCardPool(player.RunState, player, options);
         options = options.Where(card => card.Rarity != CardRarity.Basic);
         options = CardFactory.FilterForPlayerCount(player.RunState, options);
 
@@ -60,7 +59,7 @@ internal static class MerchantRestockPrediction
         if (entry._cardType is { } cardType)
         {
             var cardRarity = context.CardRarityOdds.RollWithoutChangingFutureOdds(CardRarityOddsType.Shop);
-            cardRarity = Hook.ModifyMerchantCardRarity(player.RunState, player, cardRarity);
+            cardRarity = HookMirrors.ModifyMerchantCardRarity(player.RunState, player, cardRarity);
             cardRarity = CardFactory.GetNextAllowedRarity(
                 cardRarity,
                 rarity => filteredOptions.Any(card => card.Rarity == rarity && card.Type == cardType));
@@ -74,7 +73,7 @@ internal static class MerchantRestockPrediction
         }
         else if (entry._cardRarity is { } cardRarity)
         {
-            cardRarity = Hook.ModifyMerchantCardRarity(player.RunState, player, cardRarity);
+            cardRarity = HookMirrors.ModifyMerchantCardRarity(player.RunState, player, cardRarity);
             candidates = filteredOptions.Where(card => card.Rarity == cardRarity);
         }
         else
@@ -93,7 +92,7 @@ internal static class MerchantRestockPrediction
 
         var cost = MerchantCardEntry.GetCost(result.Card);
         cost = Mathf.RoundToInt(cost * context.Rng.Shops.NextFloat(0.95f, 1.05f));
-        cost = (int)Hook.ModifyMerchantPrice(context.RunState, player, entry, cost);
+        cost = (int)HookMirrors.ModifyMerchantPrice(context.RunState, player, entry, cost);
 
         return
         [
@@ -115,7 +114,7 @@ internal static class MerchantRestockPrediction
 
         var cost = MerchantPotionEntry.GetCost(potion.Rarity);
         cost = (int)Mathf.Round(cost * context.Rng.Shops.NextFloat(0.95f, 1.05f));
-        cost = (int)Hook.ModifyMerchantPrice(context.RunState, context.Player, entry, cost);
+        cost = (int)HookMirrors.ModifyMerchantPrice(context.RunState, context.Player, entry, cost);
 
         return
         [
@@ -145,7 +144,7 @@ internal static class MerchantRestockPrediction
             context.RunState) ?? RelicFactory.FallbackRelic;
 
         var cost = (int)Math.Round(relic.MerchantCost * context.Rng.Shops.NextFloat(0.85f, 1.15f));
-        cost = (int)Hook.ModifyMerchantPrice(context.RunState, player, entry, cost);
+        cost = (int)HookMirrors.ModifyMerchantPrice(context.RunState, player, entry, cost);
         cost = (int)obtainedRelic.ModifyMerchantPrice(player, entry, cost);
 
         return

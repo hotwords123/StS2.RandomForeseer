@@ -81,7 +81,7 @@ internal static class ModifyEnergyCostInCombatMirrors
         ModifyEnergyCostInCombatMirrorContext context)
     {
         return context.Card.Preview.Owner.Creature == power.Owner &&
-            context.Card.GetKeywords(context.State).Contains(CardKeyword.Ethereal) &&
+            context.Card.GetKeywords(context.Simulator).Contains(CardKeyword.Ethereal) &&
             IsInPlayablePile(context) &&
             context.StateStore.GetPowerAmount(power).IsActive
                 ? 0

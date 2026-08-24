@@ -10,6 +10,10 @@ Mirror files:
 ## Hook spec
 
 - `AbstractModel.ModifyMerchantCardCreationResults(Player, List<CardCreationResult>)`
+- `AbstractModel.ModifyMerchantCardPool(Player, IEnumerable<CardModel>)`
+- `AbstractModel.ModifyMerchantCardRarity(Player, CardRarity)`
+- `AbstractModel.ModifyMerchantPrice(Player, MerchantEntry, decimal)`
+- `AbstractModel.ShouldRefillMerchantEntry(MerchantEntry, Player)`
 
 Vanilla dispatches this hook after the merchant card and its otherwise ineffective upgrade roll are generated, and
 before the entry price is rolled. The original listeners clone cards through the live `RunState`, so merchant restock
@@ -32,8 +36,9 @@ prediction must use exact mirrors against detached preview cards instead of invo
   creation invokes their merchant override unconditionally for the owning player.
 - Egg upgrades and Fresnel Lens enchantment reuse `CardCreationResultUtils`, shared with the card reward
   mirrors while each hook retains its own applicability gates.
-- Merchant card pool, rarity, and upgrade-odds value hooks remain delegated to their original implementations because
-  they operate on caller-owned options or return values without cloning cards into the live run state.
+- Merchant card pool, rarity, price, and refill predicates are manually enumerated by the out-of-combat Hook facade,
+  preserving original chaining and short-circuit behavior while allowing compatibility filtering. Upgrade odds use
+  the same centralized card-reward facade.
 - Unsupported gameplay overrides are reported through the standard method mirror registry. The context records the
   unsupported risk, but merchant restock prediction currently has no separate risk-tip projection path.
 

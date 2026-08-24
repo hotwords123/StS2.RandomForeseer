@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Extensions;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -38,7 +37,7 @@ internal static class CardSelectionCardMirrors
         var selectedCards = context.OwnerState.DiscardPile.Cards
             .Where(predictedCard =>
                 predictedCard.Preview.Type == CardType.Attack &&
-                !predictedCard.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
+                !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
             .ToList()
             .StableShuffle(context.Rng.Shuffle)
             .Take(card.DynamicVars.Cards.IntValue)
@@ -76,7 +75,7 @@ internal static class CardSelectionCardMirrors
             var drawPileCards = context.OwnerState.DrawPile.Cards;
             var selectedCard = drawPileCards
                 .Where(predictedCard =>
-                    !predictedCard.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
+                    !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
                 .ToList()
                 .StableShuffle(context.Rng.Shuffle)
                 .FirstOrDefault();
@@ -138,7 +137,7 @@ internal static class CardSelectionCardMirrors
 
         var eligibleCards = drawPile.Cards
             .Where(predictedCard =>
-                !predictedCard.GetKeywords(context.State).Contains(CardKeyword.Unplayable) &&
+                !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable) &&
                 predictedCard.Preview.Type is not CardType.Status and not CardType.Curse &&
                 predictedCard.Preview.GetEnchantedReplayCount() < 1)
             .ToList();
@@ -222,18 +221,14 @@ internal static class CardSelectionCardMirrors
                 $"Exhausted attack card {cardToExhaust.Preview.Id.Entry} did not have an appropriate DamageVar");
         }
 
-        damage = Hook.ModifyDamage(
-            context.State.CombatState.RunState,
-            context.State.CombatState,
+        damage = HookMirrors.ModifyDamage(
+            context.Simulator,
             target: null,
             dealer: cardToExhaust.Preview.Owner.Creature,
             damage,
             ValueProp.Move,
-            cardSource: cardToExhaust.Preview,
-            cardPlay: null,
-            ModifyDamageHookType.All,
-            CardPreviewMode.None,
-            out var _);
+            cardToExhaust,
+            cardPlay: null);
 
         card.DynamicVars.Damage.BaseValue += damage;
         card.ExtraDamage += damage;
@@ -272,7 +267,7 @@ internal static class CardSelectionCardMirrors
             .ToList();
 
         var selectedCard = attackCards
-            .Where(predictedCard => !predictedCard.GetKeywords(context.State).Contains(CardKeyword.Unplayable))
+            .Where(predictedCard => !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
             .ToList()
             .StableShuffle(context.Rng.Shuffle)
             .FirstOrDefault();

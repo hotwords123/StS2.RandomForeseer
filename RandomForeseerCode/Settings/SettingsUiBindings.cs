@@ -18,6 +18,13 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> ShowDriftWarnings { get; } =
         Binding(s => s.ShowDriftWarnings, (s, v) => s.ShowDriftWarnings = v);
 
+    // Compatibility settings
+    public static IModSettingsValueBinding<bool> PredictBaseGameCardsOnly { get; } =
+        Binding(s => s.PredictBaseGameCardsOnly, (s, v) => s.PredictBaseGameCardsOnly = v);
+
+    public static IModSettingsValueBinding<bool> InvokeBaseGameHookListenersOnly { get; } =
+        Binding(s => s.InvokeBaseGameHookListenersOnly, (s, v) => s.InvokeBaseGameHookListenersOnly = v);
+
     // Out-of-combat prediction settings
     public static IModSettingsValueBinding<bool> DeckTransformPredictionEnabled { get; } =
         Binding(s => s.DeckTransformPredictionEnabled, (s, v) => s.DeckTransformPredictionEnabled = v);

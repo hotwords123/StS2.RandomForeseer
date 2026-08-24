@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
@@ -119,23 +118,11 @@ internal static class CombatPredictedCardExtensions
         return Math.Max(0, cost);
     }
 
-    // Mirrors CardModel.ResolveEnergyXValue.
-    public static int ResolveEnergyXValue(this PredictedCard card, CombatPredictionState state)
-    {
-        return Hook.ModifyXValue(state.CombatState, card.Preview, card.Preview.EnergyCost.CapturedXValue);
-    }
-
-    // Mirrors CardModel.ResolveStarXValue.
-    public static int ResolveStarXValue(this PredictedCard card, CombatPredictionState state)
-    {
-        return Hook.ModifyXValue(state.CombatState, card.Preview, card.Preview.LastStarsSpent);
-    }
-
     // Mirrors CardModel.Keywords => CardModel.GetKeywordsWithSources(KeywordSources.All).
-    public static IReadOnlySet<CardKeyword> GetKeywords(this PredictedCard card, CombatPredictionState state)
+    public static IReadOnlySet<CardKeyword> GetKeywords(this PredictedCard card, CombatPredictionSimulator simulator)
     {
         var keywords = card.Preview.LocalKeywords.ToHashSet();
-        Hook.ModifyKeywordsInCombat(state.CombatState, card.Preview, keywords);
+        HookMirrors.ModifyKeywordsInCombat(simulator, card.Preview, keywords);
         return keywords;
     }
 

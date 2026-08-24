@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -74,5 +75,27 @@ internal static class CardOnPlayMirrorContextExtensions
         // We use context.CardPlay.Target here instead of context.Target because the card play may not have a target,
         // and context.Target will throw in that case.
         return dynamicVar.InvokeCalculate(context.Simulator, context.Card, context.CardPlay.Target);
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="CardModel.ResolveEnergyXValue"/>.
+    /// </summary>
+    public static int ResolveEnergyXValue(this CardOnPlayMirrorContext context)
+    {
+        return HookMirrors.ModifyXValue(
+            context.Simulator,
+            context.PreviewCard,
+            context.PreviewCard.EnergyCost.CapturedXValue);
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="CardModel.ResolveStarXValue"/>.
+    /// </summary>
+    public static int ResolveStarXValue(this CardOnPlayMirrorContext context)
+    {
+        return HookMirrors.ModifyXValue(
+            context.Simulator,
+            context.PreviewCard,
+            context.PreviewCard.LastStarsSpent);
     }
 }

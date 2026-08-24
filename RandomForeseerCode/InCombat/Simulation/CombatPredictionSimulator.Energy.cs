@@ -1,5 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Hooks;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -13,7 +13,7 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        var modifiedAmount = Hook.ModifyEnergyGain(State.CombatState, player, amount, out var modifiers);
+        var modifiedAmount = HookMirrors.ModifyEnergyGain(this, player, amount, out var modifiers);
         // Mirrors PlayerCmd.GainEnergy's value hook. AfterModifyingEnergyGain is
         // intentionally not mirrored: reviewed vanilla listeners only flash UI and
         // do not mutate prediction-relevant state.
@@ -40,7 +40,7 @@ internal sealed partial class CombatPredictionSimulator
     // AfterStarsGained remains outside the current hook-mirror coverage.
     public void GainStars(Player player, decimal amount)
     {
-        if (IsEnding || !Hook.ShouldGainStars(State.CombatState, amount, player))
+        if (IsEnding || !HookMirrors.ShouldGainStars(this, amount, player))
         {
             return;
         }

@@ -32,7 +32,12 @@ internal static class SettingsBootstrap
                 .WithTitle(T("section.prediction_page_navigation.title"))
                 .WithDescription(T("section.prediction_page_navigation.description"))
                 .AddSubPage("out_of_combat_prediction")
-                .AddSubPage("in_combat_prediction")));
+                .AddSubPage("in_combat_prediction"))
+            .AddSection("compatibility", section => section
+                .WithTitle(T("section.compatibility.title"))
+                .WithDescription(T("section.compatibility.description"))
+                .AddToggle("predict_base_game_cards_only", SettingsUiBindings.PredictBaseGameCardsOnly)
+                .AddToggle("invoke_base_game_hook_listeners_only", SettingsUiBindings.InvokeBaseGameHookListenersOnly)));
     }
 
     private static void RegisterOutOfCombatSettingsPage()

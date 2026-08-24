@@ -105,6 +105,7 @@ internal static class CombatCardPrediction
     {
         if (!CombatManager.Instance.IsInProgress ||
             card.Owner.Creature.CombatState is not { } combatState ||
+            !CompatibilityUtils.IsPredictionAllowedForType(card.GetType()) ||
             !card.TryResolveTarget(ref target))
         {
             return null;
@@ -121,7 +122,7 @@ internal static class CombatCardPrediction
         var shouldPredict = ModData.Settings.FairModeEnabled
             ? predictedCard.GetPile(simulator.State) is { Type: PileType.Hand } &&
               simulator.CanPlay(predictedCard)
-            : !predictedCard.GetKeywords(simulator.State).Contains(CardKeyword.Unplayable);
+            : !predictedCard.GetKeywords(simulator).Contains(CardKeyword.Unplayable);
         if (!shouldPredict)
         {
             return null;

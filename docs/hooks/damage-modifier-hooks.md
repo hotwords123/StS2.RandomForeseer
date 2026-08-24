@@ -41,6 +41,7 @@ their reviewed vanilla listeners are visual only.
 - `AbstractModel.ModifyHpLostAfterOsty(Creature, decimal, ValueProp, Creature?, CardModel?)`
 - `AbstractModel.ModifyHpLostAfterOstyLate(Creature, decimal, ValueProp, Creature?, CardModel?)`
 - `AbstractModel.AfterModifyingHpLostAfterOsty()`
+- `AbstractModel.ShouldAllowHitting(Creature)`
 
 ## ModifyDamage listeners
 
@@ -129,11 +130,16 @@ continue through their original read-only methods.
 
 ## ModifyUnblockedDamageTarget listeners
 
-Current mirror status: implemented by directly calling original `Hook.ModifyUnblockedDamageTarget`.
+Current mirror status: implemented by manually reproducing the original unguarded listener pass in
+`HookMirrors.ModifyUnblockedDamageTarget`.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
 | `DieForYouPower` | 为你而死 | Living Osty absorbs powered unblocked attack damage that would hit its owner. | Implemented by original hook. The simulator then creates one `DamageResult` for Osty and, if Osty takes overkill, a second result for the original target. |
+
+`ShouldAllowHitting` uses a manually reproduced live guarded pass when building hittable shadow targets. Both it and
+`ModifyUnblockedDamageTarget` apply compatibility filtering. `ModifyDamage` is the deliberate exception: its
+prediction-state-aware mirror retains Mod listeners so Mod damage semantics remain visible.
 
 ## AfterModifying listeners
 

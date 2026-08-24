@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 新增 Mod 兼容性选项，当预测功能与其它 Mod 冲突时，可以尝试开启以规避部分问题。<br>
+  Added mod compatibility options to attempt to work around issues when prediction features conflict with other mods.
+
 ### fix
 
 - 修复某些罕见情况下伤害预测指示器可能刷新失败的问题。<br>

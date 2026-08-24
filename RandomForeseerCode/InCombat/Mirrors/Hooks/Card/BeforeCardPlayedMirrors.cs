@@ -212,7 +212,7 @@ internal static class BeforeCardPlayedMirrors
     private static void HandleSpiritOfAshPower(SpiritOfAshPower power, BeforeCardPlayedMirrorContext context)
     {
         if (context.PreviewCard.Owner == power.Owner.Player &&
-            context.Card.GetKeywords(context.State).Contains(CardKeyword.Ethereal))
+            context.Card.GetKeywords(context.Simulator).Contains(CardKeyword.Ethereal))
         {
             context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
         }
@@ -273,7 +273,7 @@ internal static class BeforeCardPlayedMirrors
     private static void HandleVeilpiercerPower(VeilpiercerPower power, BeforeCardPlayedMirrorContext context)
     {
         if (context.PreviewCard.Owner.Creature == power.Owner &&
-            context.Card.GetKeywords(context.State).Contains(CardKeyword.Ethereal) &&
+            context.Card.GetKeywords(context.Simulator).Contains(CardKeyword.Ethereal) &&
             context.Card.GetPile(context.State)?.Type is PileType.Hand or PileType.Play)
         {
             context.StateStore.GetPowerAmount(power).Decrement();

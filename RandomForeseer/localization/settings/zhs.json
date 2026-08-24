@@ -24,6 +24,13 @@
   "section.prediction_page_navigation.description": "打开对应页面，配置具体的局外和局内预测功能。",
   "button.open_page.text": "打开",
 
+  "section.compatibility.title": "兼容性",
+  "section.compatibility.description": "如果预测功能与其它 Mod 冲突，在问题得到修复前，可以尝试启用下方的选项作为临时解决方案。\n[blue]注意：[/blue]开启后，部分预测功能将不可用，预测结果也可能不完整或不准确。如果未遇到冲突，则无需开启。",
+  "toggle.predict_base_game_cards_only.label": "仅预测原版卡牌",
+  "toggle.predict_base_game_cards_only.description": "启用后，战斗出牌预测不会为 Mod 卡牌显示预测，也不会自动推断 Mod 卡牌的打出效果。",
+  "toggle.invoke_base_game_hook_listeners_only.label": "仅调用原版 Hook 监听器",
+  "toggle.invoke_base_game_hook_listeners_only.description": "启用后，预测模拟调用 Hook 时会跳过 Mod 注册的监听器，以避免部分 Mod 的实现引起非预期的副作用。",
+
   "page.out_of_combat_prediction.title": "局外预测",
   "page.out_of_combat_prediction.description": "配置战斗外的预测功能，包括事件和遗物等。",
 

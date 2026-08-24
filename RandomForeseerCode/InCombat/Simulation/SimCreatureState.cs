@@ -1,10 +1,10 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal sealed class SimCreatureState(Creature creature)
+internal sealed class SimCreatureState(CombatPredictionSimulator simulator, Creature creature)
 {
     public Creature Creature { get; } = creature;
 
@@ -20,7 +20,7 @@ internal sealed class SimCreatureState(Creature creature)
 
     public bool IsDead => !IsAlive;
 
-    public bool IsHittable => IsAlive && Hook.ShouldAllowHitting(Creature.CombatState!, Creature);
+    public bool IsHittable => IsAlive && HookMirrors.ShouldAllowHitting(simulator, Creature);
 
     public decimal DamageBlock(decimal amount, ValueProp props)
     {

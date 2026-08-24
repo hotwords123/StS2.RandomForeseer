@@ -13,7 +13,7 @@ internal static class AutoPlayCardMirrors
 
     public static void CascadeOnPlay(Cascade card, CardOnPlayMirrorContext context)
     {
-        var count = context.Card.ResolveEnergyXValue(context.State) + (card.IsUpgraded ? 1 : 0);
+        var count = context.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0);
         context.Simulator.AutoPlayFromDrawPile(card.Owner, count, CardPilePosition.Top);
     }
 }

@@ -3,7 +3,6 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions;
-using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
@@ -43,7 +42,7 @@ internal sealed partial class CombatPredictionSimulator
         {
             RemoveFromCombat(card);
         }
-        else if (card.Preview.ExhaustOnNextPlay || card.GetKeywords(State).Contains(CardKeyword.Exhaust))
+        else if (card.Preview.ExhaustOnNextPlay || card.GetKeywords(this).Contains(CardKeyword.Exhaust))
         {
             Exhaust(card);
         }
@@ -143,7 +142,7 @@ internal sealed partial class CombatPredictionSimulator
     /// </remarks>
     public bool CanPlay(PredictedCard card)
     {
-        if (card.GetKeywords(State).Contains(CardKeyword.Unplayable))
+        if (card.GetKeywords(this).Contains(CardKeyword.Unplayable))
         {
             return false;
         }
@@ -153,7 +152,7 @@ internal sealed partial class CombatPredictionSimulator
         var starCost = card.GetStarCostWithModifiers(this, ownerState);
 
         if (energyCost > ownerState.Energy &&
-            Hook.ShouldPayExcessEnergyCostWithStars(State.CombatState, card.Preview.Owner))
+            HookMirrors.ShouldPayExcessEnergyCostWithStars(this, card.Preview.Owner))
         {
             starCost += 2 * (energyCost - ownerState.Energy);
             energyCost = ownerState.Energy;
@@ -187,7 +186,7 @@ internal sealed partial class CombatPredictionSimulator
         var starValue = card.GetStarCostWithModifiers(this, playerCombatState);
 
         if (!isAutoPlay && energyValue > playerCombatState.Energy &&
-            Hook.ShouldPayExcessEnergyCostWithStars(State.CombatState, card.Preview.Owner))
+            HookMirrors.ShouldPayExcessEnergyCostWithStars(this, card.Preview.Owner))
         {
             starValue += 2 * (energyValue - playerCombatState.Energy);
             energyValue = playerCombatState.Energy;
@@ -340,7 +339,7 @@ internal sealed partial class CombatPredictionSimulator
             History.CardPlayFinished(
                 card,
                 cardPlay,
-                card.GetKeywords(State).Contains(CardKeyword.Ethereal));
+                card.GetKeywords(this).Contains(CardKeyword.Ethereal));
             HookMirrors.AfterCardPlayed(this, card, cardPlay);
 
             if (ownerCreature.IsDead)
@@ -406,7 +405,7 @@ internal sealed partial class CombatPredictionSimulator
 
         affliction.AssertMutable();
 
-        if (!Hook.ShouldAfflict(State.CombatState, card.Preview, affliction) ||
+        if (!HookMirrors.ShouldAfflict(this, card.Preview, affliction) ||
             !affliction.CanAfflict(card.Preview))
         {
             return null;

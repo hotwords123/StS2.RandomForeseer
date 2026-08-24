@@ -675,7 +675,7 @@ internal static class AfterCardPlayedMirrors
     private static void HandleBansheesCry(BansheesCry card, AfterCardPlayedMirrorContext context)
     {
         if (context.PreviewCard.Owner == card.Owner &&
-            context.Card.GetKeywords(context.State).Contains(CardKeyword.Ethereal) &&
+            context.Card.GetKeywords(context.Simulator).Contains(CardKeyword.Ethereal) &&
             context.State.FindCard(card) is { } predictedCard)
         {
             predictedCard.MutablePreview.EnergyCost.AddThisCombat(-card.DynamicVars.Energy.IntValue);

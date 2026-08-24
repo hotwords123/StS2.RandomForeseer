@@ -17,6 +17,8 @@ Mirror files:
 - `AbstractModel.ShouldDie(Creature)`
 - `AbstractModel.ShouldDieLate(Creature)`
 - `AbstractModel.AfterPreventingDeath(Creature)`
+- `AbstractModel.ShouldCreatureBeRemovedFromCombatAfterDeath(Creature)`
+- `AbstractModel.ShouldStopCombatFromEnding()`
 
 ## BeforeDeath listeners
 
@@ -74,6 +76,9 @@ Mirror files:
 
 - `CombatPredictionSimulator` updates shadow liveness, runs before/after death registries, records shadow creature removal for supported enemy death paths, mirrors selected player death cleanup, and records the pending-loss boundary when all shadow players are dead.
 - The simulator derives combat-ending state from shadow primary-enemy liveness and `ShouldStopCombatFromEnding`; guarded hook dispatch stops at that boundary while death hooks remain unguarded. Full victory/loss teardown only occurs when a caller invokes the prediction safe-point `CheckWinCondition`.
+- `ShouldStopCombatFromEnding` and `ShouldCreatureBeRemovedFromCombatAfterDeath` preserve vanilla's direct unguarded
+  enumeration and short-circuit rules through `HookMirrors`; compatibility filtering removes Mod listeners only when
+  explicitly enabled.
 - The simulator does not model power cleanup/removal, full creature revive, monster move/state transitions, hook deactivation, or full combat-loss side effects. Most missing death listeners need those capabilities.
 - `HeistPower` and `SwipePower` are intentionally ignored because they only affect combat rewards/deck return, which is outside the current prediction scope.
 

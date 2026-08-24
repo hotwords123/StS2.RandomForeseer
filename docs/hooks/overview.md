@@ -27,6 +27,11 @@
   unsupported risk because it may mutate prediction-relevant state and cannot safely run against live models.
 - `IMethodMirrorContext<TBase>` is a dispatcher-only contract. Combat contexts explicitly map ordinary listeners to the listener, orb receivers to the shadow orb, and `CardModel.OnPlay` / `CardModel.OnTurnEndInHand` receivers to the original card rather than an optional detached preview. Typed handlers use the context's `History` alias for explicit risk reasons.
 - `HookMirrors` facades own hook-level control flow, including context construction, listener enumeration, phase refresh, short-circuiting, result chaining, and only-modifier dispatch. The registry only dispatches one listener at a time. Play-count after dispatch follows `Hook.AfterModifyingCardPlayCount` by starting a fresh listener pass and checking the modifier list; result-location after dispatch follows `CardModel.OnPlayWrapper` by iterating the returned modifier list directly.
+- All prediction-side Hook listener sequences pass through `Common/CompatibilityUtils.FilterHookListeners`. When
+  `InvokeBaseGameHookListenersOnly` is enabled, it preserves original ordering while excluding every listener whose
+  runtime type is not from the base-game assembly. Combat and run facades still own their distinct guarded,
+  unguarded, phase, and extra-listener enumeration rules. `ModifyDamage` is the deliberate compatibility-filtering
+  exception: its `HookMirrors` facade retains all Mod listeners.
 - The phase-aware `HookMirrors.ModifyHpLost` follows the original facade's `HpLossHookPhase` flag and preserves the
   separate early/late listener pass for each selected BeforeOsty and AfterOsty phase.
 - Hook-level listener enumeration follows each vanilla facade rather than assuming every hook uses

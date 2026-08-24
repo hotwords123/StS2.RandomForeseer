@@ -6,7 +6,7 @@ using RandomForeseer.RandomForeseerCode.Common;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
-internal sealed class CombatPredictionState(ICombatState combatState)
+internal sealed class CombatPredictionState(CombatPredictionSimulator simulator, ICombatState combatState)
 {
     public ICombatState CombatState { get; } = combatState;
 
@@ -33,7 +33,7 @@ internal sealed class CombatPredictionState(ICombatState combatState)
     {
         if (!_creatures.TryGetValue(creature, out var state))
         {
-            state = new SimCreatureState(creature);
+            state = new SimCreatureState(simulator, creature);
             _creatures.Add(creature, state);
         }
 

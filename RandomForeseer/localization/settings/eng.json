@@ -24,6 +24,13 @@
   "section.prediction_page_navigation.description": "Open a page to configure individual prediction features in or out of combat.",
   "button.open_page.text": "Open",
 
+  "section.compatibility.title": "Compatibility",
+  "section.compatibility.description": "If prediction features conflict with other mods, you can try enabling the following options as a temporary workaround until the issue is properly fixed. [blue]Note:[/blue] enabling them will make some prediction features unavailable, and prediction results may be incomplete or inaccurate. If you are not experiencing any conflicts, there is no need to enable them.",
+  "toggle.predict_base_game_cards_only.label": "Predict base-game cards only",
+  "toggle.predict_base_game_cards_only.description": "When enabled, combat card-play prediction does not show predictions for mod cards or automatically infer their play effects.",
+  "toggle.invoke_base_game_hook_listeners_only.label": "Invoke base-game hook listeners only",
+  "toggle.invoke_base_game_hook_listeners_only.description": "When enabled, prediction simulations skip listeners registered by mods when invoking hooks to prevent unexpected side effects caused by some mod implementations.",
+
   "page.out_of_combat_prediction.title": "Out-of-combat prediction",
   "page.out_of_combat_prediction.description": "Configure prediction features outside combat, including events and relics.",
 

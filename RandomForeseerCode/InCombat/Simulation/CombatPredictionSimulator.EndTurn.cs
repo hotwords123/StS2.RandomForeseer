@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Hooks;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards;
@@ -72,8 +71,8 @@ internal sealed partial class CombatPredictionSimulator
             {
                 turnEndCards.Add(card);
             }
-            else if (card.GetKeywords(State).Contains(CardKeyword.Ethereal) &&
-                     Hook.ShouldEtherealTrigger(State.CombatState, card.Preview))
+            else if (card.GetKeywords(this).Contains(CardKeyword.Ethereal) &&
+                     HookMirrors.ShouldEtherealTrigger(this, card.Preview))
             {
                 etherealCards.Add(card);
             }
@@ -98,7 +97,7 @@ internal sealed partial class CombatPredictionSimulator
             CardOnTurnEndInHandMirrors.Invoke(this, card);
 
             // Vanilla does not check Hook.ShouldEtherealTrigger here, so we keep the same behavior.
-            if (card.GetKeywords(State).Contains(CardKeyword.Ethereal))
+            if (card.GetKeywords(this).Contains(CardKeyword.Ethereal))
             {
                 Exhaust(card, causedByEthereal: true);
             }

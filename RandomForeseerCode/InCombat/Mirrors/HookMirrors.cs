@@ -25,6 +25,148 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 internal static class HookMirrors
 {
     /// <summary>
+    /// Mirrors <see cref="Hook.ModifyXValue"/>.
+    /// </summary>
+    public static int ModifyXValue(CombatPredictionSimulator simulator, CardModel card, int value)
+    {
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            value = listener.ModifyXValue(card, value);
+        }
+
+        return value;
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ModifyKeywordsInCombat"/>.
+    /// </summary>
+    public static void ModifyKeywordsInCombat(
+        CombatPredictionSimulator simulator,
+        CardModel card,
+        ISet<CardKeyword> keywords)
+    {
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            listener.TryModifyKeywordsInCombat(card, keywords);
+        }
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldPayExcessEnergyCostWithStars"/>.
+    /// </summary>
+    public static bool ShouldPayExcessEnergyCostWithStars(
+        CombatPredictionSimulator simulator,
+        Player player)
+    {
+        return IterateCombatHookListeners(simulator)
+            .Any(listener => listener.ShouldPayExcessEnergyCostWithStars(player));
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldAfflict"/>.
+    /// </summary>
+    public static bool ShouldAfflict(
+        CombatPredictionSimulator simulator,
+        CardModel card,
+        AfflictionModel affliction)
+    {
+        return IterateCombatHookListeners(simulator)
+            .All(listener => listener.ShouldAfflict(card, affliction));
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ModifyEnergyGain"/>.
+    /// </summary>
+    public static decimal ModifyEnergyGain(
+        CombatPredictionSimulator simulator,
+        Player player,
+        decimal amount,
+        out IEnumerable<AbstractModel> modifiers)
+    {
+        List<AbstractModel> modifierList = [];
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            var previousAmount = amount;
+            amount = listener.ModifyEnergyGain(player, amount);
+            if ((int)previousAmount != (int)amount)
+            {
+                modifierList.Add(listener);
+            }
+        }
+
+        modifiers = modifierList;
+        return amount;
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldGainStars"/>.
+    /// </summary>
+    public static bool ShouldGainStars(
+        CombatPredictionSimulator simulator,
+        decimal amount,
+        Player player)
+    {
+        return IterateCombatHookListeners(simulator)
+            .All(listener => listener.ShouldGainStars(amount, player));
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldEtherealTrigger"/>.
+    /// </summary>
+    public static bool ShouldEtherealTrigger(CombatPredictionSimulator simulator, CardModel card)
+    {
+        return IterateCombatHookListeners(simulator)
+            .All(listener => listener.ShouldEtherealTrigger(card));
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldStopCombatFromEnding"/>.
+    /// </summary>
+    public static bool ShouldStopCombatFromEnding(CombatPredictionSimulator simulator)
+    {
+        return IterateCombatHookListeners(simulator, allowWhenCombatEnding: true)
+            .Any(listener => listener.ShouldStopCombatFromEnding());
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ModifyUnblockedDamageTarget"/>.
+    /// </summary>
+    public static Creature ModifyUnblockedDamageTarget(
+        CombatPredictionSimulator simulator,
+        Creature originalTarget,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer)
+    {
+        foreach (var listener in IterateCombatHookListeners(simulator, allowWhenCombatEnding: true))
+        {
+            originalTarget = listener.ModifyUnblockedDamageTarget(originalTarget, amount, props, dealer);
+        }
+
+        return originalTarget;
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldCreatureBeRemovedFromCombatAfterDeath"/>.
+    /// </summary>
+    public static bool ShouldCreatureBeRemovedFromCombatAfterDeath(
+        CombatPredictionSimulator simulator,
+        Creature creature)
+    {
+        return IterateCombatHookListeners(simulator, allowWhenCombatEnding: true)
+            .All(listener => listener.ShouldCreatureBeRemovedFromCombatAfterDeath(creature));
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ShouldAllowHitting"/>.
+    /// </summary>
+    public static bool ShouldAllowHitting(CombatPredictionSimulator simulator, Creature creature)
+    {
+        return IterateCombatHookListeners(simulator)
+            .All(listener => listener.ShouldAllowHitting(creature));
+    }
+
+    /// <summary>
     /// Mirrors <see cref="Hook.ModifyBlock"/>.
     /// </summary>
     public static decimal ModifyBlock(
@@ -166,7 +308,7 @@ internal static class HookMirrors
             Breaker = breaker
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator, allowWhenCombatEnding: true))
         {
             AfterBlockBrokenMirrors.Invoke(listener, context);
         }
@@ -539,12 +681,12 @@ internal static class HookMirrors
             CardPlay = cardPlay
         };
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator, allowWhenCombatEnding: true))
         {
             AfterCardPlayedMirrors.Invoke(listener, context);
         }
 
-        foreach (var listener in context.State.IterateHookListeners())
+        foreach (var listener in IterateCombatHookListeners(simulator, allowWhenCombatEnding: true))
         {
             AfterCardPlayedMirrors.InvokeLate(listener, context);
         }
@@ -598,20 +740,20 @@ internal static class HookMirrors
             CardSource = cardSource,
             CardPlay = cardPlay
         };
-        foreach (var listener in IterateRunHookListeners(simulator))
+        foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
         {
             context.Amount = damage;
             damage += ModifyDamageMirrors.InvokeAdditive(listener, context);
         }
 
-        foreach (var listener in IterateRunHookListeners(simulator))
+        foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
         {
             context.Amount = damage;
             damage *= ModifyDamageMirrors.InvokeMultiplicative(listener, context);
         }
 
         var cap = decimal.MaxValue;
-        foreach (var listener in IterateRunHookListeners(simulator))
+        foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
         {
             cap = Math.Min(cap, listener.ModifyDamageCap(target, props, dealer, cardModel, cardPlay));
         }
@@ -1015,27 +1157,52 @@ internal static class HookMirrors
     }
 
     /// <summary>
-    /// Mirrors <see cref="Hook.IterateCombatHookListeners"/>.
+    /// Enumerates combat Hook listeners using the vanilla combat-ending guard and the compatibility filter.
     /// </summary>
-    private static IEnumerable<AbstractModel> IterateCombatHookListeners(CombatPredictionSimulator simulator)
+    /// <param name="simulator">The prediction simulator whose shadow combat state supplies the listeners.</param>
+    /// <param name="applyCompatibilityFilter">
+    /// Whether to skip Mod listeners when the corresponding compatibility setting is enabled.
+    /// </param>
+    /// <param name="allowWhenCombatEnding">
+    /// Whether to enumerate listeners even when the shadow combat is already over or ending.
+    /// </param>
+    /// <returns>
+    /// An ordered listener sequence, or an empty sequence when the combat-ending guard suppresses dispatch.
+    /// </returns>
+    private static IEnumerable<AbstractModel> IterateCombatHookListeners(
+        CombatPredictionSimulator simulator,
+        bool applyCompatibilityFilter = true,
+        bool allowWhenCombatEnding = false)
     {
-        if (simulator.IsOverOrEnding)
+        if (!allowWhenCombatEnding && simulator.IsOverOrEnding)
         {
-            yield break;
+            return [];
         }
 
-        foreach (var listener in simulator.State.IterateHookListeners())
-        {
-            yield return listener;
-        }
+        var listeners = simulator.State.IterateHookListeners();
+
+        return applyCompatibilityFilter
+            ? CompatibilityUtils.FilterHookListeners(listeners)
+            : listeners;
     }
 
     /// <summary>
-    /// Mirrors <see cref="MegaCrit.Sts2.Core.Runs.IRunState.IterateHookListeners"/> with the simulator's combat state.
+    /// Enumerates run and combat Hook listeners from the simulator's prediction-associated run state.
     /// </summary>
-    private static IEnumerable<AbstractModel> IterateRunHookListeners(CombatPredictionSimulator simulator)
+    /// <param name="simulator">The prediction simulator whose run and combat state supply the listeners.</param>
+    /// <param name="applyCompatibilityFilter">
+    /// Whether to skip Mod listeners when the corresponding compatibility setting is enabled.
+    /// </param>
+    /// <returns>An ordered listener sequence.</returns>
+    private static IEnumerable<AbstractModel> IterateRunHookListeners(
+        CombatPredictionSimulator simulator,
+        bool applyCompatibilityFilter = true)
     {
         var combatState = simulator.State.CombatState;
-        return combatState.RunState.IterateHookListeners(combatState);
+        var listeners = combatState.RunState.IterateHookListeners(combatState);
+
+        return applyCompatibilityFilter
+            ? CompatibilityUtils.FilterHookListeners(listeners)
+            : listeners;
     }
 }

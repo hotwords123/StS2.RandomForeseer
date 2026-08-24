@@ -15,6 +15,7 @@ Mirror files:
 - `AbstractModel.BeforeSideTurnEndVeryEarly(PlayerChoiceContext, CombatSide, IEnumerable<Creature>)`
 - `AbstractModel.BeforeSideTurnEndEarly(PlayerChoiceContext, CombatSide, IEnumerable<Creature>)`
 - `AbstractModel.BeforeSideTurnEnd(PlayerChoiceContext, CombatSide, IEnumerable<Creature>)`
+- `AbstractModel.ShouldEtherealTrigger(CardModel)`
 
 ## AfterAutoPostPlayPhaseEntered listeners
 
@@ -79,6 +80,8 @@ Mirror files:
   running ethereal exhaust or turn-end card effects after combat-ending damage.
 - Vanilla next calls `BeforeFlush` for each ending player. Its only vanilla listener is `SlumberingEssence` (沉眠精华),
   which is not used by the current version of the base game, so the simulator omits this hook.
+- Ethereal resolution uses `HookMirrors.ShouldEtherealTrigger`, preserving the original guarded all-must-allow
+  predicate while applying compatibility filtering to Mod listeners.
 
 ## Mock model list
 

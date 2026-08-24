@@ -40,9 +40,15 @@ Current implementation coverage (excluding the Mock listener):
 - `AbstractModel.TryModifyEnergyCostInCombat(CardModel, decimal, out decimal)`
 - `AbstractModel.TryModifyEnergyCostInCombatLate(CardModel, decimal, out decimal)`
 - `AbstractModel.TryModifyStarCost(CardModel, decimal, out decimal)`
+- `AbstractModel.ModifyXValue(CardModel, int)`
+- `AbstractModel.ShouldAfflict(CardModel, AfflictionModel)`
+- `AbstractModel.TryModifyKeywordsInCombat(CardModel, ISet<CardKeyword>)`
 
 `Hook.AfterCardPlayed` is the facade for both after phases, so this document treats
 `AfterCardPlayedLate` as part of the same hook family.
+
+Supporting card resolution calls for X values, affliction permission, and combat keywords now use manually enumerated
+`HookMirrors` facades with compatibility filtering.
 
 ## Vanilla order and dispatch semantics
 

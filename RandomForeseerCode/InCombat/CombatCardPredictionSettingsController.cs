@@ -19,7 +19,7 @@ internal static class CombatCardPredictionSettingsController
             return;
         }
 
-        SyncPredictionSettings();
+        SyncInferenceSetting();
         ModSettingsBindingWriteEvents.ValueWritten += OnSettingsValueWritten;
         _isRegistered = true;
     }
@@ -28,11 +28,15 @@ internal static class CombatCardPredictionSettingsController
     {
         if (ReferenceEquals(binding, SettingsUiBindings.InferCardOnPlayEffectsEnabled))
         {
-            SyncPredictionSettings();
+            SyncInferenceSetting();
+        }
+        else if (ReferenceEquals(binding, SettingsUiBindings.PredictBaseGameCardsOnly))
+        {
+            CardOnPlayMirrors.InvalidateLookupCache();
         }
     }
 
-    private static void SyncPredictionSettings()
+    private static void SyncInferenceSetting()
     {
         CardOnPlayMirrors.AllowInference = ModData.Settings.InferCardOnPlayEffectsEnabled;
     }

@@ -28,6 +28,11 @@ internal static class CardOnPlayMirrors
         set => Registry.AllowInference = value;
     }
 
+    public static void InvalidateLookupCache()
+    {
+        Registry.InvalidateLookupCache();
+    }
+
     public static bool CanMirror(CardModel card)
     {
         return Registry.HasRegisteredHandler(card);

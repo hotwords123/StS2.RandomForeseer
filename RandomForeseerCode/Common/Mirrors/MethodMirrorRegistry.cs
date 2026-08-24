@@ -75,9 +75,17 @@ internal sealed class MethodMirrorRegistry<TBase, TContext>(MirrorMethodSpec met
             if (_allowInference != value)
             {
                 _allowInference = value;
-                _lookupCache.Clear();
+                InvalidateLookupCache();
             }
         }
+    }
+
+    /// <summary>
+    /// Invalidates all resolved exact-runtime-type lookups while preserving explicit registrations.
+    /// </summary>
+    public void InvalidateLookupCache()
+    {
+        _lookupCache.Clear();
     }
 
     public void Register<TModel>(Action<TModel, TContext> handler)

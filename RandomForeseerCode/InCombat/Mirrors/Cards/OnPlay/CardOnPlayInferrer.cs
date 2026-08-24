@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
@@ -21,6 +22,11 @@ internal static class CardOnPlayInferrer
 {
     public static CardOnPlayAction? Infer(Type runtimeType, MethodInfo overrideMethod)
     {
+        if (!CompatibilityUtils.IsPredictionAllowedForType(runtimeType))
+        {
+            return null;
+        }
+
         HarmonyIlMethodBody body;
         try
         {

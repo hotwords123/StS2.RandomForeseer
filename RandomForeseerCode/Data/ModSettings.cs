@@ -18,6 +18,10 @@ internal sealed class ModSettings
     public bool FairModeEnabled { get; set; } = true;
     public bool ShowDriftWarnings { get; set; }
 
+    // Compatibility settings
+    public bool PredictBaseGameCardsOnly { get; set; }
+    public bool InvokeBaseGameHookListenersOnly { get; set; }
+
     // Out-of-combat prediction settings
     public bool DeckTransformPredictionEnabled { get; set; } = true;
     public bool NextActPredictionEnabled { get; set; } = true;

@@ -35,7 +35,7 @@ internal static class RandomTargetAttackCardMirrors
 
     public static void StardustOnPlay(Stardust card, CardOnPlayMirrorContext context)
     {
-        context.AttackRandomOpponents(context.Card.ResolveStarXValue(context.State));
+        context.AttackRandomOpponents(context.ResolveStarXValue());
     }
 
     public static void SweepingGazeOnPlay(SweepingGaze card, CardOnPlayMirrorContext context)
@@ -56,6 +56,6 @@ internal static class RandomTargetAttackCardMirrors
 
     public static void VolleyOnPlay(Volley card, CardOnPlayMirrorContext context)
     {
-        context.AttackRandomOpponents(context.Card.ResolveEnergyXValue(context.State));
+        context.AttackRandomOpponents(context.ResolveEnergyXValue());
     }
 }

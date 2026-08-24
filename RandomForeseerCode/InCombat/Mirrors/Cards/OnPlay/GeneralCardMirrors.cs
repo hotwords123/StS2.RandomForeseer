@@ -80,11 +80,11 @@ internal static class GeneralCardMirrors
         }
         else if (card.EnergyCost.CostsX)
         {
-            command.WithHitCount(context.Card.ResolveEnergyXValue(context.State));
+            command.WithHitCount(context.ResolveEnergyXValue());
         }
         else if (card.HasStarCostX)
         {
-            command.WithHitCount(context.Card.ResolveStarXValue(context.State));
+            command.WithHitCount(context.ResolveStarXValue());
         }
 
         switch (card.TargetType)

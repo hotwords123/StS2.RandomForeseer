@@ -122,8 +122,8 @@ internal sealed partial class CombatPredictionSimulator
             HpLossHookPhase.BeforeOsty,
             out _);
 
-        var unblockedDamageTarget = Hook.ModifyUnblockedDamageTarget(
-            State.CombatState,
+        var unblockedDamageTarget = HookMirrors.ModifyUnblockedDamageTarget(
+            this,
             originalTarget,
             unblockedDamage,
             props,
@@ -273,7 +273,7 @@ internal sealed partial class CombatPredictionSimulator
 
         if (force || creature.MaxHp <= 0 || HookMirrors.ShouldDie(this, creature, out var preventer))
         {
-            var shouldRemoveFromCombat = Hook.ShouldCreatureBeRemovedFromCombatAfterDeath(State.CombatState, creature);
+            var shouldRemoveFromCombat = HookMirrors.ShouldCreatureBeRemovedFromCombatAfterDeath(this, creature);
 
             HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: false);
 

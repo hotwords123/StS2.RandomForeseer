@@ -103,7 +103,7 @@ internal static class OrbCardMirrors
 
     public static void MultiCastOnPlay(MultiCast card, CardOnPlayMirrorContext context)
     {
-        var repeat = context.Card.ResolveEnergyXValue(context.State) + (card.IsUpgraded ? 1 : 0);
+        var repeat = context.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0);
         context.Simulator.OrbEvokeNext(card.Owner, repeat);
     }
 
@@ -161,7 +161,7 @@ internal static class OrbCardMirrors
 
     public static void TempestOnPlay(Tempest card, CardOnPlayMirrorContext context)
     {
-        var count = context.Card.ResolveEnergyXValue(context.State) + (card.IsUpgraded ? 1 : 0);
+        var count = context.ResolveEnergyXValue() + (card.IsUpgraded ? 1 : 0);
         context.Simulator.OrbChannel<LightningOrb>(card.Owner, count);
     }
 
