@@ -5,8 +5,8 @@ This mod supports both [b]singleplayer[/b] and [b]multiplayer[/b], and [b]not ev
 This mod supports both the [b]public[/b] branch and the [b]public-beta[/b] branch, but some new features may only be available on the beta branch.
 Currently supported game versions:
 [list]
-[*]public: [b]v0.107.1[/b] (mod version [b]v0.8.1[/b])
-[*]public-beta: [b]v0.111.0[/b] (mod version [b]v0.13.8[/b])
+[*]public: [b]v0.107.1[/b] (mod version [b]v0.8.3[/b])
+[*]public-beta: [b]v0.111.0[/b] (mod version [b]v0.13.9[/b])
 [/list]
 
 GitHub: [url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]

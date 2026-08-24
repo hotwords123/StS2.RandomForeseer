@@ -5,8 +5,8 @@
 本 Mod 支持[b]正式版[/b]和[b]测试版[/b]，但部分新功能可能只在测试版中可用。
 目前适配的游戏版本：
 [list]
-[*]正式版：[b]v0.107.1[/b]（Mod 版本 [b]v0.8.1[/b]）
-[*]测试版：[b]v0.111.0[/b]（Mod 版本 [b]v0.13.8[/b]）
+[*]正式版：[b]v0.107.1[/b]（Mod 版本 [b]v0.8.3[/b]）
+[*]测试版：[b]v0.111.0[/b]（Mod 版本 [b]v0.13.9[/b]）
 [/list]
 
 GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
