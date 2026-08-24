@@ -33,7 +33,7 @@ internal static class EndTurnPredictionController
         ModSettingsBindingWriteEvents.ValueWritten += OnSettingsValueWritten;
 
         _isSubscribed = true;
-        Refresh();
+        RefreshSafely();
     }
 
     public static void Unsubscribe()
@@ -57,13 +57,25 @@ internal static class EndTurnPredictionController
     public static void OnEndTurnButtonFocused(NEndTurnButton endTurnButton)
     {
         _focusedEndTurnButton = endTurnButton;
-        Refresh();
+        RefreshSafely();
     }
 
     public static void OnEndTurnButtonUnfocused()
     {
         _focusedEndTurnButton = null;
-        Refresh();
+        RefreshSafely();
+    }
+
+    public static void RefreshSafely()
+    {
+        try
+        {
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"End-turn prediction refresh failed: {ex}");
+        }
     }
 
     public static void Refresh()
@@ -155,7 +167,7 @@ internal static class EndTurnPredictionController
 
         if (wasActive && !active)
         {
-            Refresh();
+            RefreshSafely();
         }
     }
 
@@ -175,12 +187,12 @@ internal static class EndTurnPredictionController
 
     private static void OnPlayerEndedTurn(Player _, bool __)
     {
-        Refresh();
+        RefreshSafely();
     }
 
     private static void OnPlayerUnendedTurn(Player _)
     {
-        Refresh();
+        RefreshSafely();
     }
 
     private static void OnCombatEnded(CombatRoom _)
@@ -190,7 +202,7 @@ internal static class EndTurnPredictionController
 
     private static void OnCombatStateChanged(CombatState _)
     {
-        Refresh();
+        RefreshSafely();
     }
 
     private static void OnSettingsValueWritten(IModSettingsBinding binding)
@@ -201,7 +213,7 @@ internal static class EndTurnPredictionController
         }
         else if (RandomForeseerSettings.IsEndTurnPredictionRefreshBinding(binding))
         {
-            Refresh();
+            RefreshSafely();
         }
     }
 }

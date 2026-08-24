@@ -277,33 +277,47 @@ internal static class FrozenEyeDrawPileRawTextPatch
 {
     private static void Postfix(LocString __instance, ref string __result)
     {
+        try
+        {
+            __result = (__instance.LocTable, __instance.LocEntryKey) switch
+            {
+                ("static_hover_tips", "DRAW_PILE.description") => ReplaceDrawPileDescription(__result),
+                ("gameplay_ui", "DRAW_PILE_INFO") => ReplaceDrawPileInfo(__result),
+                _ => __result
+            };
+        }
+        catch (Exception ex)
+        {
+            Entry.Logger.Warn($"Failed to replace raw text for {__instance}: {ex}");
+        }
+    }
+
+    private static string ReplaceDrawPileDescription(string text)
+    {
         if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye))
         {
-            return;
+            return text;
         }
 
-        switch (__instance)
+        var mainDescription = text.Split("\n\n", 2)[0];
+        var viewDescription = PredictionLocalization.Text("frozen_eye.draw_pile_hover_view").GetRawText();
+
+        return $"{mainDescription}\n\n{viewDescription}";
+    }
+
+    private static string ReplaceDrawPileInfo(string text)
+    {
+        if (!RandomForeseerSettings.IsPredictionFeatureEnabled(RandomForeseerSettings.EnableFrozenEye))
         {
-            case { LocTable: "static_hover_tips", LocEntryKey: "DRAW_PILE.description" }:
-            {
-                var mainDescription = __result.Split("\n\n", 2)[0];
-                var viewDescription = PredictionLocalization.Text("frozen_eye.draw_pile_hover_view").GetRawText();
-
-                __result = $"{mainDescription}\n\n{viewDescription}";
-                break;
-            }
-            case { LocTable: "gameplay_ui", LocEntryKey: "DRAW_PILE_INFO" }:
-            {
-                var firstLine = __result.Split('\n', 2)[0];
-                var orderInfoKey = RandomForeseerSettings.IsPredictionFeatureEnabled(
-                    RandomForeseerSettings.EnableShufflePrediction)
-                    ? "frozen_eye.draw_pile_info_order_with_shuffle_prediction"
-                    : "frozen_eye.draw_pile_info_order";
-                var orderInfo = PredictionLocalization.Text(orderInfoKey).GetRawText();
-
-                __result = $"{firstLine}\n{orderInfo}";
-                break;
-            }
+            return text;
         }
+
+        var firstLine = text.Split('\n', 2)[0];
+        var orderInfoKey = RandomForeseerSettings.EnableShufflePrediction
+            ? "frozen_eye.draw_pile_info_order_with_shuffle_prediction"
+            : "frozen_eye.draw_pile_info_order";
+        var orderInfo = PredictionLocalization.Text(orderInfoKey).GetRawText();
+
+        return $"{firstLine}\n{orderInfo}";
     }
 }

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 优化回合结束预测的健壮性。<br>
+  Optimized the robustness of end-turn predictions.
+
+- 优化冻结之眼本地化文本替换的健壮性。<br>
+  Improved the robustness of Frozen Eye localization text replacement.
+
 ## v0.8.1
 
 ### fix
