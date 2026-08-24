@@ -177,6 +177,7 @@ try {
         )
         if ($manifest.has_dll) {
             $stagedRequiredFiles += Join-Path $stagingPackageDir "$modId.dll"
+            $stagedRequiredFiles += Join-Path $stagingPackageDir "$modId.pdb"
         }
         if ($manifest.has_pck) {
             $stagedRequiredFiles += Join-Path $stagingPackageDir "$modId.pck"
