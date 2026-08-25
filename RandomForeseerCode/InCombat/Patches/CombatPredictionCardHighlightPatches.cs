@@ -18,18 +18,7 @@ internal static class CombatPredictionCardHighlightPatches
         catch (Exception ex)
         {
             Entry.Logger.Warn($"Combat card highlight failed on update: {ex}");
-            ModTelemetry.CaptureException(
-                ex,
-                "combat_card_highlight",
-                "update_card",
-                GetTelemetryContext(__instance));
+            ModTelemetry.CaptureException(ex, "combat_card_highlight", "update_card");
         }
-    }
-
-    private static object? GetTelemetryContext(NHandCardHolder holder)
-    {
-        return holder is { CardNode.Model: { } card }
-            ? TelemetryContext.ForModel(card)
-            : null;
     }
 }
