@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复其它 Mod 刷新先古选项后，新选项无法显示拾取效果预测的问题。<br>
+  Fixed newly refreshed Ancient options not showing pickup effect predictions when refreshed by another mod.
+
 ## v0.13.9
 
 ### feat

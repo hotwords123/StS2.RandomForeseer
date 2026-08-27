@@ -2,6 +2,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.Events;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 
@@ -19,6 +20,16 @@ internal static class EventModelSetEventStatePatch
         {
             EventOptionEventModelMap.Register(option, __instance);
         }
+    }
+}
+
+[HarmonyPatch(typeof(NEventOptionButton), nameof(NEventOptionButton.Create))]
+internal static class EventOptionButtonCreatePatch
+{
+    private static void Prefix(EventModel eventModel, EventOption option)
+    {
+        // Mods may rebuild event buttons after replacing CurrentOptions directly, bypassing SetEventState.
+        EventOptionEventModelMap.Register(option, eventModel);
     }
 }
 

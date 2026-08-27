@@ -101,6 +101,7 @@ internal static class EventOptionPrediction
         if (!EventOptionEventModelMap.TryGetEvent(option, out var eventModel) ||
             eventModel.Owner is not {} owner || option.IsLocked)
         {
+            Entry.Logger.Warn($"Event option prediction skipped for {option.TextKey}: no event model or owner found");
             return [];
         }
 
