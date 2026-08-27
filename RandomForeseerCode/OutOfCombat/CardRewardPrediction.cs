@@ -143,8 +143,10 @@ internal static class CardRewardPrediction
         }
     }
 
-    // Mirrors CardFactory.CreateForReward's private single-card helper, using PredictionUtils.CreateCard
-    // instead of RunState.CreateCard so previews do not enter run state.
+    /// <summary>
+    /// Mirrors <see cref="CardFactory.CreateForReward(Player, IEnumerable{CardModel}, CardCreationOptions)"/>.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when a valid card reward cannot be predicted.</exception>
     private static CardModel CreateForReward(
         Player player,
         IEnumerable<CardModel> blacklist,
@@ -154,11 +156,10 @@ internal static class CardRewardPrediction
     {
         options = HookMirrors.ModifyCardRewardCreationOptions(player.RunState, player, options);
 
-        var possibleCards = options.GetPossibleCards(player)
-            .Except(blacklist)
-            .ToList();
+        var blacklistSet = blacklist.ToHashSet();
+        var possibleCards = options.GetPossibleCards(player).Except(blacklistSet);
         var filteredCards = CardFactory.FilterForPlayerCount(player.RunState, possibleCards).ToArray();
-        var selectedRarity = (CardRarity?)null;
+        var selectedRarity = CardRarity.None;
 
         IEnumerable<CardModel> candidates;
         if (options.RarityOdds == CardRarityOddsType.Uniform)
@@ -174,12 +175,14 @@ internal static class CardRewardPrediction
                 options.Source,
                 allowedRarities,
                 options.Flags.HasFlag(CardCreationFlags.ForceRarityOddsChange));
+
             if (selectedRarity == CardRarity.None)
             {
                 throw new InvalidOperationException(
                     $"Could not predict a valid card reward rarity. Odds: {options.RarityOdds}, " +
-                    $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}, " +
-                    $"options: {options}");
+                    $"candidates: {string.Join(",", filteredCards.Select(card => card.Id))}, " +
+                    $"card pools: {string.Join(",", options.CardPools.Select(pool => pool.Id))}, " +
+                    $"blacklist: {string.Join(",", blacklistSet.Select(card => card.Id))}");
             }
 
             candidates = filteredCards.Where(card => card.Rarity == selectedRarity);
@@ -190,8 +193,9 @@ internal static class CardRewardPrediction
         {
             throw new InvalidOperationException(
                 $"Could not predict a valid card reward. Selected rarity: {selectedRarity}, " +
-                $"card pool: {string.Join(",", filteredCards.Select(card => card.Id))}, " +
-                $"options: {options}");
+                $"candidates: {string.Join(",", filteredCards.Select(card => card.Id))}, " +
+                $"card pools: {string.Join(",", options.CardPools.Select(pool => pool.Id))}, " +
+                $"blacklist: {string.Join(",", blacklistSet.Select(card => card.Id))}");
         }
 
         return PredictionUtils.CreateCard(canonical, player);
