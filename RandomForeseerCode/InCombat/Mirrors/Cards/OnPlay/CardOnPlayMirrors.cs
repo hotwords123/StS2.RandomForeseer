@@ -93,6 +93,26 @@ internal static class CardOnPlayMirrors
         registry.Register<SwordBoomerang>(RandomTargetAttackCardMirrors.SwordBoomerangOnPlay);
         registry.Register<Volley>(RandomTargetAttackCardMirrors.VolleyOnPlay);
 
+        registry.Register<AstralPulse>(MultiHitAttackCardMirrors.AstralPulseOnPlay);
+        registry.Register<Barrage>(MultiHitAttackCardMirrors.BarrageOnPlay);
+        registry.Register<DaggerSpray>(MultiHitAttackCardMirrors.DaggerSprayOnPlay);
+        registry.Register<Dismantle>(MultiHitAttackCardMirrors.DismantleOnPlay);
+        registry.Register<FiendFire>(MultiHitAttackCardMirrors.FiendFireOnPlay);
+        registry.Register<Finisher>(MultiHitAttackCardMirrors.FinisherOnPlay);
+        registry.Register<Flechettes>(MultiHitAttackCardMirrors.FlechettesOnPlay);
+        registry.Register<GunkUp>(MultiHitAttackCardMirrors.GunkUpOnPlay);
+        registry.Register<HeavenlyDrill>(MultiHitAttackCardMirrors.HeavenlyDrillOnPlay);
+        registry.Register<HelixDrill>(MultiHitAttackCardMirrors.HelixDrillOnPlay);
+        registry.Register<LunarBlast>(MultiHitAttackCardMirrors.LunarBlastOnPlay);
+        registry.Register<Maul>(MultiHitAttackCardMirrors.MaulOnPlay);
+        registry.Register<PullFromBelow>(MultiHitAttackCardMirrors.PullFromBelowOnPlay);
+        registry.Register<Radiate>(MultiHitAttackCardMirrors.RadiateOnPlay);
+        registry.Register<Rattle>(MultiHitAttackCardMirrors.RattleOnPlay);
+        registry.Register<SovereignBlade>(MultiHitAttackCardMirrors.SovereignBladeOnPlay);
+        registry.Register<Spite>(MultiHitAttackCardMirrors.SpiteOnPlay);
+        registry.Register<TearAsunder>(MultiHitAttackCardMirrors.TearAsunderOnPlay);
+        registry.Register<TwinStrike>(MultiHitAttackCardMirrors.TwinStrikeOnPlay);
+
         registry.Register<BallLightning>(OrbCardMirrors.BallLightningOnPlay);
         registry.Register<Chaos>(OrbCardMirrors.ChaosOnPlay);
         registry.Register<Chill>(OrbCardMirrors.ChillOnPlay);

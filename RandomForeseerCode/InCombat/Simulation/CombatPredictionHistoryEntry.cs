@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 
@@ -66,6 +67,18 @@ internal sealed class CombatPredictionCreatureAttackedEntry : CombatPredictionHi
 {
     public required Creature Attacker { get; init; }
     public required IReadOnlyList<DamageResult> HitResults { get; init; }
+}
+
+internal sealed class CombatPredictionEnergySpentEntry : CombatPredictionHistoryEntry
+{
+    public required Player Player { get; init; }
+    public required int Amount { get; init; }
+}
+
+internal sealed class CombatPredictionStarsModifiedEntry : CombatPredictionHistoryEntry
+{
+    public required Player Player { get; init; }
+    public required int Amount { get; init; }
 }
 
 internal sealed class CombatPredictionOrbChanneledEntry : CombatPredictionHistoryEntry

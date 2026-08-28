@@ -82,6 +82,22 @@ These handlers take priority over inference, including when their original IL al
 recipe. `CombatPredictionSimulator.Draw` returns the drawn `PredictedCard` objects for these follow-up mirrors while
 preserving the existing history and hook order.
 
+## Exact multi-hit attack mirrors
+
+Multi-hit attacks whose count or follow-up effects cannot be reconstructed by the general attack template use the
+central `MultiHitAttackCardMirrors` registration group:
+
+| Shape | Exact cards | Prediction behavior |
+| --- | --- | --- |
+| Literal or local count | `AstralPulse`, `DaggerSpray`, `Dismantle`, `HeavenlyDrill`, `Spite`, `TwinStrike` | Reconstructs literal counts, target Vulnerable, the doubled energy-X threshold, and the current-turn HP-loss condition. |
+| Shadow card/orb count | `Barrage`, `Flechettes` | Counts the owner's shadow orb queue or shadow hand rather than querying the detached preview's live collections. |
+| Live plus shadow history count | `Finisher`, `HelixDrill`, `LunarBlast`, `PullFromBelow`, `Radiate`, `Rattle`, `TearAsunder` | Combines matching vanilla history with prediction-local card-play, energy, star, attack, or damage entries. Current-turn queries use the simulator combat state instead of the detached card's null `CombatState`. |
+| Multi-step lifecycle | `FiendFire`, `GunkUp`, `Maul`, `SovereignBlade` | Exhausts a snapshot of the shadow hand before attacking, generates the fixed `Slimed`, grows all shadow `Maul` copies, or resolves Seeking Edge targeting and Parry block. |
+
+These handlers never call `CalculatedVar.Calculate` on the detached card. `Dismantle` and `SovereignBlade` still read
+the target/owner's live power collection because power application is not a simulator-owned state domain; an earlier
+unsupported power application already records prediction risk. VFX, SFX and waits are intentionally omitted.
+
 Beat Down retains its own per-selected-card ending check before resolving each random target. Relying only on the
 shared auto-play command would incorrectly consume an extra `CombatTargets` RNG value after an earlier selected card
 ends combat.

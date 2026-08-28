@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
 
@@ -165,6 +166,24 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         {
             Attacker = attacker,
             HitResults = hitResults
+        });
+    }
+
+    public void EnergySpent(Player player, int amount)
+    {
+        Record(new CombatPredictionEnergySpentEntry
+        {
+            Player = player,
+            Amount = amount
+        });
+    }
+
+    public void StarsModified(Player player, int amount)
+    {
+        Record(new CombatPredictionStarsModifiedEntry
+        {
+            Player = player,
+            Amount = amount
         });
     }
 

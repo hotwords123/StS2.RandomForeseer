@@ -1,6 +1,7 @@
 # Energy hooks
 
-Mirror files: `InCombat/Simulation/SimPlayerCombatState.cs`, `InCombat/Simulation/CombatPredictionSimulator.Energy.cs`.
+Mirror files: `InCombat/Simulation/SimPlayerCombatState.cs`, `InCombat/Simulation/CombatPredictionSimulator.Energy.cs`,
+`InCombat/Simulation/CombatPredictionSimulator.Card.cs`, and the prediction history files.
 
 ## Hook specs
 
@@ -11,7 +12,7 @@ Mirror files: `InCombat/Simulation/SimPlayerCombatState.cs`, `InCombat/Simulatio
 
 ## Current mirror behavior
 
-`SimPlayerCombatState` seeds `Energy` and `Stars` from the live `PlayerCombatState`. Energy gain/loss and supported star gain mutate only this shadow state through simulator command helpers.
+`SimPlayerCombatState` seeds `Energy` and `Stars` from the live `PlayerCombatState`. Energy gain/loss and supported star gain mutate only this shadow state through simulator command helpers. Manual card resource spending also records prediction-local `EnergySpent` and negative `StarsModified` history entries before `OnPlay`, while supported star gain records its actual positive delta. These entries do not mutate vanilla history.
 
 `GainEnergy` mirrors the prediction-relevant part of `PlayerCmd.GainEnergy`: it ignores non-positive gain, runs the
 manual `HookMirrors.ModifyEnergyGain` listener pass, and adds the modified positive amount to shadow energy with
@@ -22,7 +23,7 @@ listeners only flash UI and do not mutate prediction-relevant state.
 
 `GainStars` runs the manually enumerated read-only `ShouldGainStars` predicate and mutates shadow state. The `AfterStarsGained`
 hook family is not yet mirrored; in particular, Black Hole's damage after gaining stars remains a separate coverage
-gap.
+gap. The resulting clamped star delta is recorded in prediction history so Radiate can combine live and shadow gains.
 
 ## ModifyEnergyGain listeners
 
@@ -45,6 +46,8 @@ listener that consumes prediction-local model state will require a selective mir
 | `PlasmaOrb` | 等离子 | Gains energy on direct passive/evoke simulation. |
 | `TheSealedThronePower` | 封印王座 | Gains stars before each owner card through simulator `GainStars`. |
 | `PaelsTears` | 佩尔之泪 | Records the leftover-energy predicate prediction-locally; the later turn-start gain is outside the current end-turn prediction boundary. |
+| `HelixDrill` | 螺旋钻击 | Combines vanilla and prediction-local energy-spent history, then excludes the current card's resolved energy value. |
+| `Radiate` | 辐射 | Combines positive vanilla and prediction-local star modifications from the current turn. |
 
 ## Parity notes
 

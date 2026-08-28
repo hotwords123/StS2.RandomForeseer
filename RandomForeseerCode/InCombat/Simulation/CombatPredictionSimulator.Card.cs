@@ -215,7 +215,7 @@ internal sealed partial class CombatPredictionSimulator
         // Mirrors CardModel.SpendEnergy and CardModel.SpendStars.
         if (energyValue > 0)
         {
-            // TODO: Record EnergySpent history.
+            History.EnergySpent(card.Preview.Owner, energyValue);
             playerCombatState.LoseEnergy(energyValue);
         }
         // TODO: Dispatch Hook.AfterEnergySpent.
@@ -223,8 +223,12 @@ internal sealed partial class CombatPredictionSimulator
         card.MutablePreview.LastStarsSpent = starValue;
         if (starValue > 0)
         {
+            var previousStars = playerCombatState.Stars;
             playerCombatState.LoseStars(starValue);
-            // TODO: Record StarsSpent history.
+            if (playerCombatState.Stars != previousStars)
+            {
+                History.StarsModified(card.Preview.Owner, playerCombatState.Stars - previousStars);
+            }
             // TODO: Dispatch Hook.AfterStarsSpent.
         }
 

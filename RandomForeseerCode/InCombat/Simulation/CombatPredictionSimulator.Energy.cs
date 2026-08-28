@@ -45,6 +45,12 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        State.GetPlayerCombatState(player).GainStars(amount);
+        var state = State.GetPlayerCombatState(player);
+        var previousStars = state.Stars;
+        state.GainStars(amount);
+        if (state.Stars != previousStars)
+        {
+            History.StarsModified(player, state.Stars - previousStars);
+        }
     }
 }

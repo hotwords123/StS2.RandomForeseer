@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 战斗卡牌预测新增对大部分原版多段攻击牌的支持，现在会正确处理其条件命中次数、累计战斗状态及相关牌堆效果。<br>
+  Combat card prediction now supports most vanilla multi-hit attacks, including conditional hit counts, accumulated combat state, and related pile effects.
+
 ### fix
 
 - 修复其它 Mod 刷新先古选项后，新选项无法显示拾取效果预测的问题。<br>
