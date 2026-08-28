@@ -9,6 +9,9 @@
 
 ### fix
 
+- 修复连锁出牌预测的因果提示可能将嵌套卡牌的效果错误归因到外层卡牌的问题。<br>
+  Fixed causal tips for chained card predictions potentially attributing nested-card effects to the outer card.
+
 - 修复其它 Mod 刷新先古选项后，新选项无法显示拾取效果预测的问题。<br>
   Fixed newly refreshed Ancient options not showing pickup effect predictions when refreshed by another mod.
 

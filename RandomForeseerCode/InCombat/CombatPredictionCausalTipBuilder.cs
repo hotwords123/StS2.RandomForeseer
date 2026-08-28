@@ -75,10 +75,10 @@ internal sealed class CombatPredictionCausalTipBuilder(PredictionTraceFrame root
 
     private static CausalCause? TryGetCause(PredictionTraceFrame trace)
     {
-        var sourceFrame = trace.FindOriginatingEffect() ?? trace.FindOriginatingAction();
+        var sourceFrame = trace.FindOriginatingEffect();
 
         return sourceFrame is not null
-            ? new(sourceFrame, trace.Source == sourceFrame.Source ? null : trace)
+            ? new CausalCause(sourceFrame, trace.Source == sourceFrame.Source ? null : trace)
             : null;
     }
 
