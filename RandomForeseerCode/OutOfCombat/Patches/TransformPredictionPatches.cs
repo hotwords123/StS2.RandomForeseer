@@ -100,17 +100,17 @@ internal static class DeckTransformPredictionInjectionPatch
 internal static class DeckTransformPredictionRelicSourcePatch
 {
     [HarmonyPrefix]
-    private static void EnterSource(RelicModel relic, out IDisposable __state)
+    private static void EnterSource(RelicModel relic, out IDisposable? __state)
     {
         __state = DeckTransformPredictionContext.EnterRelic(relic);
     }
 
     [HarmonyPostfix]
-    private static void RestoreCallerSource(IDisposable __state)
+    private static void RestoreCallerSource(IDisposable? __state)
     {
         // The async original captured this source in its ExecutionContext before returning its Task.
         // Restore the caller immediately so unrelated work started before Task completion cannot inherit it.
-        __state.Dispose();
+        __state?.Dispose();
     }
 }
 

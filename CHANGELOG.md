@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复部分 Mod 让遗物拾取流程提前返回时，遗物拾取预测清理上下文可能发生异常的问题。<br>
+  Fixed relic pickup prediction cleanup potentially throwing when another mod short-circuits the relic-obtain flow.
+
 ## v0.13.10
 
 ### feat
