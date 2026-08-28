@@ -24,7 +24,7 @@ internal static class ReflectionsPrediction
     private static IReadOnlyList<CardModel> PredictTouchAMirror(IReadOnlyList<CardModel> deckCards, Rng realRng)
     {
         var rng = realRng.Clone();
-        var deckState = PredictedCard.FromCards(deckCards);
+        var deckState = deckCards.Select(card => new PredictedCard(card)).ToList();
         var previews = new List<CardModel>();
 
         var upgradedCards = deckState

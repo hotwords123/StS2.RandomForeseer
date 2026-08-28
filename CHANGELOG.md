@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复预测过程中升级卡牌后，同名卡牌的洗牌预测可能不正确的问题。<br>
+  Fixed shuffle predictions for cards with the same name potentially being incorrect if one of them was upgraded during prediction.
+
 - 修复部分 Mod 让遗物拾取流程提前返回时，遗物拾取预测清理上下文可能发生异常的问题。<br>
   Fixed relic pickup prediction cleanup potentially throwing when another mod short-circuits the relic-obtain flow.
 
