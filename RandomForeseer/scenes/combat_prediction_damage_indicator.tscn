@@ -1,11 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://ct6s6pdg2xi30"]
 
-[ext_resource type="Script" path="res://RandomForeseerCode/InCombat/Nodes/NCombatPredictionDamageIndicator.cs" id="1_script"]
-[ext_resource type="Script" path="res://RandomForeseerCode/Common/Nodes/NMegaLabel.cs" id="2_mega_label"]
+[ext_resource type="Script" uid="uid://b5tg3ghqynyi" path="res://RandomForeseerCode/InCombat/Nodes/NCombatPredictionDamageIndicator.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://p6ds2uruilxn" path="res://RandomForeseerCode/Common/Nodes/NMegaLabel.cs" id="2_mega_label"]
 
 [node name="CombatPredictionDamageIndicator" type="MarginContainer"]
-mouse_filter = 0
 z_index = 9
+mouse_filter = 0
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 10
@@ -31,7 +31,6 @@ mouse_filter = 2
 [node name="DamageLabel" type="Label" parent="Content"]
 custom_minimum_size = Vector2(20, 40)
 layout_mode = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25098)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.501961)
