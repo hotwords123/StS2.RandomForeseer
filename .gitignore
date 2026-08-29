@@ -9,8 +9,6 @@ ModUploader-win-x64/
 *.DotSettings.user
 
 local.props
-*.uid
-*.import
 *.tmp
 *.log
 workshop/*.local.json
