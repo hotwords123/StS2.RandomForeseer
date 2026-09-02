@@ -83,6 +83,14 @@ These handlers take priority over inference, including when their original IL al
 recipe. `CombatPredictionSimulator.Draw` returns the drawn `PredictedCard` objects for these follow-up mirrors while
 preserving the existing history and hook order.
 
+## Exact exhaust mirrors
+
+`SecondWind` snapshots every non-Attack card in the shadow hand, then exhausts and grants Block for each card in
+vanilla order. Each exhaust dispatches the existing `AfterCardExhausted` mirror family, so `DarkEmbracePower` draws
+from the shadow pile and the resulting cards are included in the play prediction without joining the current
+Second Wind snapshot. A repeated Second Wind play takes a fresh snapshot and can therefore exhaust cards drawn by an
+earlier play.
+
 ## Exact multi-hit attack mirrors
 
 Multi-hit attacks whose count or follow-up effects cannot be reconstructed by the general attack template use the

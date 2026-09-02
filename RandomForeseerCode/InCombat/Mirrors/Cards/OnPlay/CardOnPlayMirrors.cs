@@ -75,6 +75,7 @@ internal static class CardOnPlayMirrors
         registry.Register<Taunt>(GeneralCardMirrors.GeneralBlockThenViciousDrawOnPlay);
         registry.Register<Tremble>(GeneralCardMirrors.GeneralViciousDrawAfterVulnerableOnPlay);
         registry.Register<Shockwave>(GeneralCardMirrors.GeneralViciousDrawAfterVulnerableOnPlay);
+        registry.Register<SecondWind>(ExhaustCardMirrors.SecondWindOnPlay);
 
         registry.Register<Alchemize>(PotionGenerationCardMirrors.AlchemizeOnPlay);
 
