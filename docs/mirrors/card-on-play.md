@@ -39,13 +39,14 @@ bypassing the current setting.
 
 The inferrer inspects original IL through RitsuLib's `GetOriginalIl()`. Async `OnPlay` methods resolve to their generated `MoveNext` body, and the returned ordered direct call targets form a Type-level classification that the registry caches with its handler. Instance values such as upgrade state, dynamic vars and selected target are resolved only when the cached handler runs.
 
-The general inferrer currently recognizes three direct templates:
+The general inferrer currently recognizes four direct templates:
 
 | Candidate | Recognized IL shape | Mirrored behavior |
 | --- | --- | --- |
 | Attack | Direct `AttackCommand.Execute` call | Builds an attack from `CalculatedDamage`, `Damage` or `OstyDamage`, applies optional `Repeat`, and targets a single, all or random enemy according to the card. |
 | Block | Direct `CreatureCmd.GainBlock` call | Uses `CalculatedBlock` or `Block`. Self-target cards and enemy-targeting attack cards gain block on the owner; `AnyAlly` uses the selected ally; `AllAllies` uses all living player teammates. |
 | Owner draw | A supported `CardPileCmd.Draw` call-site recipe | Draws a fixed one card or the standard `Cards` value for the owner from shadow piles, including shuffle and draw hooks. |
+| Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Draws from shadow piles for the card owner's existing `ViciousPower`, once per living target. General Apply Power state remains unsupported. |
 
 Candidates are deduplicated by effect kind and executed in their first direct-call order, so multiple direct calls of
 the same recognized kind produce one general effect. Missing standard vars, unsupported targets and an unavailable

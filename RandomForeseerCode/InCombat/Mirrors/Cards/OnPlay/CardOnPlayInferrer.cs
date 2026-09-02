@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
@@ -75,6 +76,10 @@ internal static class CardOnPlayInferrer
                     actions.Add(mirror);
                 }
             }
+            else if (IsVulnerableApplication(body.Instructions, i, calledMethod))
+            {
+                actions.Add(GeneralCardMirrors.GeneralViciousDrawAfterVulnerableOnPlay);
+            }
         }
 
         if (actions.Count == 0)
@@ -101,6 +106,19 @@ internal static class CardOnPlayInferrer
                     TelemetryContext.ForModel(card));
             }
         };
+    }
+
+    private static bool IsVulnerableApplication(
+        IReadOnlyList<CodeInstruction> instructions,
+        int callIndex,
+        MethodInfo method)
+    {
+        return method.DeclaringType == typeof(PowerCmd) &&
+               method.Name == nameof(PowerCmd.Apply) &&
+               method.IsGenericMethod &&
+               method.GetGenericArguments() is [var powerType] &&
+               powerType == typeof(VulnerablePower) &&
+               !IsConditionallyGuarded(instructions, callIndex);
     }
 
     private static bool TryInferOwnerDraw(

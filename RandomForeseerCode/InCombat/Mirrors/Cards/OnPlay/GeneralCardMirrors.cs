@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -13,6 +14,47 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class GeneralCardMirrors
 {
+    /// <summary>
+    /// Mirrors the draw side effect of <see cref="ViciousPower"/> after this card applies Vulnerable.
+    /// </summary>
+    /// <remarks>
+    /// Applying powers is otherwise outside the simulator's state domain. This deliberately mirrors only the
+    /// immediately observable Vicious draw, using the live Vicious amount and without mutating either power.
+    /// </remarks>
+    public static void GeneralViciousDrawAfterVulnerableOnPlay(CardModel card, CardOnPlayMirrorContext context)
+    {
+        var drawPerApplication = card.Owner.Creature.GetPowerAmount<ViciousPower>();
+        if (drawPerApplication <= 0)
+        {
+            return;
+        }
+
+        var applicationCount = card.TargetType switch
+        {
+            TargetType.AnyEnemy => context.State.GetCreature(context.Target).IsAlive ? 1 : 0,
+            TargetType.AllEnemies => context.CombatState.GetOpponentsOf(card.Owner.Creature)
+                .Count(target => context.State.GetCreature(target).IsAlive),
+            _ => 0
+        };
+
+        if (applicationCount > 0)
+        {
+            context.Simulator.Draw(card.Owner, drawPerApplication * applicationCount);
+        }
+    }
+
+    public static void GeneralAttackThenViciousDrawOnPlay(CardModel card, CardOnPlayMirrorContext context)
+    {
+        GeneralAttackOnPlay(card, context);
+        GeneralViciousDrawAfterVulnerableOnPlay(card, context);
+    }
+
+    public static void GeneralBlockThenViciousDrawOnPlay(CardModel card, CardOnPlayMirrorContext context)
+    {
+        GeneralBlockOnPlay(card, context);
+        GeneralViciousDrawAfterVulnerableOnPlay(card, context);
+    }
+
     /// <summary>
     /// Simulates a general draw of one card for the card's owner.
     /// </summary>
