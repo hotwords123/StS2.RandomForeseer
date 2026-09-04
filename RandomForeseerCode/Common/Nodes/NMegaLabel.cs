@@ -8,9 +8,7 @@ internal sealed partial class NMegaLabel : MegaLabel
 {
     private const string LabelFontPath = "res://themes/kreon_bold_glyph_space_one.tres";
 
-    private static readonly Font LabelFont = ResourceLoader.Load<Font>(
-        LabelFontPath,
-        cacheMode: ResourceLoader.CacheMode.Reuse);
+    private static readonly Font LabelFont = ResourceLoader.Load<Font>(LabelFontPath);
 
     public override void _Ready()
     {
