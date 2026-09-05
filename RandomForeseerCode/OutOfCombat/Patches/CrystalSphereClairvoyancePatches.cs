@@ -19,11 +19,18 @@ internal static class CrystalSphereClairvoyancePatch
 
         ModSettingsBindingWriteEvents.SubscribeValueWrittenWhileNodeAlive(__instance, binding =>
         {
-            if (ReferenceEquals(binding, SettingsUiBindings.CrystalSphereClairvoyanceEnabled))
+            if (IsRefreshBinding(binding))
             {
                 Refresh(__instance, original);
             }
         });
+    }
+
+    private static bool IsRefreshBinding(IModSettingsBinding binding)
+    {
+        return ReferenceEquals(binding, SettingsUiBindings.SingleplayerPredictionEnabled) ||
+               ReferenceEquals(binding, SettingsUiBindings.MultiplayerPredictionEnabled) ||
+               ReferenceEquals(binding, SettingsUiBindings.CrystalSphereClairvoyanceEnabled);
     }
 
     private static void Refresh(NCrystalSphereMask mask, Color original)

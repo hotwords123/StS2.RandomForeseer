@@ -271,7 +271,9 @@ internal static class EndTurnPredictionController
 
     private static bool IsEndTurnPredictionRefreshBinding(IModSettingsBinding binding)
     {
-        return ReferenceEquals(binding, SettingsUiBindings.CombatDamagePredictionEnabled) ||
+        return ReferenceEquals(binding, SettingsUiBindings.SingleplayerPredictionEnabled) ||
+            ReferenceEquals(binding, SettingsUiBindings.MultiplayerPredictionEnabled) ||
+            ReferenceEquals(binding, SettingsUiBindings.CombatDamagePredictionEnabled) ||
             ReferenceEquals(binding, SettingsUiBindings.RandomTargetAttackPredictionEnabled) ||
             ReferenceEquals(binding, SettingsUiBindings.OrbDamagePredictionEnabled) ||
             ReferenceEquals(binding, SettingsUiBindings.EndTurnPredictionEnabled) ||
