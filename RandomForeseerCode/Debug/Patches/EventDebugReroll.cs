@@ -10,12 +10,12 @@ using RandomForeseer.RandomForeseerCode.Data;
 namespace RandomForeseer.RandomForeseerCode.Debug.Patches;
 
 [HarmonyPatch(typeof(NEventLayout), nameof(NEventLayout.AddOptions))]
-internal static class AncientEventDebugRerollPatch
+internal static class EventDebugRerollPatch
 {
-    private const string ButtonName = Entry.ModId + "_AncientEventDebugReroll";
+    private const string ButtonName = Entry.ModId + "_EventDebugReroll";
 
     private static readonly System.Reflection.MethodInfo GenerateInitialOptionsMethod =
-        AccessTools.Method(typeof(AncientEventModel), "GenerateInitialOptionsWrapper");
+        AccessTools.Method(typeof(EventModel), "GenerateInitialOptionsWrapper");
 
     private static readonly System.Reflection.MethodInfo SetEventStateMethod =
         AccessTools.Method(typeof(EventModel), "SetEventState", [typeof(LocString), typeof(IEnumerable<EventOption>)]);
@@ -23,9 +23,8 @@ internal static class AncientEventDebugRerollPatch
     private static void Postfix(NEventLayout __instance)
     {
         var settings = ModData.Settings;
-        if (!settings.DebugSettingsEnabled || !settings.AncientEventDebugRerollEnabled ||
-            __instance._event is not AncientEventModel ancient ||
-            ancient.IsFinished ||
+        if (!settings.DebugSettingsEnabled || !settings.EventDebugRerollEnabled ||
+            __instance._event is not { IsFinished: false } eventModel ||
             __instance.GetNodeOrNull<Button>(ButtonName) != null)
         {
             return;
@@ -38,13 +37,13 @@ internal static class AncientEventDebugRerollPatch
             CustomMinimumSize = new Vector2(180f, 44f),
             FocusMode = Control.FocusModeEnum.None
         };
-        button.Connect(BaseButton.SignalName.Pressed, Callable.From(() => Reroll(ancient)));
+        button.Connect(BaseButton.SignalName.Pressed, Callable.From(() => Reroll(eventModel)));
         __instance.GetNode<VBoxContainer>("%OptionsContainer").AddChildSafely(button);
     }
 
-    private static void Reroll(AncientEventModel ancient)
+    private static void Reroll(EventModel eventModel)
     {
-        var options = (IReadOnlyList<EventOption>)GenerateInitialOptionsMethod.Invoke(ancient, null)!;
-        SetEventStateMethod.Invoke(ancient, [ancient.InitialDescription, options]);
+        var options = (IReadOnlyList<EventOption>)GenerateInitialOptionsMethod.Invoke(eventModel, null)!;
+        SetEventStateMethod.Invoke(eventModel, [eventModel.InitialDescription, options]);
     }
 }

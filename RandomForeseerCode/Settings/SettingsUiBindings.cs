@@ -135,8 +135,8 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> DebugSettingsEnabled { get; } =
         Binding(s => s.DebugSettingsEnabled, (s, v) => s.DebugSettingsEnabled = v);
 
-    public static IModSettingsValueBinding<bool> AncientEventDebugRerollEnabled { get; } =
-        Binding(s => s.AncientEventDebugRerollEnabled, (s, v) => s.AncientEventDebugRerollEnabled = v);
+    public static IModSettingsValueBinding<bool> EventDebugRerollEnabled { get; } =
+        Binding(s => s.EventDebugRerollEnabled, (s, v) => s.EventDebugRerollEnabled = v);
 
     private static IModSettingsValueBinding<TValue> Binding<TValue>(
         Func<ModSettings, TValue> getter,

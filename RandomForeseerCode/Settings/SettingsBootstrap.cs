@@ -184,10 +184,10 @@ internal static class SettingsBootstrap
             .WithDescription(T("page.debug.description"))
             .WithSortOrder(1)
             .WithVisibleWhen(() => SettingsUiBindings.DebugSettingsEnabled.Read())
-            .AddSection("ancient_event_debug", section => section
-                .WithTitle(T("section.ancient_event_debug.title"))
-                .WithDescription(T("section.ancient_event_debug.description"))
-                .AddToggle("ancient_event_debug_reroll_enabled", SettingsUiBindings.AncientEventDebugRerollEnabled))
+            .AddSection("event_debug", section => section
+                .WithTitle(T("section.event_debug.title"))
+                .WithDescription(T("section.event_debug.description"))
+                .AddToggle("event_debug_reroll_enabled", SettingsUiBindings.EventDebugRerollEnabled))
             .AddSection("relic_pickup_debug", section => section
                 .WithTitle(T("section.relic_pickup_debug.title"))
                 .WithDescription(T("section.relic_pickup_debug.description"))
