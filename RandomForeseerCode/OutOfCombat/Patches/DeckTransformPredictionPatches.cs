@@ -50,7 +50,9 @@ internal static class DeckTransformSelectionScreenPatches
 internal static class DeckTransformPredictionInjectionPatch
 {
     [HarmonyPrefix]
-    private static void InjectPredictor(ref Func<CardModel, CardTransformation>? cardToTransformation)
+    private static void InjectPredictor(
+        CardSelectorPrefs prefs,
+        ref Func<CardModel, CardTransformation>? cardToTransformation)
     {
         // Patch this boundary before vanilla replaces null with its default transformation factory.
         // Explicit factories may implement different transform rules and must remain untouched.
@@ -62,7 +64,7 @@ internal static class DeckTransformPredictionInjectionPatch
 
         try
         {
-            if (DeckTransformPrediction.TryCreatePredictor(source, out var predictor))
+            if (DeckTransformPrediction.TryCreatePredictor(prefs, source, out var predictor))
             {
                 cardToTransformation = predictor.PredictNext;
             }

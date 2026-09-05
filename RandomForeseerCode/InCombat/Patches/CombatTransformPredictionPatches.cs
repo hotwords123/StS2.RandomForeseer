@@ -1,4 +1,5 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
@@ -12,11 +13,11 @@ internal static class CombatTransformPredictionPlayerHandPatch
 {
     [HarmonyPatch(nameof(NPlayerHand.SelectCards))]
     [HarmonyPrefix]
-    private static void BeginSession(NPlayerHand __instance, AbstractModel? source)
+    private static void BeginSession(NPlayerHand __instance, CardSelectorPrefs prefs, AbstractModel? source)
     {
         try
         {
-            CombatTransformPrediction.BeginSession(__instance, source);
+            CombatTransformPrediction.BeginSession(__instance, prefs, source);
         }
         catch (Exception ex)
         {

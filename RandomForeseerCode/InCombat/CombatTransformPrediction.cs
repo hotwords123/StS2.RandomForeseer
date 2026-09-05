@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -14,7 +15,7 @@ internal static class CombatTransformPrediction
 {
     private static CombatTransformPredictionSession? _session;
 
-    public static void BeginSession(NPlayerHand hand, AbstractModel? source)
+    public static void BeginSession(NPlayerHand hand, CardSelectorPrefs prefs, AbstractModel? source)
     {
         _session = null;
 
@@ -26,7 +27,7 @@ internal static class CombatTransformPrediction
 
         if (realRng != null)
         {
-            _session = new CombatTransformPredictionSession(hand, realRng);
+            _session = new CombatTransformPredictionSession(hand, prefs.MaxSelect, realRng);
         }
     }
 
@@ -54,23 +55,17 @@ internal static class CombatTransformPrediction
         return session.GetHoverTips(card);
     }
 
-    private sealed class CombatTransformPredictionSession(NPlayerHand hand, Rng realRng)
+    private sealed class CombatTransformPredictionSession(NPlayerHand hand, int maxSelect, Rng realRng)
     {
+        private readonly TransformPrediction _prediction = new(maxSelect, isInCombat: true);
+
         public NPlayerHand Hand { get; } = hand;
 
         public IReadOnlyList<IHoverTip> GetHoverTips(CardModel hoveredCard)
         {
-            if (Hand.GetCardHolder(hoveredCard) is null)
-            {
-                return [];
-            }
-
-            return TransformPrediction.GetHoverTips(
-                hoveredCard,
-                Hand._selectedCards,
-                Hand._prefs.MaxSelect,
-                realRng,
-                isInCombat: true);
+            return Hand.GetCardHolder(hoveredCard) is not null
+                ? _prediction.GetHoverTips(hoveredCard, Hand._selectedCards, realRng.Clone())
+                : [];
         }
     }
 }
