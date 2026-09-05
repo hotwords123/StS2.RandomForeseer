@@ -22,7 +22,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
     private Creature _target = null!;
     private HBoxContainer _sourceIcons = null!;
-    private MegaLabel _damageLabel = null!;
+    private Label _damageLabel = null!;
 
     private DamagePredictionTarget? _prediction;
     private bool _hasRisk;
@@ -41,7 +41,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
     {
         _sourceIcons = GetNode<HBoxContainer>("Content/SourceIcons");
         // DamageLabel styling in the scene mirrors res://scenes/combat/health_bar.tscn's HpLabel.
-        _damageLabel = GetNode<MegaLabel>("Content/DamageLabel");
+        _damageLabel = GetNode<Label>("Content/DamageLabel");
 
         Connect(Control.SignalName.MouseEntered, Callable.From(OnMouseEntered));
         Connect(Control.SignalName.MouseExited, Callable.From(OnMouseExited));
@@ -131,14 +131,12 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
     private static Color GetOutlineColor(DamagePredictionTarget prediction)
     {
-        if (prediction.WasTargetKilled)
+        return prediction switch
         {
-            return LethalOutlineColor;
-        }
-
-        return prediction.TotalUnblockedDamage == 0 && prediction.TotalDamage > 0
-            ? BlockedOutlineColor
-            : DefaultOutlineColor;
+            { WasTargetKilled: true } => LethalOutlineColor,
+            { TotalUnblockedDamage: 0, TotalDamage: > 0 } => BlockedOutlineColor,
+            _ => DefaultOutlineColor
+        };
     }
 
     private static string GetAmountText(DamagePredictionTarget prediction, bool hasRisk)
