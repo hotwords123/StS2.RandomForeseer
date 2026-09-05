@@ -49,7 +49,7 @@
   "slider.slippery_bridge_reroll_preview_count.label": "Slippery Bridge reroll previews",
   "slider.slippery_bridge_reroll_preview_count.description": "Controls how many future reroll results are previewed for [gold]Slippery Bridge[/gold]'s Hold On option.",
   "toggle.crystal_sphere_clairvoyance_enabled.label": "Enable Crystal Sphere clairvoyance",
-  "toggle.crystal_sphere_clairvoyance_enabled.description": "When enabled, items beneath unrevealed fog become visible in the [gold]Crystal Sphere[/gold] event minigame.",
+  "toggle.crystal_sphere_clairvoyance_enabled.description": "When enabled, items in the [gold]Crystal Sphere[/gold] event's divination screen become visible through unrevealed fog.",
 
   "header.relic_predictions.label": "Relic predictions",
   "toggle.relic_pickup_prediction_enabled.label": "Predict relic pickup effects",

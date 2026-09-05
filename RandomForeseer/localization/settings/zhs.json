@@ -49,7 +49,7 @@
   "slider.slippery_bridge_reroll_preview_count.label": "滑脚木桥重掷预览次数",
   "slider.slippery_bridge_reroll_preview_count.description": "控制[gold]滑脚木桥[/gold]的“抓紧”选项向后预览多少次重新随机的牌。",
   "toggle.crystal_sphere_clairvoyance_enabled.label": "启用水晶球透视",
-  "toggle.crystal_sphere_clairvoyance_enabled.description": "启用后，[gold]水晶球[/gold]事件小游戏会透过未揭开的迷雾显示其中物品。",
+  "toggle.crystal_sphere_clairvoyance_enabled.description": "启用后，[gold]水晶球[/gold]事件的占卜界面会透过未揭开的迷雾显示其中物品。",
 
   "header.relic_predictions.label": "遗物预测",
   "toggle.relic_pickup_prediction_enabled.label": "预测遗物拾起效果",
