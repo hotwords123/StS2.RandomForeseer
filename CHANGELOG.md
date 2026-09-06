@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 战斗卡牌预测新增对回响斩击和万向斩的支持，现在会正确处理其特殊攻击效果。<br>
+  Combat card prediction now supports Echoing Slash and Omnislice, correctly handling their special attack effects.
+
 ## v0.13.11
 
 ### fix

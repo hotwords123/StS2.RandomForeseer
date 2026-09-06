@@ -102,6 +102,12 @@ Beat Down retains its own per-selected-card ending check before resolving each r
 shared auto-play command would incorrectly consume an extra `CombatTargets` RNG value after an earlier selected card
 ends combat.
 
+## Special exact handlers
+
+`EchoingSlash` and `Omnislice` are explicitly registered because their `OnPlay` bodies group multiple damage calls
+inside vanilla `AttackContext`, which the general attack inference cannot represent. Their handlers use
+`SimAttackContext` to dispatch the shared attack hooks and mirror each card's conditional or chained hit logic.
+
 ## Deliberate limits and risks
 
 - Only calls directly present in the original `OnPlay`/`MoveNext` body are considered. Same-card helpers, virtual/interface dispatch, delegates, reflection and arbitrary transitive calls are not followed.
