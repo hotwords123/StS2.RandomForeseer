@@ -256,3 +256,7 @@ project.godot - Godot project used for PCK export
 scripts/release.ps1 - Local build, packaging, and release script
 workshop/loader/ - Steam Workshop multi-version package loader
 ```
+
+## License
+
+MIT License
