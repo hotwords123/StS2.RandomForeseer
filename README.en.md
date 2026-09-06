@@ -117,3 +117,7 @@ project.godot - Godot project used for PCK export
 scripts/ - Local development, maintenance, and release scripts
 workshop/loader/ - Steam Workshop multi-version package loader
 ```
+
+## License
+
+MIT License

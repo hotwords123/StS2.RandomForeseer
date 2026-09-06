@@ -117,3 +117,7 @@ project.godot - PCK 导出用 Godot 项目
 scripts/ - 本地开发、维护和发版脚本
 workshop/loader/ - Steam 创意工坊多版本包加载器
 ```
+
+## 许可协议
+
+MIT License
