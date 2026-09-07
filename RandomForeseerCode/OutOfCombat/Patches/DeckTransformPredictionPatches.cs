@@ -107,7 +107,7 @@ internal static class DeckTransformPredictionRelicSourcePatch
         __state = DeckTransformPredictionContext.EnterRelic(relic);
     }
 
-    [HarmonyPostfix]
+    [HarmonyFinalizer]
     private static void RestoreCallerSource(IDisposable? __state)
     {
         // The async original captured this source in its ExecutionContext before returning its Task.
@@ -125,7 +125,7 @@ internal static class DeckTransformPredictionEventOptionSourcePatch
         __state = DeckTransformPredictionContext.EnterEventOption(__instance);
     }
 
-    [HarmonyPostfix]
+    [HarmonyFinalizer]
     private static void RestoreCallerSource(IDisposable? __state)
     {
         // EventOption.Chosen captures the source for its continuations before returning its Task.
