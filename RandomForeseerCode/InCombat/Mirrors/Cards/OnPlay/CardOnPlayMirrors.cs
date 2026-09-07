@@ -68,13 +68,6 @@ internal static class CardOnPlayMirrors
         registry.Register<Havoc>(AutoPlayCardMirrors.HavocOnPlay);
         registry.Register<Cascade>(AutoPlayCardMirrors.CascadeOnPlay);
 
-        registry.Register<Bash>(GeneralCardMirrors.GeneralAttackThenViciousDrawOnPlay);
-        registry.Register<Break>(GeneralCardMirrors.GeneralAttackThenViciousDrawOnPlay);
-        registry.Register<Thunderclap>(GeneralCardMirrors.GeneralAttackThenViciousDrawOnPlay);
-        registry.Register<Uppercut>(GeneralCardMirrors.GeneralAttackThenViciousDrawOnPlay);
-        registry.Register<Taunt>(GeneralCardMirrors.GeneralBlockThenViciousDrawOnPlay);
-        registry.Register<Tremble>(GeneralCardMirrors.GeneralViciousDrawAfterVulnerableOnPlay);
-        registry.Register<Shockwave>(GeneralCardMirrors.GeneralViciousDrawAfterVulnerableOnPlay);
         registry.Register<SecondWind>(ExhaustCardMirrors.SecondWindOnPlay);
 
         registry.Register<Alchemize>(PotionGenerationCardMirrors.AlchemizeOnPlay);

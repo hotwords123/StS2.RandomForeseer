@@ -46,7 +46,7 @@ The general inferrer currently recognizes four direct templates:
 | Attack | Direct `AttackCommand.Execute` call | Builds an attack from `CalculatedDamage`, `Damage` or `OstyDamage`, applies optional `Repeat`, and targets a single, all or random enemy according to the card. |
 | Block | Direct `CreatureCmd.GainBlock` call | Uses `CalculatedBlock` or `Block`. Self-target cards and enemy-targeting attack cards gain block on the owner; `AnyAlly` uses the selected ally; `AllAllies` uses all living player teammates. |
 | Owner draw | A supported `CardPileCmd.Draw` call-site recipe | Draws a fixed one card or the standard `Cards` value for the owner from shadow piles, including shuffle and draw hooks. |
-| Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Draws from shadow piles for the card owner's existing `ViciousPower`, once per living target. General Apply Power state remains unsupported. |
+| Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Resolves the standard `Vulnerable`/`Power` amount and target shape, then enters the shared shadow `PowerCmd.Apply` boundary. Artifact can consume the application before `AfterPowerAmountChanged`; an active Vicious then draws through the existing shadow draw pipeline. |
 
 Candidates are deduplicated by effect kind and executed in their first direct-call order, so multiple direct calls of
 the same recognized kind produce one general effect. Missing standard vars, unsupported targets and an unavailable
@@ -118,7 +118,8 @@ ends combat.
 - Direct attack and block calls may still be conditional. General inference does not reconstruct arbitrary control flow, so a structurally inferred candidate may execute in a state where vanilla would skip it. The draw check rejects only a narrow adjacent-branch shape; reviewed conditional draw cards use exact mirrors.
 - General attack, block and owner-draw parameter resolution is intentionally limited to standard dynamic-var, count and target templates. Calculated special values, dependent command results and nonstandard targeting require exact mirrors.
 - Direct `Cards.IntValue` recipes reuse `Cards.BaseValue` when the cached action executes. Vanilla card-count vars are integral, but a Mod card with a fractional value could differ because the simulator applies draw-count ceiling instead of first truncating to `IntValue`.
-- Inference does not imply the complete `OnPlay` was mirrored. Power application, HP loss, energy, card movement/generation and other commands remain omitted unless an exact handler covers the card.
+- Inference does not imply the complete `OnPlay` was mirrored. Outside the narrow Vulnerable template, power application, HP loss, energy, card movement/generation and other commands remain omitted unless an exact handler covers the card.
+- The power-application boundary mirrors hook order and prediction-owned listener effects but does not yet maintain a complete shadow power collection. It therefore supports existing Artifact/Vicious state while recording mirror risk for unregistered power lifecycle or action-hook overrides.
 - A recognized attack or block whose runtime card lacks a supported damage/block var or target shape skips that general action and records incomplete risk; its Type-level classification remains cached.
 
 These limits are intentional. Expanding inference should add narrowly named, offline-verifiable templates rather than evolve into a general IL interpreter.

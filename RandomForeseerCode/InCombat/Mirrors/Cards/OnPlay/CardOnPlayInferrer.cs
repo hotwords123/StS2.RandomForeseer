@@ -78,7 +78,10 @@ internal static class CardOnPlayInferrer
             }
             else if (IsVulnerableApplication(body.Instructions, i, calledMethod))
             {
-                actions.Add(GeneralCardMirrors.GeneralViciousDrawAfterVulnerableOnPlay);
+                if (effects.Add(EffectKind.VulnerableApplication))
+                {
+                    actions.Add(GeneralCardMirrors.GeneralVulnerableApplicationOnPlay);
+                }
             }
         }
 
@@ -339,6 +342,7 @@ internal static class CardOnPlayInferrer
     {
         Attack,
         Block,
-        OwnerDraw
+        OwnerDraw,
+        VulnerableApplication
     }
 }

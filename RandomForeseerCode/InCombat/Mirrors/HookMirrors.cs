@@ -14,6 +14,7 @@ using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Power;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
@@ -24,6 +25,166 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 // hook-level ordering while method-specific registries and contexts remain implementation details.
 internal static class HookMirrors
 {
+    public static void BeforePowerAmountChanged(
+        CombatPredictionSimulator simulator,
+        PowerModel power,
+        decimal amount,
+        Creature target,
+        Creature? applier,
+        PredictedCard? cardSource)
+    {
+        var context = new PowerAmountChangedMirrorContext
+        {
+            Simulator = simulator,
+            Power = power,
+            Amount = amount,
+            Target = target,
+            Applier = applier,
+            CardSource = cardSource
+        };
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            PowerAmountChangedMirrors.InvokeBefore(listener, context);
+        }
+    }
+
+    public static decimal ModifyPowerAmountGiven(
+        CombatPredictionSimulator simulator,
+        PowerModel power,
+        Creature applier,
+        decimal amount,
+        Creature target,
+        PredictedCard? cardSource,
+        out List<AbstractModel> modifiers)
+    {
+        var context = new ModifyPowerAmountMirrorContext
+        {
+            Simulator = simulator,
+            Power = power,
+            Target = target,
+            Applier = applier,
+            CardSource = cardSource,
+            Amount = amount
+        };
+        modifiers = [];
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            context.Amount = amount;
+            var additive = ModifyPowerAmountMirrors.InvokeGivenAdditive(listener, context);
+            if (additive != 0m)
+            {
+                modifiers.Add(listener);
+            }
+
+            amount += additive;
+        }
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            context.Amount = amount;
+            var multiplicative = ModifyPowerAmountMirrors.InvokeGivenMultiplicative(listener, context);
+            if (multiplicative != 1m)
+            {
+                modifiers.Add(listener);
+            }
+
+            amount *= multiplicative;
+        }
+
+        return amount;
+    }
+
+    public static decimal ModifyPowerAmountReceived(
+        CombatPredictionSimulator simulator,
+        PowerModel power,
+        Creature target,
+        decimal amount,
+        Creature? applier,
+        out List<AbstractModel> modifiers)
+    {
+        var context = new ModifyPowerAmountMirrorContext
+        {
+            Simulator = simulator,
+            Power = power,
+            Target = target,
+            Applier = applier,
+            CardSource = null,
+            Amount = amount
+        };
+        modifiers = [];
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            context.Amount = amount;
+            var modification = ModifyPowerAmountMirrors.InvokeReceived(listener, context);
+            if (modification.WasModified)
+            {
+                modifiers.Add(listener);
+                amount = modification.Amount;
+            }
+        }
+
+        return amount;
+    }
+
+    public static void AfterModifyingPowerAmountGiven(
+        CombatPredictionSimulator simulator,
+        IEnumerable<AbstractModel> modifiers,
+        PowerModel power)
+    {
+        var context = new AfterModifyingPowerAmountMirrorContext { Simulator = simulator, Power = power };
+        var modifierSet = modifiers.ToHashSet();
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            if (modifierSet.Contains(listener))
+            {
+                PowerAmountChangedMirrors.InvokeAfterGiven(listener, context);
+            }
+        }
+    }
+
+    public static void AfterModifyingPowerAmountReceived(
+        CombatPredictionSimulator simulator,
+        IEnumerable<AbstractModel> modifiers,
+        PowerModel power)
+    {
+        var context = new AfterModifyingPowerAmountMirrorContext { Simulator = simulator, Power = power };
+        var modifierSet = modifiers.ToHashSet();
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            if (modifierSet.Contains(listener))
+            {
+                PowerAmountChangedMirrors.InvokeAfterReceived(listener, context);
+            }
+        }
+    }
+
+    public static void AfterPowerAmountChanged(
+        CombatPredictionSimulator simulator,
+        PowerModel power,
+        decimal amount,
+        Creature target,
+        Creature? applier,
+        PredictedCard? cardSource)
+    {
+        var context = new PowerAmountChangedMirrorContext
+        {
+            Simulator = simulator,
+            Power = power,
+            Amount = amount,
+            Target = target,
+            Applier = applier,
+            CardSource = cardSource
+        };
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            PowerAmountChangedMirrors.InvokeAfter(listener, context);
+        }
+    }
+
     /// <summary>
     /// Mirrors <see cref="Hook.ModifyXValue"/>.
     /// </summary>

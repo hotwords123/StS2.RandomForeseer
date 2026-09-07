@@ -15,44 +15,33 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
 internal static class GeneralCardMirrors
 {
     /// <summary>
-    /// Mirrors the draw side effect of <see cref="ViciousPower"/> after this card applies Vulnerable.
+    /// Mirrors a directly inferred <see cref="PowerCmd.Apply{VulnerablePower}"/> through the simulator's power
+    /// application boundary. Power listeners such as Artifact and Vicious are dispatched by the shared Hook mirrors.
     /// </summary>
-    /// <remarks>
-    /// Applying powers is otherwise outside the simulator's state domain. This deliberately mirrors only the
-    /// immediately observable Vicious draw, using the live Vicious amount and without mutating either power.
-    /// </remarks>
-    public static void GeneralViciousDrawAfterVulnerableOnPlay(CardModel card, CardOnPlayMirrorContext context)
+    public static void GeneralVulnerableApplicationOnPlay(CardModel card, CardOnPlayMirrorContext context)
     {
-        var drawPerApplication = card.Owner.Creature.GetPowerAmount<ViciousPower>();
-        if (drawPerApplication <= 0)
+        var amount = TryGetDynamicVar(card, ["Vulnerable", "Power"], out var vulnerable)
+            ? context.Calculate(vulnerable)
+            : 1m;
+
+        IEnumerable<Creature> targets;
+        switch (card.TargetType)
         {
-            return;
+            case TargetType.AnyEnemy:
+                targets = [context.Target];
+                break;
+
+            case TargetType.AllEnemies:
+                targets = context.State.HittableEnemies;
+                break;
+
+            default:
+                Entry.Logger.Warn($"Vulnerable application {card.Id} has an unsupported target type: {card.TargetType}");
+                context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+                return;
         }
 
-        var applicationCount = card.TargetType switch
-        {
-            TargetType.AnyEnemy => context.State.GetCreature(context.Target).IsAlive ? 1 : 0,
-            TargetType.AllEnemies => context.CombatState.GetOpponentsOf(card.Owner.Creature)
-                .Count(target => context.State.GetCreature(target).IsAlive),
-            _ => 0
-        };
-
-        if (applicationCount > 0)
-        {
-            context.Simulator.Draw(card.Owner, drawPerApplication * applicationCount);
-        }
-    }
-
-    public static void GeneralAttackThenViciousDrawOnPlay(CardModel card, CardOnPlayMirrorContext context)
-    {
-        GeneralAttackOnPlay(card, context);
-        GeneralViciousDrawAfterVulnerableOnPlay(card, context);
-    }
-
-    public static void GeneralBlockThenViciousDrawOnPlay(CardModel card, CardOnPlayMirrorContext context)
-    {
-        GeneralBlockOnPlay(card, context);
-        GeneralViciousDrawAfterVulnerableOnPlay(card, context);
+        context.Simulator.ApplyPower<VulnerablePower>(targets, amount, card.Owner.Creature, context.Card);
     }
 
     /// <summary>
