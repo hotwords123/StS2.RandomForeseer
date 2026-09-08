@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复已授权的使用统计、Mod 清单和诊断信息可能无法正常上报的问题。<br>
+  Fixed consented usage statistics, mod inventories, and diagnostics potentially failing to report.
+
 - 修复凡庸、昏眩和执迷的出牌限制在战斗预测中可能判断不正确的问题。<br>
   Fixed combat predictions potentially evaluating card-play restrictions from Normality, Ringing, and Enthralled incorrectly.
 

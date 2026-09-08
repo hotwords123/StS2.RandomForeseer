@@ -14,6 +14,8 @@
     <!--<RitsuLibDeployDir>$(Sts2Dir)/mods/STS2-RitsuLib</RitsuLibDeployDir>-->
 
     <!-- 可选：构建时注入的 PostHog host 和公开项目 API key；缺失任一项时禁用遥测发送。 -->
+    <!-- 使用网关时分别填写固定域名和 INGRESS_TOKEN；不要把服务端 POSTHOG_PROJECT_TOKEN 注入模组。 -->
+    <!-- 网关验收完成后再切换构建配置。 -->
     <RandomForeseerPostHogHost></RandomForeseerPostHogHost>
     <RandomForeseerPostHogProjectApiKey></RandomForeseerPostHogProjectApiKey>
   </PropertyGroup>

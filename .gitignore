@@ -1,6 +1,7 @@
 bin/
 obj/
 artifacts/
+/services/
 ModUploader-win-x64/
 .vs/
 .idea/
