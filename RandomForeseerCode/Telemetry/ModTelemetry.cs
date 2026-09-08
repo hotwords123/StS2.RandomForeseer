@@ -51,25 +51,6 @@ internal static class ModTelemetry
         });
 
         _client = RitsuLibFramework.GetTelemetryClient(Entry.ModId);
-        GodotErrorTelemetryListener.Register();
-    }
-
-    internal static bool IsDiagnosticsEnabled => _client?.IsEnabled("diagnostics") == true;
-
-    internal static void CaptureGodotError(JsonObject payload, string exceptionType)
-    {
-        if (_client is not { } client || !client.IsEnabled("diagnostics"))
-        {
-            return;
-        }
-
-        client.CapturePayload("exception", "diagnostics", payload, new Dictionary<string, object?>
-        {
-            ["capture_mode"] = "godot",
-            ["capture_source"] = "random_foreseer/godot",
-            ["payload_kind"] = "godot_error",
-            ["exception_type"] = exceptionType
-        });
     }
 
     /// <summary>

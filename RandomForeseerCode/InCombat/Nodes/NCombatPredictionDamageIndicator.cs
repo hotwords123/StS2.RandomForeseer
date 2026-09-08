@@ -8,7 +8,6 @@ using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Nodes;
 
@@ -41,89 +40,22 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
     public override void _Ready()
     {
-        _initialized = false;
-        Node? sourceIcons = null;
-        Node? damageLabel = null;
-        var stage = "source_icons";
-        try
-        {
-            sourceIcons = GetNode("Content/SourceIcons");
-            _sourceIcons = sourceIcons as HBoxContainer ?? throw new InvalidOperationException(
-                $"Damage indicator requires an HBoxContainer at Content/SourceIcons; found {sourceIcons?.GetType().FullName ?? "<missing>"}.");
-            stage = "damage_label";
-            // DamageLabel styling in the scene mirrors res://scenes/combat/health_bar.tscn's HpLabel.
-            damageLabel = GetNode("Content/DamageLabel");
-            _damageLabel = damageLabel as Label ?? throw new InvalidOperationException(
-                $"Damage indicator requires a Label at Content/DamageLabel; found {damageLabel?.GetType().FullName ?? "<missing>"}.");
+        _sourceIcons = GetNode<HBoxContainer>("Content/SourceIcons");
+        // DamageLabel styling in the scene mirrors res://scenes/combat/health_bar.tscn's HpLabel.
+        _damageLabel = GetNode<Label>("Content/DamageLabel");
 
-            stage = "connect_signals";
-            Connect(Control.SignalName.MouseEntered, Callable.From(OnMouseEntered));
-            Connect(Control.SignalName.MouseExited, Callable.From(OnMouseExited));
-        }
-        catch (Exception ex)
+        if (_sourceIcons is null || _damageLabel is null)
         {
-            ModTelemetry.CaptureException(
-                ex,
-                "combat_damage_indicator",
-                "initialize",
-                GetInitializationContext(stage, sourceIcons, damageLabel));
-            Entry.Logger.Warn($"Damage indicator initialization failed at {stage}: {ex}");
+            Entry.Logger.Error("Failed to initialize NCombatPredictionDamageIndicator: missing child nodes.");
             Visible = false;
             return;
         }
 
+        Connect(Control.SignalName.MouseEntered, Callable.From(OnMouseEntered));
+        Connect(Control.SignalName.MouseExited, Callable.From(OnMouseExited));
+
         _initialized = true;
         ShowPrediction();
-    }
-
-    private object GetInitializationContext(string stage, Node? sourceIcons, Node? damageLabel)
-    {
-        try
-        {
-            var isMainThread = OS.GetThreadCallerId() == OS.GetMainThreadId();
-            var content = isMainThread ? GetNodeOrNull("Content") : null;
-            return new
-            {
-                Stage = stage,
-                ExpectedScenePath = ScenePath,
-                InstanceId = GetInstanceId(),
-                IsMainThread = isMainThread,
-                Initialized = _initialized,
-                Indicator = isMainThread ? DescribeNode(this) : null,
-                ExpectedSourceIconsPath = "Content/SourceIcons",
-                SourceIcons = isMainThread ? DescribeNode(sourceIcons) : null,
-                ExpectedDamageLabelPath = "Content/DamageLabel",
-                DamageLabel = isMainThread ? DescribeNode(damageLabel) : null,
-                Content = DescribeNode(content),
-                ContentChildCount = content?.GetChildCount(),
-                ContentChildren = content?.GetChildren().Take(16).Select(DescribeNode).ToArray()
-            };
-        }
-        catch (Exception ex)
-        {
-            // Preserve the original failure even if inspecting a partially initialized scene fails too.
-            return new { Stage = stage, ExpectedScenePath = ScenePath, ContextError = ex.ToString() };
-        }
-    }
-
-    private static object? DescribeNode(Node? node)
-    {
-        if (node is null || !IsInstanceValid(node))
-        {
-            return null;
-        }
-
-        return new
-        {
-            Name = node.Name.ToString(),
-            Type = node.GetType().FullName,
-            NativeType = node.GetClass(),
-            node.SceneFilePath,
-            ScriptPath = (node.GetScript().AsGodotObject() as Script)?.ResourcePath,
-            IsInsideTree = node.IsInsideTree(),
-            IsReady = node.IsNodeReady(),
-            IsQueuedForDeletion = node.IsQueuedForDeletion()
-        };
     }
 
     public void SetPrediction(DamagePredictionTarget prediction, bool hasRisk)

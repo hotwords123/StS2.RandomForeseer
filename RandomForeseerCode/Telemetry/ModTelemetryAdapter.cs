@@ -7,6 +7,7 @@ namespace RandomForeseer.RandomForeseerCode.Telemetry;
 internal sealed class ModTelemetryAdapter(ITelemetryAdapter inner) : ITelemetryAdapter
 {
     private const string ModVersionMetadataName = "RandomForeseerModVersion";
+    private const string StackTraceMarker = "RandomForeseer.";
     private const string UnknownModVersion = "<unknown>";
 
     private readonly string _modVersion = ResolveModVersion();
@@ -57,35 +58,25 @@ internal sealed class ModTelemetryAdapter(ITelemetryAdapter inner) : ITelemetryA
             return true;
         }
 
-        return ContainsModDiagnostic(telemetryEvent.Payload);
+        return ContainsModStackTrace(telemetryEvent.Payload);
     }
 
-    internal static bool ContainsModName(string text) => text.Contains(Entry.ModId, StringComparison.Ordinal);
-
-    private static bool ContainsModDiagnostic(JsonNode? node)
+    private static bool ContainsModStackTrace(JsonNode? node)
     {
         switch (node)
         {
             case JsonObject obj:
                 if (obj["stack_trace"] is JsonValue stackTraceValue &&
                     stackTraceValue.TryGetValue<string>(out var stackTrace) &&
-                    ContainsModName(stackTrace))
+                    stackTrace.Contains(StackTraceMarker, StringComparison.Ordinal))
                 {
                     return true;
                 }
 
-                if (obj["godot_error"] is JsonObject godotError &&
-                    godotError.Any(property =>
-                        property.Value is JsonValue value &&
-                        value.TryGetValue<string>(out var text) && ContainsModName(text)))
-                {
-                    return true;
-                }
-
-                return obj.Any(property => ContainsModDiagnostic(property.Value));
+                return obj.Any(property => ContainsModStackTrace(property.Value));
 
             case JsonArray array:
-                return array.Any(ContainsModDiagnostic);
+                return array.Any(ContainsModStackTrace);
 
             default:
                 return false;
