@@ -14,6 +14,10 @@
   `GigantificationPower`; result-location and play-count consumers are documented in their dedicated hook pages.
 - Per-turn damage caps such as `HardenedShellPower` and `BeatingRemnant` use prediction-local accumulated-damage
   state shared between `AfterDamageReceived` and their respective HP-loss value-hook adapters.
+- `ShouldPlay` resolves `Enthralled`/`Normality` listener piles from prediction state and combines live current-turn
+  and predicted started-card history for `Normality`/`RingingPower`. `SmoggyPower` remains a safe original predicate
+  on the predicted card. Generated curse listeners and entering-card Ringing/Smog remain upstream gaps; see
+  `card-play-hooks.md` for the complete seven-listener audit against v0.111.0.
 - If a listener has any unmodeled prediction-relevant side effect, append an explicit `CombatPredictionRiskReason` to prediction history instead of silently ignoring it.
 - Keep Mock models out of implementation/ignore registries; list them only in docs.
 

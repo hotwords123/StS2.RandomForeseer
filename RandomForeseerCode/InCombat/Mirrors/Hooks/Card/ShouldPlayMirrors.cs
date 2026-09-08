@@ -1,10 +1,14 @@
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
 
@@ -33,12 +37,31 @@ internal static class ShouldPlayMirrors
     {
         var registry = new Registry(ShouldPlay);
 
+        registry.Register<Enthralled>(HandleEnthralled);
+        registry.Register<Normality>(HandleNormality);
+
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
+        registry.Register<RingingPower>(HandleRingingPower);
         registry.Register<SlothPower>(HandleSlothPower);
 
         registry.Register<VelvetChoker>(HandleVelvetChoker);
 
         return registry;
+    }
+
+    private static bool HandleEnthralled(Enthralled card, ShouldPlayMirrorContext context)
+    {
+        return context.Card.Preview.Owner != card.Owner ||
+            context.AutoPlayType != AutoPlayType.None ||
+            context.Card.Preview is Enthralled ||
+            context.State.FindCard(card)?.GetPile(context.State)?.Type != PileType.Hand;
+    }
+
+    private static bool HandleNormality(Normality card, ShouldPlayMirrorContext context)
+    {
+        return context.Card.Preview.Owner != card.Owner ||
+            context.State.FindCard(card)?.GetPile(context.State)?.Type != PileType.Hand ||
+            CountCardPlaysStartedThisTurn(card.Owner, context) < 3;
     }
 
     private static bool HandleChainsOfBindingPower(
@@ -48,6 +71,13 @@ internal static class ShouldPlayMirrors
         return context.Card.Preview.Owner.Creature != power.Owner ||
             context.Card.Preview.Affliction is not Bound ||
             !context.StateStore.Get(power, () => new ChainsOfBindingPredictionState(power)).BoundCardPlayed;
+    }
+
+    private static bool HandleRingingPower(RingingPower power, ShouldPlayMirrorContext context)
+    {
+        return context.Card.Preview.Owner.Creature != power.Owner ||
+            context.Card.Preview.Affliction is not Ringing ||
+            CountCardPlaysStartedThisTurn(context.Card.Preview.Owner, context) == 0;
     }
 
     private static bool HandleSlothPower(SlothPower power, ShouldPlayMirrorContext context)
@@ -62,6 +92,14 @@ internal static class ShouldPlayMirrors
         return context.Card.Preview.Owner != relic.Owner ||
             context.StateStore.Get(relic, () => new CounterPredictionState(relic._cardsPlayedThisTurn)).Value <
             relic.DynamicVars.Cards.IntValue;
+    }
+
+    private static int CountCardPlaysStartedThisTurn(Player player, ShouldPlayMirrorContext context)
+    {
+        return CombatManager.Instance.History.CardPlaysStarted.Count(entry =>
+                entry.HappenedThisTurn(context.CombatState) && entry.CardPlay.Player == player) +
+            context.History.OfType<CombatPredictionCardPlayStartedEntry>().Count(entry =>
+                entry.CardPlay.Player == player);
     }
 }
 

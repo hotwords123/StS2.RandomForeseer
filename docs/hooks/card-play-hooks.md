@@ -1,6 +1,7 @@
 # Card play hooks
 
 Research baseline: StS2 v0.110.1 (`a421e19`).
+`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`).
 
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Card/BeforeCardPlayedMirrors.cs`,
@@ -210,6 +211,30 @@ The labels remain useful for architecture, while each row now records its implem
 | `MakeItSo` | 如此甚好 | If outside hand, returns itself to hand after every configured owner Skill, using finished-card history that already includes the current play. | **Local feasible.** Combine live and shadow finished history, then move the predicted listener card from its shadow pile. |
 | `RightHandHand` | 得力助手 | If in discard, returns itself to hand after owner plays a card that spent at least the configured energy. | **Local feasible.** Use `CardPlay.Resources` and shadow pile movement. |
 
+## ShouldPlay listeners
+
+All seven vanilla overrides were reviewed against v0.111.0. Six use exact prediction-aware registrations;
+`SmoggyPower` safely uses the original read-only predicate with the predicted card as its argument.
+
+| Model | 中文名 | Original effect | Prediction status |
+| --- | --- | --- | --- |
+| `Enthralled` | 执迷 | While in the owner's hand, prevents manual plays of cards other than Enthralled; auto-plays are allowed. | **Implemented.** Resolves the listener's shadow pile; removed cards no longer block play. |
+| `Normality` | 凡庸 | While in the owner's hand, prevents plays once three owner card plays have started this turn, including auto-plays. | **Implemented.** Resolves the listener's shadow pile and combines live current-turn and predicted started history. |
+| `ChainsOfBindingPower` | 魂缚锁链 | Prevents another owner Bound card after the bound-card flag is set. | **Implemented cross-hook.** Reads the flag shared with `BeforeCardPlayed`. |
+| `RingingPower` | 昏眩 | Prevents owner cards afflicted with Ringing after any owner card play has started this turn. | **Implemented.** Combines live current-turn and predicted started history; the previous card need not have Ringing. |
+| `SlothPower` | 懒惰 | Prevents owner plays once its cards-played counter reaches Amount. | **Implemented cross-hook.** Reads the counter advanced by `BeforeCardPlayed`. |
+| `SmoggyPower` | 烟雾弥漫 | Prevents owner cards afflicted with Smog. | **Original read-only call.** Only reads owner and the argument's affliction, including shadow Smog applied by `AfterCardPlayed`. |
+| `VelvetChoker` | 天鹅绒颈圈 | Prevents owner plays once its cards-played counter reaches the configured limit. | **Implemented cross-hook.** Reads the counter advanced by `AfterCardPlayed`. |
+
+Started-history predicates count every play index, including replays and an outer card whose effect is still
+resolving. They filter by player and must not substitute finished history or first-in-series counts. Predicted
+history is already scoped to the current turn; only the live history needs `HappenedThisTurn` filtering.
+
+Remaining upstream gaps: prediction-generated `Normality`/`Enthralled` copies are absent from the live listener
+sequence, and the skipped `AfterCardEnteredCombat` hook can omit Ringing/Smog on entering cards. These cases are
+not fixed by the predicate registrations and have no dedicated risk marker here. `Enthralled`'s shadow-pile fix
+affects manual playability; it does not restrict nested auto-play.
+
 ## Implemented slices
 
 1. Add hook contexts/registries and exact vanilla dispatch order. Add shadow `CardPlayStarted` before `OnPlay`; keep
@@ -220,7 +245,8 @@ The labels remain useful for architecture, while each row now records its implem
 3. Add selective hook mirrors for the four cross-hook families: damage modifiers (`PenNib`, `SlowPower`,
    `SurroundedPower`), block modifiers (`PaelsLegion`, `Vambrace`), cost modifiers (free-card powers,
    `BrilliantScarf`, `VeilpiercerPower`, `VoidFormPower`), and `ShouldPlay` (`ChainsOfBindingPower`, `SlothPower`,
-   `VelvetChoker`). Calling the original hooks after only updating `StateStore` would still read stale live fields.
+   `VelvetChoker`). `ShouldPlay` additionally adapts `Enthralled`, `Normality`, and `RingingPower` to shadow piles
+   and started history. Calling the original hooks after only updating prediction state would still read stale live state.
 4. Add shadow counters/history consumers and card-listener mutation (`Stomp`, `BansheesCry`, `Pinpoint`,
    `MakeItSo`, `RightHandHand`). Centralize live-plus-shadow card-play counts instead of duplicating the helper already
    present in `CardDrawCardMirrors`.

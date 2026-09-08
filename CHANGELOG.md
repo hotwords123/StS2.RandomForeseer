@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复凡庸、昏眩和执迷的出牌限制在战斗预测中可能判断不正确的问题。<br>
+  Fixed combat predictions potentially evaluating card-play restrictions from Normality, Ringing, and Enthralled incorrectly.
+
 ## v0.13.12
 
 ### feat
