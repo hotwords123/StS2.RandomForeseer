@@ -7,6 +7,11 @@
 - 战斗卡牌预测新增对回响斩击和万向斩的支持，现在会正确处理其特殊攻击效果。<br>
   Combat card prediction now supports Echoing Slash and Omnislice, correctly handling their special attack effects.
 
+### fix
+
+- 修复伤害预测指示器初始化失败后，后续刷新可能反复报错的问题。<br>
+  Fixed repeated errors during subsequent updates when a damage prediction indicator fails to initialize.
+
 ## v0.13.11
 
 ### fix
