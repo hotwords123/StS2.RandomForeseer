@@ -68,7 +68,15 @@ internal static class CardOnPlayMirrors
         registry.Register<Havoc>(AutoPlayCardMirrors.HavocOnPlay);
         registry.Register<Cascade>(AutoPlayCardMirrors.CascadeOnPlay);
 
-        registry.Register<Alchemize>(PotionGenerationCardMirrors.AlchemizeOnPlay);
+        registry.Register<Alchemize>(MiscCardMirrors.AlchemizeOnPlay);
+        registry.Register<MadScience>(MiscCardMirrors.MadScienceOnPlay);
+        registry.Register<SecondWind>(MiscCardMirrors.SecondWindOnPlay);
+
+        registry.Register<Dominate>(VulnerableCardMirrors.DominateOnPlay);
+        registry.Register<Expose>(VulnerableCardMirrors.ExposeOnPlay);
+        registry.Register<HighFive>(VulnerableCardMirrors.HighFiveOnPlay);
+        registry.Register<MoltenFist>(VulnerableCardMirrors.MoltenFistOnPlay);
+        registry.Register<Shockwave>(VulnerableCardMirrors.ShockwaveOnPlay);
 
         registry.Register<CalculatedGamble>(CardDrawCardMirrors.CalculatedGambleOnPlay);
         registry.Register<CompileDriver>(CardDrawCardMirrors.CompileDriverOnPlay);
@@ -162,7 +170,6 @@ internal static class CardOnPlayMirrors
         registry.Register<JackOfAllTrades>(CardGenerationCardMirrors.JackOfAllTradesOnPlay);
         registry.Register<Jackpot>(CardGenerationCardMirrors.JackpotOnPlay);
         registry.Register<Largesse>(CardGenerationCardMirrors.LargesseOnPlay);
-        registry.Register<MadScience>(CardGenerationCardMirrors.MadScienceOnPlay);
         registry.Register<ManifestAuthority>(CardGenerationCardMirrors.ManifestAuthorityOnPlay);
         registry.Register<Metamorphosis>(CardGenerationCardMirrors.MetamorphosisOnPlay);
         registry.Register<Quasar>(CardGenerationCardMirrors.QuasarOnPlay);

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -13,6 +14,38 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class GeneralCardMirrors
 {
+    /// <summary>
+    /// Mirrors a directly inferred <see cref="PowerCmd.Apply{T}(PlayerChoiceContext, Creature, decimal, Creature, CardModel, bool)"/>
+    /// through the simulator's power application boundary. Power listeners such as Artifact and Vicious are
+    /// dispatched by the shared Hook mirrors.
+    /// </summary>
+    public static void GeneralPowerApplicationOnPlay<T>(CardModel card, CardOnPlayMirrorContext context)
+        where T : PowerModel
+    {
+        var amount = TryGetDynamicVar(card, [typeof(T).Name, "Power"], out var powerVar)
+            ? context.Calculate(powerVar)
+            : 1m;
+
+        IReadOnlyList<Creature> targets;
+        switch (card.TargetType)
+        {
+            case TargetType.AnyEnemy:
+                targets = [context.Target];
+                break;
+
+            case TargetType.AllEnemies:
+                targets = context.State.HittableEnemies;
+                break;
+
+            default:
+                Entry.Logger.Warn($"{typeof(T).Name} application {card.Id} has an unsupported target type: {card.TargetType}");
+                context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+                return;
+        }
+
+        context.Simulator.ApplyPower<T>(targets, amount, card.Owner.Creature, context.Card);
+    }
+
     /// <summary>
     /// Simulates a general draw of one card for the card's owner.
     /// </summary>

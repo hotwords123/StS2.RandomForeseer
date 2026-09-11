@@ -39,12 +39,14 @@ Mirror files:
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
 | `BurrowedPower` | 埋地 | When owner's block breaks, removes the power and stuns the burrowed monster. | Ignored. Power removal and monster state are outside the simulator, and the result affects later enemy behavior rather than the current player-turn prediction surface. |
-| `HandDrill` | 手钻 | When owner or owner's pet breaks an enemy's block, applies Vulnerable to that enemy. | Risk only when the trigger condition matches. Apply Power is unsupported. |
+| `HandDrill` | 手钻 | When owner or owner's pet breaks an enemy's block, applies Vulnerable to that enemy. | Risk only when the trigger condition matches; this listener's power application is not mirrored. |
 
 ## Parity notes
 
 - StS2 v0.109.0 added `PlayerChoiceContext` and the nullable block-breaking creature to
   `AfterBlockBroken`. The simulator forwards the damage dealer as `breaker`.
+- Explicit block loss also dispatches `AfterBlockBroken` when positive shadow block reaches zero, forwarding the
+  remover. `Expose` uses this command; its Hand Drill interaction still records risk under the listener coverage above.
 - Vanilla `Hook.AfterBlockBroken` deliberately iterates `combatState.IterateHookListeners()`
   directly instead of using the normal combat-ending guard, so a block-breaking killing hit still
   dispatches the hook. The mirror uses the same unguarded listener path and runs before

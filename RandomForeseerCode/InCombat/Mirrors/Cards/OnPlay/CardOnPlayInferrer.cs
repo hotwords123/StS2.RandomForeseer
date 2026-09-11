@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
@@ -75,6 +76,20 @@ internal static class CardOnPlayInferrer
                     actions.Add(mirror);
                 }
             }
+            else if (IsPowerApplication<VulnerablePower>(body.Instructions, i, calledMethod))
+            {
+                if (effects.Add(EffectKind.VulnerableApplication))
+                {
+                    actions.Add(GeneralCardMirrors.GeneralPowerApplicationOnPlay<VulnerablePower>);
+                }
+            }
+            else if (IsPowerApplication<WeakPower>(body.Instructions, i, calledMethod))
+            {
+                if (effects.Add(EffectKind.WeakApplication))
+                {
+                    actions.Add(GeneralCardMirrors.GeneralPowerApplicationOnPlay<WeakPower>);
+                }
+            }
         }
 
         if (actions.Count == 0)
@@ -101,6 +116,20 @@ internal static class CardOnPlayInferrer
                     TelemetryContext.ForModel(card));
             }
         };
+    }
+
+    private static bool IsPowerApplication<T>(
+        IReadOnlyList<CodeInstruction> instructions,
+        int callIndex,
+        MethodInfo method)
+        where T : PowerModel
+    {
+        return method.DeclaringType == typeof(PowerCmd) &&
+               method.Name == nameof(PowerCmd.Apply) &&
+               method.IsGenericMethod &&
+               method.GetGenericArguments() is [var powerType] &&
+               powerType == typeof(T) &&
+               !IsConditionallyGuarded(instructions, callIndex);
     }
 
     private static bool TryInferOwnerDraw(
@@ -321,6 +350,8 @@ internal static class CardOnPlayInferrer
     {
         Attack,
         Block,
-        OwnerDraw
+        OwnerDraw,
+        VulnerableApplication,
+        WeakApplication
     }
 }

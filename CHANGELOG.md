@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复部分卡牌施加易伤时未显示凶恶触发的抽牌预测的问题。<br>
+  Fixed missing predictions for draws triggered by Vicious when certain cards apply Vulnerable.
+
+- 修复打出重振精神时未显示黑暗之拥因逐张消耗卡牌而触发的抽牌预测的问题。<br>
+  Fixed missing predictions for draws triggered by Dark Embrace as Second Wind exhausts each card.
+
 ## v0.13.13
 
 ### fix
