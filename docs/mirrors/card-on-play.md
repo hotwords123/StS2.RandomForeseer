@@ -39,7 +39,7 @@ bypassing the current setting.
 
 The inferrer inspects original IL through RitsuLib's `GetOriginalIl()`. Async `OnPlay` methods resolve to their generated `MoveNext` body, and the returned ordered direct call targets form a Type-level classification that the registry caches with its handler. Instance values such as upgrade state, dynamic vars and selected target are resolved only when the cached handler runs.
 
-The general inferrer currently recognizes four direct templates:
+The general inferrer currently recognizes five direct templates:
 
 | Candidate | Recognized IL shape | Mirrored behavior |
 | --- | --- | --- |
@@ -47,10 +47,17 @@ The general inferrer currently recognizes four direct templates:
 | Block | Direct `CreatureCmd.GainBlock` call | Uses `CalculatedBlock` or `Block`. Self-target cards and enemy-targeting attack cards gain block on the owner; `AnyAlly` uses the selected ally; `AllAllies` uses all living player teammates. |
 | Owner draw | A supported `CardPileCmd.Draw` call-site recipe | Draws a fixed one card or the standard `Cards` value for the owner from shadow piles, including shuffle and draw hooks. |
 | Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Resolves the standard `VulnerablePower`/`Power` amount and target shape, then enters the shared shadow `PowerCmd.Apply` boundary. Artifact can consume the application before `AfterPowerAmountChanged`; an active Vicious then draws through the existing shadow draw pipeline. |
+| Weak application | A direct, unguarded `PowerCmd.Apply<WeakPower>` call | Resolves the standard `WeakPower`/`Power` amount and target shape through the same power boundary, including Artifact consumption. |
 
 Candidates are deduplicated by effect kind and executed in their first direct-call order, so multiple direct calls of
-the same recognized kind produce one general effect. Missing standard vars, unsupported targets and an unavailable
-Osty skip the affected general action and retain incomplete risk.
+the same recognized kind produce one general effect. Weak and Vulnerable are distinct kinds, preserving their direct
+call order. Unsupported targets and an unavailable Osty skip the affected general action and retain incomplete risk.
+Missing attack/block/draw vars also skip that action; power inference retains its one-stack fallback when neither the
+power-specific var nor `Power` exists.
+
+This covers `Comet`, `FallingStar`, `GammaBlast`, `Uppercut`, `KnowThyPlace`, `Putrefy` and `MeteorShower` without exact
+registrations. Meteor Shower's two group applications retain Weak on all enemies before Vulnerable on all enemies.
+Inference does not reconstruct per-target loops; Shockwave requires an exact mirror to preserve that different order.
 
 Inferred execution also has a runtime exception boundary for Mod-defined or otherwise unexpected dynamic-var shapes.
 It logs and captures the exception, stops the remaining inferred `OnPlay` actions, and allows the surrounding shadow
@@ -67,6 +74,26 @@ This is a narrow local call-site recipe rather than general stack or control-flo
 does not trace the receiver of the `Owner` getter back to the current card. Its conditional-draw rejection only
 recognizes a conditional branch immediately adjacent to argument preparation (while excluding the compiler's initial
 async state dispatch); outer conditions and loops can be missed.
+
+## Exact Vulnerable mirrors
+
+These v0.111.0 cards need command ordering, conditions or dependent amounts beyond general inference:
+
+| Cards / 中文名 | Exact coverage |
+| --- | --- |
+| `Shockwave` / 震荡波 | Weak then Vulnerable for each enemy. |
+| `Expose` / 暴露 | Lose shadow block, clear existing Artifact's shadow amount, then apply Vulnerable. |
+| `Dominate` / 主宰 | Apply Vulnerable, then grant Strength using the resulting shadow amount, including a newly returned instance. |
+| `HighFive` / 击掌 | Skip the entire effect without living Osty; otherwise attack from Osty and apply Vulnerable to all enemies. |
+| `MoltenFist` / 熔融之拳 | Attack, then double existing shadow Vulnerable only if the target survives and has positive stacks. |
+| `MadScience` / 疯狂科学 | Attack + Sapping variant uses its custom Weak/Vulnerable variables after attacking. The existing Skill + Chaos variant remains supported; other variants retain incomplete risk. |
+
+Exact card coverage does not eliminate the [power command limitations](power-apply.md). Newly applied powers remain
+absent from later collection lookups: for example, Molten Fist cannot find Vulnerable first created by an earlier
+predicted card, and repeated Dominate cannot accumulate such a new instance. Existing instances share updated shadow
+amounts. Expose omits Artifact's removal lifecycle, and its Hand Drill follow-up remains risk-only under the
+[block hook coverage](../hooks/block-hooks.md). Original value hooks that read live power amounts still miss these
+shadow changes. Successful power changes retain incomplete risk.
 
 ## Exact draw mirrors
 
@@ -118,7 +145,7 @@ ends combat.
 - Direct attack and block calls may still be conditional. General inference does not reconstruct arbitrary control flow, so a structurally inferred candidate may execute in a state where vanilla would skip it. The draw check rejects only a narrow adjacent-branch shape; reviewed conditional draw cards use exact mirrors.
 - General attack, block and owner-draw parameter resolution is intentionally limited to standard dynamic-var, count and target templates. Calculated special values, dependent command results and nonstandard targeting require exact mirrors.
 - Direct `Cards.IntValue` recipes reuse `Cards.BaseValue` when the cached action executes. Vanilla card-count vars are integral, but a Mod card with a fractional value could differ because the simulator applies draw-count ceiling instead of first truncating to `IntValue`.
-- Inference does not imply the complete `OnPlay` was mirrored. Outside the narrow Vulnerable template, power application, HP loss, energy, card movement/generation and other commands remain omitted unless an exact handler covers the card.
+- Inference does not imply the complete `OnPlay` was mirrored. Outside the narrow Weak/Vulnerable templates, power application, HP loss, energy, card movement/generation and other commands remain omitted unless an exact handler covers the card.
 - The power-application boundary mirrors hook order and prediction-owned listener effects but does not yet maintain a complete shadow power collection. It therefore supports existing Artifact/Vicious state while recording mirror risk for unregistered power lifecycle or action-hook overrides.
 - A recognized attack or block whose runtime card lacks a supported damage/block var or target shape skips that general action and records incomplete risk; its Type-level classification remains cached.
 

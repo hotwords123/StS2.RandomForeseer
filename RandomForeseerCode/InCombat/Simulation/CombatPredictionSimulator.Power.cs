@@ -106,9 +106,10 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         // PowerModel.ApplyInternal would set Owner/Amount and mutate the live power collection.
-        // Power state, PowerReceived history and SkipNextDurationTick remain unmodeled; see docs/mirrors/power-apply.md.
+        // Keep only the shadow amount; collection membership, history and duration remain unmodeled.
         if (modifiedAmount != 0m)
         {
+            StateStore.GetPowerAmount(power).Amount = Math.Clamp((int)modifiedAmount, -999999999, 999999999);
             History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
         }
 
@@ -160,6 +161,30 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         return newAmount;
+    }
+
+    /// <summary>
+    /// Partially mirrors <see cref="PowerCmd.Remove{T}(Creature)"/> using the live collection lookup.
+    /// </summary>
+    public void RemovePower<T>(Creature creature) where T : PowerModel
+    {
+        RemovePower(creature.GetPower<T>());
+    }
+
+    /// <summary>
+    /// Placeholder for <see cref="PowerCmd.Remove(PowerModel)"/>; only clears the shadow amount and records risk.
+    /// </summary>
+    public void RemovePower(PowerModel? power)
+    {
+        if (power is null)
+        {
+            return;
+        }
+
+        // PowerCmd.Remove calls RemoveInternal, which changes the live collection and fires model events,
+        // then dispatches AfterRemoved. These lifecycle effects remain unmodeled.
+        StateStore.GetPowerAmount(power).Consume();
+        History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
     }
 
     private decimal ResolvePowerAmountChange(

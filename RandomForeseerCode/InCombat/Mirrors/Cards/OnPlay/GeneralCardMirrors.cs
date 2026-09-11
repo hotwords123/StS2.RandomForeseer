@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -15,13 +15,15 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
 internal static class GeneralCardMirrors
 {
     /// <summary>
-    /// Mirrors a directly inferred <see cref="PowerCmd.Apply{VulnerablePower}"/> through the simulator's power
-    /// application boundary. Power listeners such as Artifact and Vicious are dispatched by the shared Hook mirrors.
+    /// Mirrors a directly inferred <see cref="PowerCmd.Apply{T}(PlayerChoiceContext, Creature, decimal, Creature, CardModel, bool)"/>
+    /// through the simulator's power application boundary. Power listeners such as Artifact and Vicious are
+    /// dispatched by the shared Hook mirrors.
     /// </summary>
-    public static void GeneralVulnerableApplicationOnPlay(CardModel card, CardOnPlayMirrorContext context)
+    public static void GeneralPowerApplicationOnPlay<T>(CardModel card, CardOnPlayMirrorContext context)
+        where T : PowerModel
     {
-        var amount = TryGetDynamicVar(card, [nameof(VulnerablePower), "Power"], out var vulnerable)
-            ? context.Calculate(vulnerable)
+        var amount = TryGetDynamicVar(card, [typeof(T).Name, "Power"], out var powerVar)
+            ? context.Calculate(powerVar)
             : 1m;
 
         IReadOnlyList<Creature> targets;
@@ -36,12 +38,12 @@ internal static class GeneralCardMirrors
                 break;
 
             default:
-                Entry.Logger.Warn($"Vulnerable application {card.Id} has an unsupported target type: {card.TargetType}");
+                Entry.Logger.Warn($"{typeof(T).Name} application {card.Id} has an unsupported target type: {card.TargetType}");
                 context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
                 return;
         }
 
-        context.Simulator.ApplyPower<VulnerablePower>(targets, amount, card.Owner.Creature, context.Card);
+        context.Simulator.ApplyPower<T>(targets, amount, card.Owner.Creature, context.Card);
     }
 
     /// <summary>

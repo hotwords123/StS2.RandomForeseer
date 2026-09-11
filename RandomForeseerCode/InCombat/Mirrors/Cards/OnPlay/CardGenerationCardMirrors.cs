@@ -105,6 +105,12 @@ internal static class CardGenerationCardMirrors
 
     public static void MadScienceOnPlay(MadScience card, CardOnPlayMirrorContext context)
     {
+        if (card is { TinkerTimeType: CardType.Attack, TinkerTimeRider: TinkerTime.RiderEffect.Sapping })
+        {
+            VulnerableCardMirrors.MadScienceSappingOnPlay(card, context);
+            return;
+        }
+
         if (card is not { TinkerTimeType: CardType.Skill, TinkerTimeRider: TinkerTime.RiderEffect.Chaos })
         {
             context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);

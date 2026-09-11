@@ -72,6 +72,12 @@ internal static class CardOnPlayMirrors
 
         registry.Register<Alchemize>(PotionGenerationCardMirrors.AlchemizeOnPlay);
 
+        registry.Register<Dominate>(VulnerableCardMirrors.DominateOnPlay);
+        registry.Register<Expose>(VulnerableCardMirrors.ExposeOnPlay);
+        registry.Register<HighFive>(VulnerableCardMirrors.HighFiveOnPlay);
+        registry.Register<MoltenFist>(VulnerableCardMirrors.MoltenFistOnPlay);
+        registry.Register<Shockwave>(VulnerableCardMirrors.ShockwaveOnPlay);
+
         registry.Register<CalculatedGamble>(CardDrawCardMirrors.CalculatedGambleOnPlay);
         registry.Register<CompileDriver>(CardDrawCardMirrors.CompileDriverOnPlay);
         registry.Register<Constellation>(CardDrawCardMirrors.ConstellationOnPlay);

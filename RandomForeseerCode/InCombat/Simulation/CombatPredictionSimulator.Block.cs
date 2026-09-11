@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -10,6 +11,26 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
+    /// <summary>
+    /// Mirrors <see cref="CreatureCmd.LoseBlock(PlayerChoiceContext, Creature, decimal, Creature)"/>
+    /// without mutating live block or firing creature events.
+    /// </summary>
+    public void LoseBlock(Creature target, decimal amount, Creature? remover)
+    {
+        var targetState = State.GetCreature(target);
+        if (IsOverOrEnding || targetState.IsDead || amount <= 0m)
+        {
+            return;
+        }
+
+        var previousBlock = targetState.Block;
+        targetState.LoseBlock(amount);
+        if (previousBlock > 0 && targetState.Block <= 0)
+        {
+            HookMirrors.AfterBlockBroken(this, target, remover);
+        }
+    }
+
     /// <summary>
     /// Mirrors <see cref="CreatureCmd.GainBlock(Creature, BlockVar, CardPlay?, bool)"/>.
     /// Convenience overload for when a <see cref="BlockVar"/> is supplied and the block source is not a card play.

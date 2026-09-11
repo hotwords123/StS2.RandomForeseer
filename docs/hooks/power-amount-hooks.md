@@ -23,3 +23,7 @@ Shadow amount writes are visible only to prediction-aware listeners. Original va
 state, and newly applied or removed powers are not reflected in listener enumeration. Artifact consumption also
 bypasses the full `PowerCmd.Decrement` lifecycle. Additional listener mirrors and power collection support are
 required to close these gaps.
+
+`Expose` uses the `RemovePower` placeholder to clear the existing Artifact instance's shadow amount before applying
+Vulnerable. This disables the prediction-aware Artifact listener, but does not simulate removal hooks or remove the
+live instance.

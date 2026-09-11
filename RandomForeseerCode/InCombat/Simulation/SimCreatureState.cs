@@ -53,6 +53,16 @@ internal sealed class SimCreatureState(CombatPredictionSimulator simulator, Crea
         };
     }
 
+    public void LoseBlock(decimal amount)
+    {
+        if (amount < 0m)
+        {
+            throw new ArgumentException("amount must be positive. Use GainBlock for block gain.", nameof(amount));
+        }
+
+        Block = (int)Math.Max(Block - amount, 0m);
+    }
+
     public void GainBlock(decimal amount)
     {
         if (amount < 0m)

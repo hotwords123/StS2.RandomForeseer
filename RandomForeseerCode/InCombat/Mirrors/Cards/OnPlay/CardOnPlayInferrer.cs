@@ -76,11 +76,18 @@ internal static class CardOnPlayInferrer
                     actions.Add(mirror);
                 }
             }
-            else if (IsVulnerableApplication(body.Instructions, i, calledMethod))
+            else if (IsPowerApplication<VulnerablePower>(body.Instructions, i, calledMethod))
             {
                 if (effects.Add(EffectKind.VulnerableApplication))
                 {
-                    actions.Add(GeneralCardMirrors.GeneralVulnerableApplicationOnPlay);
+                    actions.Add(GeneralCardMirrors.GeneralPowerApplicationOnPlay<VulnerablePower>);
+                }
+            }
+            else if (IsPowerApplication<WeakPower>(body.Instructions, i, calledMethod))
+            {
+                if (effects.Add(EffectKind.WeakApplication))
+                {
+                    actions.Add(GeneralCardMirrors.GeneralPowerApplicationOnPlay<WeakPower>);
                 }
             }
         }
@@ -111,16 +118,17 @@ internal static class CardOnPlayInferrer
         };
     }
 
-    private static bool IsVulnerableApplication(
+    private static bool IsPowerApplication<T>(
         IReadOnlyList<CodeInstruction> instructions,
         int callIndex,
         MethodInfo method)
+        where T : PowerModel
     {
         return method.DeclaringType == typeof(PowerCmd) &&
                method.Name == nameof(PowerCmd.Apply) &&
                method.IsGenericMethod &&
                method.GetGenericArguments() is [var powerType] &&
-               powerType == typeof(VulnerablePower) &&
+               powerType == typeof(T) &&
                !IsConditionallyGuarded(instructions, callIndex);
     }
 
@@ -343,6 +351,7 @@ internal static class CardOnPlayInferrer
         Attack,
         Block,
         OwnerDraw,
-        VulnerableApplication
+        VulnerableApplication,
+        WeakApplication
     }
 }

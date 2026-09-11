@@ -68,6 +68,46 @@ internal static class CardOnPlayMirrorContextExtensions
     }
 
     /// <summary>
+    /// See <see cref="CombatPredictionSimulator.ApplyPower{T}(Creature, decimal, Creature?, PredictedCard?)"/>.
+    /// </summary>
+    public static PowerModel? ApplyPower<T>(this CardOnPlayMirrorContext context, Creature target)
+        where T : PowerModel
+    {
+        var amount = context.PreviewCard.DynamicVars[typeof(T).Name].BaseValue;
+        return context.Simulator.ApplyPower<T>(target, amount, context.PreviewCard.Owner.Creature, context.Card);
+    }
+
+    /// <summary>
+    /// See <see cref="CombatPredictionSimulator.ApplyPower{T}(Creature, decimal, Creature?, PredictedCard?)"/>.
+    /// </summary>
+    public static PowerModel? ApplyPower<T>(this CardOnPlayMirrorContext context, Creature target, decimal amount)
+        where T : PowerModel
+    {
+        return context.Simulator.ApplyPower<T>(target, amount, context.PreviewCard.Owner.Creature, context.Card);
+    }
+
+    /// <summary>
+    /// See <see cref="CombatPredictionSimulator.ApplyPower{T}(IReadOnlyList{Creature}, decimal, Creature?, PredictedCard?)"/>.
+    /// </summary>
+    public static IReadOnlyList<PowerModel> ApplyPower<T>(
+        this CardOnPlayMirrorContext context, IReadOnlyList<Creature> targets)
+        where T : PowerModel
+    {
+        var amount = context.PreviewCard.DynamicVars[typeof(T).Name].BaseValue;
+        return context.Simulator.ApplyPower<T>(targets, amount, context.PreviewCard.Owner.Creature, context.Card);
+    }
+
+    /// <summary>
+    /// See <see cref="CombatPredictionSimulator.ApplyPower{T}(IReadOnlyList{Creature}, decimal, Creature?, PredictedCard?)"/>.
+    /// </summary>
+    public static IReadOnlyList<PowerModel> ApplyPower<T>(
+        this CardOnPlayMirrorContext context, IReadOnlyList<Creature> targets, decimal amount)
+        where T : PowerModel
+    {
+        return context.Simulator.ApplyPower<T>(targets, amount, context.PreviewCard.Owner.Creature, context.Card);
+    }
+
+    /// <summary>
     /// See <see cref="CombatPredictionDynamicVarExtensions.InvokeCalculate(DynamicVar, CombatPredictionSimulator, PredictedCard, Creature?)"/>.
     /// </summary>
     public static decimal Calculate(this CardOnPlayMirrorContext context, DynamicVar dynamicVar)
