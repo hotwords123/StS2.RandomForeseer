@@ -58,6 +58,7 @@
 
 ## Related docs
 
+- `power-amount-hooks.md`
 - `after-card-changed-piles.md`
 - `after-card-discarded.md`
 - `after-card-drawn.md`

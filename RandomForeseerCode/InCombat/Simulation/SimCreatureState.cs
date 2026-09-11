@@ -22,6 +22,12 @@ internal sealed class SimCreatureState(CombatPredictionSimulator simulator, Crea
 
     public bool IsHittable => IsAlive && HookMirrors.ShouldAllowHitting(simulator, Creature);
 
+    // Vanilla checks CombatState != null here; default creature removal clears that reference.
+    // Prediction-side removal only excludes the creature from State.Creatures, leaving the live reference intact.
+    // Therefore, we check membership in State.Creatures instead.
+    public bool CanReceivePowers => simulator.State.Creatures.Contains(Creature) &&
+                                    HookMirrors.ShouldAllowHitting(simulator, Creature);
+
     public decimal DamageBlock(decimal amount, ValueProp props)
     {
         var blockedDamage = props.HasFlag(ValueProp.Unblockable)

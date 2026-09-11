@@ -1,37 +1,25 @@
-# Power application mirror
+# Power command mirrors
 
-## Scope
+`CombatPredictionSimulator.ApplyPower` and `ModifyPowerAmount` partially mirror StS2 v0.111.0 `PowerCmd`.
+Existing-instance amount changes use shared prediction state; the full power domain is not yet simulated.
+Hook coverage is documented in [Power amount hooks](../hooks/power-amount-hooks.md).
 
-`CombatPredictionSimulator.ApplyPower<T>` mirrors the prediction-relevant boundary of `PowerCmd.Apply<T>` without
-mutating a live creature or its power collection. The first caller is the direct Vulnerable template inferred from
-card `OnPlay` IL.
+## Differences and known limitations
 
-The command reuses `HookMirrors` for the original ordering:
+- **New powers:** application does not add an instance to a predicted collection or assign its `Owner` and amount.
+  Repeated applications therefore cannot discover a power created earlier in the prediction.
+- **Existing powers:** `ModifyPowerAmount` updates the shared shadow amount, but stacking lookups and listener
+  enumeration still use live collections. Removal is not evaluated, and hooks that read live `power.Amount`
+  do not observe predicted changes.
+- **History and duration:** `PowerReceived` history and `SkipNextDurationTick` are not simulated. Consumers of
+  these values need prediction-aware implementations.
+- **Lifecycle:** `BeforeApplied` and `AfterApplied` have placeholder registries; unsupported overrides record risk.
+  Removal and `AfterRemoved` are not dispatched.
+- **Combat membership:** eligibility uses prediction-side membership because shadow removal leaves the live
+  `Creature.CombatState` intact. This represents vanilla's default removal behavior, not removal with
+  `unattach: false`, which retains the combat reference.
+- **Presentation:** visual events, waits and intent presentation are intentionally omitted.
 
-1. `BeforePowerAmountChanged`.
-2. Additive and multiplicative `ModifyPowerAmountGiven` passes when the applier is in combat.
-3. `TryModifyPowerAmountReceived` and its selected modifier list.
-4. Multiplayer scaling for powers that opt into it.
-5. New-power `BeforeApplied`.
-6. `AfterModifyingPowerAmountGiven` and `AfterModifyingPowerAmountReceived` for selected modifiers.
-7. New-power `AfterApplied`, followed by `AfterPowerAmountChanged`, only for a nonzero modified amount.
-
-All Hook listener passes use the existing combat listener enumeration, ending guard and compatibility filter.
-Read-only amount modifiers fall back to their original implementations. Action hooks and Power lifecycle methods use
-placeholder registries so unsupported overrides record prediction risk instead of mutating live state.
-
-## Supported listener state
-
-- `ArtifactPower.TryModifyPowerAmountReceived` reuses the original predicate while consulting the existing
-  `PowerAmountPredictionState`. Its mirrored `AfterModifyingPowerAmountReceived` decrements that shadow amount. A
-  blocked Vulnerable application therefore does not reach `AfterPowerAmountChanged`.
-- `ViciousPower.AfterPowerAmountChanged` checks the existing shadow power amount and, for a positive owner-applied
-  Vulnerable change, calls the simulator's existing `Draw` method. Draw pile, shuffle RNG, draw hooks and projected
-  card results stay centralized in the existing pipeline.
-
-## Deliberate limit
-
-The command does not yet add, stack, remove or enumerate predicted power instances. Existing live power instances are
-located through `PowerCmd.FindExistingInstanceForStacking`, and prediction-owned mutable amounts are used for the
-supported Artifact and Vicious listeners. A future complete power domain should extend the creature shadow state and
-the existing Hook registries rather than introduce a separate listener loop or per-card side-effect mirror.
+Successful power applications and nonzero integer amount changes retain `MethodMirrorIncomplete` risk because
+collection changes, removal and live-state consumers remain unsupported. Updating a shadow amount alone does not
+make subsequent predictions fully reliable.

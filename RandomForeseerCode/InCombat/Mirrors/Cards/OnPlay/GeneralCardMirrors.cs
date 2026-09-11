@@ -24,7 +24,7 @@ internal static class GeneralCardMirrors
             ? context.Calculate(vulnerable)
             : 1m;
 
-        IEnumerable<Creature> targets;
+        IReadOnlyList<Creature> targets;
         switch (card.TargetType)
         {
             case TargetType.AnyEnemy:
