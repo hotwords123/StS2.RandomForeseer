@@ -110,7 +110,11 @@ These handlers take priority over inference, including when their original IL al
 recipe. `CombatPredictionSimulator.Draw` returns the drawn `PredictedCard` objects for these follow-up mirrors while
 preserving the existing history and hook order.
 
-## Exact exhaust mirrors
+## Miscellaneous exact mirrors
+
+`MiscCardMirrors` groups the `Alchemize`, `MadScience` and `SecondWind` entry points. Mad Science dispatches its
+supported variants by rider: Attack + Sapping to `VulnerableCardMirrors`, and Skill + Chaos to
+`CardGenerationCardMirrors`. Other variants retain incomplete risk.
 
 `SecondWind` snapshots every non-Attack card in the shadow hand, then exhausts and grants Block for each card in
 vanilla order. Each exhaust dispatches the existing `AfterCardExhausted` mirror family, so `DarkEmbracePower` draws

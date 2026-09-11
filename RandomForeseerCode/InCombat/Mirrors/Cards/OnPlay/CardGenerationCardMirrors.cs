@@ -1,6 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models.Cards;
-using MegaCrit.Sts2.Core.Models.Events;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -103,20 +102,8 @@ internal static class CardGenerationCardMirrors
         context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
     }
 
-    public static void MadScienceOnPlay(MadScience card, CardOnPlayMirrorContext context)
+    public static void MadScienceChaosOnPlay(MadScience card, CardOnPlayMirrorContext context)
     {
-        if (card is { TinkerTimeType: CardType.Attack, TinkerTimeRider: TinkerTime.RiderEffect.Sapping })
-        {
-            VulnerableCardMirrors.MadScienceSappingOnPlay(card, context);
-            return;
-        }
-
-        if (card is not { TinkerTimeType: CardType.Skill, TinkerTimeRider: TinkerTime.RiderEffect.Chaos })
-        {
-            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
-            return;
-        }
-
         context.GainBlock(card.Owner.Creature);
 
         var cards = card.Owner.GetUnlockedCharacterCards()
