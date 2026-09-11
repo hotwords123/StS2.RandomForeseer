@@ -48,7 +48,7 @@ The dispatcher is always compiled against the oldest supported game API configur
 
 ## Release order
 
-1. Update and commit the normal release files.
+1. Run `uv run scripts/prepare-release.py --patch --commit` (or `--major`, `--minor`, or `--version X.Y.Z`) to update and commit the normal release files. Use `--sync` when only the manifest's existing Mod, game, and RitsuLib versions need to be propagated.
 2. On every compatibility source branch needed by an active game version, run `scripts/release.ps1 -Version X.Y.Z -PackageOnly` once to retain its package without creating a tag or GitHub Release. Run the normal command without `-PackageOnly` for the current GitHub release.
 3. Update `active-game-versions.txt` to the game versions currently live on public/public-beta.
 4. Run `scripts/prepare-workshop.ps1 -Version X.Y.Z`.

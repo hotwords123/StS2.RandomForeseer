@@ -61,7 +61,7 @@ Current manifest targets:
 
 | Item | Value |
 |---|---|
-| Current version | `0.13.10` |
+| Current version | `0.13.13` |
 | Minimum game version | `0.111.0` |
 | RitsuLib dependency | `0.5.12` |
 
@@ -117,3 +117,7 @@ project.godot - Godot project used for PCK export
 scripts/ - Local development, maintenance, and release scripts
 workshop/loader/ - Steam Workshop multi-version package loader
 ```
+
+## License
+
+MIT License

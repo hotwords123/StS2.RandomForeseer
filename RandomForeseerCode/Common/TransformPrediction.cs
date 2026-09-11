@@ -5,17 +5,14 @@ using RandomForeseer.RandomForeseerCode.Common.HoverTips;
 
 namespace RandomForeseer.RandomForeseerCode.Common;
 
-internal static class TransformPrediction
+internal sealed class TransformPrediction(
+    int maxSelect,
+    bool isInCombat,
+    Func<CardModel, CardModel>? mapReplacement = null)
 {
-    public static IReadOnlyList<IHoverTip> GetHoverTips(
-        CardModel card,
-        IEnumerable<CardModel> selectedCards,
-        int maxSelect,
-        Rng rng,
-        bool isInCombat,
-        Func<CardModel, CardModel>? mapReplacement = null)
+    public IReadOnlyList<IHoverTip> GetHoverTips(CardModel card, IEnumerable<CardModel> selectedCards, Rng previewRng)
     {
-        var replacements = PredictReplacements(card, rng, maxSelect, isInCombat, mapReplacement);
+        var replacements = PredictReplacements(card, previewRng);
         if (replacements.Count == 0)
         {
             return [];
@@ -36,7 +33,7 @@ internal static class TransformPrediction
         var transformedCard = replacements[activeIndex].Title;
         var otherTransformedCards = replacements
             .Where((_, index) => index != activeIndex)
-            .Select(card => card.Title)
+            .Select(replacement => replacement.Title)
             .Distinct()
             .ToList();
 
@@ -47,29 +44,35 @@ internal static class TransformPrediction
             description.Add("OtherTransformedCards", otherTransformedCards);
         });
 
-        var cardTips = replacements
-            .Select((replacement, index) =>
-                PredictionHoverTipFactory.Card(replacement, isDimmed: index != activeIndex));
+        var cardTips = replacements.Select((replacement, index) =>
+            PredictionHoverTipFactory.Card(replacement, isDimmed: index != activeIndex));
 
-        return [textTip, ..cardTips];
+        return [textTip, .. cardTips];
     }
 
-    private static IReadOnlyList<CardModel> PredictReplacements(
-        CardModel card,
-        Rng rng,
-        int maxSelect,
-        bool isInCombat,
-        Func<CardModel, CardModel>? mapReplacement)
+    public IReadOnlyList<CardModel> PredictReplacements(CardModel card, Rng previewRng)
     {
         if (maxSelect <= 0)
         {
             return [];
         }
 
-        var previewRng = rng.Clone();
-        return Enumerable.Range(0, maxSelect)
-            .Select(_ => PredictionUtils.PredictTransformResult(card, previewRng, isInCombat))
-            .Select(replacement => mapReplacement?.Invoke(replacement) ?? replacement)
-            .ToList();
+        return [.. Enumerable.Range(0, maxSelect).Select(_ => PredictNext(card, previewRng))];
+    }
+
+    public CardModel PredictReplacement(CardModel card, int selectionIndex, Rng previewRng)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(selectionIndex);
+
+        previewRng.Advance(selectionIndex);
+        return PredictNext(card, previewRng);
+    }
+
+    public CardModel PredictNext(CardModel card, Rng previewRng)
+    {
+        var replacement = PredictionUtils.PredictTransformResult(card, previewRng, isInCombat);
+        return mapReplacement is not null
+            ? mapReplacement(replacement)
+            : replacement;
     }
 }

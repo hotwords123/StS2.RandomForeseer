@@ -1,9 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://dobydamcymjrd"]
 
-[ext_resource type="Script" path="res://RandomForeseerCode/OutOfCombat/Nodes/NNextActPredictionIcon.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://bsjabgbdmpmpb" path="res://RandomForeseerCode/OutOfCombat/Nodes/NNextActPredictionIcon.cs" id="1_script"]
 
 [node name="NextActPredictionIcon" type="MarginContainer"]
-layout_mode = 2
 mouse_filter = 0
 theme_override_constants/margin_left = 0
 theme_override_constants/margin_top = -4

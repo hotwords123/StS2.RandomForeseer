@@ -81,7 +81,7 @@ internal sealed class ModSettings
 
     // Debug settings
     public bool DebugSettingsEnabled { get; set; }
-    public bool AncientEventDebugRerollEnabled { get; set; }
+    public bool EventDebugRerollEnabled { get; set; }
 }
 
 internal enum PredictionFairness

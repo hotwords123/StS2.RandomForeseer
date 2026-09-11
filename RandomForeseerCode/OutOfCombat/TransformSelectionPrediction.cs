@@ -16,7 +16,7 @@ internal static class TransformSelectionHoverTips
             return [];
         }
 
-        return predictor.GetHoverTips(holder.CardModel, screen._selectedCards, screen._prefs.MaxSelect);
+        return predictor.GetHoverTips(holder.CardModel, screen._selectedCards);
     }
 
     private static NDeckTransformSelectScreen? FindTransformSelectScreen(NCardHolder holder)

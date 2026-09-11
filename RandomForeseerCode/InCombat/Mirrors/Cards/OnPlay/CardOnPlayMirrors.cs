@@ -121,6 +121,9 @@ internal static class CardOnPlayMirrors
         registry.Register<TearAsunder>(MultiHitAttackCardMirrors.TearAsunderOnPlay);
         registry.Register<TwinStrike>(MultiHitAttackCardMirrors.TwinStrikeOnPlay);
 
+        registry.Register<EchoingSlash>(SpecialAttackCardMirrors.EchoingSlashOnPlay);
+        registry.Register<Omnislice>(SpecialAttackCardMirrors.OmnisliceOnPlay);
+
         registry.Register<BallLightning>(OrbCardMirrors.BallLightningOnPlay);
         registry.Register<Chaos>(OrbCardMirrors.ChaosOnPlay);
         registry.Register<Chill>(OrbCardMirrors.ChillOnPlay);

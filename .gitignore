@@ -1,6 +1,7 @@
 bin/
 obj/
 artifacts/
+/services/
 ModUploader-win-x64/
 .vs/
 .idea/
@@ -9,8 +10,6 @@ ModUploader-win-x64/
 *.DotSettings.user
 
 local.props
-*.uid
-*.import
 *.tmp
 *.log
 workshop/*.local.json

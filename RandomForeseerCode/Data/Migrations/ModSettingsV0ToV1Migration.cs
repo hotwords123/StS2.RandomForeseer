@@ -55,7 +55,6 @@ internal sealed class ModSettingsV0ToV1Migration : IMigration
         ("EnableCombatDamagePrediction", nameof(ModSettings.CombatDamagePredictionEnabled)),
         ("EnableRandomTargetAttackPrediction", nameof(ModSettings.RandomTargetAttackPredictionEnabled)),
         ("ShowDebugSettingsPage", nameof(ModSettings.DebugSettingsEnabled)),
-        ("EnableAncientEventDebugReroll", nameof(ModSettings.AncientEventDebugRerollEnabled)),
     ];
 
     public int FromVersion => 0;

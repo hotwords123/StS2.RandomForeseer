@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.13.13
+
+### fix
+
+- 修复已授权的使用统计、Mod 清单和诊断信息可能无法正常上报的问题。<br>
+  Fixed consented usage statistics, mod inventories, and diagnostics potentially failing to report.
+
+- 修复凡庸、昏眩和执迷的出牌限制在战斗预测中可能判断不正确的问题。<br>
+  Fixed combat predictions potentially evaluating card-play restrictions from Normality, Ringing, and Enthralled incorrectly.
+
+## v0.13.12
+
+### feat
+
+- 战斗卡牌预测新增对回响斩击和万向斩的支持，现在会正确处理其特殊攻击效果。<br>
+  Combat card prediction now supports Echoing Slash and Omnislice, correctly handling their special attack effects.
+
+### fix
+
+- 修复伤害预测指示器初始化失败后，后续刷新可能反复报错的问题。<br>
+  Fixed repeated errors during subsequent updates when a damage prediction indicator fails to initialize.
+
+## v0.13.11
+
+### fix
+
+- 修复预测过程中升级卡牌后，同名卡牌的洗牌预测可能不正确的问题。<br>
+  Fixed shuffle predictions for cards with the same name potentially being incorrect if one of them was upgraded during prediction.
+
+- 修复部分 Mod 让遗物拾取流程提前返回时，遗物拾取预测清理上下文可能发生异常的问题。<br>
+  Fixed relic pickup prediction cleanup potentially throwing when another mod short-circuits the relic-obtain flow.
+
 ## v0.13.10
 
 ### feat

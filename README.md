@@ -61,7 +61,7 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 
 | 项 | 值 |
 |---|---|
-| 当前版本 | `0.13.10` |
+| 当前版本 | `0.13.13` |
 | 最低游戏版本 | `0.111.0` |
 | RitsuLib 依赖 | `0.5.12` |
 
@@ -117,3 +117,7 @@ project.godot - PCK 导出用 Godot 项目
 scripts/ - 本地开发、维护和发版脚本
 workshop/loader/ - Steam 创意工坊多版本包加载器
 ```
+
+## 许可协议
+
+MIT License

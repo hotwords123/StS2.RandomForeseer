@@ -7,20 +7,17 @@ internal sealed class PredictedCard(
     CardModel original,
     CardModel? preview = null) : IComparable<PredictedCard>
 {
-    public CardModel Original => original;
+    private CardModel? _preview = preview;
 
-    public CardModel Preview => preview ?? original;
+    public CardModel Original { get; } = original;
 
-    public CardModel MutablePreview => preview ??= (CardModel)original.MutableClone();
+    public CardModel Preview => _preview ?? Original;
 
-    public static List<PredictedCard> FromCards(IEnumerable<CardModel> cards)
-    {
-        return cards.Select(card => new PredictedCard(card)).ToList();
-    }
+    public CardModel MutablePreview => _preview ??= (CardModel)Original.MutableClone();
 
     public static PredictedCard FromGenerated(CardModel card)
     {
-        return new(card, card);
+        return new PredictedCard(card, card);
     }
 
     public static PredictedCard Create(CardModel canonicalCard, Player player)
@@ -30,18 +27,18 @@ internal sealed class PredictedCard(
 
     public bool References(object? card)
     {
-        return ReferenceEquals(original, card) || ReferenceEquals(preview, card);
+        return ReferenceEquals(Original, card) || ReferenceEquals(Preview, card);
     }
 
     // Clones the prediction wrapper state only. Combat effects that generate a gameplay
     // clone of a card should use CombatPredictedCardExtensions.CreateClone instead.
     public PredictedCard Clone()
     {
-        return new(original, (CardModel?)preview?.MutableClone());
+        return new PredictedCard(Original, (CardModel?)_preview?.MutableClone());
     }
 
     public int CompareTo(PredictedCard? other)
     {
-        return original.CompareTo(other?.Original);
+        return Preview.CompareTo(other?.Preview);
     }
 }

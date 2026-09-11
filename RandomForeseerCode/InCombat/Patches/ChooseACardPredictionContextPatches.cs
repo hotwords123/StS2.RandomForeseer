@@ -16,11 +16,20 @@ internal static class ChooseACardPredictionContextPatch
     }
 
     [HarmonyPostfix]
-    private static void Postfix(ref Task<CardModel?> __result, IDisposable? __state)
+    private static void Postfix(ref Task<CardModel?> __result, ref IDisposable? __state)
     {
         if (__state is not null)
         {
             __result = __result.WithFinally(__state.Dispose);
+            // The Task now owns cleanup; keep the registration alive until selection completes.
+            __state = null;
         }
+    }
+
+    [HarmonyFinalizer]
+    private static void Finalizer(IDisposable? __state)
+    {
+        // Clean up if a synchronous exception prevented the Postfix from handing off ownership.
+        __state?.Dispose();
     }
 }

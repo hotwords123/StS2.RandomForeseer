@@ -10,6 +10,7 @@ Mirror files:
 - `InCombat/Mirrors/Hooks/Attack/GigantificationPowerMirrors.cs`
 - `InCombat/Mirrors/Hooks/Attack/VigorPowerMirrors.cs`
 - `InCombat/Simulation/CombatPredictionSimulator.Attack.cs`
+- `InCombat/Simulation/SimAttackContext.cs`
 - `InCombat/Simulation/CombatPredictionHistory.cs`
 
 `CombatPredictionSimulator.ExecuteAttack(AttackCommand)` mirrors the prediction-relevant `AttackCommand.Execute` target loop and dispatches targeted attack hook mirrors through `HookMirrors`. Per-hit damage is still delegated to `CombatPredictionSimulator.Damage`. The current entry point only accepts commands whose `ModelSource` is a `CardModel`; callers must already be inside that card's prediction trace before invoking it. The method itself only pushes hook listener sources through the method registries.
@@ -82,13 +83,12 @@ between `BeforeAttack` and the per-hit target loop.
 - `CalculatedDamageVar.Calculate(target)` may read live combat state. The simulator calculates the value for parity, but marks the attack source risky.
 - Reviewed vanilla `_beforeDamage` and `_afterAttackerAnim` callbacks are command-local cosmetic effects only: VFX/SFX, waits, screen shake, radial blur, hit stop, and audio-only strength fields. The simulator does not execute them and does not mark risk solely because a vanilla attack command contains these callbacks.
 - `VigorPower` and `GigantificationPower` share their prediction-local attack selection with exact damage-modifier adapters and shadow amount consumption. The shadow decrement does not run the full vanilla power amount/removal lifecycle documented in `damage-modifier-hooks.md`.
-- `AttackContext` cards need a separate mirror shape. They share `BeforeAttack`/`AfterAttack`, but their hit generation is card-specific and does not pass through `AttackCommand.Execute`.
+- `EchoingSlash` and `Omnislice` use `SimAttackContext`, which mirrors the vanilla `AttackContext` lifecycle while leaving their card-specific hit generation in `SpecialAttackCardMirrors`. Their grouped hits therefore participate in the shared `BeforeAttack`/`AfterAttack` listeners without going through `AttackCommand.Execute`.
 
 ## Remaining implementation sequence
 
 1. Add shadow Apply Power support for the Strength granted by `SuckPower`.
 2. Teach history-dependent value hooks and card logic to read simulator shadow attack/card-play history where prediction chains need it.
-3. Add separate `AttackContext` mirrors for `EchoingSlash` and `Omnislice` if card-play prediction starts simulating their full attack bodies.
 
 ## Mock model list
 

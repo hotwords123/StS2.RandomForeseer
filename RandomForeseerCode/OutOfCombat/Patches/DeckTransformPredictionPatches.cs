@@ -50,7 +50,9 @@ internal static class DeckTransformSelectionScreenPatches
 internal static class DeckTransformPredictionInjectionPatch
 {
     [HarmonyPrefix]
-    private static void InjectPredictor(ref Func<CardModel, CardTransformation>? cardToTransformation)
+    private static void InjectPredictor(
+        CardSelectorPrefs prefs,
+        ref Func<CardModel, CardTransformation>? cardToTransformation)
     {
         // Patch this boundary before vanilla replaces null with its default transformation factory.
         // Explicit factories may implement different transform rules and must remain untouched.
@@ -62,7 +64,7 @@ internal static class DeckTransformPredictionInjectionPatch
 
         try
         {
-            if (DeckTransformPrediction.TryCreatePredictor(source, out var predictor))
+            if (DeckTransformPrediction.TryCreatePredictor(prefs, source, out var predictor))
             {
                 cardToTransformation = predictor.PredictNext;
             }
@@ -100,17 +102,17 @@ internal static class DeckTransformPredictionInjectionPatch
 internal static class DeckTransformPredictionRelicSourcePatch
 {
     [HarmonyPrefix]
-    private static void EnterSource(RelicModel relic, out IDisposable __state)
+    private static void EnterSource(RelicModel relic, out IDisposable? __state)
     {
         __state = DeckTransformPredictionContext.EnterRelic(relic);
     }
 
-    [HarmonyPostfix]
-    private static void RestoreCallerSource(IDisposable __state)
+    [HarmonyFinalizer]
+    private static void RestoreCallerSource(IDisposable? __state)
     {
         // The async original captured this source in its ExecutionContext before returning its Task.
         // Restore the caller immediately so unrelated work started before Task completion cannot inherit it.
-        __state.Dispose();
+        __state?.Dispose();
     }
 }
 
@@ -123,7 +125,7 @@ internal static class DeckTransformPredictionEventOptionSourcePatch
         __state = DeckTransformPredictionContext.EnterEventOption(__instance);
     }
 
-    [HarmonyPostfix]
+    [HarmonyFinalizer]
     private static void RestoreCallerSource(IDisposable? __state)
     {
         // EventOption.Chosen captures the source for its continuations before returning its Task.

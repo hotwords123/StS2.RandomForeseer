@@ -49,7 +49,7 @@
   "slider.slippery_bridge_reroll_preview_count.label": "滑脚木桥重掷预览次数",
   "slider.slippery_bridge_reroll_preview_count.description": "控制[gold]滑脚木桥[/gold]的“抓紧”选项向后预览多少次重新随机的牌。",
   "toggle.crystal_sphere_clairvoyance_enabled.label": "启用水晶球透视",
-  "toggle.crystal_sphere_clairvoyance_enabled.description": "启用后，[gold]水晶球[/gold]事件小游戏会透过未揭开的迷雾显示其中物品。",
+  "toggle.crystal_sphere_clairvoyance_enabled.description": "启用后，[gold]水晶球[/gold]事件的占卜界面会透过未揭开的迷雾显示其中物品。",
 
   "header.relic_predictions.label": "遗物预测",
   "toggle.relic_pickup_prediction_enabled.label": "预测遗物拾起效果",
@@ -147,10 +147,10 @@
   "page.debug.title": "调试",
   "page.debug.description": "[red]警告：[/red]这些工具仅用于开发和验证，可能改变游戏内容；正常游玩请保持关闭。",
 
-  "section.ancient_event_debug.title": "先古之民事件",
-  "section.ancient_event_debug.description": "先古之民事件页面的调试工具。",
-  "toggle.ancient_event_debug_reroll_enabled.label": "启用先古之民调试重掷",
-  "toggle.ancient_event_debug_reroll_enabled.description": "启用后，先古之民事件页面会显示一个调试用 Reroll 按钮，用于重新生成当前选项组。",
+  "section.event_debug.title": "事件",
+  "section.event_debug.description": "事件页面的调试工具。",
+  "toggle.event_debug_reroll_enabled.label": "启用事件调试重掷",
+  "toggle.event_debug_reroll_enabled.description": "启用后，事件页面会显示一个调试用 Reroll 按钮，用于重新生成当前选项组。",
 
   "section.relic_pickup_debug.title": "遗物拾起效果预测",
   "section.relic_pickup_debug.description": "遗物拾起效果预测的调试工具。",

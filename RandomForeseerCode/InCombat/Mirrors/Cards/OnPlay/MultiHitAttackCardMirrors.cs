@@ -173,7 +173,7 @@ internal static class MultiHitAttackCardMirrors
     public static void SovereignBladeOnPlay(SovereignBlade card, CardOnPlayMirrorContext context)
     {
         var hitCount = card.DynamicVars.Repeat.IntValue;
-        if (card.Owner.Creature.HasPower<SeekingEdgePower>())
+        if (card.TargetType == TargetType.AllEnemies)
         {
             context.AttackAllOpponents(hitCount);
         }

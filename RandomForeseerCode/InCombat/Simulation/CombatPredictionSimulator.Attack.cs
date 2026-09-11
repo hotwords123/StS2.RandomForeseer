@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Commands.Builders;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -90,6 +91,11 @@ internal sealed partial class CombatPredictionSimulator
 
         HookMirrors.AfterAttack(this, attackCommand);
     }
+
+    /// <summary>
+    /// Mirrors <see cref="AttackCommand.CreateContextAsync"/>.
+    /// </summary>
+    public SimAttackContext CreateAttackContext(CardPlay cardPlay) => SimAttackContext.Create(this, cardPlay);
 
     // Mirrors AttackCommand.GetPossibleTargets but uses the simulator's state instead of the real CombatState.
     // Precondition: Execute has already verified that the command has an attacker and a target mode.
