@@ -73,11 +73,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- 中文：排除 Godot、IDE 和构建输出目录，避免本地生成文件参与编译。 -->
-        <!-- English: Exclude Godot, IDE, and build output directories so local generated files are not compiled. -->
-        <Compile Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**" />
-        <EmbeddedResource Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;services/**" />
-        <None Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**" />
+        <!-- 中文：排除 Godot、IDE、构建输出和临时目录，避免本地生成文件参与构建。 -->
+        <!-- English: Exclude Godot, IDE, build output, and temporary directories from build items. -->
+        <Compile Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**;temp/**" />
+        <EmbeddedResource Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;services/**;temp/**" />
+        <None Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**;temp/**" />
+        <Content Remove="temp/**" />
         <None Include="workshop/loader/**" />
 
         <!-- <AdditionalFiles Include="RandomForeseer/localization/**/*.json"/> -->
