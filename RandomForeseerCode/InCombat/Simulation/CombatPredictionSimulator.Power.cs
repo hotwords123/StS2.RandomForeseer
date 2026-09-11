@@ -98,15 +98,7 @@ internal sealed partial class CombatPredictionSimulator
                 cardSource?.Preview);
         }
 
-        var applicationContext = new PowerApplicationMirrorContext
-        {
-            Simulator = this,
-            Target = target,
-            Amount = modifiedAmount,
-            Applier = applier,
-            CardSource = cardSource
-        };
-        PowerApplicationMirrors.InvokeBefore(power, applicationContext);
+        PowerAppliedMirrors.InvokeBefore(this, power, target, modifiedAmount, applier, cardSource);
 
         if (!State.GetCreature(target).CanReceivePowers)
         {
@@ -127,7 +119,7 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        PowerApplicationMirrors.InvokeAfter(power, applicationContext);
+        PowerAppliedMirrors.InvokeAfter(this, power, target, modifiedAmount, applier, cardSource);
         HookMirrors.AfterPowerAmountChanged(this, power, modifiedAmount, target, applier, cardSource);
     }
 
