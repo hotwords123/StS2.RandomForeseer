@@ -46,7 +46,7 @@ The general inferrer currently recognizes four direct templates:
 | Attack | Direct `AttackCommand.Execute` call | Builds an attack from `CalculatedDamage`, `Damage` or `OstyDamage`, applies optional `Repeat`, and targets a single, all or random enemy according to the card. |
 | Block | Direct `CreatureCmd.GainBlock` call | Uses `CalculatedBlock` or `Block`. Self-target cards and enemy-targeting attack cards gain block on the owner; `AnyAlly` uses the selected ally; `AllAllies` uses all living player teammates. |
 | Owner draw | A supported `CardPileCmd.Draw` call-site recipe | Draws a fixed one card or the standard `Cards` value for the owner from shadow piles, including shuffle and draw hooks. |
-| Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Resolves the standard `Vulnerable`/`Power` amount and target shape, then enters the shared shadow `PowerCmd.Apply` boundary. Artifact can consume the application before `AfterPowerAmountChanged`; an active Vicious then draws through the existing shadow draw pipeline. |
+| Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Resolves the standard `VulnerablePower`/`Power` amount and target shape, then enters the shared shadow `PowerCmd.Apply` boundary. Artifact can consume the application before `AfterPowerAmountChanged`; an active Vicious then draws through the existing shadow draw pipeline. |
 
 Candidates are deduplicated by effect kind and executed in their first direct-call order, so multiple direct calls of
 the same recognized kind produce one general effect. Missing standard vars, unsupported targets and an unavailable

@@ -20,7 +20,7 @@ internal static class GeneralCardMirrors
     /// </summary>
     public static void GeneralVulnerableApplicationOnPlay(CardModel card, CardOnPlayMirrorContext context)
     {
-        var amount = TryGetDynamicVar(card, ["Vulnerable", "Power"], out var vulnerable)
+        var amount = TryGetDynamicVar(card, [nameof(VulnerablePower), "Power"], out var vulnerable)
             ? context.Calculate(vulnerable)
             : 1m;
 
