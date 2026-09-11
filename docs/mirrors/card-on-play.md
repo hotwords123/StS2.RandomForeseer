@@ -18,14 +18,17 @@ After that dispatch, the simulator invokes the mutable preview's `EnchantmentMod
    `PredictBaseGameCardsOnly` is enabled, it rejects non-base-game runtime types before inspecting their IL.
 4. Every other gameplay override is `Unsupported`.
 
-Exact handlers always win and are never combined with inferred behavior. `CanMirror` accepts only `Handled`, so the
-default combat-card prediction entry opens sessions only for exact registrations. The experimental best-effort card
-play setting bypasses that entry gate and enables the registry's `AllowInference` policy. With it enabled, every
-dispatch kind may enter the shadow card-play lifecycle: `Inferred` executes its inferred handler and records
-`MethodMirrorIncomplete`; `Unsupported` skips the unknown `OnPlay` body and records `MethodNotMirrored`;
-`NotOverridden` has no override to simulate, and `Ignored` is intentionally skipped. Resource spending, result-pile
-movement, exhaust hooks and other supported lifecycle effects still run around those bodies. `CanMirror` checks the
-explicit registration table directly, so the default root gate does not analyze or cache unregistered types.
+Exact handlers always win and are never combined with inferred behavior. `InferCardOnPlayEffectsEnabled` is a regular,
+default-enabled setting under card resolution scope; it controls the registry's `AllowInference` policy. The
+combat-card prediction entry does not require an exact registration. `CanMirror` only queries exact registrations
+and is not used to gate that entry.
+
+Every dispatch kind may enter the shadow card-play lifecycle, subject to the usual prediction, compatibility,
+targeting and playability checks. `Inferred` executes its inferred handler and records `MethodMirrorIncomplete`;
+`Unsupported` skips the unknown `OnPlay` body and records `MethodNotMirrored`; `NotOverridden` has no override to
+simulate, and `Ignored` is intentionally skipped. Disabling inference leaves unregistered gameplay overrides
+unsupported; it does not prevent their surrounding lifecycle from running. Resource spending, result-pile movement,
+exhaust hooks and other supported lifecycle effects still run around those bodies.
 
 The settings are synchronized at runtime. Changing the general inference switch updates `AllowInference`, which clears
 resolved Type lookups only when its value changes. Changing `PredictBaseGameCardsOnly` explicitly invalidates the
@@ -122,9 +125,9 @@ These limits are intentional. Expanding inference should add narrowly named, off
 
 ## Maintenance
 
-Keep exact registrations in `CardOnPlayMirrors.CreateRegistry` and register the single general inferrer after them. The
-best-effort setting controls whether the registry may infer unregistered types; the compatibility setting is checked
-inside the inferrer and additionally blocks root Mod-card prediction. Any new setting read by the inferrer must
+Keep exact registrations in `CardOnPlayMirrors.CreateRegistry` and register the single general inferrer after them.
+`InferCardOnPlayEffectsEnabled` controls whether the registry may infer unregistered types; the compatibility setting
+is checked inside the inferrer and additionally blocks root Mod-card prediction. Any new setting read by the inferrer must
 explicitly invalidate its lookup cache when changed. When adding an inferred template, match an unambiguous original
 command, define conservative instance-time parameter and target resolution, preserve call order where RitsuLib exposes
 it, add positive and negative offline samples, and document omitted control flow. New templates must continue to clone
