@@ -148,8 +148,8 @@ internal sealed partial class CombatPredictionSimulator
         }
 
         var ownerState = State.GetPlayerCombatState(card.Preview.Owner);
-        var energyCost = card.GetEnergyCostWithModifiers(this, ownerState);
-        var starCost = card.GetStarCostWithModifiers(this, ownerState);
+        var energyCost = Math.Max(0, card.GetEnergyCostWithModifiers(this));
+        var starCost = Math.Max(0, card.GetStarCostWithModifiers(this));
 
         if (energyCost > ownerState.Energy &&
             HookMirrors.ShouldPayExcessEnergyCostWithStars(this, card.Preview.Owner))
@@ -182,8 +182,8 @@ internal sealed partial class CombatPredictionSimulator
     private ResourceInfo SpendResources(PredictedCard card, bool isAutoPlay, bool skipXCapture = false)
     {
         var playerCombatState = State.GetPlayerCombatState(card.Preview.Owner);
-        var energyValue = card.GetEnergyCostWithModifiers(this, playerCombatState);
-        var starValue = card.GetStarCostWithModifiers(this, playerCombatState);
+        var energyValue = card.GetEnergyAmountToSpend(this);
+        var starValue = Math.Max(0, card.GetStarCostWithModifiers(this));
 
         if (!isAutoPlay && energyValue > playerCombatState.Energy &&
             HookMirrors.ShouldPayExcessEnergyCostWithStars(this, card.Preview.Owner))

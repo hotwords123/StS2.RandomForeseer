@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复手牌含 X 费或 X 星费牌时，干瘪之手的随机目标预测可能不正确的问题。<br>
+  Fixed incorrect random target predictions for Mummified Hand when the hand contains X-energy or X-star cards.
+
 - 修复致死性、幻影之刃和一心化万在连锁出牌中的伤害预测，以及奥斯提承伤和战斗结束后的生命损失预测可能不正确的问题。<br>
   Fixed incorrect damage predictions for Lethality, Phantom Blades, and One for All during chained card plays, as well as Osty's damage absorption and HP loss after combat ends.
 

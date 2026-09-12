@@ -117,7 +117,7 @@ internal static class ModifyDamageMirrors
 
         var energyCost = context.CardPlay is { } cardPlay
             ? cardPlay.Resources.EnergySpent
-            : card.GetEnergyCostWithModifiers(context.Simulator, context.State.GetPlayerCombatState(card.Preview.Owner));
+            : card.GetEnergyCostWithModifiers(context.Simulator);
         return energyCost == 0 ? power.Amount : 0;
     }
 

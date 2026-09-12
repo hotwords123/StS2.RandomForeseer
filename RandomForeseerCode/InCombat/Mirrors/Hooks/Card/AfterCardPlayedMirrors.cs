@@ -238,13 +238,9 @@ internal static class AfterCardPlayedMirrors
         var naturallyCostly = handCards
             .Where(card => card.Preview.EnergyCost._base > 0 || card.Preview.BaseStarCost > 0)
             .ToList();
-        bool CostsResources(PredictedCard card) =>
-            card.GetEnergyCostWithModifiers(context.Simulator, playerState) > 0 ||
-            card.GetStarCostWithModifiers(context.Simulator, playerState) > 0;
-
         var rng = context.Rng.CombatCardSelection;
-        var selectedCard = rng.NextItem(naturallyCostly.Where(CostsResources))
-            ?? rng.NextItem(handCards.Where(CostsResources))
+        var selectedCard = rng.NextItem(naturallyCostly.Where(card => card.CostsEnergyOrStars(context.Simulator)))
+            ?? rng.NextItem(handCards.Where(card => card.CostsEnergyOrStars(context.Simulator)))
             ?? rng.NextItem(naturallyCostly)
             ?? rng.NextItem(handCards);
         if (selectedCard is not null)

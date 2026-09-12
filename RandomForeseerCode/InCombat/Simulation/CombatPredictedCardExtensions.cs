@@ -75,22 +75,19 @@ internal static class CombatPredictedCardExtensions
         return playCount;
     }
 
-    // Mirrors CardEnergyCost.GetAmountToSpend.
+    /// <summary>
+    /// Mirrors <see cref="CardEnergyCost.GetWithModifiers"/> with <see cref="CostModifiers.All"/>
+    /// using prediction-aware combat hooks. X-cost cards return their base cost, not available energy.
+    /// </summary>
     public static int GetEnergyCostWithModifiers(
         this PredictedCard card,
-        CombatPredictionSimulator simulator,
-        SimPlayerCombatState playerCombatState)
+        CombatPredictionSimulator simulator)
     {
         var energyCost = card.Preview.EnergyCost;
-        if (energyCost.CostsX)
-        {
-            return playerCombatState.Energy;
-        }
-
         var cost = energyCost._base;
-        if (cost < 0)
+        if (cost < 0 || energyCost.CostsX)
         {
-            return 0;
+            return cost;
         }
 
         foreach (var modifier in energyCost._localModifiers)
@@ -102,20 +99,43 @@ internal static class CombatPredictedCardExtensions
         return Math.Max(0, cost);
     }
 
-    // Mirrors CardModel.GetStarCostWithModifiers.
+    /// <summary>
+    /// Mirrors <see cref="CardEnergyCost.GetAmountToSpend"/> using prediction state.
+    /// X-cost cards use the owner's simulated energy; other cards use the nonnegative modified cost.
+    /// </summary>
+    public static int GetEnergyAmountToSpend(this PredictedCard card, CombatPredictionSimulator simulator)
+    {
+        return card.Preview.EnergyCost.CostsX
+            ? simulator.State.GetPlayerCombatState(card.Preview.Owner).Energy
+            : Math.Max(0, card.GetEnergyCostWithModifiers(simulator));
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="CardModel.GetStarCostWithModifiers"/> using the simulated pile and combat hooks.
+    /// Star-X cards return the owner's simulated stars; resource checks and spending clamp the result to be nonnegative.
+    /// </summary>
     public static int GetStarCostWithModifiers(
         this PredictedCard card,
-        CombatPredictionSimulator simulator,
-        SimPlayerCombatState playerCombatState)
+        CombatPredictionSimulator simulator)
     {
         if (card.Preview.HasStarCostX)
         {
-            return playerCombatState.Stars;
+            return simulator.State.GetPlayerCombatState(card.Preview.Owner).Stars;
         }
 
         var cost = card.Preview.CurrentStarCost;
         cost = (int)HookMirrors.ModifyStarCost(simulator, card, cost);
-        return Math.Max(0, cost);
+        return cost;
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="CardModel.CostsEnergyOrStars"/> with global modifiers enabled,
+    /// using prediction-aware cost queries. Each X resource is excluded from its positive-cost check.
+    /// </summary>
+    public static bool CostsEnergyOrStars(this PredictedCard card, CombatPredictionSimulator simulator)
+    {
+        return (!card.Preview.EnergyCost.CostsX && card.GetEnergyCostWithModifiers(simulator) > 0) ||
+               (!card.Preview.HasStarCostX && card.GetStarCostWithModifiers(simulator) > 0);
     }
 
     // Mirrors CardModel.Keywords => CardModel.GetKeywordsWithSources(KeywordSources.All).

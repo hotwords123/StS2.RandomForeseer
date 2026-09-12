@@ -60,7 +60,7 @@ read-only listener methods except for the prediction-state consumers documented 
 | `LeadershipPower` | 领袖气质 | Owner buffs allied powered attacks by flat damage. | Implemented by original hook. |
 | `MiniatureCannon` | 微型大炮 | Owner upgraded-card powered attacks gain flat damage. | Implemented by original hook. |
 | `MysticLighter` | 神秘打火机 | Owner enchanted-card powered attacks gain flat damage. | Implemented by original hook. |
-| `OneForAllPower` | 一心化万 | Owner's powered non-X 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Exact additive adapter preserves spent-energy and X-cost rules; the null-play branch uses prediction-aware cost modifiers. |
+| `OneForAllPower` | 一心化万 | Owner's powered non-X 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Exact additive adapter preserves spent-energy and X-cost rules; the null-play branch uses `GetEnergyCostWithModifiers`, mirroring `CardEnergyCost.GetWithModifiers(All)`. |
 | `PhantomBladesPower` | 幻影之刃 | Owner's first Shiv attack this turn gains flat damage. | Exact additive adapter combines live current-turn and predicted finished-card history, filtered by player and Shiv tag. Started-but-unfinished Shivs do not consume the bonus. |
 | `StrikeDummy` | 打击木偶 | Owner Strike-tag attacks gain flat damage. | Implemented by original hook. |
 | `StrengthPower` | 力量 | Owner powered attacks gain flat damage; negative amounts reduce damage. | Implemented by original hook. |
