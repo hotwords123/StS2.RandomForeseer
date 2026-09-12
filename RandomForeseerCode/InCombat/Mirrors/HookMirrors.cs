@@ -299,12 +299,20 @@ internal static class HookMirrors
         ValueProp props,
         Creature? dealer)
     {
+        var context = new ModifyUnblockedDamageTargetMirrorContext
+        {
+            Simulator = simulator,
+            Target = originalTarget,
+            Amount = amount,
+            Props = props,
+            Dealer = dealer
+        };
         foreach (var listener in IterateCombatHookListeners(simulator, allowWhenCombatEnding: true))
         {
-            originalTarget = listener.ModifyUnblockedDamageTarget(originalTarget, amount, props, dealer);
+            context.Target = ModifyUnblockedDamageTargetMirrors.Invoke(listener, context);
         }
 
-        return originalTarget;
+        return context.Target;
     }
 
     /// <summary>
@@ -323,8 +331,13 @@ internal static class HookMirrors
     /// </summary>
     public static bool ShouldAllowHitting(CombatPredictionSimulator simulator, Creature creature)
     {
+        var context = new ShouldAllowHittingMirrorContext
+        {
+            Simulator = simulator,
+            Creature = creature
+        };
         return IterateCombatHookListeners(simulator)
-            .All(listener => listener.ShouldAllowHitting(creature));
+            .All(listener => ShouldAllowHittingMirrors.Invoke(listener, context));
     }
 
     /// <summary>

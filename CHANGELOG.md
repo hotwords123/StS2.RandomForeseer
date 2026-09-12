@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复致死性、幻影之刃和一心化万在连锁出牌中的伤害预测，以及奥斯提承伤和战斗结束后的生命损失预测可能不正确的问题。<br>
+  Fixed incorrect damage predictions for Lethality, Phantom Blades, and One for All during chained card plays, as well as Osty's damage absorption and HP loss after combat ends.
+
 - 修复部分卡牌施加易伤时未显示凶恶触发的抽牌预测的问题。<br>
   Fixed missing predictions for draws triggered by Vicious when certain cards apply Vulnerable.
 

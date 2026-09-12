@@ -136,6 +136,7 @@ internal static class ModifyHpLostMirrors
         var registry = new Registry(ModifyHpLostAfterOsty);
 
         registry.Register<BeatingRemnant>(HandleBeatingRemnant);
+        registry.Register<IntangiblePower>(HandleIntangiblePower);
         registry.Register<SlipperyPower>(HandleSlipperyPower);
 
         return registry;
@@ -167,7 +168,7 @@ internal static class ModifyHpLostMirrors
         BeatingRemnant relic,
         ModifyHpLostMirrorContext context)
     {
-        if (context.Target != relic.Owner.Creature)
+        if (!context.Simulator.IsInProgress || context.Target != relic.Owner.Creature)
         {
             return context.Amount;
         }
@@ -175,6 +176,13 @@ internal static class ModifyHpLostMirrors
         var state = context.StateStore.Get(relic, () => new BeatingRemnantPredictionState(relic));
         var damageCap = relic.DynamicVars[BeatingRemnant._maxHpLossKey].BaseValue;
         return Math.Min(context.Amount, damageCap - state.DamageReceivedThisTurn);
+    }
+
+    private static decimal HandleIntangiblePower(IntangiblePower power, ModifyHpLostMirrorContext context)
+    {
+        return context.Simulator.IsInProgress && context.Target == power.Owner
+            ? Math.Min(context.Amount, 1m)
+            : context.Amount;
     }
 
     private static decimal HandleSlipperyPower(

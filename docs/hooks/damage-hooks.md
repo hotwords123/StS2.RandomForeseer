@@ -13,6 +13,11 @@ This document covers the implemented `BeforeDamageReceived`, `AfterBlockBroken`,
 
 Damage hooks use the current player-turn prediction scope from `overview.md`: only effects that can feed back into predictions before the current player turn finishes need to be mirrored or marked risky. Enemy intent/stun changes, next-turn counters, later orb-passive triggers, and later reward-screen state can be ignored here unless another current-turn prediction consumes them.
 
+`Damage` checks the dealer's shadow liveness once at entry, matching `CreatureCmd.Damage`'s entry guard. A dealer
+killed by an earlier simulated action cannot deal damage in a later call; the current call still finishes its original
+target loop if a nested response kills the dealer. Osty redirection also reads shadow liveness; see
+`damage-modifier-hooks.md`.
+
 ## Hook specs
 
 - `AbstractModel.BeforeDamageReceived(PlayerChoiceContext, Creature, decimal, ValueProp, Creature?, CardModel?)`

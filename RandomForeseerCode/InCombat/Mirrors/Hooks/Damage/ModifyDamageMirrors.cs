@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
@@ -82,6 +83,8 @@ internal static class ModifyDamageMirrors
     {
         var registry = new Registry(ModifyDamageAdditive);
 
+        registry.Register<OneForAllPower>(HandleOneForAllPower);
+        registry.Register<PhantomBladesPower>(HandlePhantomBladesPower);
         registry.Register<VigorPower>(VigorPowerMirrors.ModifyDamageAdditive);
 
         return registry;
@@ -93,12 +96,68 @@ internal static class ModifyDamageMirrors
 
         registry.Register<FlutterPower>(HandleFlutterPower);
         registry.Register<GigantificationPower>(GigantificationPowerMirrors.ModifyDamageMultiplicative);
+        registry.Register<LethalityPower>(HandleLethalityPower);
         registry.Register<SlowPower>(HandleSlowPower);
         registry.Register<SurroundedPower>(HandleSurroundedPower);
 
         registry.Register<PenNib>(HandlePenNib);
 
         return registry;
+    }
+
+    private static decimal HandleOneForAllPower(OneForAllPower power, ModifyDamageMirrorContext context)
+    {
+        if (!context.Props.IsPoweredAttack() ||
+            context.CardSource is not { } card ||
+            card.Preview.Owner.Creature != power.Owner ||
+            (context.CardPlay?.Card.EnergyCost.CostsX ?? card.Preview.EnergyCost.CostsX))
+        {
+            return 0;
+        }
+
+        var energyCost = context.CardPlay is { } cardPlay
+            ? cardPlay.Resources.EnergySpent
+            : card.GetEnergyCostWithModifiers(context.Simulator, context.State.GetPlayerCombatState(card.Preview.Owner));
+        return energyCost == 0 ? power.Amount : 0;
+    }
+
+    private static decimal HandlePhantomBladesPower(PhantomBladesPower power, ModifyDamageMirrorContext context)
+    {
+        if (!context.Props.IsPoweredAttack() ||
+            context.CardSource?.Preview.Tags.Contains(CardTag.Shiv) != true ||
+            context.Dealer != power.Owner)
+        {
+            return 0;
+        }
+
+        var shivFinished = CombatManager.Instance.History.CardPlaysFinished.Any(entry =>
+                entry.HappenedThisTurn(context.CombatState) && entry.CardPlay.Player == power.Owner.Player &&
+                entry.CardPlay.Card.Tags.Contains(CardTag.Shiv)) ||
+            context.History.OfType<CombatPredictionCardPlayFinishedEntry>().Any(entry =>
+                entry.CardPlay.Player == power.Owner.Player && entry.Card.Preview.Tags.Contains(CardTag.Shiv));
+        return shivFinished ? 0 : power.Amount;
+    }
+
+    private static decimal HandleLethalityPower(LethalityPower power, ModifyDamageMirrorContext context)
+    {
+        var card = context.CardSource;
+        if (!context.Props.IsPoweredAttack() || card is null || card.Preview.Owner.Creature != power.Owner)
+        {
+            return 1;
+        }
+
+        var isInPlay = card.GetPile(context.State)?.Type == PileType.Play;
+        if (isInPlay && card.Preview.CurrentPlayIndex > 0)
+        {
+            return 1;
+        }
+
+        var attacksStarted = CombatManager.Instance.History.CardPlaysStarted.Count(entry =>
+                entry.HappenedThisTurn(context.CombatState) && entry.CardPlay.Player == power.Owner.Player &&
+                entry.CardPlay.Card.Type == CardType.Attack) +
+            context.History.OfType<CombatPredictionCardPlayStartedEntry>().Count(entry =>
+                entry.CardPlay.Player == power.Owner.Player && entry.Card.Preview.Type == CardType.Attack);
+        return attacksStarted > (isInPlay ? 1 : 0) ? 1 : 1 + power.Amount / 100m;
     }
 
     private static decimal HandleFlutterPower(FlutterPower power, ModifyDamageMirrorContext context)
