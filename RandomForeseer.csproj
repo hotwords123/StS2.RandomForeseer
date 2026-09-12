@@ -63,6 +63,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="RandomForeseer.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
     </ItemGroup>
 
@@ -73,12 +77,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- 中文：排除 Godot、IDE、构建输出和临时目录，避免本地生成文件参与构建。 -->
-        <!-- English: Exclude Godot, IDE, build output, and temporary directories from build items. -->
-        <Compile Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**;temp/**" />
-        <EmbeddedResource Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;services/**;temp/**" />
-        <None Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**;temp/**" />
-        <Content Remove="temp/**" />
+        <!-- 中文：排除 Godot、IDE、构建输出、临时目录和测试目录，避免本地生成文件参与构建。 -->
+        <!-- English: Exclude Godot, IDE, build output, temporary directories, and tests from build items. -->
+        <Compile Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**;temp/**;tests/**" />
+        <EmbeddedResource Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;services/**;temp/**;tests/**" />
+        <None Remove=".godot/**;.idea/**;.vs/**;bin/**;obj/**;workshop/loader/**;services/**;temp/**;tests/**" />
+        <Content Remove="temp/**;tests/**" />
         <None Include="workshop/loader/**" />
 
         <!-- <AdditionalFiles Include="RandomForeseer/localization/**/*.json"/> -->

@@ -2,6 +2,7 @@ bin/
 obj/
 artifacts/
 /temp/
+TestResults/
 /services/
 ModUploader-win-x64/
 .vs/

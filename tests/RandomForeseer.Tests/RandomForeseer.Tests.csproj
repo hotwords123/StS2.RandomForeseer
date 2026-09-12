@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <Import Project="../../local.props" Condition="Exists('../../local.props')" />
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsTestProject>true</IsTestProject>
+        <IsPackable>false</IsPackable>
+        <!-- Publicizer emits its own access-check attribute in each assembly. -->
+        <NoWarn>$(NoWarn);CS0436</NoWarn>
+        <Sts2Dir Condition="'$(Sts2Dir)' == ''">$(MSBuildProgramFiles32)/Steam/steamapps/common/Slay the Spire 2</Sts2Dir>
+        <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">$(Sts2Dir)/data_sts2_windows_x86_64</Sts2DataDir>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../RandomForeseer.csproj"
+                          AdditionalProperties="CopyModOnBuild=false;RunPckExport=false;SyncManifestDependenciesOnBuild=false;RitsuLibAutoCopy=false" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.2" PrivateAssets="all" />
+        <PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all" />
+        <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+        <Reference Include="sts2" HintPath="$(Sts2DataDir)/sts2.dll" Private="true" />
+        <Reference Include="0Harmony" HintPath="$(Sts2DataDir)/0Harmony.dll" Private="true" />
+        <Reference Include="GodotSharp" HintPath="$(Sts2DataDir)/GodotSharp.dll" Private="true" />
+        <Using Include="Xunit" />
+    </ItemGroup>
+    <!-- RitsuLib transitively brings Godot generators; this is a test library, not a Godot plugin. -->
+    <Target Name="ExcludeGodotGenerators" BeforeTargets="CoreCompile">
+        <ItemGroup>
+            <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)' == 'Godot.SourceGenerators'" />
+        </ItemGroup>
+    </Target>
+    <Target Name="ValidateGameTestDependencies" BeforeTargets="ResolveAssemblyReferences">
+        <Error Condition="!Exists('$(Sts2DataDir)/sts2.dll')"
+               Text="Tests require a local game install. Configure Sts2Dir/Sts2DataDir in the repository's local.props (see docs/testing.md)." />
+    </Target>
+</Project>
