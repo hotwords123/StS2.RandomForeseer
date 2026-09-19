@@ -25,6 +25,7 @@ public class CombatStateProxy : DispatchProxy
         "IterateHookListeners" => HookListeners,
         "get_RoundNumber" => 1,
         "get_CurrentSide" => CombatSide.Player,
+        "GetOpponentsOf" => ((Creature)args![0]!).Side == CombatSide.Player ? Enemies : Allies,
         "GetPlayer" => Allies.Select(creature => creature.Player).Single(player => player!.NetId == (ulong)args![0]!),
         _ => throw new NotSupportedException($"Combat test fixture does not implement {targetMethod.Name}.")
     };
