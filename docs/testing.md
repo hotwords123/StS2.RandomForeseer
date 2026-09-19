@@ -77,27 +77,23 @@ PCK 先生成到当前构建配置的中间目录，再随程序集和 manifest 
 5. 涉及场景、动画、真实 listener 枚举、完整出牌/死亡生命周期的变更仍需游戏内验证。
 
 各测试类的 XML doc 说明测试对象、覆盖范围和特殊隔离边界，使用 `see cref` 引用被测类型或方法。
-具体场景和预期结果由测试方法名称表达；局部注释补充特殊前提。覆盖说明随测试代码维护，本文仅记录共享规则。
+具体场景和预期结果由测试方法名称表达；局部注释补充特殊前提。覆盖说明随测试代码维护，本文专注测试体系概览、运行方式和共享工作流。
 
 测试是开发工具，不写入用户 README 或 changelog。游戏程序集、publicized 产物、`local.props`、
 `bin/`、`obj/`、`TestResults/` 不提交，不上传到 GitHub；不在缺少游戏程序集的 GitHub CI 中运行。
 
-## Fixture 与扩展边界
+## 测试架构与隔离边界
 
-- `Infrastructure/GameTestBase` 为每个游戏测试初始化模型库、清空战斗历史，安装属于该用例的
-  Harmony patch，并在释放时撤销自己的 patch、清理模型库和历史。构造失败也撤销已安装的 patch。
-- `ModelDb`、`CombatManager.Instance.History` 和 Harmony 是进程全局状态。相关测试类标记
-  `[Collection(GameTestCollection.Name)]` 并继承 `GameTestBase`；该集合内部串行，且不与其他集合并行。
-  纯逻辑测试保留 xUnit 默认并行行为。不得自行保留跨测试可变数据或 patch。
-- 会安装 patch 的初始化放在 `GameTestBase` 的异常清理范围内，避免派生类构造失败后遗留全局状态。
-- `TestCombat` 创建最小玩家、战斗和预测牌。原版提供 `ModelDb.Inject`，因此新增模型一般不需要
-  修改集中式模型清单；只按用例需要注入。添加通用新建 power 的场景时，初始化该 power 所需的模型。
-- `CombatStateProxy` 只提供模拟实际用到的 `ICombatState` 成员；未知成员抛异常，不能添加返回默认值的兜底。
-- 默认隔离仅涉及 Godot `StringName` 原生构造、兼容性配置过滤和 run listener 来源。
-  数值 mirror、预测状态和 hook facade 保持实际实现。
-- 用例启用额外的命令观察或替换时，在对应测试类的 XML doc 中说明隔离边界。
-- 对项目内部 API 使用类型检查的直接调用。只有无法正常赋值的原版 readonly/编译器生成字段、
-  Harmony 目标和私有资源支付入口使用集中管理的反射。
+游戏测试基础设施位于 `Infrastructure/`：`GameTestBase` 管理每个用例的全局状态与 patch 生命周期，
+`TestCombat` 分离源场景装配和预测执行会话，`CombatStateProxy` 提供无界面战斗环境。
+具体 API 的调用方式、生命周期约束和扩展要求维护在对应类型及成员的 XML doc 中。
+
+游戏测试依赖进程全局的模型库、战斗历史和 Harmony，因此统一在 `GameTestCollection` 内串行运行，
+且不与其他集合并行；纯逻辑测试保留 xUnit 默认并行行为。各用例独立清理状态和 patch，避免跨测试污染。
+
+默认隔离涉及 Godot 原生构造、兼容性配置过滤和 run listener 来源；数值 mirror、预测状态和 hook facade
+仍使用实际实现。部分用例额外观察或替换命令，其覆盖范围和特殊隔离边界由对应测试类的 XML doc 说明。
+无界面回归不能替代游戏内生命周期验证，也不代表完整对象图隔离或原版行为一致性。
 
 ## 已知限制与待修复测试
 

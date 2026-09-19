@@ -19,10 +19,13 @@ namespace RandomForeseer.Tests.Combat;
 [Collection(GameTestCollection.Name)]
 public sealed class MummifiedHandTests : GameTestBase
 {
-    private static CardModel Trigger(TestCombat combat)
+    private static (CardModel Card, MummifiedHand Relic) ArrangeTrigger(TestCombat combat) =>
+        (combat.ArrangeCard<Inflame>(pile: PileType.Play), combat.ArrangeRelic<MummifiedHand>(combat.Player));
+
+    private static CardModel Trigger(TestCombat combat, (CardModel Card, MummifiedHand Relic) trigger)
     {
-        var power = combat.Card<Inflame>(pile: PileType.Play);
-        AfterCardPlayedMirrors.Invoke(TestCombat.Relic<MummifiedHand>(combat.Player), new()
+        var power = combat.Predicted(trigger.Card);
+        AfterCardPlayedMirrors.Invoke(trigger.Relic, new()
         {
             Simulator = combat.Simulator,
             Card = power,
@@ -39,35 +42,23 @@ public sealed class MummifiedHandTests : GameTestBase
     [InlineData(4)]
     public void SelectsFromTheFirstNonemptyFallbackPool(int pool)
     {
-        var combat = new TestCombat();
-        var x = combat.Card<Whirlwind>();
-        combat.Card<Stardust>();
+        using var combat = new TestCombat();
+        var x = combat.ArrangeCard<Whirlwind>();
+        if (pool != 4) combat.ArrangeCard<Stardust>();
+        var expected = pool == 1 || pool == 3 ? combat.ArrangeCard<StrikeIronclad>()
+            : pool == 2 ? combat.ArrangeCard<Shiv>() : x;
+        var additional = pool == 1 ? combat.ArrangeCard<Shiv>() : null;
+        var trigger = ArrangeTrigger(combat);
+        combat.BeginPrediction();
         combat.PlayerState.GainEnergy(5);
         combat.PlayerState.GainStars(7);
-        PredictedCard expected;
-        if (pool == 1)
-        {
-            expected = combat.Card<StrikeIronclad>();
-            combat.Card<Shiv>().MutablePreview.EnergyCost.SetThisTurn(1);
-        }
-        else if (pool == 2)
-        {
-            expected = combat.Card<Shiv>();
-            expected.MutablePreview.EnergyCost.SetThisTurn(1);
-        }
-        else if (pool == 3)
-        {
-            expected = combat.Card<StrikeIronclad>();
-            expected.MutablePreview.SetToFreeThisTurn();
-        }
-        else
-        {
-            combat.PlayerState.Hand.Remove(combat.PlayerState.Hand.Cards.Last());
-            expected = x;
-        }
-        Assert.Same(expected.Original, Trigger(combat));
-        if (!expected.Preview.EnergyCost.CostsX)
-            Assert.Equal(0, expected.GetEnergyCostWithModifiers(combat.Simulator));
+        if (additional is not null) combat.Predicted(additional).MutablePreview.EnergyCost.SetThisTurn(1);
+        if (pool == 2) combat.Predicted(expected).MutablePreview.EnergyCost.SetThisTurn(1);
+        if (pool == 3) combat.Predicted(expected).MutablePreview.SetToFreeThisTurn();
+        Assert.Same(expected, Trigger(combat, trigger));
+        var predicted = combat.Predicted(expected);
+        if (!predicted.Preview.EnergyCost.CostsX)
+            Assert.Equal(0, predicted.GetEnergyCostWithModifiers(combat.Simulator));
     }
 
     [Theory]
@@ -75,19 +66,23 @@ public sealed class MummifiedHandTests : GameTestBase
     [InlineData(typeof(Stardust))]
     public void LastFallbackCanSelectAnXCard(Type type)
     {
-        var combat = new TestCombat();
-        var card = combat.Card(type);
-        Assert.Same(card.Original, Trigger(combat));
+        using var combat = new TestCombat();
+        var card = combat.ArrangeCard(type);
+        var trigger = ArrangeTrigger(combat);
+        combat.BeginPrediction();
+        Assert.Same(card, Trigger(combat, trigger));
     }
 
     [Fact]
     public void FixedEnergyCostOnStarXRemainsEligible()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Stardust>();
-        card.MutablePreview.EnergyCost.SetThisTurn(1);
-        combat.Card<Shiv>();
-        Assert.Same(card.Original, Trigger(combat));
+        using var combat = new TestCombat();
+        var card = combat.ArrangeCard<Stardust>();
+        combat.ArrangeCard<Shiv>();
+        var trigger = ArrangeTrigger(combat);
+        combat.BeginPrediction();
+        combat.Predicted(card).MutablePreview.EnergyCost.SetThisTurn(1);
+        Assert.Same(card, Trigger(combat, trigger));
     }
 
     [Theory]
@@ -106,23 +101,28 @@ public sealed class MummifiedHandTests : GameTestBase
     {
         var liveRng = NullRunState.Instance.Rng.CombatCardSelection;
         var liveCounter = liveRng.ToSerializable().counter;
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
         var actualRng = new Rng((uint)seed);
         var expectedRng = new Rng((uint)seed);
+        combat.ArrangeCard<Whirlwind>();
+        combat.ArrangeCard<Stardust>();
+        var energySource = combat.ArrangeCard<Shiv>();
+        var defendSource = combat.ArrangeCard<DefendIronclad>();
+        var starsSource = combat.ArrangeCard<Shiv>();
+        var trigger = ArrangeTrigger(combat);
+        combat.BeginPrediction();
         combat.Simulator.Rng.CombatCardSelection.LoadFromSerializable(actualRng.ToSerializable());
         actualRng = combat.Simulator.Rng.CombatCardSelection;
         combat.PlayerState.GainEnergy(5);
         combat.PlayerState.GainStars(7);
-        combat.Card<Whirlwind>();
-        combat.Card<Stardust>();
-        var energy = combat.Card<Shiv>();
+        var energy = combat.Predicted(energySource);
         energy.MutablePreview.EnergyCost.SetThisTurn(1);
-        combat.Card<DefendIronclad>().MutablePreview.EnergyCost.SetThisTurn(0);
-        var stars = combat.Card<Shiv>();
+        combat.Predicted(defendSource).MutablePreview.EnergyCost.SetThisTurn(0);
+        var stars = combat.Predicted(starsSource);
         stars.MutablePreview.SetStarCostThisTurn(1);
 
         var expected = expectedRng.NextItem(new[] { energy.Original, stars.Original });
-        Assert.Same(expected, Trigger(combat));
+        Assert.Same(expected, Trigger(combat, trigger));
         Assert.Equal(expectedRng.ToSerializable().counter, actualRng.ToSerializable().counter);
         Assert.Equal(expectedRng.NextInt(), actualRng.NextInt());
         Assert.Equal(0, energy.Original.EnergyCost.GetWithModifiers(CostModifiers.Local));
@@ -133,10 +133,12 @@ public sealed class MummifiedHandTests : GameTestBase
     [Fact]
     public void EmptyHandDoesNotSelectOrAdvanceRng()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Inflame>(pile: PileType.Play);
+        using var combat = new TestCombat();
+        var trigger = ArrangeTrigger(combat);
+        combat.BeginPrediction();
+        var card = combat.Predicted(trigger.Card);
         var counter = combat.Simulator.Rng.CombatCardSelection.ToSerializable().counter;
-        AfterCardPlayedMirrors.Invoke(TestCombat.Relic<MummifiedHand>(combat.Player), new()
+        AfterCardPlayedMirrors.Invoke(trigger.Relic, new()
         {
             Simulator = combat.Simulator,
             Card = card,

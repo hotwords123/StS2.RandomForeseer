@@ -15,7 +15,7 @@ namespace RandomForeseer.Tests.Combat;
 /// <see cref="CombatPredictionSimulator.SimulateEndPlayerTurn"/> and <see cref="CombatPredictionSimulator.Shuffle"/>.
 /// </summary>
 /// <remarks>
-/// Uses the existing headless fixture, including its simplified listener enumeration and shadow-pile arrangement.
+/// Uses the existing headless fixture, including its simplified listener enumeration and source-pile arrangement before explicit prediction startup.
 /// Does not replace attack/draw commands, exercise Godot UI or feature gates, prove native listener order, or validate
 /// the complete live object graph. Potion removal/hooks and final hand flush remain outside these baseline assertions.
 /// </remarks>
@@ -25,10 +25,12 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
     [Fact]
     public void ManualCardPlayResolvesHitsResourcesPilesAndHistoryWithoutChangingSourceValues()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<SwordBoomerang>();
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<SwordBoomerang>();
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         combat.PlayerState.GainEnergy(3);
-        var sourceRng = combat.Simulator.State.CombatState.RunState.Rng.CombatTargets;
+        var sourceRng = combat.Source.RunState.Rng.CombatTargets;
         var sourceCounter = sourceRng._counter;
 
         combat.Simulator.ManualPlay(card, null, out var frame);
@@ -53,12 +55,14 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
     [Fact]
     public void ManualPotionUseDrawsInOrderAndResolvesHistoryWithoutChangingLivePiles()
     {
-        var combat = new TestCombat();
-        var cards = Enumerable.Range(0, 4).Select(_ => combat.Card<StrikeIronclad>(pile: PileType.Draw)).ToArray();
+        using var combat = new TestCombat();
+        var sourceCards = Enumerable.Range(0, 4).Select(_ => combat.ArrangeCard<StrikeIronclad>(pile: PileType.Draw)).ToArray();
         ModelDb.Inject(typeof(SwiftPotion));
         var potion = (SwiftPotion)ModelDb.Potion<SwiftPotion>().ToMutable();
         potion.Owner = combat.Player;
 
+        combat.BeginPrediction();
+        var cards = sourceCards.Select(combat.Predicted).ToArray();
         Assert.True(combat.Simulator.ManualUse(potion, null, out var frame));
 
         Assert.Equal(cards.Take(3), combat.PlayerState.Hand.Cards);
@@ -67,7 +71,7 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
         Assert.Equal(3, combat.Simulator.History.Count<CombatPredictionCardDrawResolvedEntry>());
         Assert.Same(potion, frame.Source);
         Assert.Empty(combat.Player.PlayerCombatState!.Hand.Cards);
-        Assert.Empty(combat.Player.PlayerCombatState.DrawPile.Cards);
+        Assert.Equal(sourceCards, combat.Player.PlayerCombatState.DrawPile.Cards);
         Assert.Empty(CombatManager.Instance.History.Entries);
         Assert.False(combat.Simulator.Snapshot().HasRisk);
     }
@@ -75,9 +79,12 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
     [Fact]
     public void EndTurnResolvesHandDamageForEachPlayerWithoutChangingLiveHp()
     {
-        var combat = new TestCombat();
-        var first = combat.Card<Burn>();
-        var second = combat.Card<Burn>(combat.OtherPlayer);
+        using var combat = new TestCombat();
+        var sourceFirst = combat.ArrangeCard<Burn>();
+        var sourceSecond = combat.ArrangeCard<Burn>(combat.OtherPlayer);
+        combat.BeginPrediction();
+        var first = combat.Predicted(sourceFirst);
+        var second = combat.Predicted(sourceSecond);
 
         combat.Simulator.SimulateEndPlayerTurn();
 
@@ -95,10 +102,14 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
     [Fact]
     public void DrawPilePreviewShufflesDiscardDeterministicallyWithoutAdvancingSourceRng()
     {
-        var first = new TestCombat();
-        var second = new TestCombat();
-        var firstCards = Arrange(first);
-        var secondCards = Arrange(second);
+        using var first = new TestCombat();
+        using var second = new TestCombat();
+        var firstSources = Arrange(first);
+        var secondSources = Arrange(second);
+        first.BeginPrediction();
+        second.BeginPrediction();
+        var firstCards = firstSources.Select(first.Predicted).ToArray();
+        var secondCards = secondSources.Select(second.Predicted).ToArray();
         var sourceRng = first.Simulator.State.CombatState.RunState.Rng.Shuffle;
         var sourceCounter = sourceRng._counter;
         var beforeSample = sourceRng.Clone().NextInt();
@@ -112,17 +123,17 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
         Assert.Equal(Enumerable.Range(0, 4), order.Order());
         Assert.Equal(order, second.PlayerState.DrawPile.Cards.Select(card => Array.IndexOf(secondCards, card)));
         Assert.Empty(first.PlayerState.DiscardPile.Cards);
-        Assert.Empty(first.Player.PlayerCombatState!.DrawPile.Cards);
-        Assert.Empty(first.Player.PlayerCombatState.DiscardPile.Cards);
+        Assert.IsType<Burn>(Assert.Single(first.Player.PlayerCombatState!.DrawPile.Cards));
+        Assert.Equal(firstSources, first.Player.PlayerCombatState.DiscardPile.Cards);
         Assert.Equal(sourceCounter, sourceRng._counter);
         Assert.Equal(beforeSample, sourceRng.Clone().NextInt());
         Assert.True(first.Simulator.Rng.Shuffle._counter > sourceCounter);
         Assert.False(first.Simulator.Snapshot().HasRisk);
 
-        static PredictedCard[] Arrange(TestCombat combat)
+        static CardModel[] Arrange(TestCombat combat)
         {
-            combat.Card<Burn>(pile: PileType.Draw);
-            return Enumerable.Range(0, 4).Select(_ => combat.Card<StrikeIronclad>(pile: PileType.Discard)).ToArray();
+            combat.ArrangeCard<Burn>(pile: PileType.Draw);
+            return Enumerable.Range(0, 4).Select(_ => combat.ArrangeCard<StrikeIronclad>(pile: PileType.Discard)).ToArray();
         }
     }
 }

@@ -21,10 +21,11 @@ public sealed class HpLossTests : GameTestBase
     [Fact]
     public void OstyRedirectsOnlyPoweredOwnerDamageWhileAliveInPrediction()
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
         var pet = new Creature(null!, 10, 10) { CombatState = combat.Player.Creature.CombatState };
         pet._petOwner = combat.Player;
-        combat.Proxy.Listeners = [TestCombat.Power<DieForYouPower>(pet, 1)];
+        combat.Proxy.Listeners = [combat.ArrangePower<DieForYouPower>(pet, 1)];
+        combat.BeginPrediction();
         Creature Target(Creature target, ValueProp props) => HookMirrors.ModifyUnblockedDamageTarget(
             combat.Simulator, target, 8, props, combat.Enemy);
         Assert.Same(pet, Target(combat.Player.Creature, ValueProp.Move));
@@ -40,8 +41,9 @@ public sealed class HpLossTests : GameTestBase
     [Fact]
     public void DieForYouChecksShadowLivenessOfAnyQueriedCreature()
     {
-        var combat = new TestCombat();
-        combat.Proxy.Listeners = [TestCombat.Power<DieForYouPower>(combat.Player.Creature, 1)];
+        using var combat = new TestCombat();
+        combat.Proxy.Listeners = [combat.ArrangePower<DieForYouPower>(combat.Player.Creature, 1)];
+        combat.BeginPrediction();
         Assert.True(HookMirrors.ShouldAllowHitting(combat.Simulator, combat.OtherPlayer.Creature));
         // Keep the enemy alive so combat-ending guards do not bypass listeners.
         combat.Simulator.State.GetCreature(combat.OtherPlayer.Creature).LoseHp(100, ValueProp.Unpowered);
@@ -54,9 +56,10 @@ public sealed class HpLossTests : GameTestBase
     [InlineData(true)]
     public void HpCapsUseShadowCombatBoundaryAndPreserveOtherTargetsAndSmallLosses(bool remnant)
     {
-        var combat = new TestCombat();
-        AbstractModel listener = remnant ? TestCombat.Relic<BeatingRemnant>(combat.Player)
-            : TestCombat.Power<IntangiblePower>(combat.Player.Creature, 1);
+        using var combat = new TestCombat();
+        AbstractModel listener = remnant ? combat.ArrangeRelic<BeatingRemnant>(combat.Player)
+            : combat.ArrangePower<IntangiblePower>(combat.Player.Creature, 1);
+        combat.BeginPrediction();
         decimal Query(Creature target, decimal amount) => ModifyHpLostMirrors.InvokeAfterOsty(listener, new()
         {
             Simulator = combat.Simulator,

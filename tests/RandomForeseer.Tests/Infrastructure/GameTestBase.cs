@@ -1,6 +1,5 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
@@ -12,6 +11,14 @@ using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 namespace RandomForeseer.Tests.Infrastructure;
 
 /// <summary>Owns process-global isolation for one test in <see cref="GameTestCollection"/>.</summary>
+/// <remarks>
+/// Derived game tests must use the GameTestCollection collection attribute. ModelDb, combat history and Harmony
+/// are process-global: do not retain mutable state or patches across tests. Initialization that installs patches
+/// must remain inside this base class's exception-cleanup boundary, since xUnit does not dispose a failed constructor.
+/// Model state and owned patches are cleared on disposal, including failed initialization.
+/// Prefer typed direct access in fixture extensions; reserve reflection for inaccessible readonly/compiler-generated
+/// fields, Harmony targets and private entry points, keeping those reflection boundaries centralized.
+/// </remarks>
 public abstract class GameTestBase : IDisposable
 {
     private static bool _assemblyInitialized;

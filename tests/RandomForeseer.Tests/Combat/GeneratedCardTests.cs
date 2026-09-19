@@ -21,7 +21,8 @@ public sealed class GeneratedCardTests : GameTestBase
     [Fact]
     public void GeneratedCardsEnterShadowPilesAndHistoryWhileCombatIsInProgress()
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
+        combat.BeginPrediction();
         var card = CreateGeneratedCard(combat, typeof(Shiv));
 
         var result = Assert.Single(
@@ -37,7 +38,8 @@ public sealed class GeneratedCardTests : GameTestBase
     [Fact]
     public void CombatEndingPreservesGenerationHistoryWithFailedPileAdd()
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
+        combat.BeginPrediction();
         combat.Simulator.LoseCombat();
         Assert.True(combat.Simulator.IsEnding);
         Assert.True(combat.Simulator.IsInProgress);
@@ -57,7 +59,8 @@ public sealed class GeneratedCardTests : GameTestBase
     [Fact]
     public void SingleGeneratedCardReportsFailureWhenCombatIsEnding()
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
+        combat.BeginPrediction();
         combat.Simulator.LoseCombat();
         var card = CreateGeneratedCard(combat, typeof(Shiv));
 
@@ -74,7 +77,8 @@ public sealed class GeneratedCardTests : GameTestBase
     [Fact]
     public void SingleGeneratedCardEntersShadowPilesWhileCombatIsInProgress()
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
+        combat.BeginPrediction();
         var card = CreateGeneratedCard(combat, typeof(Shiv));
 
         var result = combat.Simulator.AddGeneratedCardToCombat(card, PileType.Hand, combat.Player);

@@ -11,9 +11,9 @@ namespace RandomForeseer.Tests.Combat;
 /// Verifies <see cref="CombatPredictionSession"/> request isolation, completion, failure propagation and disposal.
 /// </summary>
 /// <remarks>
-/// Uses the legacy <see cref="TestCombat"/> source fixture and its headless listener isolation, without replacing
+/// Uses the Arrange-only <see cref="TestCombat"/> source fixture and its headless listener isolation, without replacing
 /// simulator commands. These tests do not exercise UI feature gates, eager capture, output freezing or native resource
-/// disposal. The fixture's own simulator remains separate; each session owns a freshly assembled simulator.
+/// disposal. No fixture prediction is started; each explicit session owns a freshly assembled simulator.
 /// </remarks>
 [Collection(GameTestCollection.Name)]
 public sealed class PredictionSessionTests : GameTestBase
@@ -21,8 +21,8 @@ public sealed class PredictionSessionTests : GameTestBase
     [Fact]
     public void SeparateRequestsHaveIndependentStateHistoryAndRng()
     {
-        var combat = new TestCombat();
-        var source = combat.Simulator.State.CombatState;
+        using var combat = new TestCombat();
+        var source = combat.Source;
         var sourceCounter = source.RunState.Rng.Shuffle._counter;
         var first = new CombatPredictionSession(source);
         var second = new CombatPredictionSession(source);
@@ -52,8 +52,8 @@ public sealed class PredictionSessionTests : GameTestBase
     [Fact]
     public void EarlyNullReturnDisposesTheSessionWhenLeavingTheBlock()
     {
-        var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Simulator.State.CombatState);
+        using var combat = new TestCombat();
+        var session = new CombatPredictionSession(combat.Source);
 
         Assert.Null(Predict());
         Assert.Throws<ObjectDisposedException>(() => session.Simulator);
@@ -74,8 +74,8 @@ public sealed class PredictionSessionTests : GameTestBase
     [InlineData(true)]
     public void FailureBeforeOrAfterSimulationPropagatesAndDisposesTheSession(bool afterSimulation)
     {
-        var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Simulator.State.CombatState);
+        using var combat = new TestCombat();
+        var session = new CombatPredictionSession(combat.Source);
         var failure = new InvalidOperationException("Prediction failed.");
 
         var actual = Assert.Throws<InvalidOperationException>((Action)(() =>
@@ -101,8 +101,8 @@ public sealed class PredictionSessionTests : GameTestBase
     [Fact]
     public void GetterKeepsTheSameSimulatorAvailableUntilTheBlockEnds()
     {
-        var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Simulator.State.CombatState);
+        using var combat = new TestCombat();
+        var session = new CombatPredictionSession(combat.Source);
 
         using (session)
         {
@@ -120,8 +120,8 @@ public sealed class PredictionSessionTests : GameTestBase
     [Fact]
     public void DisposingAnUnusedSessionIsIdempotentAndPreventsGetterAccess()
     {
-        var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Simulator.State.CombatState);
+        using var combat = new TestCombat();
+        var session = new CombatPredictionSession(combat.Source);
 
         session.Dispose();
         session.Dispose();
@@ -132,8 +132,8 @@ public sealed class PredictionSessionTests : GameTestBase
     [Fact]
     public void SessionCompletionPreservesModelsRetainedByLegacyResults()
     {
-        var combat = new TestCombat();
-        var sourceCard = combat.Card<StrikeIronclad>().Original;
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<StrikeIronclad>();
         var result = Predict();
 
         Assert.NotSame(sourceCard, result);
@@ -142,10 +142,9 @@ public sealed class PredictionSessionTests : GameTestBase
 
         CardModel Predict()
         {
-            using var session = new CombatPredictionSession(combat.Simulator.State.CombatState);
+            using var session = new CombatPredictionSession(combat.Source);
             var simulator = session.Simulator;
-            var predicted = new PredictedCard(sourceCard);
-            simulator.State.GetPlayerCombatState(combat.Player).Hand.Add(predicted);
+            var predicted = simulator.State.GetPlayerCombatState(combat.Player).FindCard(sourceCard)!;
             predicted.MutablePreview.EnergyCost.SetThisTurnOrUntilPlayed(0);
             return predicted.Preview;
         }

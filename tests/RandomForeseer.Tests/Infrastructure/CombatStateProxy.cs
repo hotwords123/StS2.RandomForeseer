@@ -6,12 +6,20 @@ using MegaCrit.Sts2.Core.Runs;
 
 namespace RandomForeseer.Tests.Infrastructure;
 
-// DispatchProxy requires a public, non-sealed proxy. Unexpected API use fails loudly.
+/// <summary>Provides the subset of <see cref="ICombatState"/> required by headless combat tests.</summary>
+/// <remarks>
+/// DispatchProxy requires a public, non-sealed type. Unsupported members throw rather than return defaults;
+/// extend this proxy explicitly when a test needs another member. Collection setters invoke the owning fixture's
+/// arrangement guard, so configure them before prediction starts. Raw model references are not write-protected.
+/// </remarks>
 public class CombatStateProxy : DispatchProxy
 {
-    internal IReadOnlyList<Creature> Allies { get; set; } = [];
-    internal IReadOnlyList<Creature> Enemies { get; set; } = [];
-    internal IEnumerable<AbstractModel> Listeners { get; set; } = [];
+    internal Action EnsureArrange { get; set; } = () => { };
+    internal IReadOnlyList<Creature> Allies { get; set { EnsureArrange(); field = value; } } = [];
+    internal IReadOnlyList<Creature> Enemies { get; set { EnsureArrange(); field = value; } } = [];
+    /// <summary>Gets or configures additional source listeners beyond creature Powers.</summary>
+    /// <remarks>Materializes the input during arrangement; the setter rejects changes after fixture startup.</remarks>
+    internal IEnumerable<AbstractModel> Listeners { get; set { EnsureArrange(); field = value.ToArray(); } } = [];
     internal IEnumerable<AbstractModel> HookListeners =>
         Listeners.Concat(Allies.Concat(Enemies).SelectMany(creature => creature.Powers)).Distinct();
 

@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using RandomForeseer.Tests.Infrastructure;
 
@@ -27,8 +28,10 @@ public sealed class CardCostTests : GameTestBase
     [InlineData(true)]
     public void EnergyXUsesShadowEnergyForPaymentButNotCostQuery(bool autoPlay)
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Whirlwind>();
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<Whirlwind>();
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         combat.PlayerState.GainEnergy(5);
         Assert.Equal(0, card.GetEnergyCostWithModifiers(combat.Simulator));
         Assert.Equal(5, card.GetEnergyAmountToSpend(combat.Simulator));
@@ -48,8 +51,10 @@ public sealed class CardCostTests : GameTestBase
     [InlineData(true)]
     public void StarXQueriesAndCapturesShadowStars(bool autoPlay)
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Stardust>();
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<Stardust>();
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         combat.PlayerState.GainStars(7);
         Assert.Equal(7, card.GetStarCostWithModifiers(combat.Simulator));
         var resources = Spend(combat.Simulator, card, autoPlay, false);
@@ -62,23 +67,31 @@ public sealed class CardCostTests : GameTestBase
     [Fact]
     public void FixedCostsApplyLocalAndShadowGlobalModifiers()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<StrikeIronclad>();
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<StrikeIronclad>();
+        var free = combat.ArrangePower<FreeAttackPower>(combat.Player.Creature, 1);
+        combat.Proxy.Listeners = [free];
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         card.MutablePreview.EnergyCost.SetThisTurn(2);
+        Assert.Equal(0, card.GetEnergyCostWithModifiers(combat.Simulator));
+        combat.Simulator.StateStore.GetPowerAmount(free).Consume();
         Assert.Equal(2, card.GetEnergyCostWithModifiers(combat.Simulator));
         Assert.Equal(2, card.GetEnergyAmountToSpend(combat.Simulator));
-        combat.Proxy.Listeners = [TestCombat.Power<FreeAttackPower>(combat.Player.Creature, 1)];
-        Assert.Equal(0, card.GetEnergyCostWithModifiers(combat.Simulator));
+        Assert.Equal(1, free.Amount);
     }
 
     [Fact]
     public void ResourcesAreResolvedForTheCardOwner()
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
+        var energy = combat.ArrangeCard<Whirlwind>(combat.OtherPlayer);
+        var stars = combat.ArrangeCard<Stardust>(combat.OtherPlayer);
+        combat.BeginPrediction();
         combat.PlayerState.GainEnergy(5);
         combat.PlayerState.GainStars(7);
-        Assert.Equal(0, combat.Card<Whirlwind>(combat.OtherPlayer).GetEnergyAmountToSpend(combat.Simulator));
-        Assert.Equal(0, combat.Card<Stardust>(combat.OtherPlayer).GetStarCostWithModifiers(combat.Simulator));
+        Assert.Equal(0, combat.Predicted(energy).GetEnergyAmountToSpend(combat.Simulator));
+        Assert.Equal(0, combat.Predicted(stars).GetStarCostWithModifiers(combat.Simulator));
     }
 
     [Theory]
@@ -92,10 +105,12 @@ public sealed class CardCostTests : GameTestBase
     [InlineData(typeof(Shiv), null, 2, true)]
     public void ResourcePredicateExcludesEachXResourceIndependently(Type type, int? energy, int? stars, bool expected)
     {
-        var combat = new TestCombat();
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard(type);
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         combat.PlayerState.GainEnergy(4);
         combat.PlayerState.GainStars(6);
-        var card = combat.Card(type);
         if (energy is { } e) card.MutablePreview.EnergyCost.SetThisTurn(e);
         if (stars is { } s) card.MutablePreview.SetStarCostThisTurn(s);
         Assert.Equal(expected, card.CostsEnergyOrStars(combat.Simulator));
@@ -108,10 +123,14 @@ public sealed class CardCostTests : GameTestBase
     [Fact]
     public void CanPlayUsesSimulatedResourcesAndAcceptsZeroResourceXCards()
     {
-        var combat = new TestCombat();
-        Assert.True(combat.Simulator.CanPlay(combat.Card<Whirlwind>()));
-        Assert.True(combat.Simulator.CanPlay(combat.Card<Stardust>()));
-        var card = combat.Card<StrikeIronclad>();
+        using var combat = new TestCombat();
+        var energyX = combat.ArrangeCard<Whirlwind>();
+        var starX = combat.ArrangeCard<Stardust>();
+        var sourceCard = combat.ArrangeCard<StrikeIronclad>();
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
+        Assert.True(combat.Simulator.CanPlay(combat.Predicted(energyX)));
+        Assert.True(combat.Simulator.CanPlay(combat.Predicted(starX)));
         Assert.False(combat.Simulator.CanPlay(card));
         combat.PlayerState.GainEnergy(1);
         Assert.True(combat.Simulator.CanPlay(card));

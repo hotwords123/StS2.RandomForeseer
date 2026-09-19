@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -17,25 +18,33 @@ namespace RandomForeseer.Tests.Combat;
 /// <remarks>
 /// Power and block commands use their actual mirrors. Attack execution and drawing are replaced with
 /// recorders, so assertions cover command order and state changes rather than attack/draw internals.
+/// All input cards and powers are arranged before BeginPrediction; repeated mirror calls reuse the arranged card.
 /// Unsupported inference paths declare their expected behavior and limitation at the corresponding skipped test.
 /// </remarks>
 [Collection(GameTestCollection.Name)]
 public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands: true)
 {
-    private static void Play(TestCombat combat, Type type, bool upgraded = false, bool inferred = false)
+    private static CardModel ArrangePlay(TestCombat combat, Type type, bool upgraded = false)
     {
-        var card = combat.Card(type, pile: PileType.Play);
-        var preview = card.MutablePreview;
+        var source = combat.ArrangeCard(type, pile: PileType.Play);
         if (upgraded)
         {
-            preview.UpgradeInternal();
-            preview.FinalizeUpgradeInternal();
+            source.UpgradeInternal();
+            source.FinalizeUpgradeInternal();
         }
-        if (preview is MadScience madScience)
+        if (source is MadScience madScience)
         {
             madScience.TinkerTimeType = CardType.Attack;
             madScience.TinkerTimeRider = TinkerTime.RiderEffect.Sapping;
         }
+        return source;
+    }
+
+    private static void Play(TestCombat combat, CardModel source, bool inferred = false)
+    {
+        var card = combat.Predicted(source);
+        var preview = card.MutablePreview;
+        var type = source.GetType();
         var context = new CardOnPlayMirrorContext
         {
             Simulator = combat.Simulator,
@@ -58,9 +67,11 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [Fact]
     public void ArtifactConsumesWeakBeforeUpgradedVulnerableWithoutMutatingLiveModels()
     {
-        var combat = new TestCombat();
-        var artifact = TestCombat.Power<ArtifactPower>(combat.Enemy, 1, true);
-        Play(combat, typeof(Putrefy), upgraded: true, inferred: true);
+        using var combat = new TestCombat();
+        var artifact = combat.ArrangePower<ArtifactPower>(combat.Enemy, 1, true);
+        var sourceCard = ArrangePlay(combat, typeof(Putrefy), upgraded: true);
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(0, combat.Amount(artifact));
         Assert.Equal(1, artifact.Amount);
         Assert.Contains(PowerChanges, change => change.Name == nameof(VulnerablePower) && change.Amount == 3);
@@ -72,18 +83,22 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [InlineData(typeof(MeteorShower), true, "Attack,WeakPower:1,WeakPower:2,VulnerablePower:1,VulnerablePower:2")]
     public void MultiTargetApplicationsKeepVanillaCommandOrder(Type type, bool inferred, string expected)
     {
-        var combat = new TestCombat(2);
-        Play(combat, type, inferred: inferred);
+        using var combat = new TestCombat(2);
+        var sourceCard = ArrangePlay(combat, type);
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: inferred);
         Assert.Equal(expected.Split(','), Calls);
     }
 
     [Fact]
     public void ExposeBreaksShadowBlockAndRemovesArtifactBeforeApplyingVulnerable()
     {
-        var combat = new TestCombat();
-        var artifact = TestCombat.Power<ArtifactPower>(combat.Enemy, 2, true);
+        using var combat = new TestCombat();
+        var artifact = combat.ArrangePower<ArtifactPower>(combat.Enemy, 2, true);
         combat.Enemy._block = 12;
-        Play(combat, typeof(Expose));
+        var sourceCard = ArrangePlay(combat, typeof(Expose));
+        combat.BeginPrediction();
+        Play(combat, sourceCard);
         Assert.Equal(0, combat.Simulator.State.GetCreature(combat.Enemy).Block);
         Assert.Equal(12, combat.Enemy.Block);
         Assert.Equal(1, BlockBreaks);
@@ -97,10 +112,12 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [InlineData(0, true, false, 0)]
     public void DominateUsesResultingShadowVulnerableForStrength(int initial, bool artifact, bool upgraded, int strength)
     {
-        var combat = new TestCombat();
-        var power = initial > 0 ? TestCombat.Power<VulnerablePower>(combat.Enemy, initial, true) : null;
-        if (artifact) TestCombat.Power<ArtifactPower>(combat.Enemy, 1, true);
-        Play(combat, typeof(Dominate), upgraded: upgraded);
+        using var combat = new TestCombat();
+        var power = initial > 0 ? combat.ArrangePower<VulnerablePower>(combat.Enemy, initial, true) : null;
+        if (artifact) combat.ArrangePower<ArtifactPower>(combat.Enemy, 1, true);
+        var sourceCard = ArrangePlay(combat, typeof(Dominate), upgraded: upgraded);
+        combat.BeginPrediction();
+        Play(combat, sourceCard);
         if (strength == 0) Assert.DoesNotContain(PowerChanges, change => change.Name == nameof(StrengthPower));
         else Assert.Contains(PowerChanges, change => change.Name == nameof(StrengthPower) && change.Amount == strength);
         if (power is not null) Assert.Equal(initial, power.Amount);
@@ -109,10 +126,12 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [Fact]
     public void RepeatedMoltenFistDoublesShadowVulnerable()
     {
-        var combat = new TestCombat();
-        var power = TestCombat.Power<VulnerablePower>(combat.Enemy, 3, true);
-        Play(combat, typeof(MoltenFist));
-        Play(combat, typeof(MoltenFist));
+        using var combat = new TestCombat();
+        var power = combat.ArrangePower<VulnerablePower>(combat.Enemy, 3, true);
+        var sourceCard = ArrangePlay(combat, typeof(MoltenFist));
+        combat.BeginPrediction();
+        Play(combat, sourceCard);
+        Play(combat, sourceCard);
         Assert.Equal(12, combat.Amount(power));
         Assert.Equal(3, power.Amount);
     }
@@ -122,29 +141,36 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [InlineData(true)]
     public void MoltenFistSkipsAbsentVulnerableOrDeadTargets(bool killTarget)
     {
-        var combat = new TestCombat(2);
+        using var combat = new TestCombat(2);
         if (killTarget)
         {
-            TestCombat.Power<VulnerablePower>(combat.Enemy, 3, true);
+            combat.ArrangePower<VulnerablePower>(combat.Enemy, 3, true);
             AfterAttack = simulator => simulator.State.GetCreature(combat.Enemy).LoseHp(100, ValueProp.Unblockable);
         }
-        Play(combat, typeof(MoltenFist));
+        var sourceCard = ArrangePlay(combat, typeof(MoltenFist));
+        combat.BeginPrediction();
+        Play(combat, sourceCard);
         Assert.Equal(["Attack"], Calls);
     }
 
     [Fact]
     public void HighFiveSkipsAllEffectsWithoutOsty()
     {
-        Play(new TestCombat(), typeof(HighFive));
+        using var combat = new TestCombat();
+        var sourceCard = ArrangePlay(combat, typeof(HighFive));
+        combat.BeginPrediction();
+        Play(combat, sourceCard);
         Assert.Empty(Calls);
     }
 
     [Fact]
     public void MadScienceSappingUsesCustomAmountsAfterItsAttack()
     {
-        var combat = new TestCombat();
-        TestCombat.Power<ArtifactPower>(combat.Enemy, 1, true);
-        Play(combat, typeof(MadScience));
+        using var combat = new TestCombat();
+        combat.ArrangePower<ArtifactPower>(combat.Enemy, 1, true);
+        var sourceCard = ArrangePlay(combat, typeof(MadScience));
+        combat.BeginPrediction();
+        Play(combat, sourceCard);
         Assert.Equal(["Attack", "WeakPower:1", "VulnerablePower:1"], Calls);
         Assert.Contains(PowerChanges, change => change.Name == nameof(VulnerablePower) && change.Amount == 2);
     }
@@ -165,7 +191,10 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [MemberData(nameof(InferredCards))]
     public void InferredApplicationsUseCorrectOrderAndUpgradeAmounts(Type type, bool upgraded, int amount, bool attack)
     {
-        Play(new TestCombat(), type, upgraded, inferred: true);
+        using var combat = new TestCombat();
+        var sourceCard = ArrangePlay(combat, type, upgraded);
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(attack ? ["Attack", "WeakPower:1", "VulnerablePower:1"] : ["WeakPower:1", "VulnerablePower:1"], Calls);
         Assert.Contains(PowerChanges, change => change.Name == nameof(WeakPower) && change.Amount == amount);
         Assert.Contains(PowerChanges, change => change.Name == nameof(VulnerablePower) && change.Amount == amount);
@@ -174,7 +203,10 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [Fact]
     public void NeutralizeInfersUpgradedWeakWithoutVulnerable()
     {
-        Play(new TestCombat(), typeof(Neutralize), upgraded: true, inferred: true);
+        using var combat = new TestCombat();
+        var sourceCard = ArrangePlay(combat, typeof(Neutralize), upgraded: true);
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(["Attack", "WeakPower:1"], Calls);
         Assert.Contains(PowerChanges, change => change.Name == nameof(WeakPower) && change.Amount == 2);
     }
@@ -182,7 +214,10 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [Fact]
     public void ConditionalWeakIsNotInferredAsUnconditional()
     {
-        Play(new TestCombat(), typeof(GoForTheEyes), inferred: true);
+        using var combat = new TestCombat();
+        var sourceCard = ArrangePlay(combat, typeof(GoForTheEyes));
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(["Attack"], Calls);
     }
 
@@ -195,11 +230,13 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     public void ViciousDrawsOnlyForSuccessfulApplicationsWhileActive(int artifactAmount, int enemies,
         bool removed, int expectedDraws)
     {
-        var combat = new TestCombat(enemies);
-        var vicious = TestCombat.Power<ViciousPower>(combat.Player.Creature, 2, true);
-        if (artifactAmount > 0) TestCombat.Power<ArtifactPower>(combat.Enemy, artifactAmount, true);
+        using var combat = new TestCombat(enemies);
+        var vicious = combat.ArrangePower<ViciousPower>(combat.Player.Creature, 2, true);
+        if (artifactAmount > 0) combat.ArrangePower<ArtifactPower>(combat.Enemy, artifactAmount, true);
+        var sourceCard = ArrangePlay(combat, enemies > 1 ? typeof(MeteorShower) : typeof(Putrefy));
+        combat.BeginPrediction();
         if (removed) combat.Simulator.RemovePower(vicious);
-        Play(combat, enemies > 1 ? typeof(MeteorShower) : typeof(Putrefy), inferred: true);
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(expectedDraws, Drawn);
         Assert.Equal(2, vicious.Amount);
     }
@@ -210,9 +247,11 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [Trait("Category", "KnownLimitation")]
     public void MalaiseAtZeroXShouldNotConsumeArtifact()
     {
-        var combat = new TestCombat();
-        var artifact = TestCombat.Power<ArtifactPower>(combat.Enemy, 1, true);
-        Play(combat, typeof(Malaise), inferred: true);
+        using var combat = new TestCombat();
+        var artifact = combat.ArrangePower<ArtifactPower>(combat.Enemy, 1, true);
+        var sourceCard = ArrangePlay(combat, typeof(Malaise));
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(1, combat.Amount(artifact));
     }
 
@@ -222,9 +261,11 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
     [Trait("Category", "KnownLimitation")]
     public void HazeShouldApplyBothDebuffsThroughArtifact()
     {
-        var combat = new TestCombat();
-        var artifact = TestCombat.Power<ArtifactPower>(combat.Enemy, 2, true);
-        Play(combat, typeof(Haze), inferred: true);
+        using var combat = new TestCombat();
+        var artifact = combat.ArrangePower<ArtifactPower>(combat.Enemy, 2, true);
+        var sourceCard = ArrangePlay(combat, typeof(Haze));
+        combat.BeginPrediction();
+        Play(combat, sourceCard, inferred: true);
         Assert.Equal(0, combat.Amount(artifact));
     }
 }

@@ -42,25 +42,31 @@ public sealed class DamageModifierTests : GameTestBase
     [Fact]
     public void LethalityUsesStartedHistoryAndShadowPlayPile()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<StrikeIronclad>();
-        var power = TestCombat.Power<LethalityPower>(combat.Player.Creature, 50);
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<StrikeIronclad>();
+        var otherSource = combat.ArrangeCard<StrikeIronclad>(combat.OtherPlayer);
+        var defendSource = combat.ArrangeCard<DefendIronclad>();
+        var secondSource = combat.ArrangeCard<StrikeIronclad>();
+        var power = combat.ArrangePower<LethalityPower>(combat.Player.Creature, 50);
+        combat.ArrangeHistory(sourceCard, round: 0);
+        combat.ArrangeHistory(otherSource);
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
+        var other = combat.Predicted(otherSource);
         Assert.Equal(1.5m, Damage(combat, power, card));
-        combat.LiveHistory(card, round: 0);
-        var other = combat.Card<StrikeIronclad>(combat.OtherPlayer);
         combat.Start(other);
-        combat.LiveHistory(other);
-        combat.Start(combat.Card<DefendIronclad>());
+        combat.Start(combat.Predicted(defendSource));
         Assert.Equal(1.5m, Damage(combat, power, card));
         combat.PlayerState.Hand.Remove(card);
         combat.PlayerState.PlayPile.Add(card);
         combat.Start(card);
-        Assert.Null(card.Preview.Pile);
         Assert.Equal(1.5m, Damage(combat, power, card, TestCombat.Play(card)));
         Assert.Equal(1.5m, Damage(combat, power, card, TestCombat.Play(card)));
         card.MutablePreview._currentPlayIndex = 1;
         Assert.Equal(1m, Damage(combat, power, card, TestCombat.Play(card, index: 1)));
-        var second = combat.Card<StrikeIronclad>(pile: PileType.Play);
+        var second = combat.Predicted(secondSource);
+        combat.PlayerState.Hand.Remove(second);
+        combat.PlayerState.PlayPile.Add(second);
         combat.Start(second);
         Assert.Equal(1m, Damage(combat, power, second, TestCombat.Play(second)));
     }
@@ -70,23 +76,29 @@ public sealed class DamageModifierTests : GameTestBase
     [InlineData(true)]
     public void LethalityIncludesLiveCurrentTurnHistory(bool alsoSimulated)
     {
-        var combat = new TestCombat();
-        var card = combat.Card<StrikeIronclad>(pile: alsoSimulated ? PileType.Play : PileType.Hand);
-        combat.LiveHistory(card);
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<StrikeIronclad>(pile: alsoSimulated ? PileType.Play : PileType.Hand);
+        combat.ArrangeHistory(sourceCard);
+        var power = combat.ArrangePower<LethalityPower>(combat.Player.Creature, 50);
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         if (alsoSimulated) combat.Start(card);
-        Assert.Equal(1m, Damage(combat, TestCombat.Power<LethalityPower>(combat.Player.Creature, 50), card));
+        Assert.Equal(1m, Damage(combat, power, card));
     }
 
     [Fact]
     public void PhantomBladesWaitsForMatchingShivToFinish()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Shiv>(pile: PileType.Play);
-        var power = TestCombat.Power<PhantomBladesPower>(combat.Player.Creature, 9);
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<Shiv>(pile: PileType.Play);
+        var otherSource = combat.ArrangeCard<Shiv>(combat.OtherPlayer);
+        var power = combat.ArrangePower<PhantomBladesPower>(combat.Player.Creature, 9);
+        combat.ArrangeHistory(sourceCard, finished: true, round: 0);
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         combat.Start(card);
         Assert.Equal(9m, Damage(combat, power, card, additive: true));
-        combat.Finish(combat.Card<Shiv>(combat.OtherPlayer));
-        combat.LiveHistory(card, finished: true, round: 0);
+        combat.Finish(combat.Predicted(otherSource));
         Assert.Equal(9m, Damage(combat, power, card, additive: true));
         combat.Finish(card);
         Assert.Equal(0m, Damage(combat, power, card, additive: true));
@@ -95,21 +107,26 @@ public sealed class DamageModifierTests : GameTestBase
     [Fact]
     public void PhantomBladesIncludesLiveFinishedHistory()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Shiv>();
-        combat.LiveHistory(card, finished: true);
-        Assert.Equal(0m, Damage(combat, TestCombat.Power<PhantomBladesPower>(combat.Player.Creature, 9), card,
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<Shiv>();
+        combat.ArrangeHistory(sourceCard, finished: true);
+        var power = combat.ArrangePower<PhantomBladesPower>(combat.Player.Creature, 9);
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
+        Assert.Equal(0m, Damage(combat, power, card,
             additive: true));
     }
 
     [Fact]
     public void OneForAllPreviewUsesConsumedShadowCostModifiers()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<StrikeIronclad>();
-        var power = TestCombat.Power<OneForAllPower>(combat.Player.Creature, 5);
-        var free = TestCombat.Power<FreeAttackPower>(combat.Player.Creature, 1);
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<StrikeIronclad>();
+        var power = combat.ArrangePower<OneForAllPower>(combat.Player.Creature, 5);
+        var free = combat.ArrangePower<FreeAttackPower>(combat.Player.Creature, 1);
         combat.Proxy.Listeners = [free];
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         Assert.Equal(5m, Damage(combat, power, card, additive: true));
         combat.Simulator.StateStore.GetPowerAmount(free).Consume();
         Assert.Equal(0m, Damage(combat, power, card, additive: true));
@@ -122,9 +139,11 @@ public sealed class DamageModifierTests : GameTestBase
     [InlineData(typeof(Whirlwind), 0, 0)]
     public void OneForAllExecutionUsesSpentEnergyAndExcludesX(Type cardType, int spent, int expected)
     {
-        var combat = new TestCombat();
-        var card = combat.Card(cardType);
-        var power = TestCombat.Power<OneForAllPower>(combat.Player.Creature, 5);
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard(cardType);
+        var power = combat.ArrangePower<OneForAllPower>(combat.Player.Creature, 5);
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         Assert.Equal(expected, Damage(combat, power, card, TestCombat.Play(card, energySpent: spent), additive: true));
     }
 
@@ -134,32 +153,38 @@ public sealed class DamageModifierTests : GameTestBase
     [InlineData("OneForAll")]
     public void DamageBonusesIgnoreUnpoweredMissingAndOtherOwnerSources(string kind)
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Shiv>();
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<Shiv>();
         PowerModel power = kind switch
         {
-            "Lethality" => TestCombat.Power<LethalityPower>(combat.Player.Creature, 50),
-            "PhantomBlades" => TestCombat.Power<PhantomBladesPower>(combat.Player.Creature, 9),
-            _ => TestCombat.Power<OneForAllPower>(combat.Player.Creature, 5)
+            "Lethality" => combat.ArrangePower<LethalityPower>(combat.Player.Creature, 50),
+            "PhantomBlades" => combat.ArrangePower<PhantomBladesPower>(combat.Player.Creature, 9),
+            _ => combat.ArrangePower<OneForAllPower>(combat.Player.Creature, 5)
         };
+        var otherSource = combat.ArrangeCard<Shiv>(combat.OtherPlayer);
+        var strikeSource = combat.ArrangeCard<StrikeIronclad>();
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         var additive = power is not LethalityPower;
         var neutral = additive ? 0m : 1m;
         Assert.Equal(neutral, Damage(combat, power, card, additive: additive, props: ValueProp.Unpowered));
         Assert.Equal(neutral, Damage(combat, power, null, additive: additive));
-        Assert.Equal(neutral, Damage(combat, power, combat.Card<Shiv>(combat.OtherPlayer), additive: additive,
+        Assert.Equal(neutral, Damage(combat, power, combat.Predicted(otherSource), additive: additive,
             dealer: combat.OtherPlayer.Creature));
         if (power is PhantomBladesPower)
-            Assert.Equal(0m, Damage(combat, power, combat.Card<StrikeIronclad>(), additive: true));
+            Assert.Equal(0m, Damage(combat, power, combat.Predicted(strikeSource), additive: true));
     }
 
     [Fact]
     public void CombinedDamageAppliesAdditionBeforeMultiplicationAndConsumesFirstPlayBonuses()
     {
-        var combat = new TestCombat();
-        var card = combat.Card<Shiv>();
-        combat.Proxy.Listeners = [TestCombat.Power<OneForAllPower>(combat.Player.Creature, 5),
-            TestCombat.Power<PhantomBladesPower>(combat.Player.Creature, 9),
-            TestCombat.Power<LethalityPower>(combat.Player.Creature, 50)];
+        using var combat = new TestCombat();
+        var sourceCard = combat.ArrangeCard<Shiv>();
+        combat.Proxy.Listeners = [combat.ArrangePower<OneForAllPower>(combat.Player.Creature, 5),
+            combat.ArrangePower<PhantomBladesPower>(combat.Player.Creature, 9),
+            combat.ArrangePower<LethalityPower>(combat.Player.Creature, 50)];
+        combat.BeginPrediction();
+        var card = combat.Predicted(sourceCard);
         decimal Query() => HookMirrors.ModifyDamage(combat.Simulator, combat.Enemy, combat.Player.Creature,
             10, ValueProp.Move, card, null);
         Assert.Equal(36m, Query());

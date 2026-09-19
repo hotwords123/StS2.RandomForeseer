@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.RandomForeseerCode.InCombat;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
@@ -24,8 +25,9 @@ public sealed class CrabRageTests : GameTestBase
     [InlineData(true)]
     public void AllyDeathGrantsBlockForFollowingDamageOnlyOnce(bool wasRemovalPrevented)
     {
-        var combat = new TestCombat(enemyCount: 3);
-        var power = TestCombat.Power<CrabRagePower>(combat.Enemy, 1, addToLiveCollection: true);
+        using var combat = new TestCombat(enemyCount: 3);
+        var power = combat.ArrangePower<CrabRagePower>(combat.Enemy, 1, addToLiveCollection: true);
+        combat.BeginPrediction();
         var simulator = combat.Simulator;
         var owner = simulator.State.GetCreature(combat.Enemy);
 
@@ -46,7 +48,8 @@ public sealed class CrabRageTests : GameTestBase
         Assert.Equal(1, power.Amount);
         Assert.Same(power, Assert.Single(combat.Enemy.Powers));
 
-        var freshPrediction = new CombatPredictionSimulator(simulator.State.CombatState);
+        using var freshSession = new CombatPredictionSession(combat.Source);
+        var freshPrediction = freshSession.Simulator;
         HookMirrors.AfterDeath(freshPrediction, combat.Proxy.Enemies[1], wasRemovalPrevented: false);
         Assert.Equal(99, freshPrediction.State.GetCreature(combat.Enemy).Block);
     }
@@ -56,11 +59,12 @@ public sealed class CrabRageTests : GameTestBase
     [InlineData(true)]
     public void OwnOrOpposingDeathDoesNotConsumeTheTrigger(bool ownDeath)
     {
-        var combat = new TestCombat(enemyCount: 2);
-        var power = TestCombat.Power<CrabRagePower>(combat.Enemy, 1, addToLiveCollection: true);
+        using var combat = new TestCombat(enemyCount: 2);
+        var power = combat.ArrangePower<CrabRagePower>(combat.Enemy, 1, addToLiveCollection: true);
         // Read the configured BlockVar instead of hardcoding the amount in the mirror.
         power.DynamicVars.Block.BaseValue = 37m;
 
+        combat.BeginPrediction();
         HookMirrors.AfterDeath(combat.Simulator, ownDeath ? combat.Enemy : combat.Player.Creature,
             wasRemovalPrevented: false);
         Assert.Equal(0, combat.Simulator.State.GetCreature(combat.Enemy).Block);
