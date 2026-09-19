@@ -6,7 +6,7 @@ using RandomForeseer.RandomForeseerCode.Telemetry;
 namespace RandomForeseer.RandomForeseerCode.InCombat;
 
 /// <summary>Describes which interaction owns a combat prediction session's presentation.</summary>
-internal enum CombatPredictionSessionMode
+internal enum CombatPredictionInteractionMode
 {
     /// <summary>Allows automatic target resolution and exposes HoverTips through the model's ordinary hover UI.</summary>
     Hover = 1,
@@ -23,7 +23,7 @@ internal enum CombatPredictionSessionMode
 /// placement, and asynchronous game lifecycle cleanup. Disposing an old session cannot clear projection owned by a
 /// newer session.
 /// </remarks>
-internal abstract class CombatPredictionSession(CombatPredictionSessionMode mode) : IDisposable
+internal abstract class CombatPredictionInteractionSession(CombatPredictionInteractionMode mode) : IDisposable
 {
     private CombatPredictionTargetObserver? _targetObserver;
     private bool _disposed;
@@ -32,7 +32,7 @@ internal abstract class CombatPredictionSession(CombatPredictionSessionMode mode
     public abstract AbstractModel Source { get; }
 
     /// <summary>The interaction that owns this session's presentation.</summary>
-    public CombatPredictionSessionMode Mode { get; } = mode;
+    public CombatPredictionInteractionMode Mode { get; } = mode;
 
     /// <summary>Whether this action session has entered explicit target selection.</summary>
     public bool IsTargeting => _targetObserver is not null;
@@ -78,7 +78,7 @@ internal abstract class CombatPredictionSession(CombatPredictionSessionMode mode
     public void BeginTargeting(NTargetManager targetManager)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
-        if (Mode != CombatPredictionSessionMode.Action || IsTargeting)
+        if (Mode != CombatPredictionInteractionMode.Action || IsTargeting)
         {
             throw new InvalidOperationException("Only a non-targeting action session can begin targeting.");
         }

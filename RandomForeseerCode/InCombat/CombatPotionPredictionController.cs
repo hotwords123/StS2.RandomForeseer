@@ -22,12 +22,12 @@ internal static class CombatPotionPredictionController
             return;
         }
 
-        BeginSession(CombatPredictionSessionMode.Hover, holder);
+        BeginSession(CombatPredictionInteractionMode.Hover, holder);
     }
 
     public static void OnPotionUnfocus(NPotionHolder holder)
     {
-        EndSession(CombatPredictionSessionMode.Hover, holder);
+        EndSession(CombatPredictionInteractionMode.Hover, holder);
     }
 
     public static void OnPotionRemoved(NPotionHolder holder)
@@ -42,12 +42,12 @@ internal static class CombatPotionPredictionController
 
     public static void OnPotionPopupOpen(NPotionHolder holder)
     {
-        BeginSession(CombatPredictionSessionMode.Action, holder);
+        BeginSession(CombatPredictionInteractionMode.Action, holder);
     }
 
     public static void OnPotionTargetingStart(NPotionHolder holder)
     {
-        if (_session is { Mode: CombatPredictionSessionMode.Action, IsTargeting: false } session &&
+        if (_session is { Mode: CombatPredictionInteractionMode.Action, IsTargeting: false } session &&
             ReferenceEquals(session.Holder, holder))
         {
             session.BeginTargeting(NTargetManager.Instance);
@@ -58,7 +58,7 @@ internal static class CombatPotionPredictionController
     {
         if (_session is not { IsTargeting: true })
         {
-            EndSession(CombatPredictionSessionMode.Action, holder);
+            EndSession(CombatPredictionInteractionMode.Action, holder);
         }
     }
 
@@ -97,7 +97,7 @@ internal static class CombatPotionPredictionController
         }
     }
 
-    private static void BeginSession(CombatPredictionSessionMode mode, NPotionHolder holder)
+    private static void BeginSession(CombatPredictionInteractionMode mode, NPotionHolder holder)
     {
         var settings = ModData.Settings;
 
@@ -126,7 +126,7 @@ internal static class CombatPotionPredictionController
         }
     }
 
-    private static void EndSession(CombatPredictionSessionMode mode, NPotionHolder holder)
+    private static void EndSession(CombatPredictionInteractionMode mode, NPotionHolder holder)
     {
         if (_session is { } session && session.Mode == mode && ReferenceEquals(session.Holder, holder))
         {
@@ -169,8 +169,8 @@ internal static class CombatPotionPredictionController
     private sealed class PotionPredictionSession(
         PotionModel potion,
         NPotionHolder holder,
-        CombatPredictionSessionMode mode)
-        : CombatPredictionSession(mode)
+        CombatPredictionInteractionMode mode)
+        : CombatPredictionInteractionSession(mode)
     {
         public override AbstractModel Source => potion;
 

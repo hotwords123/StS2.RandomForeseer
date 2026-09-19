@@ -18,22 +18,22 @@ internal static class CombatCardPredictionController
     {
         if (isHovered)
         {
-            BeginSession(CombatPredictionSessionMode.Hover, holder);
+            BeginSession(CombatPredictionInteractionMode.Hover, holder);
         }
         else
         {
-            EndSession(CombatPredictionSessionMode.Hover, holder);
+            EndSession(CombatPredictionInteractionMode.Hover, holder);
         }
     }
 
     public static void OnCardPlayStarted(NHandCardHolder holder)
     {
-        BeginSession(CombatPredictionSessionMode.Action, holder);
+        BeginSession(CombatPredictionInteractionMode.Action, holder);
     }
 
     public static void OnCardPlayTargetingStarting(Control control)
     {
-        if (_session is not { Mode: CombatPredictionSessionMode.Action, IsTargeting: false } session ||
+        if (_session is not { Mode: CombatPredictionInteractionMode.Action, IsTargeting: false } session ||
             !ReferenceEquals(control, session.Holder.CardNode))
         {
             return;
@@ -45,7 +45,7 @@ internal static class CombatCardPredictionController
     public static void OnCardPlayCleanedUp(NHandCardHolder holder)
     {
         ClearCardPlayHoverTips(holder);
-        EndSession(CombatPredictionSessionMode.Action, holder);
+        EndSession(CombatPredictionInteractionMode.Action, holder);
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ internal static class CombatCardPredictionController
     /// </returns>
     public static bool TryGetActiveHoverTips(CardModel card, out IReadOnlyList<IHoverTip> hoverTips)
     {
-        if (_session is { Mode: CombatPredictionSessionMode.Hover } session && session.Source == card)
+        if (_session is { Mode: CombatPredictionInteractionMode.Hover } session && session.Source == card)
         {
             hoverTips = session.Projection?.HoverTips ?? [];
             return true;
@@ -77,7 +77,7 @@ internal static class CombatCardPredictionController
         ShowCardPlayHoverTips(session);
     }
 
-    private static void BeginSession(CombatPredictionSessionMode mode, NHandCardHolder holder)
+    private static void BeginSession(CombatPredictionInteractionMode mode, NHandCardHolder holder)
     {
         var settings = ModData.Settings;
 
@@ -106,7 +106,7 @@ internal static class CombatCardPredictionController
         }
     }
 
-    private static void EndSession(CombatPredictionSessionMode mode, NHandCardHolder holder)
+    private static void EndSession(CombatPredictionInteractionMode mode, NHandCardHolder holder)
     {
         // On a successful play, vanilla reparents the NCard away from the holder before
         // NCardPlay.Cleanup postfix runs, so holder.CardModel may already be null here.
@@ -151,8 +151,8 @@ internal static class CombatCardPredictionController
     private sealed class CardPredictionSession(
         CardModel card,
         NHandCardHolder holder,
-        CombatPredictionSessionMode mode)
-        : CombatPredictionSession(mode)
+        CombatPredictionInteractionMode mode)
+        : CombatPredictionInteractionSession(mode)
     {
         public override AbstractModel Source => card;
 
