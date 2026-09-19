@@ -3,7 +3,6 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
@@ -46,7 +45,7 @@ internal static class CombatPotionPrediction
     /// The completed projection, or <see langword="null"/> when the potion cannot be mirrored, the source has no live combat,
     /// the explicit target belongs to another combat, or target validation fails.
     /// </returns>
-    /// <remarks>Target-aware adapters catch failures through their shared combat prediction session.</remarks>
+    /// <remarks>Target-aware adapters catch failures through their shared combat prediction interaction session.</remarks>
     public static CombatPredictionProjection? Predict(PotionModel potion, Creature? target)
     {
         if (!CombatManager.Instance.IsInProgress ||
@@ -57,7 +56,8 @@ internal static class CombatPotionPrediction
             return null;
         }
 
-        var simulator = new CombatPredictionSimulator(combatState);
+        using var session = new CombatPredictionSession(combatState);
+        var simulator = session.Simulator;
         return simulator.ManualUse(potion, target, out var frame)
             ? CombatPredictionProjector.Project(simulator.History, frame)
             : null;

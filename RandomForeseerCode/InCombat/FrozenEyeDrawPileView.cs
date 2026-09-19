@@ -10,7 +10,6 @@ using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Data;
 using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using RandomForeseer.RandomForeseerCode.Telemetry;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat;
@@ -79,7 +78,8 @@ internal static class FrozenEyeDrawPileView
 
         try
         {
-            var simulator = new CombatPredictionSimulator(combatState);
+            using var session = new CombatPredictionSession(combatState);
+            var simulator = session.Simulator;
             var playerState = simulator.State.GetPlayerCombatState(player);
             if (playerState.DiscardPile.IsEmpty)
             {

@@ -111,7 +111,8 @@ internal static class CombatCardPrediction
             return null;
         }
 
-        var simulator = new CombatPredictionSimulator(combatState);
+        using var session = new CombatPredictionSession(combatState);
+        var simulator = session.Simulator;
         var predictedCard = simulator.State.FindCard(card) ?? new PredictedCard(card);
 
         if (TryGetChoiceSimulationPlan(card, out var choiceSimulation))

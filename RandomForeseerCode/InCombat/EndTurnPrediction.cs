@@ -17,7 +17,8 @@ internal static class EndTurnPrediction
             return null;
         }
 
-        var simulator = new CombatPredictionSimulator(combatState);
+        using var session = new CombatPredictionSession(combatState);
+        var simulator = session.Simulator;
         simulator.SimulateEndPlayerTurn();
         return EndTurnPredictionResult.FromDamageHistory(simulator);
     }
