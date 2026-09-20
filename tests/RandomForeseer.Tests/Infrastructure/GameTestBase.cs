@@ -2,6 +2,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using RandomForeseer.RandomForeseerCode.Common;
@@ -12,7 +13,7 @@ namespace RandomForeseer.Tests.Infrastructure;
 
 /// <summary>Owns process-global isolation for one test in <see cref="GameTestCollection"/>.</summary>
 /// <remarks>
-/// Derived game tests must use the GameTestCollection collection attribute. ModelDb, combat history and Harmony
+/// Derived game tests must use the GameTestCollection collection attribute. ModelDb, combat history, Logger and Harmony
 /// are process-global: do not retain mutable state or patches across tests. Initialization that installs patches
 /// must remain inside this base class's exception-cleanup boundary, since xUnit does not dispose a failed constructor.
 /// Model state and owned patches are cleared on disposal, including failed initialization.
@@ -37,6 +38,7 @@ public abstract class GameTestBase : IDisposable
         _active = this;
         try
         {
+            SuppressLogger();
             if (!_assemblyInitialized)
             {
                 MegaCrit.Sts2.Core.Modding.AssemblyInfo.Init();
@@ -61,6 +63,15 @@ public abstract class GameTestBase : IDisposable
         }
     }
 
+    private void SuppressLogger()
+    {
+        // Logger's static constructor probes Godot.OS even if log output is suppressed.
+        _harmony.Patch(AccessTools.Method(typeof(Logger), "GetIsRunningFromGodotEditor"),
+            prefix: new HarmonyMethod(typeof(GameTestBase), nameof(SkipGodotLoggerProbe)));
+        _harmony.Patch(AccessTools.Method(typeof(Logger), nameof(Logger.WillLog)),
+            prefix: new HarmonyMethod(typeof(GameTestBase), nameof(SkipLogOutput)));
+    }
+
     private void ObservePowerCommands()
     {
         // Observe power/block command order without replacing the command or hook implementation.
@@ -79,6 +90,8 @@ public abstract class GameTestBase : IDisposable
         _harmony.Patch(AccessTools.Method(type, method), prefix: new HarmonyMethod(typeof(GameTestBase), prefix));
 
     private static bool SkipStringName() => false;
+    private static bool SkipGodotLoggerProbe(ref bool __result) { __result = false; return false; }
+    private static bool SkipLogOutput(ref bool __result) { __result = false; return false; }
     private static bool Allow(ref bool __result) { __result = true; return false; }
     private static bool Filter(IEnumerable<AbstractModel> listeners, ref IEnumerable<AbstractModel> __result)
     {
