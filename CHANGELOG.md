@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复预测牌的悬浮提示可能将尚未获得的卡牌记录为已见的问题。<br>
+  Fixed predicted-card hover tips potentially marking cards that have not been obtained as seen.
+
 - 修复战斗伤害预测标签偶尔无法正常显示并反复报错的问题。<br>
   Fixed combat damage prediction labels occasionally failing to render and repeatedly logging errors.
 
