@@ -165,6 +165,10 @@ internal sealed partial class CombatPredictionSimulator
     /// Mirrors <see cref="CardPileCmd.AddGeneratedCardToCombat"/>.
     /// Adds one generated card while preserving how its result should be projected.
     /// </summary>
+    /// <returns>
+    /// The pile-add result, or a failed result carrying <paramref name="card"/> when the combat boundary
+    /// already cancels the insertion.
+    /// </returns>
     public SimCardPileAddResult AddGeneratedCardToCombat(
         PredictedCard card,
         PileType newPileType,
@@ -172,7 +176,8 @@ internal sealed partial class CombatPredictionSimulator
         CardPilePosition position = CardPilePosition.Bottom,
         CardGenerationResultKind resultKind = CardGenerationResultKind.Random)
     {
-        return AddGeneratedCardsToCombat([card], newPileType, creator, position, resultKind)[0];
+        var results = AddGeneratedCardsToCombat([card], newPileType, creator, position, resultKind);
+        return results.Count > 0 ? results[0] : new SimCardPileAddResult(false, card);
     }
 
     /// <summary>
@@ -181,7 +186,9 @@ internal sealed partial class CombatPredictionSimulator
     /// </summary>
     /// <remarks>
     /// The result kind affects only projection; every card is still added to shadow state and dispatched through
-    /// generation hooks and history.
+    /// generation hooks and history. The guard must cover every case in which the delegated pile-add path refuses
+    /// the insertion, so a canceled effect never leaves a generated-card history entry behind for a card that is in
+    /// no shadow pile. This matches the other pile-mutating commands, which all use <see cref="IsOverOrEnding"/>.
     /// </remarks>
     public IReadOnlyList<SimCardPileAddResult> AddGeneratedCardsToCombat(
         IReadOnlyList<PredictedCard> cards,
@@ -190,7 +197,7 @@ internal sealed partial class CombatPredictionSimulator
         CardPilePosition position = CardPilePosition.Bottom,
         CardGenerationResultKind resultKind = CardGenerationResultKind.Random)
     {
-        if (!IsInProgress || cards.Count == 0)
+        if (IsOverOrEnding || cards.Count == 0)
         {
             return [];
         }

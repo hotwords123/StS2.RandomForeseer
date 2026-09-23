@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复战斗结束前后的卡牌生成预测可能为从未进入任何牌堆的卡牌记录生成结果的问题。<br>
+  Fixed combat card-generation predictions recording generated results for cards that never enter any pile when
+  the combat boundary already cancels the insertion.
+
 ## v0.13.15
 
 ### fix
