@@ -17,7 +17,6 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 [*]在前两阶段的 Boss 奖励页面，预测下一阶段的先古之民和 Boss（显示在顶栏上）。
 [*]查看抽牌堆时，可以按实际抽牌顺序显示卡牌，并预览回合内洗牌后的牌序。
 [*]安装 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747548124]柠檬尖塔[/url] 时，队友面板中的部分手牌、遗物和商店内容也会显示预测。
-[*]安装 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3795496596]遗物奖励三选一[/url] 时，悬停候选遗物也会显示支持的拾起效果预测。
 [/list]
 
 目前仅支持原版内容的预测，如果还装了其它更改游戏内容的 Mod，可能会导致预测结果不准确。
