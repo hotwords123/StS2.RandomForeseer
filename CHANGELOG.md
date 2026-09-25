@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 新增与“遗物奖励三选一”模组的兼容，候选遗物现在会显示拾起效果预测。<br>
+  Added compatibility with Relic Rewards: Choose One of Three, showing pickup effect predictions for relic choices.
+
 ## v0.13.15
 
 ### fix
