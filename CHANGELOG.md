@@ -7,6 +7,12 @@
 - 修复战斗结束前后的卡牌生成预测可能为从未进入任何牌堆的卡牌记录生成结果的问题。<br>
   Fixed combat card-generation predictions recording generated results for cards that never enter any pile when
   the combat boundary already cancels the insertion.
+## v0.13.16
+
+### feat
+
+- 新增与“遗物奖励三选一”模组的兼容，候选遗物现在会显示拾起效果预测。<br>
+  Added compatibility with Relic Rewards: Choose One of Three, showing pickup effect predictions for relic choices.
 
 ## v0.13.15
 

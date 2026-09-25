@@ -5,8 +5,8 @@ This mod supports both [b]singleplayer[/b] and [b]multiplayer[/b], and [b]not ev
 This mod supports both the [b]public[/b] branch and the [b]public-beta[/b] branch, but some new features may only be available on the beta branch.
 Currently supported game versions:
 [list]
-[*]public: [b]v0.107.1[/b] (mod version [b]v0.8.3[/b])
-[*]public-beta: [b]v0.111.0[/b] (mod version [b]v0.13.15[/b])
+[*]public: [b]v0.107.1[/b] (mod version [b]v0.8.4[/b])
+[*]public-beta: [b]v0.111.0[/b] (mod version [b]v0.13.16[/b])
 [/list]
 
 GitHub: [url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
@@ -24,6 +24,7 @@ Most features show predictions when you hover the relevant item, including but n
 [*]On the first two Acts' boss reward screens, predicts the next Act's Ancient and boss, shown on the top bar.
 [*]When viewing the draw pile, shows cards in actual draw order and previews the order after an in-turn shuffle.
 [*]When [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747548124]Lemon Spire 2[/url] is installed, selected teammate hand, relic, and shop predictions are also supported.
+[*]When [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3795496596]Relic Rewards: Choose One of Three[/url] is installed, hovering a relic choice also shows supported pickup effect predictions.
 [/list]
 
 Only vanilla content is currently supported. Other mods that change game content may make prediction results inaccurate.

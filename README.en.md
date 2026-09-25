@@ -51,6 +51,10 @@ When lemonSpire2 is installed, its teammate panel reuses Random Foreseer's exist
 - Relic pickup effect predictions for teammate Ancient relic choices
 - Immediate random result predictions for teammate merchant relics and merchant potions
 
+### Relic Rewards: Choose One of Three
+
+When this mod offers a choice of relics, hovering a candidate shows supported pickup effect predictions.
+
 ## Installation
 
 1. Install and enable `STS2-RitsuLib`.
@@ -61,7 +65,7 @@ Current manifest targets:
 
 | Item | Value |
 |---|---|
-| Current version | `0.13.15` |
+| Current version | `0.13.16` |
 | Minimum game version | `0.111.0` |
 | RitsuLib dependency | `0.5.14` |
 
