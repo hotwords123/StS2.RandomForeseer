@@ -16,16 +16,8 @@
         <GodotExportPreset>Windows Desktop</GodotExportPreset>
         <Sts2Dir Condition="'$(Sts2Dir)' == ''">$(MSBuildProgramFiles32)\Steam\steamapps\common\Slay the Spire 2</Sts2Dir>
         <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">$(Sts2Dir)\data_sts2_windows_x86_64</Sts2DataDir>
-        <ModOutputDir>$(Sts2Dir)\mods\$(MSBuildProjectName)\</ModOutputDir>
-        <ModPckPath>$(ModOutputDir)$(MSBuildProjectName).pck</ModPckPath>
-        <!-- 本机测试时 RitsuLib 包/构建逻辑会使用这个目录把 RitsuLib 部署到游戏 mods/STS2-RitsuLib。 -->
-        <!-- Local test builds use this directory when RitsuLib package/build logic deploys RitsuLib to game mods/STS2-RitsuLib. -->
-        <RitsuLibDeployDir Condition="'$(RitsuLibDeployDir)' == ''">$(Sts2Dir)\mods\STS2-RitsuLib</RitsuLibDeployDir>
-        <RitsuLibAutoCopy Condition="'$(RitsuLibAutoCopy)' == ''">false</RitsuLibAutoCopy>
-        <CopyModOnBuild Condition="'$(CopyModOnBuild)' == ''">true</CopyModOnBuild>
-        <RunPckExport Condition="'$(RunPckExport)' == '' and '$(DesignTimeBuild)' != 'true'">true</RunPckExport>
-        <RunPckExport Condition="'$(RunPckExport)' == ''">false</RunPckExport>
-        <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">true</SyncManifestDependenciesOnBuild>
+        <PublishDir Condition="'$(PublishDir)' == ''">$(Sts2Dir)\mods\$(MSBuildProjectName)\</PublishDir>
+        <SyncManifestDependenciesOnBuild Condition="'$(SyncManifestDependenciesOnBuild)' == ''">false</SyncManifestDependenciesOnBuild>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -108,23 +100,34 @@
         <Error Condition="'$(_HasRandomForeseerModVersion)' != 'True'" Text="Could not read version from '$(RandomForeseerManifestPath)'." />
     </Target>
 
-    <Target Name="CopyMod" AfterTargets="Build" Condition="'$(CopyModOnBuild)' != 'false'">
+    <!-- Publish the mod's own files through the SDK's copy pipeline. -->
+    <Target Name="ComputeModPublishFiles" AfterTargets="ComputeFilesToPublish"
+            DependsOnTargets="SyncManifestDependencies;ExportPCK"
+            Condition="'$(IsPublishable)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(STS2_SKIP_PCK_EXPORT)' != '1'">
+        <ItemGroup>
+            <_ModAssemblyFilesToPublish Include="@(ResolvedFileToPublish)"
+                                        Condition="'%(ResolvedFileToPublish.RelativePath)' == '$(TargetFileName)' or '%(ResolvedFileToPublish.RelativePath)' == '$(TargetName).pdb'" />
+            <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" />
+            <!-- Always also replaces newer destination files when switching configurations. -->
+            <ResolvedFileToPublish Include="@(_ModAssemblyFilesToPublish)" CopyToPublishDirectory="Always" />
+            <ResolvedFileToPublish Include="$(RandomForeseerManifestPath)" RelativePath="$(MSBuildProjectName).json" CopyToPublishDirectory="Always" />
+            <ResolvedFileToPublish Include="$(_ModPublishPckPath)" RelativePath="$(MSBuildProjectName).pck" CopyToPublishDirectory="Always" />
+        </ItemGroup>
+    </Target>
+
+    <Target Name="ExportPCK" Condition="'$(DesignTimeBuild)' != 'true' and '$(STS2_SKIP_PCK_EXPORT)' != '1'">
+        <Error Condition="'$(GodotExe)' == '' or !Exists('$(GodotExe)')" Text="GodotExe is required for PCK export. Set GodotExe in local.props, or use plain dotnet build to compile without deploying." />
         <PropertyGroup>
-            <_ModPdbPath>$(TargetDir)$(TargetName).pdb</_ModPdbPath>
+            <_ModPublishPckPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(MSBuildProjectName).pck'))</_ModPublishPckPath>
         </PropertyGroup>
-        <MakeDir Directories="$(ModOutputDir)" />
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModOutputDir)" />
-        <Copy SourceFiles="$(_ModPdbPath)" DestinationFolder="$(ModOutputDir)" Condition="Exists('$(_ModPdbPath)')" />
-        <Copy SourceFiles="$(MSBuildProjectDirectory)\$(MSBuildProjectName).json" DestinationFolder="$(ModOutputDir)" />
+        <MakeDir Directories="$(IntermediateOutputPath)" />
+        <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="&quot;$(GodotExe)&quot; --headless --path &quot;$(MSBuildProjectDirectory)&quot; --export-pack &quot;$(GodotExportPreset)&quot; &quot;$(_ModPublishPckPath)&quot;" EnvironmentVariables="STS2_SKIP_PCK_EXPORT=1" />
+        <ItemGroup>
+            <FileWrites Include="$(_ModPublishPckPath)" />
+        </ItemGroup>
     </Target>
 
-    <Target Name="ExportPCK" AfterTargets="Build" Condition="'$(RunPckExport)' == 'true' and '$(STS2_SKIP_PCK_EXPORT)' != '1'">
-        <Error Condition="'$(GodotExe)' == '' or !Exists('$(GodotExe)')" Text="GodotExe is required for PCK export. Copy local.props.template to local.props and set GodotExe, or build with /p:RunPckExport=false." />
-        <MakeDir Directories="$(ModOutputDir)" />
-        <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="&quot;$(GodotExe)&quot; --headless --path &quot;$(MSBuildProjectDirectory)&quot; --export-pack &quot;$(GodotExportPreset)&quot; &quot;$(ModPckPath)&quot;" EnvironmentVariables="STS2_SKIP_PCK_EXPORT=1" />
-    </Target>
-
-    <Target Name="SyncManifestDependencies" AfterTargets="Build" BeforeTargets="CopyMod" Condition="'$(SyncManifestDependenciesOnBuild)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(PkgSTS2_RitsuLib)' != ''">
+    <Target Name="SyncManifestDependencies" AfterTargets="Build" Condition="'$(SyncManifestDependenciesOnBuild)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(STS2_SKIP_PCK_EXPORT)' != '1' and '$(PkgSTS2_RitsuLib)' != ''">
         <PropertyGroup>
             <RitsuLibVersion>$([System.IO.Path]::GetFileName('$(PkgSTS2_RitsuLib)'))</RitsuLibVersion>
             <ManifestFile>$(MSBuildProjectDirectory)\$(MSBuildProjectName).json</ManifestFile>

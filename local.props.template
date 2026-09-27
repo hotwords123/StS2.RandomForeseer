@@ -7,11 +7,8 @@
     <!-- 创意工坊 loader 固定使用最老支持版本的 API assembly 编译。 -->
     <Sts2ApiSignatureRoot>PATH_TO_STS2_GAME_VERSIONS</Sts2ApiSignatureRoot>
 
-    <!-- 只有导出 pck 时才需要 GodotExe；纯 C# 构建可使用 /p:RunPckExport=false。 -->
+    <!-- dotnet build 仅编译；dotnet publish 导出并部署，此时才需要 GodotExe。 -->
     <GodotExe>PATH_TO_GODOT/MegaDot_v4.5.1-stable_mono_win64.exe</GodotExe>
-
-    <!-- 可选：RitsuLib 本机部署目录，默认是 $(Sts2Dir)/mods/STS2-RitsuLib。 -->
-    <!--<RitsuLibDeployDir>$(Sts2Dir)/mods/STS2-RitsuLib</RitsuLibDeployDir>-->
 
     <!-- 可选：构建时注入的 PostHog host 和公开项目 API key；缺失任一项时禁用遥测发送。 -->
     <!-- 使用网关时分别填写固定域名和 INGRESS_TOKEN；不要把服务端 POSTHOG_PROJECT_TOKEN 注入模组。 -->

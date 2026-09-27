@@ -147,15 +147,13 @@ try {
         }
         New-Item -ItemType Directory -Path $stagingPackageDir -Force | Out-Null
 
-        $modOutputDir = "$stagingPackageDir$([System.IO.Path]::DirectorySeparatorChar)"
         Invoke-Checked dotnet @(
-            "build",
+            "publish",
             $projectPath,
             "-c",
             $Configuration,
-            "/p:ModOutputDir=$modOutputDir",
-            "/p:CopyModOnBuild=true",
-            "/p:RunPckExport=true"
+            "--output",
+            $stagingPackageDir
         )
 
         $sourceRef = Invoke-Checked git @("branch", "--show-current")

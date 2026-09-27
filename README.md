@@ -83,22 +83,33 @@ Copy-Item .\local.props.template .\local.props
 |---|---|
 | `Sts2Dir` | Slay the Spire 2 安装目录 |
 | `Sts2DataDir` | 游戏 dll 目录，通常是 `$(Sts2Dir)/data_sts2_windows_x86_64` |
-| `GodotExe` | 用于导出 pck 的 MegaDot/Godot 可执行文件 |
-| `RitsuLibDeployDir` | RitsuLib 的本机部署目录 |
+| `GodotExe` | 用于导出 PCK 的 MegaDot/Godot 可执行文件，仅导出部署时需要 |
 
-常用构建命令：
-
-```powershell
-dotnet build .\RandomForeseer.csproj
-```
-
-只验证 C# 编译、不复制到游戏目录、不导出 PCK：
+在仓库根目录仅编译模组和测试项目：
 
 ```powershell
-dotnet build .\RandomForeseer.csproj /p:RunPckExport=false /p:CopyModOnBuild=false
+dotnet build
 ```
 
-完整构建会将 dll、manifest 和 pck 部署到 `$(Sts2Dir)/mods/RandomForeseer`。
+使用 Release 配置编译并导出部署：
+
+```powershell
+dotnet publish
+```
+
+发布会先完成模组编译，再导出 PCK，最后将模组自身的 DLL、PDB、现有 manifest 和 PCK
+部署到 `$(Sts2Dir)/mods/RandomForeseer`。使用 `dotnet publish -c Debug` 可发布 Debug 配置。
+manifest 依赖同步保持独立且默认关闭。
+
+测试通过独立命令执行，该命令会先编译：
+
+```powershell
+dotnet test
+```
+
+只编译模组时可使用 `dotnet build .\RandomForeseer.csproj`。发布到自定义目录时可使用
+`dotnet publish .\RandomForeseer.csproj -o .\artifacts\publish\RandomForeseer`。
+测试环境和回归运行方式见 [本地回归测试](docs/testing.md)。
 
 ## 项目结构
 

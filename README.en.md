@@ -83,22 +83,34 @@ Configure these values in `local.props`:
 |---|---|
 | `Sts2Dir` | Slay the Spire 2 install directory |
 | `Sts2DataDir` | Game DLL directory, usually `$(Sts2Dir)/data_sts2_windows_x86_64` |
-| `GodotExe` | MegaDot/Godot executable used to export the PCK |
-| `RitsuLibDeployDir` | Local RitsuLib deployment directory |
+| `GodotExe` | MegaDot/Godot executable, required only for PCK export and deployment |
 
-Common build command:
-
-```powershell
-dotnet build .\RandomForeseer.csproj
-```
-
-Validate C# compilation only, without copying to the game directory or exporting a PCK:
+From the repository root, compile the mod and test projects:
 
 ```powershell
-dotnet build .\RandomForeseer.csproj /p:RunPckExport=false /p:CopyModOnBuild=false
+dotnet build
 ```
 
-A full build deploys the DLL, manifest, and PCK to `$(Sts2Dir)/mods/RandomForeseer`.
+Compile, export, and deploy using the Release configuration:
+
+```powershell
+dotnet publish
+```
+
+Publishing first compiles the mod, then exports the PCK, and finally deploys the mod's own DLL, PDB,
+existing manifest, and PCK to `$(Sts2Dir)/mods/RandomForeseer`. Use `dotnet publish -c Debug` to publish
+the Debug configuration.
+Manifest dependency synchronization is a separate option, disabled by default.
+
+Run tests separately; this command compiles first:
+
+```powershell
+dotnet test
+```
+
+To compile only the mod, use `dotnet build .\RandomForeseer.csproj`. To publish to a custom directory,
+use `dotnet publish .\RandomForeseer.csproj -o .\artifacts\publish\RandomForeseer`.
+See [local regression testing](docs/testing.md) for test setup and usage.
 
 ## Project Layout
 

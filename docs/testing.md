@@ -39,17 +39,34 @@ dotnet test tests/RandomForeseer.Tests/RandomForeseer.Tests.csproj
 dotnet test tests/RandomForeseer.Tests/RandomForeseer.Tests.csproj --list-tests
 ```
 
-测试项目的 `ProjectReference` 关闭复制 Mod、PCK 导出、manifest 依赖同步和 RitsuLib 自动部署，
-直接 `dotnet test` 也使用这些设置。测试源码、资源和构建产物均从
-主项目构建项排除；`tests/.gdignore` 防止 Godot 导入测试目录。
+测试项目通过普通 `ProjectReference` 复用主项目构建，并设置 `IsPublishable=false`。
+测试源码、资源和构建产物均从主项目构建项排除；`tests/.gdignore` 防止 Godot 导入测试目录。
 
 测试项目参与解决方案默认构建，支持根目录 `dotnet test` 和 IDE Test Explorer。
-根目录 `dotnet build` 同时编译模组和测试项目；只编译模组时指定 `RandomForeseer.csproj`。
-日常构建使用以下参数关闭部署、PCK 导出和 manifest 依赖同步：
+日常构建、导出部署和测试使用独立入口：
+
+| 命令 | 行为 |
+|---|---|
+| `dotnet build` | 仅编译模组和测试项目 |
+| `dotnet publish` | 使用 Release 配置编译模组、导出 PCK，并将模组自身的 DLL/PDB/现有 manifest/PCK 发布到游戏目录 |
+| `dotnet publish -c Debug` | 使用 Debug 配置编译并发布模组 |
+| `dotnet test` | 编译并执行测试 |
+
+只编译模组时指定项目：
 
 ```powershell
-dotnet build /p:CopyModOnBuild=false /p:RunPckExport=false /p:SyncManifestDependenciesOnBuild=false
+dotnet build RandomForeseer.csproj
 ```
+
+发布默认输出到 `$(Sts2Dir)/mods/RandomForeseer`，可为主项目指定输出目录：
+
+```powershell
+dotnet publish RandomForeseer.csproj -o ./artifacts/publish/RandomForeseer
+```
+
+manifest 依赖同步保持独立且默认关闭，由 `SyncManifestDependenciesOnBuild` 控制。
+发布按编译、可选的 manifest 同步、PCK 导出、文件发布的顺序执行。
+PCK 先生成到当前构建配置的中间目录，再随程序集和 manifest 一起发布。
 
 ## 开发工作流
 
