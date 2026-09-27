@@ -215,6 +215,11 @@ internal sealed class CombatPredictionProjector
         }
 
         var resolved = _history.GetResolvedEntry<CombatPredictionCardGenerationResolvedEntry>(entry);
+        if (!resolved.PileAddSucceeded)
+        {
+            return null;
+        }
+
         AddHoverTip(PredictionHoverTipFactory.Card(resolved.Card.Preview));
         AddCausalEffect(entry, CausalEffectKind.GenerateCards, [resolved.Card.Preview]);
         return resolved;

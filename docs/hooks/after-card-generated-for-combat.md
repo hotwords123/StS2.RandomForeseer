@@ -23,10 +23,13 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 ## Parity notes
 
 - Vanilla `AddGeneratedCardsToCombat` processes cards one at a time: `History.CardGenerated`, `Add`, `AfterCardGeneratedForCombat`.
+- When combat is ending but still in progress, vanilla keeps that sequence: `Add` returns a failed pile result, and
+  the guarded `AfterCardGeneratedForCombat` listener iteration runs no listeners. The simulator keeps both history
+  entries and the failed result; projection omits the card tip and causal effect for that failed insertion.
 - Because `Add` itself dispatches `AfterCardEnteredCombat` and `AfterCardChangedPiles`, the generated-card order is: generated history, combat entry, pile changed, generated-for-combat.
 - For each card in `AddGeneratedCardsToCombat`, the simulator appends a
-  `CombatPredictionCardGeneratedEntry`, adds the card, runs its generation hooks, and then
-  appends the matching `CombatPredictionCardGenerationResolvedEntry`.
+  `CombatPredictionCardGeneratedEntry`, attempts to add the card, runs its generation hooks, and then
+  appends the matching `CombatPredictionCardGenerationResolvedEntry` with the pile-add success flag.
 - Hook dispatch currently iterates only the live `CombatState` listeners; cards generated only inside the simulator are not included as later hook listeners.
 - StS2 v0.110.0 moved the once-per-turn behavior from `PillarOfCreationPower` to `Regalite`.
   The mirror seeds `Regalite`'s prediction-local flag from its live `_usedThisTurn` state, while

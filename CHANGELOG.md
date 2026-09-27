@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复战斗结束时，卡牌生成预测可能提示获得实际未进入牌堆的卡牌。<br>
+  Fixed combat card-generation predictions showing cards that never enter a pile when combat is ending.
+
 ## v0.13.16
 
 ### feat

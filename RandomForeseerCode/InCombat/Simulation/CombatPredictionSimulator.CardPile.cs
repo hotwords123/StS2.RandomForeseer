@@ -180,8 +180,9 @@ internal sealed partial class CombatPredictionSimulator
     /// Adds generated cards and records whether each result is random, contextual, or fixed.
     /// </summary>
     /// <remarks>
-    /// The result kind affects only projection; every card is still added to shadow state and dispatched through
-    /// generation hooks and history.
+    /// The result kind affects only projection. While combat is ending but still in progress, vanilla records
+    /// generation history and calls the generation hook even if pile insertion fails. The resolved history entry
+    /// retains the insertion result so projection can omit cards that never entered a pile.
     /// </remarks>
     public IReadOnlyList<SimCardPileAddResult> AddGeneratedCardsToCombat(
         IReadOnlyList<PredictedCard> cards,
@@ -210,10 +211,11 @@ internal sealed partial class CombatPredictionSimulator
         foreach (var card in cards)
         {
             var entry = History.CardGenerated(card, resultKind);
-            results.Add(AddToPile(card, newPileType, position));
+            var result = AddToPile(card, newPileType, position);
+            results.Add(result);
 
             HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
-            History.CardGenerationResolved(entry, card);
+            History.CardGenerationResolved(entry, card, result.Success);
         }
 
         return results;

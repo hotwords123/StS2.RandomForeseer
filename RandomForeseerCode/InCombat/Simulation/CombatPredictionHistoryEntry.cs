@@ -118,6 +118,7 @@ internal sealed class CombatPredictionCardGenerationResolvedEntry : CombatPredic
 {
     public required CombatPredictionCardGeneratedEntry OriginalEntry { get; init; }
     public required PredictedCard Card { get; init; }
+    public required bool PileAddSucceeded { get; init; }
 }
 
 internal sealed class CombatPredictionCardGenerationOptionsEntry : CombatPredictionHistoryEntry

@@ -134,12 +134,16 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         });
     }
 
-    public void CardGenerationResolved(CombatPredictionCardGeneratedEntry originalEntry, PredictedCard card)
+    public void CardGenerationResolved(
+        CombatPredictionCardGeneratedEntry originalEntry,
+        PredictedCard card,
+        bool pileAddSucceeded)
     {
         Complete(originalEntry, new CombatPredictionCardGenerationResolvedEntry
         {
             OriginalEntry = originalEntry,
-            Card = card.Clone()
+            Card = card.Clone(),
+            PileAddSucceeded = pileAddSucceeded
         });
     }
 
