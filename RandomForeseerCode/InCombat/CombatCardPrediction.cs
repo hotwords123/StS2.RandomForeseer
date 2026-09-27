@@ -106,7 +106,7 @@ internal static class CombatCardPrediction
         if (!CombatManager.Instance.IsInProgress ||
             card.Owner.Creature.CombatState is not { } combatState ||
             !CompatibilityUtils.IsPredictionAllowedForType(card.GetType()) ||
-            !card.TryResolveTarget(ref target))
+            !TryResolveTarget(card, ref target))
         {
             return null;
         }
@@ -162,6 +162,28 @@ internal static class CombatCardPrediction
 
         // If no local holder exists, fall back to allowing prediction. This preserves existing
         // behavior for non-local or integration-provided hand card views.
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to resolve a target for the given card.
+    /// If a target is provided, returns whether it is valid without replacing it.
+    /// If no target is required, returns true. Otherwise, uses the first valid manual target when one exists.
+    /// Returns false if no valid target can be resolved.
+    /// </summary>
+    private static bool TryResolveTarget(CardModel card, ref Creature? target)
+    {
+        if (card.IsValidTarget(target))
+        {
+            return true;
+        }
+
+        if (target is not null || card.GetValidTargets() is not [var firstTarget, ..])
+        {
+            return false;
+        }
+
+        target = firstTarget;
         return true;
     }
 

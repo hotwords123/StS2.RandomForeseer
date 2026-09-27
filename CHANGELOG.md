@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 战斗中悬停需要选择目标的卡牌时，如果存在多个可选目标，默认显示对首个目标打出的预测。<br>
+  When hovering a combat card with multiple selectable targets, show a default prediction for playing it on the first target.
+
 ### fix
 
 - 修复战斗结束时，卡牌生成预测可能提示获得实际未进入牌堆的卡牌。<br>
