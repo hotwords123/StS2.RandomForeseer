@@ -165,10 +165,6 @@ internal sealed partial class CombatPredictionSimulator
     /// Mirrors <see cref="CardPileCmd.AddGeneratedCardToCombat"/>.
     /// Adds one generated card while preserving how its result should be projected.
     /// </summary>
-    /// <returns>
-    /// The pile-add result, or a failed result carrying <paramref name="card"/> when the combat boundary
-    /// already cancels the insertion.
-    /// </returns>
     public SimCardPileAddResult AddGeneratedCardToCombat(
         PredictedCard card,
         PileType newPileType,
@@ -176,8 +172,7 @@ internal sealed partial class CombatPredictionSimulator
         CardPilePosition position = CardPilePosition.Bottom,
         CardGenerationResultKind resultKind = CardGenerationResultKind.Random)
     {
-        var results = AddGeneratedCardsToCombat([card], newPileType, creator, position, resultKind);
-        return results.Count > 0 ? results[0] : new SimCardPileAddResult(false, card);
+        return AddGeneratedCardsToCombat([card], newPileType, creator, position, resultKind)[0];
     }
 
     /// <summary>
@@ -185,10 +180,9 @@ internal sealed partial class CombatPredictionSimulator
     /// Adds generated cards and records whether each result is random, contextual, or fixed.
     /// </summary>
     /// <remarks>
-    /// The result kind affects only projection; every card is still added to shadow state and dispatched through
-    /// generation hooks and history. The guard must cover every case in which the delegated pile-add path refuses
-    /// the insertion, so a canceled effect never leaves a generated-card history entry behind for a card that is in
-    /// no shadow pile. This matches the other pile-mutating commands, which all use <see cref="IsOverOrEnding"/>.
+    /// The result kind affects only projection. While combat is ending but still in progress, vanilla records
+    /// generation history and calls the generation hook even if pile insertion fails. The resolved history entry
+    /// retains the insertion result so projection can omit cards that never entered a pile.
     /// </remarks>
     public IReadOnlyList<SimCardPileAddResult> AddGeneratedCardsToCombat(
         IReadOnlyList<PredictedCard> cards,
@@ -197,7 +191,7 @@ internal sealed partial class CombatPredictionSimulator
         CardPilePosition position = CardPilePosition.Bottom,
         CardGenerationResultKind resultKind = CardGenerationResultKind.Random)
     {
-        if (IsOverOrEnding || cards.Count == 0)
+        if (!IsInProgress || cards.Count == 0)
         {
             return [];
         }
@@ -217,10 +211,11 @@ internal sealed partial class CombatPredictionSimulator
         foreach (var card in cards)
         {
             var entry = History.CardGenerated(card, resultKind);
-            results.Add(AddToPile(card, newPileType, position));
+            var result = AddToPile(card, newPileType, position);
+            results.Add(result);
 
             HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
-            History.CardGenerationResolved(entry, card);
+            History.CardGenerationResolved(entry, card, result.Success);
         }
 
         return results;

@@ -8,13 +8,12 @@ using RandomForeseer.Tests.Infrastructure;
 namespace RandomForeseer.Tests.Combat;
 
 /// <summary>
-/// Verifies that <see cref="CombatPredictionSimulator.AddGeneratedCardsToCombat"/> and its single-card wrapper
-/// honor the same combat boundary as the pile-add path they delegate to, so no generated-card history is recorded
-/// for a card that is never inserted into a shadow pile.
+/// Verifies that <see cref="CombatPredictionSimulator.AddGeneratedCardsToCombat"/> preserves vanilla generation
+/// history and records pile-add success when combat is ending.
 /// </summary>
 /// <remarks>
 /// Combat-ending state is arranged explicitly through the shadow pending-loss boundary; full combat teardown,
-/// generation hooks and projection are outside this suite.
+/// generation-hook listeners and projection are outside this suite.
 /// </remarks>
 [Collection(GameTestCollection.Name)]
 public sealed class GeneratedCardTests : GameTestBase
@@ -31,11 +30,12 @@ public sealed class GeneratedCardTests : GameTestBase
         Assert.True(result.Success);
         Assert.Same(combat.PlayerState.Hand, card.GetPile(combat.Simulator.State));
         Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
-        Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>());
+        Assert.True(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
+            .PileAddSucceeded);
     }
 
     [Fact]
-    public void CombatEndingSkipsGeneratedCardsInsteadOfRecordingHistory()
+    public void CombatEndingPreservesGenerationHistoryWithFailedPileAdd()
     {
         var combat = new TestCombat();
         combat.Simulator.LoseCombat();
@@ -44,10 +44,14 @@ public sealed class GeneratedCardTests : GameTestBase
 
         var card = CreateGeneratedCard(combat, typeof(Shiv));
 
-        Assert.Empty(combat.Simulator.AddGeneratedCardsToCombat([card], PileType.Hand, combat.Player));
+        var result = Assert.Single(
+            combat.Simulator.AddGeneratedCardsToCombat([card], PileType.Hand, combat.Player));
+
+        Assert.False(result.Success);
         Assert.Null(card.GetPile(combat.Simulator.State));
-        Assert.Empty(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
-        Assert.Empty(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>());
+        Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
+        Assert.False(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
+            .PileAddSucceeded);
     }
 
     [Fact]
@@ -62,7 +66,9 @@ public sealed class GeneratedCardTests : GameTestBase
         Assert.False(result.Success);
         Assert.Same(card, result.CardAdded);
         Assert.Null(card.GetPile(combat.Simulator.State));
-        Assert.Empty(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
+        Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
+        Assert.False(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
+            .PileAddSucceeded);
     }
 
     [Fact]
