@@ -9,7 +9,7 @@ namespace RandomForeseer.Tests.Combat;
 
 /// <summary>
 /// Verifies that <see cref="CombatPredictionSimulator.AddGeneratedCardsToCombat"/> preserves vanilla generation
-/// history and records pile-add success when combat is ending.
+/// history, snapshots successfully added cards, and records failed pile additions as absent snapshots.
 /// </summary>
 /// <remarks>
 /// Combat-ending state is arranged explicitly through the shadow pending-loss boundary; full combat teardown,
@@ -31,8 +31,10 @@ public sealed class GeneratedCardTests : GameTestBase
         Assert.True(result.Success);
         Assert.Same(combat.PlayerState.Hand, card.GetPile(combat.Simulator.State));
         Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
-        Assert.True(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
-            .PileAddSucceeded);
+        var resolved = Assert.Single(
+            combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>());
+        Assert.NotNull(resolved.PreviewCard);
+        Assert.NotSame(card.Preview, resolved.PreviewCard);
     }
 
     [Fact]
@@ -52,8 +54,8 @@ public sealed class GeneratedCardTests : GameTestBase
         Assert.False(result.Success);
         Assert.Null(card.GetPile(combat.Simulator.State));
         Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
-        Assert.False(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
-            .PileAddSucceeded);
+        Assert.Null(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
+            .PreviewCard);
     }
 
     [Fact]
@@ -70,8 +72,8 @@ public sealed class GeneratedCardTests : GameTestBase
         Assert.Same(card, result.CardAdded);
         Assert.Null(card.GetPile(combat.Simulator.State));
         Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
-        Assert.False(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
-            .PileAddSucceeded);
+        Assert.Null(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
+            .PreviewCard);
     }
 
     [Fact]

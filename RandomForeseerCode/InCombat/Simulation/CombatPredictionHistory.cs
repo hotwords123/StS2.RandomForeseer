@@ -30,7 +30,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
     public int Count<TEntry>()
         where TEntry : CombatPredictionHistoryEntry
     {
-        return _entryCounts.TryGetValue(typeof(TEntry), out var count) ? count : 0;
+        return _entryCounts.GetValueOrDefault(typeof(TEntry), 0);
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
     {
         Record(new CombatPredictionCardAfflictedEntry
         {
-            Card = card.Clone(),
+            Card = card,
             Affliction = affliction
         });
     }
@@ -80,7 +80,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
     {
         return Record(new CombatPredictionCardDrawnEntry
         {
-            Card = card.Clone(),
+            Card = card,
             FromHandDraw = fromHandDraw
         });
     }
@@ -90,18 +90,22 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         Complete(originalEntry, new CombatPredictionCardDrawResolvedEntry
         {
             OriginalEntry = originalEntry,
-            Card = card.Clone()
+            PreviewCard = PredictionCloner.CloneModel(card.Preview)
         });
     }
 
     public void CardCostsRandomized(IReadOnlyList<PredictedCard> cards)
     {
-        Record(new CombatPredictionCardCostsRandomizedEntry { Cards = SnapshotCards(cards) });
+        Record(new CombatPredictionCardCostsRandomizedEntry { PreviewCards = CreatePreviewCards(cards) });
     }
 
     public void CardsSelected(IReadOnlyList<PredictedCard> cards)
     {
-        Record(new CombatPredictionCardsSelectedEntry { Cards = SnapshotCards(cards) });
+        Record(new CombatPredictionCardsSelectedEntry
+        {
+            SourceCards = [.. cards.SelectOriginals()],
+            PreviewCards = CreatePreviewCards(cards)
+        });
     }
 
     public void CardPlayStarted(PredictedCard card, CardPlay cardPlay)
@@ -129,37 +133,35 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
     {
         return Record(new CombatPredictionCardGeneratedEntry
         {
-            Card = card.Clone(),
+            Card = card,
             ResultKind = resultKind
         });
     }
 
     public void CardGenerationResolved(
         CombatPredictionCardGeneratedEntry originalEntry,
-        PredictedCard card,
-        bool pileAddSucceeded)
+        PredictedCard? card)
     {
         Complete(originalEntry, new CombatPredictionCardGenerationResolvedEntry
         {
             OriginalEntry = originalEntry,
-            Card = card.Clone(),
-            PileAddSucceeded = pileAddSucceeded
+            PreviewCard = card is null ? null : PredictionCloner.CloneModel(card.Preview)
         });
     }
 
     public void CardGenerationOptions(IReadOnlyList<PredictedCard> cards)
     {
-        Record(new CombatPredictionCardGenerationOptionsEntry { Cards = SnapshotCards(cards) });
+        Record(new CombatPredictionCardGenerationOptionsEntry { PreviewCards = CreatePreviewCards(cards) });
     }
 
     public void AutoPlayFromDrawPile(PredictedCard card)
     {
-        Record(new CombatPredictionAutoPlayFromDrawPileEntry { Card = card.Clone() });
+        Record(new CombatPredictionAutoPlayFromDrawPileEntry { Card = card });
     }
 
     public void PotionGenerated(PotionModel potion)
     {
-        Record(new CombatPredictionPotionGeneratedEntry { Potion = potion });
+        Record(new CombatPredictionPotionGeneratedEntry { PreviewPotion = PredictionCloner.CloneModel(potion) });
     }
 
     public void CreatureAttacked(
@@ -233,9 +235,9 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         return entry;
     }
 
-    private static IReadOnlyList<PredictedCard> SnapshotCards(IEnumerable<PredictedCard> cards)
+    private static IReadOnlyList<CardModel> CreatePreviewCards(IEnumerable<PredictedCard> cards)
     {
-        return [.. cards.Select(static card => card.Clone())];
+        return [.. cards.Select(static card => PredictionCloner.CloneModel(card.Preview))];
     }
 
     private void Complete(CombatPredictionHistoryEntry originalEntry, CombatPredictionHistoryEntry resolvedEntry)

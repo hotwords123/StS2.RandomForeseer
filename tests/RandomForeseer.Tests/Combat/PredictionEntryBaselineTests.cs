@@ -69,6 +69,10 @@ public sealed class PredictionEntryBaselineTests : GameTestBase
         Assert.Same(cards[3], Assert.Single(combat.PlayerState.DrawPile.Cards));
         Assert.Equal(3, combat.Simulator.History.Count<CombatPredictionCardDrawnEntry>());
         Assert.Equal(3, combat.Simulator.History.Count<CombatPredictionCardDrawResolvedEntry>());
+        var drawnEntries = combat.Simulator.History.OfType<CombatPredictionCardDrawnEntry>().ToArray();
+        var resolvedEntries = combat.Simulator.History.OfType<CombatPredictionCardDrawResolvedEntry>().ToArray();
+        Assert.Equal(cards.Take(3), drawnEntries.Select(static entry => entry.Card));
+        Assert.All(resolvedEntries.Zip(cards), pair => Assert.NotSame(pair.Second.Preview, pair.First.PreviewCard));
         Assert.Same(potion, frame.Source);
         Assert.Empty(combat.Player.PlayerCombatState!.Hand.Cards);
         Assert.Equal(sourceCards, combat.Player.PlayerCombatState.DrawPile.Cards);

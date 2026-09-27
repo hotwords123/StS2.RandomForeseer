@@ -182,7 +182,8 @@ internal sealed partial class CombatPredictionSimulator
     /// <remarks>
     /// The result kind affects only projection. While combat is ending but still in progress, vanilla records
     /// generation history and calls the generation hook even if pile insertion fails. The resolved history entry
-    /// retains the insertion result so projection can omit cards that never entered a pile.
+    /// stores a cloned preview after successful insertion and <see langword="null"/> after failure, allowing projection
+    /// to omit cards that never entered a pile.
     /// </remarks>
     public IReadOnlyList<SimCardPileAddResult> AddGeneratedCardsToCombat(
         IReadOnlyList<PredictedCard> cards,
@@ -215,7 +216,7 @@ internal sealed partial class CombatPredictionSimulator
             results.Add(result);
 
             HookMirrors.AfterCardGeneratedForCombat(this, card, creator);
-            History.CardGenerationResolved(entry, card, result.Success);
+            History.CardGenerationResolved(entry, result.Success ? card : null);
         }
 
         return results;

@@ -215,73 +215,73 @@ internal sealed class CombatPredictionProjector
         }
 
         var resolved = _history.GetResolvedEntry<CombatPredictionCardGenerationResolvedEntry>(entry);
-        if (!resolved.PileAddSucceeded)
+        if (resolved.PreviewCard is null)
         {
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.Card(resolved.Card.Preview));
-        AddCausalEffect(entry, CausalEffectKind.GenerateCards, [resolved.Card.Preview]);
+        AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard));
+        AddCausalEffect(entry, CausalEffectKind.GenerateCards, [resolved.PreviewCard]);
         return resolved;
     }
 
     private CombatPredictionHistoryEntry? HandleCardGenerationOptions(CombatPredictionCardGenerationOptionsEntry entry)
     {
-        if (entry.Cards.Count == 0)
+        if (entry.PreviewCards.Count == 0)
         {
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.CardBundle([.. entry.Cards.SelectPreviews()]));
-        AddCausalEffect(entry, CausalEffectKind.GenerateCards, entry.Cards.SelectPreviews());
+        AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards));
+        AddCausalEffect(entry, CausalEffectKind.GenerateCards, entry.PreviewCards);
         return entry;
     }
 
-    private CombatPredictionHistoryEntry? HandlePotionGenerated(CombatPredictionPotionGeneratedEntry entry)
+    private CombatPredictionHistoryEntry HandlePotionGenerated(CombatPredictionPotionGeneratedEntry entry)
     {
-        AddHoverTip(PredictionHoverTipFactory.Potion(entry.Potion));
-        AddCausalEffect(entry, CausalEffectKind.GeneratePotion, [entry.Potion]);
+        AddHoverTip(PredictionHoverTipFactory.Potion(entry.PreviewPotion));
+        AddCausalEffect(entry, CausalEffectKind.GeneratePotion, [entry.PreviewPotion]);
         return entry;
     }
 
     private CombatPredictionHistoryEntry? HandleCardsSelected(CombatPredictionCardsSelectedEntry entry)
     {
-        if (entry.Cards.Count == 0)
+        if (entry.PreviewCards.Count == 0)
         {
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.CardBundle([.. entry.Cards.SelectPreviews()]));
-        _highlightedCards.UnionWith(entry.Cards.SelectOriginals());
-        AddCausalEffect(entry, CausalEffectKind.SelectCards, entry.Cards.SelectPreviews());
+        AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards));
+        AddCausalEffect(entry, CausalEffectKind.SelectCards, entry.PreviewCards);
+        _highlightedCards.UnionWith(entry.SourceCards);
         return entry;
     }
 
-    private CombatPredictionHistoryEntry? HandleDrawPileAutoPlay(CombatPredictionAutoPlayFromDrawPileEntry entry)
+    private CombatPredictionHistoryEntry HandleDrawPileAutoPlay(CombatPredictionAutoPlayFromDrawPileEntry entry)
     {
         AddHoverTip(PredictionHoverTipFactory.Card(entry.Card.Preview));
         AddCausalEffect(entry, CausalEffectKind.PlayCard, [entry.Card.Preview]);
         return entry;
     }
 
-    private CombatPredictionHistoryEntry? HandleCardDrawn(CombatPredictionCardDrawnEntry entry)
+    private CombatPredictionHistoryEntry HandleCardDrawn(CombatPredictionCardDrawnEntry entry)
     {
         var resolved = _history.GetResolvedEntry<CombatPredictionCardDrawResolvedEntry>(entry);
-        AddHoverTip(PredictionHoverTipFactory.Card(resolved.Card.Preview));
-        AddCausalEffect(entry, CausalEffectKind.DrawCards, [resolved.Card.Preview]);
+        AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard));
+        AddCausalEffect(entry, CausalEffectKind.DrawCards, [resolved.PreviewCard]);
         return resolved;
     }
 
     private CombatPredictionHistoryEntry? HandleCardCostsRandomized(CombatPredictionCardCostsRandomizedEntry entry)
     {
-        if (entry.Cards.Count == 0)
+        if (entry.PreviewCards.Count == 0)
         {
             return null;
         }
 
         // Snecko Oil's final full-hand snapshot supersedes the draw tips recorded before cost randomization.
         _hoverTips.Clear();
-        _hoverTips.AddRange(entry.Cards.SelectPreviews().ToPredictionHoverTips());
+        _hoverTips.AddRange(entry.PreviewCards.ToPredictionHoverTips());
         return entry;
     }
 

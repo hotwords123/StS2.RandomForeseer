@@ -81,49 +81,60 @@ internal sealed class CombatPredictionStarsModifiedEntry : CombatPredictionHisto
     public required int Amount { get; init; }
 }
 
+/// <summary>Records an orb-channel gameplay event.</summary>
 internal sealed class CombatPredictionOrbChanneledEntry : CombatPredictionHistoryEntry
 {
     public required OrbModel Orb { get; init; }
 }
 
+/// <summary>Records the gameplay occurrence of drawing a card.</summary>
 internal sealed class CombatPredictionCardDrawnEntry : CombatPredictionHistoryEntry
 {
     public required PredictedCard Card { get; init; }
     public required bool FromHandDraw { get; init; }
 }
 
+/// <summary>Stores the presentation state after a recorded draw finishes resolving.</summary>
 internal sealed class CombatPredictionCardDrawResolvedEntry : CombatPredictionHistoryEntry
 {
     public required CombatPredictionCardDrawnEntry OriginalEntry { get; init; }
-    public required PredictedCard Card { get; init; }
+    public required CardModel PreviewCard { get; init; }
 }
 
+/// <summary>Stores the final hand presentation after card costs are randomized.</summary>
 internal sealed class CombatPredictionCardCostsRandomizedEntry : CombatPredictionHistoryEntry
 {
-    public required IReadOnlyList<PredictedCard> Cards { get; init; }
+    public required IReadOnlyList<CardModel> PreviewCards { get; init; }
 }
 
+/// <summary>Records selected source-card identities alongside their presentation snapshots.</summary>
 internal sealed class CombatPredictionCardsSelectedEntry : CombatPredictionHistoryEntry
 {
-    public required IReadOnlyList<PredictedCard> Cards { get; init; }
+    public required IReadOnlyList<CardModel> SourceCards { get; init; }
+    public required IReadOnlyList<CardModel> PreviewCards { get; init; }
 }
 
+/// <summary>Records the gameplay occurrence of generating a card.</summary>
 internal sealed class CombatPredictionCardGeneratedEntry : CombatPredictionHistoryEntry
 {
     public required PredictedCard Card { get; init; }
     public required CardGenerationResultKind ResultKind { get; init; }
 }
 
+/// <summary>
+/// Stores the generated-card presentation snapshot after resolution; <see cref="PreviewCard"/> is <see langword="null"/>
+/// when the card was not added to a pile.
+/// </summary>
 internal sealed class CombatPredictionCardGenerationResolvedEntry : CombatPredictionHistoryEntry
 {
     public required CombatPredictionCardGeneratedEntry OriginalEntry { get; init; }
-    public required PredictedCard Card { get; init; }
-    public required bool PileAddSucceeded { get; init; }
+    public required CardModel? PreviewCard { get; init; }
 }
 
+/// <summary>Stores generated card options for presentation.</summary>
 internal sealed class CombatPredictionCardGenerationOptionsEntry : CombatPredictionHistoryEntry
 {
-    public required IReadOnlyList<PredictedCard> Cards { get; init; }
+    public required IReadOnlyList<CardModel> PreviewCards { get; init; }
 }
 
 internal sealed class CombatPredictionCardAfflictedEntry : CombatPredictionHistoryEntry
@@ -132,12 +143,14 @@ internal sealed class CombatPredictionCardAfflictedEntry : CombatPredictionHisto
     public required AfflictionModel Affliction { get; init; }
 }
 
+/// <summary>Records an auto-play gameplay event.</summary>
 internal sealed class CombatPredictionAutoPlayFromDrawPileEntry : CombatPredictionHistoryEntry
 {
     public required PredictedCard Card { get; init; }
 }
 
+/// <summary>Stores a generated potion for presentation.</summary>
 internal sealed class CombatPredictionPotionGeneratedEntry : CombatPredictionHistoryEntry
 {
-    public required PotionModel Potion { get; init; }
+    public required PotionModel PreviewPotion { get; init; }
 }

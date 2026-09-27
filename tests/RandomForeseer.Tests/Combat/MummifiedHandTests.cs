@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 using RandomForeseer.Tests.Infrastructure;
@@ -32,7 +31,8 @@ public sealed class MummifiedHandTests : GameTestBase
             CardPlay = TestCombat.Play(power)
         });
         var selection = Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardsSelectedEntry>());
-        return Assert.Single(selection.Cards).Original;
+        Assert.Single(selection.PreviewCards);
+        return Assert.Single(selection.SourceCards);
     }
 
     [Theory]
