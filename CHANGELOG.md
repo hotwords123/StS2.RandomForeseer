@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复战斗伤害预测标签偶尔无法正常显示并反复报错的问题。<br>
+  Fixed combat damage prediction labels occasionally failing to render and repeatedly logging errors.
+
 ## v0.13.17
 
 ### feat
