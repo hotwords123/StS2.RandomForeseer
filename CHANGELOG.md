@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复与“多人药水显示”模组一起使用时，预测卡牌的悬浮提示显示异常的问题。<br>
+  Fixed display issues with predicted card hover tips when used with Multiplayer Potion View.
+
 - 修复预测牌的悬浮提示可能将尚未获得的卡牌记录为已见的问题。<br>
   Fixed predicted-card hover tips potentially marking cards that have not been obtained as seen.
 

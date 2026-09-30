@@ -151,15 +151,22 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
     }
 
     /// <summary>
-    /// Records arbitrary hovered-control bounds for callers using the generic alignment entry point.
+    /// Supplies layout for unaligned prediction cards and records arbitrary hovered-control bounds.
     /// </summary>
     [HarmonyPatch(nameof(NHoverTipSet.SetAlignment))]
     [HarmonyPrefix]
-    private static void RecordControlSourceRect(NHoverTipSet __instance, Control node, HoverTipAlignment alignment)
+    private static void RecordControlSourceRect(NHoverTipSet __instance, Control node, ref HoverTipAlignment alignment)
     {
         var container = __instance._cardHoverTipContainer;
         if (ShouldRecordSourceRect(container))
         {
+            // Callers such as Multiplayer Potion View position the whole set without requesting internal layout.
+            // Vanilla skips card layout for None, leaving the cards stacked over each other and the text tips.
+            if (alignment is HoverTipAlignment.None)
+            {
+                alignment = HoverTipAlignment.Center;
+            }
+
             PredictionCardHoverTipLayoutState.RecordSourceRect(container, node.GetGlobalRect(), alignment);
         }
     }
