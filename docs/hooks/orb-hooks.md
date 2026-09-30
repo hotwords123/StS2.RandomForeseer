@@ -40,6 +40,8 @@ behavior, and `InCombat/Mirrors/Hooks/Orb/` for orb-related `AbstractModel` hook
   `IsOverOrEnding`. `TriggerOrbPassive` deliberately has no such guard because it mirrors the lower-level
   `OrbModel.TriggerPassive`; guarded `OrbCmd.Passive(..., countAffectedByHooks: true)` reaches it through
   `OrbPassive`, while turn-end callers apply their own dynamic boundary.
+- `OrbEvokeLast` selects the current last shadow orb for one evoke. `ConsumingShadowPower` calls it once per stack,
+  removing each orb before its evoke body and `AfterOrbEvoked` hooks; subsequent calls re-read the queue.
 - StS2 v0.108.0 moved passive trigger-count handling into `OrbModel.TriggerPassive`. `CombatPredictionSimulator.TriggerOrbPassive` mirrors that helper by applying the count hook and dispatching one passive body per iteration. Turn-end orb overrides call this helper, while direct `OrbPassive` calls still mirror `OrbCmd.Passive(..., countAffectedByHooks: false)`. The original helper's `AfterModifyingOrbPassiveTriggerCount` dispatch is omitted because its only current listener, `GoldPlatedCables`, only flashes the relic.
 - A single simulation records at most 1000 successfully channeled orbs. Further channel attempts return `false` before queue mutation or hook dispatch and append `OrbChannelLimitExceeded` risk, preventing recursive channel and evoke effects from growing without bound.
 

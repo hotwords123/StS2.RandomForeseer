@@ -10,13 +10,12 @@ using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
 
-using Registry = MethodMirrorRegistry<AbstractModel, BeforeSideTurnEndMirrorContext>;
+using Registry = MethodMirrorRegistry<AbstractModel, SideTurnEndMirrorContext>;
 
 // Mirrors the prediction-relevant parts of Hook.BeforeSideTurnEnd.
 internal static class BeforeSideTurnEndMirrors
@@ -37,17 +36,17 @@ internal static class BeforeSideTurnEndMirrors
     private static readonly Registry EarlyRegistry = CreateEarlyRegistry();
     private static readonly Registry Registry = CreateRegistry();
 
-    public static void InvokeVeryEarly(AbstractModel listener, BeforeSideTurnEndMirrorContext context)
+    public static void InvokeVeryEarly(AbstractModel listener, SideTurnEndMirrorContext context)
     {
         VeryEarlyRegistry.Invoke(listener, context);
     }
 
-    public static void InvokeEarly(AbstractModel listener, BeforeSideTurnEndMirrorContext context)
+    public static void InvokeEarly(AbstractModel listener, SideTurnEndMirrorContext context)
     {
         EarlyRegistry.Invoke(listener, context);
     }
 
-    public static void Invoke(AbstractModel listener, BeforeSideTurnEndMirrorContext context)
+    public static void Invoke(AbstractModel listener, SideTurnEndMirrorContext context)
     {
         Registry.Invoke(listener, context);
     }
@@ -86,7 +85,7 @@ internal static class BeforeSideTurnEndMirrors
         registry.Register<ScreamingFlagon>(HandleScreamingFlagon);
         registry.Register<StoneCalendar>(HandleStoneCalendar);
         registry.Register<TheBombPower>(HandleTheBombPower);
-        registry.Register<DoomPower>(HandleDoomPower);
+        registry.Register<DoomPower>(DoomPowerMirrors.BeforeSideTurnEnd);
         registry.Register<Regret>(HandleRegret);
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
 
@@ -96,7 +95,7 @@ internal static class BeforeSideTurnEndMirrors
         return registry;
     }
 
-    private static void HandlePlatingPower(PlatingPower power, BeforeSideTurnEndMirrorContext context)
+    private static void HandlePlatingPower(PlatingPower power, SideTurnEndMirrorContext context)
     {
         if (context.Participants.Contains(power.Owner))
         {
@@ -104,7 +103,7 @@ internal static class BeforeSideTurnEndMirrors
         }
     }
 
-    private static void HandleRegenPower(RegenPower power, BeforeSideTurnEndMirrorContext context)
+    private static void HandleRegenPower(RegenPower power, SideTurnEndMirrorContext context)
     {
         if (context.Participants.Contains(power.Owner) && context.State.GetCreature(power.Owner).IsAlive)
         {
@@ -115,7 +114,7 @@ internal static class BeforeSideTurnEndMirrors
         }
     }
 
-    private static void HandlePaelsEye(PaelsEye relic, BeforeSideTurnEndMirrorContext context)
+    private static void HandlePaelsEye(PaelsEye relic, SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(relic.Owner.Creature) ||
             relic._usedThisCombat ||
@@ -130,7 +129,7 @@ internal static class BeforeSideTurnEndMirrors
         // end-turn simulator, but the immediate hand exhaust side effects are mirrored.
     }
 
-    private static void HandleCloakClasp(CloakClasp relic, BeforeSideTurnEndMirrorContext context)
+    private static void HandleCloakClasp(CloakClasp relic, SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(relic.Owner.Creature))
         {
@@ -149,7 +148,7 @@ internal static class BeforeSideTurnEndMirrors
             ValueProp.Unpowered);
     }
 
-    private static void HandleRippleBasin(RippleBasin relic, BeforeSideTurnEndMirrorContext context)
+    private static void HandleRippleBasin(RippleBasin relic, SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(relic.Owner.Creature) ||
             HasPlayedAttackThisTurn(relic.Owner))
@@ -160,7 +159,7 @@ internal static class BeforeSideTurnEndMirrors
         context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
     }
 
-    private static void HandleHailstormPower(HailstormPower power, BeforeSideTurnEndMirrorContext context)
+    private static void HandleHailstormPower(HailstormPower power, SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(power.Owner) ||
             power.Owner.Player is not { } player)
@@ -176,7 +175,7 @@ internal static class BeforeSideTurnEndMirrors
         }
     }
 
-    private static void HandleScreamingFlagon(ScreamingFlagon relic, BeforeSideTurnEndMirrorContext context)
+    private static void HandleScreamingFlagon(ScreamingFlagon relic, SideTurnEndMirrorContext context)
     {
         if (context.Participants.Contains(relic.Owner.Creature) &&
             context.State.GetPlayerCombatState(relic.Owner).Hand.IsEmpty)
@@ -185,7 +184,7 @@ internal static class BeforeSideTurnEndMirrors
         }
     }
 
-    private static void HandleStoneCalendar(StoneCalendar relic, BeforeSideTurnEndMirrorContext context)
+    private static void HandleStoneCalendar(StoneCalendar relic, SideTurnEndMirrorContext context)
     {
         if (context.Participants.Contains(relic.Owner.Creature) &&
             relic.Owner.PlayerCombatState?.TurnNumber == relic.DynamicVars[StoneCalendar._damageTurnKey].IntValue)
@@ -194,7 +193,7 @@ internal static class BeforeSideTurnEndMirrors
         }
     }
 
-    private static void HandleTheBombPower(TheBombPower power, BeforeSideTurnEndMirrorContext context)
+    private static void HandleTheBombPower(TheBombPower power, SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(power.Owner) || power.Amount > 1m)
         {
@@ -204,28 +203,7 @@ internal static class BeforeSideTurnEndMirrors
         context.Simulator.Damage(context.State.HittableEnemies, power.DynamicVars.Damage, power.Owner);
     }
 
-    private static void HandleDoomPower(DoomPower power, BeforeSideTurnEndMirrorContext context)
-    {
-        if (context.Simulator.IsOverOrEnding ||
-            context.Side == CombatSide.Player ||
-            !context.Participants.Contains(power.Owner) ||
-            !context.State.GetCreature(power.Owner).IsAlive)
-        {
-            return;
-        }
-
-        var doomedCreatures = context.State.GetCreaturesOnSide(context.Side)
-            .Where(creature =>
-                creature.GetPower<DoomPower>() is { } doomPower &&
-                context.State.GetCreature(creature).CurrentHp <= doomPower.Amount)
-            .ToList();
-        if (doomedCreatures.Count > 0)
-        {
-            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
-        }
-    }
-
-    private static void HandleRegret(Regret card, BeforeSideTurnEndMirrorContext context)
+    private static void HandleRegret(Regret card, SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(card.Owner.Creature))
         {
@@ -244,7 +222,7 @@ internal static class BeforeSideTurnEndMirrors
 
     private static void HandleChainsOfBindingPower(
         ChainsOfBindingPower power,
-        BeforeSideTurnEndMirrorContext context)
+        SideTurnEndMirrorContext context)
     {
         if (!context.Participants.Contains(power.Owner) ||
             power.Owner.Player is not { } player)
@@ -282,11 +260,4 @@ internal static class BeforeSideTurnEndMirrors
             entry.HappenedThisTurn(owner.Creature.CombatState) &&
             !entry.CardPlay.IsAutoPlay);
     }
-}
-
-internal sealed class BeforeSideTurnEndMirrorContext : CombatMirrorContext
-{
-    public required CombatSide Side { get; init; }
-
-    public required IReadOnlyList<Creature> Participants { get; init; }
 }

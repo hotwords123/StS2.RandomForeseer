@@ -10,7 +10,7 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 internal sealed partial class CombatPredictionSimulator
 {
     /// <summary>
-    /// Currently mirrors the prediction-relevant parts of <see cref="CombatManager.EndPlayerTurnPhaseOneInternal()"/>.
+    /// Mirrors the prediction-relevant parts of the player turn's phase-one and phase-two end flow.
     /// </summary>
     public void SimulateEndPlayerTurn()
     {
@@ -20,6 +20,21 @@ internal sealed partial class CombatPredictionSimulator
             _ => State.CombatState.Players
         };
 
+        SimulateEndPlayerTurnPhaseOne(playersEndingTurn);
+
+        if (!IsInProgress)
+        {
+            return;
+        }
+
+        SimulateEndPlayerTurnPhaseTwo(playersEndingTurn);
+    }
+
+    /// <summary>
+    /// Mirrors the prediction-relevant parts of <see cref="CombatManager.EndPlayerTurnPhaseOneInternal()"/>.
+    /// </summary>
+    private void SimulateEndPlayerTurnPhaseOne(IReadOnlyList<Player> playersEndingTurn)
+    {
         foreach (var player in playersEndingTurn)
         {
             HookMirrors.AfterAutoPostPlayPhaseEntered(this, player);
@@ -45,8 +60,68 @@ internal sealed partial class CombatPredictionSimulator
             return;
         }
 
-        // Vanilla next calls Hook.BeforeFlush for each ending player. Its only vanilla listener is
-        // SlumberingEssence, which is not used by the current version of the base game, so the hook is omitted.
+        foreach (var player in playersEndingTurn)
+        {
+            HookMirrors.BeforeFlush(this, player);
+        }
+
+        // Vanilla checks for combat end after the BeforeFlush callbacks before phase two begins.
+        CheckWinCondition();
+    }
+
+    /// <summary>
+    /// Mirrors the prediction-relevant parts of <see cref="CombatManager.EndPlayerTurnPhaseTwoInternal()"/>.
+    /// </summary>
+    private void SimulateEndPlayerTurnPhaseTwo(IReadOnlyList<Player> playersEndingTurn)
+    {
+        foreach (var player in playersEndingTurn)
+        {
+            FlushPlayerHand(player);
+        }
+
+        HookMirrors.AfterSideTurnEnd(
+            this,
+            State.CombatState.CurrentSide,
+            [.. playersEndingTurn.Select(static player => player.Creature)]);
+    }
+
+    /// <summary>
+    /// Mirrors the prediction-relevant parts of <see cref="CombatManager.FlushPlayerHand"/>.
+    /// </summary>
+    private void FlushPlayerHand(Player player)
+    {
+        if (!State.GetCreature(player.Creature).IsAlive || player.PlayerCombatState is null)
+        {
+            return;
+        }
+
+        var playerState = State.GetPlayerCombatState(player);
+        var shouldFlush = HookMirrors.ShouldFlush(this, player);
+        List<PredictedCard> cardsToFlush = [];
+        List<PredictedCard> cardsToRetain = [];
+
+        foreach (var card in playerState.Hand.Cards.ToList())
+        {
+            if (!shouldFlush ||
+                card.GetKeywords(this).Contains(CardKeyword.Retain) ||
+                card.Preview._hasSingleTurnRetain)
+            {
+                cardsToRetain.Add(card);
+            }
+            else
+            {
+                cardsToFlush.Add(card);
+            }
+        }
+
+        if (cardsToFlush.Count > 0)
+        {
+            AddToPile(cardsToFlush, playerState.DiscardPile);
+        }
+
+        HookMirrors.AfterFlush(this, player, cardsToFlush, cardsToRetain);
+        // Skip EndOfTurnCleanup to avoid cloning every combat card on each prediction refresh.
+        // Rare deferred-draw chains can retain turn-local costs/flags; see docs/hooks/end-turn-hooks.md.
     }
 
     /// <summary>

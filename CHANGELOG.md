@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 回合结束效果预测现在支持更多回合末伤害，并计入虚无卡牌消耗后抽牌触发的连带伤害。<br>
+  End-turn effect prediction now supports more end-of-turn damage and includes damage triggered by draws after Ethereal cards are exhausted.
+
 ### fix
 
 - 修复与“多人药水显示”模组一起使用时，预测卡牌的悬浮提示显示异常的问题。<br>

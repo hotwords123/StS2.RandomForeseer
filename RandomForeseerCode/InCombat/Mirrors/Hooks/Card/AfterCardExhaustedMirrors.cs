@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Shared;
 using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
 
 namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
@@ -41,7 +42,7 @@ internal static class AfterCardExhaustedMirrors
         registry.Register<DrumOfBattle>(HandleDrumOfBattle);
         registry.Register<FeelNoPainPower>(HandleFeelNoPainPower);
         registry.Register<ForgottenSoul>(HandleForgottenSoul);
-        registry.Register<JossPaper>(HandleJossPaper);
+        registry.Register<JossPaper>(JossPaperMirrors.AfterCardExhausted);
         registry.Register<Midnight>(HandleMidnight);
         registry.RegisterIgnored<SkillIronclad1Achievement>();
 
@@ -71,8 +72,7 @@ internal static class AfterCardExhaustedMirrors
         {
             if (context.CausedByEthereal)
             {
-                // Ethereal exhaust only records the count here in vanilla; the actual draw happens
-                // later in end-turn cleanup, which this simulation path does not include.
+                context.StateStore.Get(power, () => new DarkEmbracePredictionState(power)).EtherealCount++;
             }
             else
             {
@@ -89,30 +89,6 @@ internal static class AfterCardExhaustedMirrors
             for (var i = 0; i < playCount; i++)
             {
                 context.Simulator.GainEnergy(card.Owner, card.DynamicVars.Energy.BaseValue);
-            }
-        }
-    }
-
-    private static void HandleJossPaper(JossPaper relic, AfterCardExhaustedMirrorContext context)
-    {
-        if (context.PreviewCard.Owner == relic.Owner)
-        {
-            if (context.CausedByEthereal)
-            {
-                // Ethereal exhaust only records the count here in vanilla; the actual draw happens
-                // later in end-turn cleanup, which this simulation path does not include.
-            }
-            else
-            {
-                var state = context.StateStore.Get(relic, () => new JossPaperPredictionState(relic));
-                var threshold = relic.DynamicVars[JossPaper._exhaustAmountKey].IntValue;
-
-                state.CardsExhausted++;
-                if (state.CardsExhausted >= threshold)
-                {
-                    context.Simulator.Draw(relic.Owner, state.CardsExhausted / threshold);
-                    state.CardsExhausted %= threshold;
-                }
             }
         }
     }
@@ -157,9 +133,9 @@ internal sealed class BurningSticksPredictionState(BurningSticks relic)
     public bool WasUsedThisCombat { get; set; } = relic.WasUsedThisCombat;
 }
 
-internal sealed class JossPaperPredictionState(JossPaper relic)
+internal sealed class DarkEmbracePredictionState(DarkEmbracePower power)
 {
-    public int CardsExhausted { get; set; } = relic.CardsExhausted;
+    public int EtherealCount { get; set; } = power.GetInternalData<DarkEmbracePower.Data>().etherealCount;
 }
 
 internal sealed class AfterCardExhaustedMirrorContext : CombatCardMirrorContext

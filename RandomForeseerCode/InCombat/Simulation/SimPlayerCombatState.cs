@@ -70,4 +70,15 @@ internal sealed class SimPlayerCombatState(PlayerCombatState liveState)
     {
         Stars = (int)Math.Clamp(Stars - amount, 0m, 999999999m);
     }
+
+    /// <summary>
+    /// Mirrors <see cref="PlayerCombatState.EndOfTurnCleanup"/> using only the mutable preview cards.
+    /// </summary>
+    public void EndOfTurnCleanup()
+    {
+        foreach (var card in AllCards)
+        {
+            card.MutablePreview.EndOfTurnCleanup();
+        }
+    }
 }

@@ -87,13 +87,19 @@ internal sealed partial class CombatPredictionSimulator
     public void OrbEvokeNext(Player player, int repeat = 1, bool dequeue = true)
     {
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
+        for (var i = 0; i < repeat && orbQueue.Orbs.Count > 0; i++)
+        {
+            OrbEvoke(player, orbQueue.Orbs[0], dequeue: dequeue && i == repeat - 1);
+        }
+    }
+
+    // Mirrors OrbCmd.EvokeLast.
+    public void OrbEvokeLast(Player player, bool dequeue = true)
+    {
+        var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
         if (orbQueue.Orbs.Count > 0)
         {
-            var orb = orbQueue.Orbs[0];
-            for (int i = 0; i < repeat; i++)
-            {
-                OrbEvoke(player, orb, dequeue: dequeue && i == repeat - 1);
-            }
+            OrbEvoke(player, orbQueue.Orbs[^1], dequeue);
         }
     }
 

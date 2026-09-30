@@ -281,6 +281,36 @@ internal static class HookMirrors
     }
 
     /// <summary>
+    /// Mirrors <see cref="Hook.ShouldFlush"/> by forwarding to vanilla's predicate and listener ordering.
+    /// </summary>
+    public static bool ShouldFlush(CombatPredictionSimulator simulator, Player player)
+    {
+        return Hook.ShouldFlush(simulator.State.CombatState, player);
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.BeforeFlush"/>.
+    /// </summary>
+    public static void BeforeFlush(CombatPredictionSimulator simulator, Player player)
+    {
+        var context = new BeforeFlushMirrorContext
+        {
+            Simulator = simulator,
+            Player = player
+        };
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            BeforeFlushMirrors.Invoke(listener, context);
+        }
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            BeforeFlushMirrors.InvokeLate(listener, context);
+        }
+    }
+
+    /// <summary>
     /// Mirrors <see cref="Hook.ShouldStopCombatFromEnding"/>.
     /// </summary>
     public static bool ShouldStopCombatFromEnding(CombatPredictionSimulator simulator)
@@ -1307,7 +1337,7 @@ internal static class HookMirrors
         CombatSide side,
         IReadOnlyList<Creature> participants)
     {
-        var context = new BeforeSideTurnEndMirrorContext
+        var context = new SideTurnEndMirrorContext
         {
             Simulator = simulator,
             Side = side,
@@ -1327,6 +1357,51 @@ internal static class HookMirrors
         foreach (var listener in IterateCombatHookListeners(simulator))
         {
             BeforeSideTurnEndMirrors.Invoke(listener, context);
+        }
+    }
+
+    /// <summary>Mirrors <see cref="Hook.AfterFlush"/>.</summary>
+    public static void AfterFlush(
+        CombatPredictionSimulator simulator,
+        Player player,
+        IReadOnlyList<PredictedCard> flushedCards,
+        IReadOnlyList<PredictedCard> retainedCards)
+    {
+        var context = new AfterFlushMirrorContext
+        {
+            Simulator = simulator,
+            Player = player,
+            FlushedCards = flushedCards,
+            RetainedCards = retainedCards
+        };
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            AfterFlushMirrors.Invoke(listener, context);
+        }
+    }
+
+    /// <summary>Mirrors <see cref="Hook.AfterSideTurnEnd"/>.</summary>
+    public static void AfterSideTurnEnd(
+        CombatPredictionSimulator simulator,
+        CombatSide side,
+        IReadOnlyList<Creature> participants)
+    {
+        var context = new SideTurnEndMirrorContext
+        {
+            Simulator = simulator,
+            Side = side,
+            Participants = participants
+        };
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            AfterSideTurnEndMirrors.Invoke(listener, context);
+        }
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            AfterSideTurnEndMirrors.InvokeLate(listener, context);
         }
     }
 

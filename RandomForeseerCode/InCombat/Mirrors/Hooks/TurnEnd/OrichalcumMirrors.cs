@@ -4,7 +4,7 @@ namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
 
 internal static class OrichalcumMirrors
 {
-    public static void BeforeSideTurnEndVeryEarly(RelicModel relic, BeforeSideTurnEndMirrorContext context)
+    public static void BeforeSideTurnEndVeryEarly(RelicModel relic, SideTurnEndMirrorContext context)
     {
         if (context.Participants.Contains(relic.Owner.Creature) &&
             context.State.GetCreature(relic.Owner.Creature).Block <= 0)
@@ -13,7 +13,7 @@ internal static class OrichalcumMirrors
         }
     }
 
-    public static void BeforeSideTurnEnd(RelicModel relic, BeforeSideTurnEndMirrorContext context)
+    public static void BeforeSideTurnEnd(RelicModel relic, SideTurnEndMirrorContext context)
     {
         var state = GetState(relic, context);
         if (state.ShouldTrigger)
@@ -23,7 +23,7 @@ internal static class OrichalcumMirrors
         }
     }
 
-    private static State GetState(RelicModel relic, BeforeSideTurnEndMirrorContext context)
+    private static State GetState(RelicModel relic, SideTurnEndMirrorContext context)
     {
         return context.StateStore.Get<State>(relic);
     }
