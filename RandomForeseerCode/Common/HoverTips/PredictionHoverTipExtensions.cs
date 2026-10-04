@@ -74,7 +74,8 @@ internal static class PredictionHoverTipExtensions
     /// </summary>
     public static bool IsPredictionTextHoverTip(this IHoverTip tip)
     {
-        return tip.Id.StartsWith(PredictionHoverTipFactory.HoverTipIdPrefix, StringComparison.Ordinal);
+        return !string.IsNullOrEmpty(tip.Id) &&
+               tip.Id.StartsWith(PredictionHoverTipFactory.HoverTipIdPrefix, StringComparison.Ordinal);
     }
 
     /// <summary>
