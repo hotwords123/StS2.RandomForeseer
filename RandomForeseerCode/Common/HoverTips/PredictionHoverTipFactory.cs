@@ -1,3 +1,4 @@
+using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
@@ -60,7 +61,7 @@ internal static class PredictionHoverTipFactory
     /// </remarks>
     public static IHoverTip Potion(PotionModel potion)
     {
-        return FromModelHoverTip(potion.HoverTip);
+        return FromModelHoverTip(potion.HoverTip, potion.Image);
     }
 
     /// <summary>
@@ -72,7 +73,7 @@ internal static class PredictionHoverTipFactory
     /// </remarks>
     public static IHoverTip Relic(RelicModel relic)
     {
-        return FromModelHoverTip(relic.HoverTip);
+        return FromModelHoverTip(relic.HoverTip, relic.Icon);
     }
 
     /// <summary>
@@ -91,13 +92,17 @@ internal static class PredictionHoverTipFactory
     /// </summary>
     /// <param name="key">Localization key stem with <c>.title</c> and <c>.description</c> entries.</param>
     /// <param name="configureDescription">Optional callback to add formatter variables before display.</param>
-    public static HoverTip Text(string key, Action<LocString>? configureDescription = null)
+    /// <param name="icon">Optional model icon displayed beside the title.</param>
+    public static HoverTip Text(
+        string key,
+        Action<LocString>? configureDescription = null,
+        Texture2D? icon = null)
     {
         var title = ModLocalization.Text($"{key}.title");
         var description = ModLocalization.Text($"{key}.description");
         configureDescription?.Invoke(description);
 
-        var tip = new HoverTip(title, description)
+        var tip = new HoverTip(title, description, icon)
         {
             Id = $"{HoverTipIdPrefix}:{key}",
             IsInstanced = true
@@ -105,13 +110,16 @@ internal static class PredictionHoverTipFactory
         return tip;
     }
 
-    private static HoverTip FromModelHoverTip(HoverTip tip)
+    private static HoverTip FromModelHoverTip(HoverTip tip, Texture2D? icon = null)
     {
-        tip.Id = $"{Entry.ModId}:Prediction:{tip.Id}";
-        tip.IsInstanced = true;
-        // Vanilla records hover tips with canonical models as discovered progress.
-        // Prediction tips are informational only, so they must not reveal cards/relics/potions in the save.
-        tip.CanonicalModel = null;
-        return tip;
+        return tip with
+        {
+            Icon = icon ?? tip.Icon,
+            Id = $"{HoverTipIdPrefix}:{tip.Id}",
+            IsInstanced = true,
+            // Vanilla records hover tips with canonical models as discovered progress.
+            // Prediction tips are informational only, so they must not reveal cards/relics/potions in the save.
+            CanonicalModel = null
+        };
     }
 }

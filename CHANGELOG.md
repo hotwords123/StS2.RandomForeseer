@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 药水和遗物的预测悬浮提示现在会显示对应的图标。<br>
+  Prediction hover tips for potions and relics now display the corresponding icons.
+
 ## v0.13.18
 
 ### feat
