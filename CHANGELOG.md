@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 优化浮木重掷预测，减少后续结果过早停止显示的情况。<br>
+  Improved Driftwood reroll prediction to reduce cases where later results are hidden too early.
+
 ## v0.13.20
 
 ### feat
