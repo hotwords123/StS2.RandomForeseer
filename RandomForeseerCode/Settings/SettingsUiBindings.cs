@@ -53,6 +53,9 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> DriftwoodRerollPredictionEnabled { get; } =
         Binding(s => s.DriftwoodRerollPredictionEnabled, (s, v) => s.DriftwoodRerollPredictionEnabled = v);
 
+    public static IModSettingsValueBinding<int> DriftwoodRerollPreviewCount { get; } =
+        Binding(s => s.DriftwoodRerollPreviewCount, (s, v) => s.DriftwoodRerollPreviewCount = v);
+
     public static IModSettingsValueBinding<bool> PaelsWingSacrificePredictionEnabled { get; } =
         Binding(s => s.PaelsWingSacrificePredictionEnabled, (s, v) => s.PaelsWingSacrificePredictionEnabled = v);
 

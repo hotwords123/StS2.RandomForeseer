@@ -57,11 +57,9 @@ internal static class SettingsBootstrap
                 .AddToggle("event_option_prediction_enabled", SettingsUiBindings.EventOptionPredictionEnabled)
                 .AddIntSlider(
                     "slippery_bridge_reroll_preview_count",
-                    T("slider.slippery_bridge_reroll_preview_count.label"),
                     SettingsUiBindings.SlipperyBridgeRerollPreviewCount,
                     minValue: 1,
-                    maxValue: 10,
-                    description: T("slider.slippery_bridge_reroll_preview_count.description"))
+                    maxValue: 10)
                 .WithEntryEnabledWhen(
                     "slippery_bridge_reroll_preview_count",
                     () => SettingsUiBindings.EventOptionPredictionEnabled.Read())
@@ -71,6 +69,14 @@ internal static class SettingsBootstrap
                 .AddToggle("ancient_relic_pickup_prediction_enabled", SettingsUiBindings.AncientRelicPickupPredictionEnabled)
                 .AddToggle("merchant_restock_prediction_enabled", SettingsUiBindings.MerchantRestockPredictionEnabled)
                 .AddToggle("driftwood_reroll_prediction_enabled", SettingsUiBindings.DriftwoodRerollPredictionEnabled)
+                .AddIntSlider(
+                    "driftwood_reroll_preview_count",
+                    SettingsUiBindings.DriftwoodRerollPreviewCount,
+                    minValue: 1,
+                    maxValue: 5)
+                .WithEntryEnabledWhen(
+                    "driftwood_reroll_preview_count",
+                    () => SettingsUiBindings.DriftwoodRerollPredictionEnabled.Read())
                 .AddToggle("paels_wing_sacrifice_prediction_enabled", SettingsUiBindings.PaelsWingSacrificePredictionEnabled)
                 .AddToggle("rest_site_prediction_enabled", SettingsUiBindings.RestSitePredictionEnabled)),
             "out_of_combat_prediction");
@@ -227,6 +233,21 @@ internal static class SettingsBootstrap
         private ModSettingsSectionBuilder AddToggle(string id, IModSettingsValueBinding<bool> binding)
         {
             return section.AddToggle(id, T($"toggle.{id}.label"), binding, T($"toggle.{id}.description"));
+        }
+
+        private ModSettingsSectionBuilder AddIntSlider(
+            string id,
+            IModSettingsValueBinding<int> binding,
+            int minValue,
+            int maxValue)
+        {
+            return section.AddIntSlider(
+                id,
+                T($"slider.{id}.label"),
+                binding,
+                minValue: minValue,
+                maxValue: maxValue,
+                description: T($"slider.{id}.description"));
         }
 
         private ModSettingsSectionBuilder AddSubPage(string pageId)

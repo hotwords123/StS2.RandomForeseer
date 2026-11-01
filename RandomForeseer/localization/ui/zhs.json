@@ -38,6 +38,8 @@
   "neows_bones_pickup_order.description": "[gold]{FirstRelic}[/gold]和[gold]{SecondRelic}[/gold]的拾起顺序会影响[gold]{NeowsBones}[/gold]加入的随机[red]诅咒[/red]。\n ·先拾起[gold]{FirstRelic}[/gold]：{FirstCurses:[red]{}[/red]|、|和|和}\n ·先拾起[gold]{SecondRelic}[/gold]：{SecondCurses:[red]{}[/red]|、|和|和}",
   "silken_tress_reward_offset.title": "提示",
   "silken_tress_reward_offset.description": "当前奖励页面还有其它遗物，先领取其它遗物可能改变这项预测使用的随机数。\n请先拿完其它遗物，再返回查看这件遗物的预测。",
+  "driftwood_reroll_sequence.title": "提示",
+  "driftwood_reroll_sequence.description": "直接重掷当前奖励会得到第一组牌。先重掷一组其它奖励，再重掷当前奖励，会得到第二组牌，以此类推。",
   "transform_bundle_explanation.title": "预测",
   "transform_bundle_explanation.description": "每组牌依次对应选择顺序中的一个位置，展示该位置所有可能的变化结果。\n可以在变牌选择界面中查看每张牌处于选择顺序中不同位置时的变化结果。",
   "transform_selection_selected.title": "预测",

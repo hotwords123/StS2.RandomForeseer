@@ -60,6 +60,8 @@
   "toggle.merchant_restock_prediction_enabled.description": "When enabled, while you have [gold]The Courier[/gold], hovering merchant cards, potions, or relics you can afford shows the item that will restock that slot after purchase.",
   "toggle.driftwood_reroll_prediction_enabled.label": "Predict Driftwood's reroll",
   "toggle.driftwood_reroll_prediction_enabled.description": "When enabled, hovering [gold]Driftwood[/gold]'s reroll button shows the rerolled card reward.",
+  "slider.driftwood_reroll_preview_count.label": "Driftwood reroll preview count",
+  "slider.driftwood_reroll_preview_count.description": "Controls the maximum number of card reward sets shown in [gold]Driftwood[/gold] reroll previews, including those offered when you reroll the current reward immediately or after rerolling other rewards first.",
   "toggle.paels_wing_sacrifice_prediction_enabled.label": "Predict Pael's Wing sacrifice",
   "toggle.paels_wing_sacrifice_prediction_enabled.description": "When enabled, hovering [gold]Pael's Wing[/gold]'s Sacrifice button shows which relic you will receive for the sacrifice.",
   "toggle.rest_site_prediction_enabled.label": "Predict Rest Site options",

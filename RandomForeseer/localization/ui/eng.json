@@ -38,6 +38,8 @@
   "neows_bones_pickup_order.description": "The pickup order of [gold]{FirstRelic}[/gold] and [gold]{SecondRelic}[/gold] affects the random [red]{Curses:plural:Curse|Curses}[/red] added by [gold]{NeowsBones}[/gold].\n ·[gold]{FirstRelic}[/gold] first: {FirstCurses:[red]{}[/red]|, |, and | and }\n ·[gold]{SecondRelic}[/gold] first: {SecondCurses:[red]{}[/red]|, |, and | and }.",
   "silken_tress_reward_offset.title": "Notice",
   "silken_tress_reward_offset.description": "This reward screen still has another relic. Taking another relic first may change the RNG used by this prediction.\nTake the other relics first, then return to this relic to view the prediction.",
+  "driftwood_reroll_sequence.title": "Notice",
+  "driftwood_reroll_sequence.description": "The first set is for rerolling this reward now. The second is for rerolling one other reward first, then this one, and so on.",
   "transform_bundle_explanation.title": "Prediction",
   "transform_bundle_explanation.description": "Each pack corresponds to a position in the selection order and shows all possible transformed cards for that position.\nThe transform selection screen will show what each card would transform into at every position in the selection order.",
   "transform_selection_selected.title": "Prediction",

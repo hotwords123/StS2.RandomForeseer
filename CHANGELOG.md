@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 浮木重掷预测现在也支持显示先重掷其它卡牌奖励，再重掷当前奖励的结果。<br>
+  Driftwood reroll prediction now also shows what the current reward will offer if you reroll other card rewards first.
+
 ## v0.13.19
 
 ### feat

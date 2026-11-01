@@ -60,6 +60,8 @@
   "toggle.merchant_restock_prediction_enabled.description": "启用后，拥有[gold]送货员[/gold]时，悬浮商店中可以购买的卡牌、药水或遗物会显示购买后补货的商品。",
   "toggle.driftwood_reroll_prediction_enabled.label": "预测浮木重掷",
   "toggle.driftwood_reroll_prediction_enabled.description": "启用后，悬浮[gold]浮木[/gold]的重掷按钮会显示重掷后的卡牌奖励。",
+  "slider.driftwood_reroll_preview_count.label": "浮木重掷预览次数",
+  "slider.driftwood_reroll_preview_count.description": "控制[gold]浮木[/gold]最多预览几组重掷结果，包括直接重掷当前奖励，以及先重掷其它奖励后再重掷当前奖励的结果。",
   "toggle.paels_wing_sacrifice_prediction_enabled.label": "预测佩尔之翼献祭",
   "toggle.paels_wing_sacrifice_prediction_enabled.description": "启用后，悬浮[gold]佩尔之翼[/gold]的献祭按钮会显示献祭得到的遗物奖励。",
   "toggle.rest_site_prediction_enabled.label": "预测休息处选项",

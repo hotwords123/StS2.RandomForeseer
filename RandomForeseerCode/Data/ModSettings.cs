@@ -38,6 +38,11 @@ internal sealed class ModSettings
     public bool AncientRelicPickupPredictionEnabled { get; set; } = true;
     public bool MerchantRestockPredictionEnabled { get; set; } = true;
     public bool DriftwoodRerollPredictionEnabled { get; set; } = true;
+    public int DriftwoodRerollPreviewCount
+    {
+        get => Math.Clamp(field, 1, 5);
+        set => field = Math.Clamp(value, 1, 5);
+    } = 3;
     public bool PaelsWingSacrificePredictionEnabled { get; set; } = true;
     public bool RestSitePredictionEnabled { get; set; } = true;
 
