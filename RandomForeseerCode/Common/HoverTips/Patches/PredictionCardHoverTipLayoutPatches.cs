@@ -33,6 +33,11 @@ internal static class PredictionCardHoverTipContainerPatches
         }
 
         var control = PredictionHoverTipControlFactory.CreateAndAddStack(__instance, bundleTip);
+        if (bundleTip.IsDimmed)
+        {
+            control.Modulate = DimmedCardModulate;
+        }
+
         PredictionCardHoverTipLayoutState.MarkPredictionCard(control);
         return false;
     }

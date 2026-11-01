@@ -37,7 +37,7 @@ internal static class PredictionHoverTipFactory
     }
 
     /// <summary>
-    /// Creates one logical prediction bundle tip from a non-empty card list.
+    /// Creates one logical prediction bundle tip from a non-empty card list, optionally dimmed.
     /// </summary>
     /// <remarks>
     /// <paramref name="cards"/> must be in prediction/semantic order and must contain at least one card. Do not
@@ -46,10 +46,11 @@ internal static class PredictionHoverTipFactory
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="cards"/> is empty.</exception>
     public static IHoverTip CardBundle(
         IReadOnlyList<CardModel> cards,
-        PredictionCardBundleKind kind = PredictionCardBundleKind.Regular)
+        PredictionCardBundleKind kind = PredictionCardBundleKind.Regular,
+        bool isDimmed = false)
     {
         ArgumentOutOfRangeException.ThrowIfZero(cards.Count);
-        return new PredictionCardBundleHoverTip(cards, kind);
+        return new PredictionCardBundleHoverTip(cards, kind, isDimmed);
     }
 
     /// <summary>

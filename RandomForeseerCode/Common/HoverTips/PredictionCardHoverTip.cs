@@ -29,7 +29,10 @@ internal class PredictionCardHoverTip(CardModel card, bool isDimmed)
 /// one bundle and no independent card tip may expand it into ordinary card tips; otherwise the bundle remains an
 /// independently laid-out stack.
 /// </remarks>
-internal class PredictionCardBundleHoverTip(IReadOnlyList<CardModel> cards, PredictionCardBundleKind kind)
+internal class PredictionCardBundleHoverTip(
+    IReadOnlyList<CardModel> cards,
+    PredictionCardBundleKind kind,
+    bool isDimmed)
     : CardHoverTip(cards[0]), IHoverTip
 {
     /// <summary>
@@ -41,6 +44,11 @@ internal class PredictionCardBundleHoverTip(IReadOnlyList<CardModel> cards, Pred
     /// Presentation semantics applied when the bundle remains a stack.
     /// </summary>
     public PredictionCardBundleKind Kind { get; } = kind;
+
+    /// <summary>
+    /// Whether the entire card bundle should be visually de-emphasized.
+    /// </summary>
+    public bool IsDimmed { get; } = isDimmed;
 
     string IHoverTip.Id => string.Empty;
 
