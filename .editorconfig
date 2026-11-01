@@ -1,4 +1,16 @@
 [*.cs]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+tab_width = 4
+csharp_prefer_braces = true:warning
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_preserve_single_line_statements = false
 resharper_csharp_naming_rule.parameters = aaBb, __+aaBb, ___+aaBb, ____+aaBb
 
 [RandomForeseerCode/**/Patches/**/*.cs]
