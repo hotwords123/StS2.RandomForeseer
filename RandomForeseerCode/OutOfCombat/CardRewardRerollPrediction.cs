@@ -19,11 +19,11 @@ internal static class CardRewardRerollPrediction
             return [];
         }
 
-        var player = reward.Player;
+        var context = new RunPredictionContext(reward.Player);
         var cards = CardRewardPrediction.PredictCards(
-            player,
+            context,
             reward.OptionCount,
-            CardRewardPrediction.CloneOptions(reward.RerollOptions),
+            CardRewardPrediction.CloneOptions(reward.RerollOptions, context.GetOrCloneRng),
             AfterGeneratedField(reward));
 
         return [.. cards.ToPredictionHoverTips()];

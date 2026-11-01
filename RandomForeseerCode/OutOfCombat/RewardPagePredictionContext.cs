@@ -4,20 +4,46 @@ using MegaCrit.Sts2.Core.Rewards;
 
 namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
-/// <summary>Tracks the reward page that owns each relic used by pickup prediction.</summary>
+/// <summary>Tracks the reward page that owns each relic or card reward used by prediction.</summary>
 internal static class RewardPagePredictionContext
 {
     private static readonly ConditionalWeakTable<RelicModel, RewardsSet> RewardsSets = [];
+    private static readonly ConditionalWeakTable<CardReward, RewardsSet> CardRewardSets = [];
 
     public static void Register(RewardsSet rewardsSet)
     {
-        foreach (var reward in FlattenRewards(rewardsSet.Rewards).OfType<RelicReward>())
+        foreach (var reward in FlattenRewards(rewardsSet.Rewards))
         {
-            if (reward.Relic is { } relic)
+            switch (reward)
             {
-                RewardsSets.AddOrUpdate(relic, rewardsSet);
+                case RelicReward { Relic: { } relic }:
+                    RewardsSets.AddOrUpdate(relic, rewardsSet);
+                    break;
+
+                case CardReward cardReward:
+                    CardRewardSets.AddOrUpdate(cardReward, rewardsSet);
+                    break;
             }
         }
+    }
+
+    /// <summary>
+    /// Returns a current snapshot of the unclaimed, rerollable card rewards on the registered page,
+    /// including <paramref name="reward"/> when eligible. Returns an empty list if no page is registered.
+    /// </summary>
+    public static IReadOnlyList<CardReward> GetPendingRerollRewards(CardReward reward)
+    {
+        if (!CardRewardSets.TryGetValue(reward, out var rewardsSet))
+        {
+            return [];
+        }
+
+        return
+        [
+            .. FlattenRewards(rewardsSet.Rewards)
+                .OfType<CardReward>()
+                .Where(other => !other.SuccessfullySelected && other.CanReroll)
+        ];
     }
 
     public static bool HasOtherPendingReward(RelicModel relic)

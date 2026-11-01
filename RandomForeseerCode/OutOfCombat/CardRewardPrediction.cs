@@ -99,7 +99,7 @@ internal static class CardRewardPrediction
 
     // Creates a CardCreationOptions copy for callers that need to adapt an existing
     // vanilla-owned options instance before passing it into a prediction method.
-    public static CardCreationOptions CloneOptions(CardCreationOptions options)
+    public static CardCreationOptions CloneOptions(CardCreationOptions options, Func<Rng, Rng?>? cloneRng = null)
     {
         // StS2 v0.108.0 removed custom card pools from CardCreationOptions. Vanilla now represents
         // all narrowed pools as source card pools plus a CardPoolFilter so later pool modifiers can still apply.
@@ -112,7 +112,7 @@ internal static class CardRewardPrediction
         clone.WithFlags(options.Flags);
         if (options.RngOverride != null)
         {
-            clone.WithRngOverride(options.RngOverride.Clone());
+            clone.WithRngOverride(cloneRng?.Invoke(options.RngOverride) ?? options.RngOverride.Clone());
         }
 
         return clone;

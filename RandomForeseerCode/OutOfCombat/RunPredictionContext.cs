@@ -8,14 +8,14 @@ namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
 
 internal sealed class RunPredictionContext(
     Player player,
-    RunPredictionSharedRngSet sharedRng,
+    RunPredictionRngMap rngMap,
     Dictionary<Player, RunPredictionPlayerContext> playerContexts)
 {
     public Player Player => player;
 
     public IRunState RunState => Player.RunState;
 
-    public RunPredictionSharedRngSet SharedRng => sharedRng;
+    public RunPredictionSharedRngSet SharedRng { get; } = new(player.RunState.Rng, rngMap);
 
     public RunPredictionPlayerRngSet Rng => GetPlayer(player).Rng;
 
@@ -28,14 +28,20 @@ internal sealed class RunPredictionContext(
     public PotionRewardOdds PotionRewardOdds => GetPlayer(player).PotionRewardOdds;
 
     public RunPredictionContext(Player player)
-        : this(player, RunPredictionSharedRngSet.From(player.RunState.Rng), [])
+        : this(player, new RunPredictionRngMap(), [])
     { }
+
+    /// <summary>
+    /// Returns the prediction RNG mapped to the original <paramref name="source"/>, cloning it on first use.
+    /// The mapping is shared by player views and includes the standard player and shared RNG streams.
+    /// </summary>
+    public Rng GetOrCloneRng(Rng source) => rngMap.GetOrClone(source);
 
     public RunPredictionPlayerContext GetPlayer(Player otherPlayer)
     {
         if (!playerContexts.TryGetValue(otherPlayer, out var context))
         {
-            context = new RunPredictionPlayerContext(otherPlayer);
+            context = new RunPredictionPlayerContext(otherPlayer, rngMap);
             playerContexts[otherPlayer] = context;
         }
 
@@ -44,17 +50,18 @@ internal sealed class RunPredictionContext(
 
     public RunPredictionContext Clone()
     {
+        var clonedRngMap = rngMap.Clone();
         return new(
             player,
-            sharedRng.Clone(),
-            playerContexts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Clone()));
+            clonedRngMap,
+            playerContexts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Clone(clonedRngMap)));
     }
 
     public RunPredictionContext ForPlayer(Player otherPlayer)
     {
         return ReferenceEquals(player, otherPlayer)
             ? this
-            : new(otherPlayer, sharedRng, playerContexts);
+            : new(otherPlayer, rngMap, playerContexts);
     }
 }
 
@@ -78,8 +85,8 @@ internal sealed class RunPredictionPlayerContext(
 
     public PotionRewardOdds PotionRewardOdds => potionRewardOdds;
 
-    public RunPredictionPlayerContext(Player player)
-        : this(player, RunPredictionPlayerRngSet.From(player.PlayerRng))
+    public RunPredictionPlayerContext(Player player, RunPredictionRngMap rngMap)
+        : this(player, new RunPredictionPlayerRngSet(player.PlayerRng, rngMap))
     { }
 
     public RunPredictionPlayerContext(Player player, RunPredictionPlayerRngSet rng)
@@ -92,9 +99,9 @@ internal sealed class RunPredictionPlayerContext(
             new(player.PlayerOdds.PotionReward.CurrentValue, rng.Rewards))
     { }
 
-    public RunPredictionPlayerContext Clone()
+    public RunPredictionPlayerContext Clone(RunPredictionRngMap rngMap)
     {
-        var clonedRng = rng.Clone();
+        var clonedRng = new RunPredictionPlayerRngSet(player.PlayerRng, rngMap);
         return new(
             player,
             clonedRng,
@@ -105,48 +112,43 @@ internal sealed class RunPredictionPlayerContext(
     }
 }
 
-internal sealed class RunPredictionSharedRngSet
+/// <summary>Maps original RNG references to their lazily created prediction copies.</summary>
+internal sealed class RunPredictionRngMap
 {
-    public required Rng Niche { get; init; }
+    private readonly Dictionary<Rng, Rng> _copies = new(ReferenceEqualityComparer.Instance);
 
-    public static RunPredictionSharedRngSet From(RunRngSet rng)
+    public Rng GetOrClone(Rng source)
     {
-        return new RunPredictionSharedRngSet
+        if (!_copies.TryGetValue(source, out var prediction))
         {
-            Niche = rng.Niche.Clone(),
-        };
+            prediction = source.Clone();
+            _copies.Add(source, prediction);
+        }
+
+        return prediction;
     }
 
-    public RunPredictionSharedRngSet Clone()
+    /// <summary>Copies the current prediction states while retaining their original RNG keys.</summary>
+    public RunPredictionRngMap Clone()
     {
-        return new RunPredictionSharedRngSet
+        var clone = new RunPredictionRngMap();
+        foreach (var (source, prediction) in _copies)
         {
-            Niche = Niche.Clone(),
-        };
+            clone._copies.Add(source, prediction.Clone());
+        }
+
+        return clone;
     }
 }
 
-internal sealed class RunPredictionPlayerRngSet
+internal sealed class RunPredictionSharedRngSet(RunRngSet source, RunPredictionRngMap rngMap)
 {
-    public required Rng Rewards { get; init; }
+    public Rng Niche => rngMap.GetOrClone(source.Niche);
+}
 
-    public required Rng Shops { get; init; }
+internal sealed class RunPredictionPlayerRngSet(PlayerRngSet source, RunPredictionRngMap rngMap)
+{
+    public Rng Rewards => rngMap.GetOrClone(source.Rewards);
 
-    public static RunPredictionPlayerRngSet From(PlayerRngSet rng)
-    {
-        return new RunPredictionPlayerRngSet
-        {
-            Rewards = rng.Rewards.Clone(),
-            Shops = rng.Shops.Clone()
-        };
-    }
-
-    public RunPredictionPlayerRngSet Clone()
-    {
-        return new RunPredictionPlayerRngSet
-        {
-            Rewards = Rewards.Clone(),
-            Shops = Shops.Clone()
-        };
-    }
+    public Rng Shops => rngMap.GetOrClone(source.Shops);
 }
