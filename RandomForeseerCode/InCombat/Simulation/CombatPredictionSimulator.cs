@@ -61,7 +61,7 @@ internal sealed partial class CombatPredictionSimulator
     }
 
     /// <summary>
-    /// Mirrors the prediction-relevant boundary of <see cref="CombatManager.CheckWinCondition"/>.
+    /// Mirrors the prediction-relevant boundary of <see cref="CombatManager.CheckWinCondition()"/>.
     /// </summary>
     /// <remarks>
     /// This only evaluates the shadow pending-loss/victory state and commits the simulator's
