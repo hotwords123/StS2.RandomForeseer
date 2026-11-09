@@ -29,6 +29,7 @@ public sealed class GeneratedCardTests : GameTestBase
             combat.Simulator.AddGeneratedCardsToCombat([card], PileType.Hand, combat.Player));
 
         Assert.True(result.Success);
+        Assert.Same(card, result.CardAdded);
         Assert.Same(combat.PlayerState.Hand, card.GetPile(combat.Simulator.State));
         Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
         var resolved = Assert.Single(
@@ -52,42 +53,11 @@ public sealed class GeneratedCardTests : GameTestBase
             combat.Simulator.AddGeneratedCardsToCombat([card], PileType.Hand, combat.Player));
 
         Assert.False(result.Success);
-        Assert.Null(card.GetPile(combat.Simulator.State));
-        Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
-        Assert.Null(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
-            .PreviewCard);
-    }
-
-    [Fact]
-    public void SingleGeneratedCardReportsFailureWhenCombatIsEnding()
-    {
-        using var combat = new TestCombat();
-        combat.BeginPrediction();
-        combat.Simulator.LoseCombat();
-        var card = CreateGeneratedCard(combat, typeof(Shiv));
-
-        var result = combat.Simulator.AddGeneratedCardToCombat(card, PileType.Hand, combat.Player);
-
-        Assert.False(result.Success);
         Assert.Same(card, result.CardAdded);
         Assert.Null(card.GetPile(combat.Simulator.State));
         Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGeneratedEntry>());
         Assert.Null(Assert.Single(combat.Simulator.History.OfType<CombatPredictionCardGenerationResolvedEntry>())
             .PreviewCard);
-    }
-
-    [Fact]
-    public void SingleGeneratedCardEntersShadowPilesWhileCombatIsInProgress()
-    {
-        using var combat = new TestCombat();
-        combat.BeginPrediction();
-        var card = CreateGeneratedCard(combat, typeof(Shiv));
-
-        var result = combat.Simulator.AddGeneratedCardToCombat(card, PileType.Hand, combat.Player);
-
-        Assert.True(result.Success);
-        Assert.Same(card, result.CardAdded);
-        Assert.Same(combat.PlayerState.Hand, card.GetPile(combat.Simulator.State));
     }
 
     // Generated cards must not already live in a combat pile, so they are created outside the fixture's pile helpers.

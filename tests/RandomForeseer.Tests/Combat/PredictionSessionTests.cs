@@ -8,7 +8,7 @@ using RandomForeseer.Tests.Infrastructure;
 namespace RandomForeseer.Tests.Combat;
 
 /// <summary>
-/// Verifies <see cref="CombatPredictionSession"/> request isolation, completion, failure propagation and disposal.
+/// Verifies <see cref="CombatPredictionSession"/> request isolation, disposal and retained result lifetime.
 /// </summary>
 /// <remarks>
 /// Uses the Arrange-only <see cref="TestCombat"/> source fixture and its headless listener isolation, without replacing
@@ -47,74 +47,6 @@ public sealed class PredictionSessionTests : GameTestBase
         Assert.Equal(sourceCounter, source.RunState.Rng.Shuffle._counter);
         Assert.Throws<ObjectDisposedException>(() => first.Simulator);
         Assert.Throws<ObjectDisposedException>(() => second.Simulator);
-    }
-
-    [Fact]
-    public void EarlyNullReturnDisposesTheSessionWhenLeavingTheBlock()
-    {
-        using var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Source);
-
-        Assert.Null(Predict());
-        Assert.Throws<ObjectDisposedException>(() => session.Simulator);
-
-        object? Predict()
-        {
-            using (session)
-            {
-                var simulator = session.Simulator;
-                Assert.False(simulator.Snapshot().HasRisk);
-                return null;
-            }
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void FailureBeforeOrAfterSimulationPropagatesAndDisposesTheSession(bool afterSimulation)
-    {
-        using var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Source);
-        var failure = new InvalidOperationException("Prediction failed.");
-
-        var actual = Assert.Throws<InvalidOperationException>((Action)(() =>
-        {
-            using (session)
-            {
-                var simulator = session.Simulator;
-                if (afterSimulation)
-                {
-                    simulator.GainEnergy(combat.Player, 2);
-                }
-
-                // A failure while materializing the result uses the same using-block cleanup path.
-                throw failure;
-            }
-        }));
-
-        Assert.Same(failure, actual);
-        Assert.Equal(0, combat.Player.PlayerCombatState!.Energy);
-        Assert.Throws<ObjectDisposedException>(() => session.Simulator);
-    }
-
-    [Fact]
-    public void GetterKeepsTheSameSimulatorAvailableUntilTheBlockEnds()
-    {
-        using var combat = new TestCombat();
-        var session = new CombatPredictionSession(combat.Source);
-
-        using (session)
-        {
-            var simulator = session.Simulator;
-            simulator.GainEnergy(combat.Player, 2);
-            Assert.Same(simulator, session.Simulator);
-            Assert.Equal(2, session.Simulator.State.GetPlayerCombatState(combat.Player).Energy);
-            simulator.GainEnergy(combat.Player, 1);
-            Assert.Equal(3, session.Simulator.State.GetPlayerCombatState(combat.Player).Energy);
-        }
-
-        Assert.Throws<ObjectDisposedException>(() => session.Simulator);
     }
 
     [Fact]

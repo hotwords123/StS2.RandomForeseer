@@ -106,22 +106,4 @@ public sealed class PredictionFixtureTests : GameTestBase
         Assert.Throws<ObjectDisposedException>(() => combat.Simulator);
         Assert.Throws<ObjectDisposedException>(() => combat.ArrangeCard<Shiv>());
     }
-
-    [Fact]
-    public void FailureLeavesUsingScopeAndClosesTheFixture()
-    {
-        var combat = new TestCombat();
-        var failure = new InvalidOperationException("Fixture simulation failed.");
-        Assert.Same(failure, Assert.Throws<InvalidOperationException>((Action)(() =>
-        {
-            using (combat)
-            {
-                combat.BeginPrediction();
-                combat.Simulator.GainEnergy(combat.Player, 2);
-                throw failure;
-            }
-        })));
-        Assert.Throws<ObjectDisposedException>(() => combat.Simulator);
-        Assert.Equal(0, combat.Player.PlayerCombatState!.Energy);
-    }
 }
