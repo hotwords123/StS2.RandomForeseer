@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
@@ -17,7 +16,7 @@ internal static class AfflictionOnPlayMirrors
     private static readonly MirrorMethodSpec OnPlay = new(
         typeof(AfflictionModel),
         nameof(AfflictionModel.OnPlay),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(PlayerChoiceContext), typeof(Creature)]);
 
     private static readonly Registry Registry = new(OnPlay);

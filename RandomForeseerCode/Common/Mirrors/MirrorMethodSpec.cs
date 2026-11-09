@@ -36,11 +36,7 @@ internal class MirrorMethodSpec
 
     public static MirrorMethodSpec Hook(string name, Type[] parameterTypes)
     {
-        return new MirrorMethodSpec(
-            typeof(AbstractModel),
-            name,
-            BindingFlags.Instance | BindingFlags.Public,
-            parameterTypes);
+        return new MirrorMethodSpec(typeof(AbstractModel), name, ReflectionFlags.PublicInstance, parameterTypes);
     }
 
     public bool TryGetOverride(Type receiverType, [NotNullWhen(true)] out MethodInfo? overrideMethod)

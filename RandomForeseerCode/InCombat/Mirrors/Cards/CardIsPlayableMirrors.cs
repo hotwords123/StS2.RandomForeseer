@@ -27,7 +27,7 @@ internal static class CardIsPlayableMirrors
     private static readonly MirrorMethodSpec IsPlayable = new(
         typeof(CardModel),
         IsPlayableGetterMethod.Name,
-        BindingFlags.Instance | BindingFlags.NonPublic,
+        ReflectionFlags.NonPublicInstance,
         []);
 
     private static readonly Registry Registry = CreateRegistry();

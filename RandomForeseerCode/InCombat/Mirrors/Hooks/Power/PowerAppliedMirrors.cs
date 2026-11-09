@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.Common;
@@ -17,13 +16,13 @@ internal static class PowerAppliedMirrors
     private static readonly MirrorMethodSpec BeforeApplied = new(
         typeof(PowerModel),
         nameof(PowerModel.BeforeApplied),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(Creature), typeof(decimal), typeof(Creature), typeof(CardModel)]);
 
     private static readonly MirrorMethodSpec AfterApplied = new(
         typeof(PowerModel),
         nameof(PowerModel.AfterApplied),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(Creature), typeof(CardModel)]);
 
     private static readonly Registry BeforeRegistry = new(BeforeApplied);

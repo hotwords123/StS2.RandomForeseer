@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -17,7 +16,7 @@ internal static class CardOnTurnEndInHandMirrors
     private static readonly MirrorMethodSpec OnTurnEndInHand = new(
         typeof(CardModel),
         "OnTurnEndInHand",
-        BindingFlags.Instance | BindingFlags.NonPublic,
+        ReflectionFlags.NonPublicInstance,
         [typeof(PlayerChoiceContext)]);
 
     private static readonly Registry Registry = CreateRegistry();

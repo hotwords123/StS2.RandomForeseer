@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -17,7 +16,7 @@ internal static class CardResultLocationMirrors
     private static readonly MirrorMethodSpec GetResultLocationForCardPlay = new(
         typeof(CardModel),
         "GetResultLocationForCardPlay",
-        BindingFlags.Instance | BindingFlags.NonPublic,
+        ReflectionFlags.NonPublicInstance,
         []);
 
     private static readonly Registry Registry = CreateRegistry();

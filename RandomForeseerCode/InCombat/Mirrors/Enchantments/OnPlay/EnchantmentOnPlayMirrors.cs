@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -19,7 +18,7 @@ internal static class EnchantmentOnPlayMirrors
     private static readonly MirrorMethodSpec OnPlay = new(
         typeof(EnchantmentModel),
         nameof(EnchantmentModel.OnPlay),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(PlayerChoiceContext), typeof(CardPlay)]);
 
     private static readonly Registry Registry = CreateRegistry();

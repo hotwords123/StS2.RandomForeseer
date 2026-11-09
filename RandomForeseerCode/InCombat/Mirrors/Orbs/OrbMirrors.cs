@@ -1,10 +1,10 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using RandomForeseer.Common.Mirrors;
 using RandomForeseer.InCombat.Simulation;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat.Mirrors.Orbs;
 
@@ -18,19 +18,19 @@ internal static class OrbMirrors
     private static readonly MirrorMethodSpec Passive = new(
         typeof(OrbModel),
         nameof(OrbModel.Passive),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(PlayerChoiceContext), typeof(Creature)]);
 
     private static readonly MirrorMethodSpec Evoke = new(
         typeof(OrbModel),
         nameof(OrbModel.Evoke),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(PlayerChoiceContext)]);
 
     private static readonly MirrorMethodSpec BeforeTurnEndOrbTrigger = new(
         typeof(OrbModel),
         nameof(OrbModel.BeforeTurnEndOrbTrigger),
-        BindingFlags.Instance | BindingFlags.Public,
+        ReflectionFlags.PublicInstance,
         [typeof(PlayerChoiceContext)]);
 
     private static readonly OrbPassiveRegistry PassiveRegistry = CreatePassiveRegistry();

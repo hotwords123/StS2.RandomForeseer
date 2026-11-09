@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
@@ -17,7 +16,7 @@ internal static class PotionOnUseMirrors
     private static readonly MirrorMethodSpec OnUse = new(
         typeof(PotionModel),
         "OnUse",
-        BindingFlags.Instance | BindingFlags.NonPublic,
+        ReflectionFlags.NonPublicInstance,
         [typeof(PlayerChoiceContext), typeof(Creature)]);
 
     private static readonly Registry Registry = CreateRegistry();

@@ -1,4 +1,3 @@
-using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
@@ -17,7 +16,7 @@ internal static class CardOnPlayMirrors
     private static readonly MirrorMethodSpec OnPlay = new(
         typeof(CardModel),
         "OnPlay",
-        BindingFlags.Instance | BindingFlags.NonPublic,
+        ReflectionFlags.NonPublicInstance,
         [typeof(PlayerChoiceContext), typeof(CardPlay)]);
 
     private static readonly Registry Registry = CreateRegistry();
