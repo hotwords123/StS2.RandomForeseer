@@ -1,6 +1,6 @@
 # 运行时对象图复制
 
-对象图复制为预测保留当前数据及其引用关系，供模型快照使用。代码位于 [RandomForeseerCode/ObjectGraph](../../RandomForeseerCode/ObjectGraph/)，具体 API 和执行细节由源码及其注释维护。
+对象图复制为预测保留当前数据及其引用关系，供战斗捕获和模型快照共用。代码位于 [RandomForeseerCode/ObjectGraph](../../RandomForeseerCode/ObjectGraph/)，具体 API 和执行细节由源码及其注释维护。
 
 ## 当前接入状态
 
@@ -21,3 +21,15 @@
 快照适合记录已解析的模型状态，其派生 getter 仍可依赖外部状态。Godot/native、异步及运行时资源受拒绝规则约束；哈希容器只支持有限 comparer 与复制期间 hash 稳定的 key。
 
 测试架构与运行方式见[本地回归测试](../testing.md)。
+
+## 战斗数据图
+
+`CombatGraphPolicy.Instance` 在通用规则上加入模型语义，并允许其它普通托管数据按字段复制，资源等不透明边界继续拒绝。捕获本身不授权执行原版玩法方法。
+
+战斗捕获共用 `CombatGraphPolicy.Instance`，跨次复用类型计划和生成的复制代码；每次捕获仍使用独立的 scope 和 copier。共享 policy 仅供同步、单线程使用。
+
+战斗捕获沿实例引用覆盖玩家、牌堆、模型内部状态、RNG 及可达 RunState。牌组原件与战斗卡分别保留其登记关系，Owner、房间、共享模型和 RNG stream 的关联保持一致。
+
+RunState 中的章节、地图、运行历史、随机池和扩展数据按实际可达实例处理，不共享真实 RunState 作为兜底。捕获不通过 getter 生成目录、重建地图或执行房间流程。静态服务、UI、存档和网络不随实例图隔离。
+
+战斗数据测试位于 `ObjectGraph/Combat/`。需要真实 Player 构造的无界面 fixture 可选择隔离 profile 和全局目录服务；这些 patch 随用例清理。

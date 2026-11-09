@@ -3,10 +3,13 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Saves;
 using RandomForeseer.Common;
 using RandomForeseer.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Hooks;
 using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.Tests.Infrastructure;
@@ -31,17 +34,31 @@ public abstract class GameTestBase : IDisposable
     internal Action<CombatPredictionSimulator>? AfterAttack { get; set; }
     internal int BlockBreaks { get; private set; }
     internal int Drawn { get; private set; }
+    internal int SaveManagerReads { get; private set; }
 
-    protected GameTestBase(bool observePowerCommands = false)
+    protected GameTestBase(bool observePowerCommands = false, bool isolateGraphSourceServices = false)
     {
         if (_active is not null) throw new InvalidOperationException("Game tests must not run concurrently.");
         _active = this;
         try
         {
             SuppressLogger();
+            // Full Player construction reads profile progress. Graph fixtures use real constructors but must
+            // not initialize platform/Godot/save services; keep this optional patch in the cleanup boundary.
+            if (isolateGraphSourceServices)
+            {
+                _harmony.Patch(AccessTools.PropertyGetter(typeof(SaveManager), nameof(SaveManager.Instance)),
+                    prefix: new HarmonyMethod(typeof(GameTestBase), nameof(SkipSaveManager)));
+                // ModelDb's complete catalogs require the mod loader and all game content. These fixtures have
+                // an explicit basic content registry; do not initialize/cache partial global catalog providers.
+                _harmony.Patch(AccessTools.PropertyGetter(typeof(ModelDb), nameof(ModelDb.AllEncounters)),
+                    prefix: new HarmonyMethod(typeof(GameTestBase), nameof(EmptyEncounterCatalog)));
+                _harmony.Patch(AccessTools.PropertyGetter(typeof(ModelDb), nameof(ModelDb.BadgeModels)),
+                    prefix: new HarmonyMethod(typeof(GameTestBase), nameof(EmptyBadgeCatalog)));
+            }
             if (!_assemblyInitialized)
             {
-                MegaCrit.Sts2.Core.Modding.AssemblyInfo.Init();
+                AssemblyInfo.Init();
                 _assemblyInitialized = true;
             }
             // Relic static initialization constructs StringName values, which needs a Godot native runtime.
@@ -90,6 +107,14 @@ public abstract class GameTestBase : IDisposable
         _harmony.Patch(AccessTools.Method(type, method), prefix: new HarmonyMethod(typeof(GameTestBase), prefix));
 
     private static bool SkipStringName() => false;
+    private static bool SkipSaveManager(ref SaveManager? __result)
+    {
+        _active!.SaveManagerReads++;
+        __result = null;
+        return false;
+    }
+    private static bool EmptyEncounterCatalog(ref IEnumerable<EncounterModel> __result) { __result = []; return false; }
+    private static bool EmptyBadgeCatalog(ref IReadOnlyList<BadgeModel> __result) { __result = []; return false; }
     private static bool SkipGodotLoggerProbe(ref bool __result) { __result = false; return false; }
     private static bool SkipLogOutput(ref bool __result) { __result = false; return false; }
     private static bool Allow(ref bool __result) { __result = true; return false; }
@@ -106,9 +131,7 @@ public abstract class GameTestBase : IDisposable
     private static void BeforePower(PowerModel __1, Creature __3) =>
         _active!.Calls.Add($"{__1.GetType().Name}:{__3.CombatId}");
     private static void AfterPower(CombatPredictionSimulator __0, PowerModel __1, Creature __3) =>
-        _active!.PowerChanges.Add((__1.GetType().Name, __3,
-            global::RandomForeseer.InCombat.Mirrors.Hooks.PredictionStateStorePowerAmountExtensions
-                .GetPowerAmount(__0.StateStore, __1).Amount));
+        _active!.PowerChanges.Add((__1.GetType().Name, __3, __0.StateStore.GetPowerAmount(__1).Amount));
     private static void BlockBroken()
     {
         _active!.BlockBreaks++;

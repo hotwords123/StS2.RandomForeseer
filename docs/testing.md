@@ -23,6 +23,7 @@ dotnet test
 ```powershell
 dotnet test --filter 'FullyQualifiedName~MummifiedHandTests'
 dotnet test --filter 'FullyQualifiedName~RandomForeseer.Tests.ObjectGraph'
+dotnet test --filter 'FullyQualifiedName~RandomForeseer.Tests.ObjectGraph.Combat'
 dotnet test --configuration Release
 dotnet test --logger 'console;verbosity=normal'
 ```
@@ -89,7 +90,7 @@ PCK 先生成到当前构建配置的中间目录，再随程序集和 manifest 
 
 | 范围 | 职责 |
 | --- | --- |
-| `ObjectGraph/` | 通用复制策略、模型快照的身份关系和来源隔离 |
+| `ObjectGraph/` | 通用复制策略、模型快照与游戏数据图的身份关系和来源隔离；战斗数据场景位于其 `Combat/` 子目录 |
 | `Combat/` | InCombat simulator、hook 和正式预测入口的行为 |
 
 对象图测试将数据关系检查与来源隔离检查结合，分别核对 policy 声明的复制边界，以及捕获和修改副本对来源的影响。
