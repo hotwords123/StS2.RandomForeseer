@@ -22,6 +22,7 @@ dotnet test
 
 ```powershell
 dotnet test --filter 'FullyQualifiedName~MummifiedHandTests'
+dotnet test --filter 'FullyQualifiedName~RandomForeseer.Tests.ObjectGraph'
 dotnet test --configuration Release
 dotnet test --logger 'console;verbosity=normal'
 ```
@@ -84,16 +85,23 @@ PCK 先生成到当前构建配置的中间目录，再随程序集和 manifest 
 
 ## 测试架构与隔离边界
 
-游戏测试基础设施位于 `Infrastructure/`：`GameTestBase` 管理每个用例的全局状态与 patch 生命周期，
-`TestCombat` 分离源场景装配和预测执行会话，`CombatStateProxy` 提供无界面战斗环境。
-具体 API 的调用方式、生命周期约束和扩展要求维护在对应类型及成员的 XML doc 中。
+测试按模块职责组织在 `tests/RandomForeseer.Tests/` 下：
+
+| 范围 | 职责 |
+| --- | --- |
+| `ObjectGraph/` | 通用复制策略、模型快照的身份关系和来源隔离 |
+| `Combat/` | InCombat simulator、hook 和正式预测入口的行为 |
+
+对象图测试将数据关系检查与来源隔离检查结合，分别核对 policy 声明的复制边界，以及捕获和修改副本对来源的影响。
+架构与功能边界见[运行时对象图复制](runtime-object-graph/README.md)。具体场景、断言和辅助 API 由测试源码维护。
+
+共享基础设施分离源场景装配与预测执行，管理无界面环境、全局状态和 patch 生命周期。
 
 游戏测试依赖进程全局的模型库、战斗历史和 Harmony，因此统一在 `GameTestCollection` 内串行运行，
 且不与其他集合并行；纯逻辑测试保留 xUnit 默认并行行为。各用例独立清理状态和 patch，避免跨测试污染。
 
-默认隔离涉及 Godot 原生构造、兼容性配置过滤和 run listener 来源；数值 mirror、预测状态和 hook facade
-仍使用实际实现。部分用例额外观察或替换命令，其覆盖范围和特殊隔离边界由对应测试类的 XML doc 说明。
-无界面回归不能替代游戏内生命周期验证，也不代表完整对象图隔离或原版行为一致性。
+环境隔离集中处理 Godot、配置和全局服务依赖，业务逻辑使用实际实现。
+具体用例替换的命令与特殊隔离边界由对应测试类的 XML doc 说明。
 
 ## 已知限制与待修复测试
 

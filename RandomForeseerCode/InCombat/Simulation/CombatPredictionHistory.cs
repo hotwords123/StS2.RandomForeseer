@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.Common;
+using RandomForeseer.ObjectGraph;
 
 namespace RandomForeseer.InCombat.Simulation;
 
@@ -90,7 +91,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         Complete(originalEntry, new CombatPredictionCardDrawResolvedEntry
         {
             OriginalEntry = originalEntry,
-            PreviewCard = PredictionCloner.CloneModel(card.Preview)
+            PreviewCard = ModelSnapshotCopier.Copy(card.Preview)
         });
     }
 
@@ -145,7 +146,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         Complete(originalEntry, new CombatPredictionCardGenerationResolvedEntry
         {
             OriginalEntry = originalEntry,
-            PreviewCard = card is null ? null : PredictionCloner.CloneModel(card.Preview)
+            PreviewCard = card is null ? null : ModelSnapshotCopier.Copy(card.Preview)
         });
     }
 
@@ -161,7 +162,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
 
     public void PotionGenerated(PotionModel potion)
     {
-        Record(new CombatPredictionPotionGeneratedEntry { PreviewPotion = PredictionCloner.CloneModel(potion) });
+        Record(new CombatPredictionPotionGeneratedEntry { PreviewPotion = ModelSnapshotCopier.Copy(potion) });
     }
 
     public void CreatureAttacked(
@@ -237,7 +238,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
 
     private static IReadOnlyList<CardModel> CreatePreviewCards(IEnumerable<PredictedCard> cards)
     {
-        return [.. cards.Select(static card => PredictionCloner.CloneModel(card.Preview))];
+        return [.. cards.Select(static card => ModelSnapshotCopier.Copy(card.Preview))];
     }
 
     private void Complete(CombatPredictionHistoryEntry originalEntry, CombatPredictionHistoryEntry resolvedEntry)
