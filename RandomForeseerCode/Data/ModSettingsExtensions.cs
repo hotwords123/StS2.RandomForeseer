@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Runs;
 using STS2RitsuLib.Settings;
 
-namespace RandomForeseer.RandomForeseerCode.Data;
+namespace RandomForeseer.Data;
 
 internal static class ModSettingsExtensions
 {

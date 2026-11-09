@@ -6,10 +6,10 @@ using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Odds;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors.Hooks.CardCreation;
+namespace RandomForeseer.OutOfCombat.Mirrors.Hooks.CardCreation;
 
 using Registry = MethodMirrorRegistry<AbstractModel, TryModifyCardRewardOptionsMirrorContext, bool>;
 

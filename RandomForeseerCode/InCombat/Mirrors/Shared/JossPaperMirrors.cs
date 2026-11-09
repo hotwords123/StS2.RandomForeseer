@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
+using RandomForeseer.InCombat.Mirrors.Hooks.Card;
+using RandomForeseer.InCombat.Mirrors.Hooks.TurnEnd;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Shared;
+namespace RandomForeseer.InCombat.Mirrors.Shared;
 
 internal static class JossPaperMirrors
 {

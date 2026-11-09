@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.TurnEnd;
 
 internal sealed class SideTurnEndMirrorContext : CombatMirrorContext
 {

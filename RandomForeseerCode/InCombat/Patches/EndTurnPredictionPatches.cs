@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
+namespace RandomForeseer.InCombat.Patches;
 
 [HarmonyPatch(typeof(NCombatRoom))]
 internal static class EndTurnPredictionCombatRoomPatches

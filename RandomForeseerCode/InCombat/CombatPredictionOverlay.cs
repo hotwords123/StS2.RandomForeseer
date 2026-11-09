@@ -5,10 +5,10 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Orbs;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Nodes;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Nodes;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 internal static class CombatPredictionOverlay
 {

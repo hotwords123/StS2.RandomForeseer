@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
 using MegaCrit.Sts2.Core.Runs;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class TreasureRoomRelicHoverTips
 {

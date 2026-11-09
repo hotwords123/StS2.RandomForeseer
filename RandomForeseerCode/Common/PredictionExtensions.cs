@@ -5,7 +5,7 @@ using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 internal static class PredictionExtensions
 {

@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Displays one predicted card without exposing its canonical model to vanilla discovery tracking.

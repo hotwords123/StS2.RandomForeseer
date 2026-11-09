@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Runs;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class RelicChoiceSelectionHoverTips
 {

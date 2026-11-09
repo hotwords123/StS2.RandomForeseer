@@ -7,10 +7,10 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class GeneralCardMirrors
 {

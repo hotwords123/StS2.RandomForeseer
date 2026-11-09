@@ -1,11 +1,11 @@
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.Settings;
+using RandomForeseer.Data;
+using RandomForeseer.Settings;
 using STS2RitsuLib.Settings;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
+namespace RandomForeseer.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(NCrystalSphereMask), nameof(NCrystalSphereMask._Ready))]
 internal static class CrystalSphereClairvoyancePatch

@@ -2,9 +2,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors.Hooks;
+using RandomForeseer.InCombat.Simulation;
 using RandomForeseer.Tests.Infrastructure;
 
 namespace RandomForeseer.Tests.Combat;

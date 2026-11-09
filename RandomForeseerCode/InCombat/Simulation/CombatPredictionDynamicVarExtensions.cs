@@ -1,11 +1,11 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Common;
+using RandomForeseer.Telemetry;
 using STS2RitsuLib.Cards.DynamicVars;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal static class CombatPredictionDynamicVarExtensions
 {

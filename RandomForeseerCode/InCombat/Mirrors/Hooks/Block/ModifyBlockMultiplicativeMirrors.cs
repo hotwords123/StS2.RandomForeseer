@@ -4,11 +4,11 @@ using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Block;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Block;
 
 using Registry = MethodMirrorRegistry<AbstractModel, ModifyBlockMultiplicativeMirrorContext, decimal>;
 

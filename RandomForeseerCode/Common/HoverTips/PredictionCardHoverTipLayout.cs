@@ -5,7 +5,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Stores the UI metadata needed to recognize prediction card controls and position their fallback layout.

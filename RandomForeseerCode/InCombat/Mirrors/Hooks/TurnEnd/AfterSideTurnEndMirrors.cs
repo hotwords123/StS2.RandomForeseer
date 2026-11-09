@@ -5,11 +5,11 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Shared;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Hooks.Card;
+using RandomForeseer.InCombat.Mirrors.Shared;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.TurnEnd;
 
 using Registry = MethodMirrorRegistry<AbstractModel, SideTurnEndMirrorContext>;
 

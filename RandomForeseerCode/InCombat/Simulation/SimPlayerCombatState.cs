@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed class SimPlayerCombatState(PlayerCombatState liveState)
 {

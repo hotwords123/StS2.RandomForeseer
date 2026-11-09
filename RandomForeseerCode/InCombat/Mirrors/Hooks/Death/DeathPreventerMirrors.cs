@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Models.Relics;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Death;
 
 internal static class FairyInABottleMirrors
 {

@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks;
+namespace RandomForeseer.InCombat.Mirrors.Hooks;
 
 // Shadow amount shared by hook mirrors that consume an existing live power without mutating it.
 internal sealed class PowerAmountPredictionState(int amount)

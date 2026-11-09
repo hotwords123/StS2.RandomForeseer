@@ -12,7 +12,7 @@ using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 
-namespace RandomForeseer.RandomForeseerCode.Debug;
+namespace RandomForeseer.Debug;
 
 internal static class RelicPickupDebugRewards
 {

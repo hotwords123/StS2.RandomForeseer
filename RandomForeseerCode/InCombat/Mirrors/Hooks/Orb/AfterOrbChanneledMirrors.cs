@@ -2,9 +2,9 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Orb;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterOrbChanneledMirrorContext>;
 

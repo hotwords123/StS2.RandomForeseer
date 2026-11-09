@@ -2,9 +2,9 @@ using MegaCrit.Sts2.Core.Entities.CardRewardAlternatives;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Rewards;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class PaelsWingSacrificePrediction
 {

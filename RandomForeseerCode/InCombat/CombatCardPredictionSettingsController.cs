@@ -1,9 +1,9 @@
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
-using RandomForeseer.RandomForeseerCode.Settings;
+using RandomForeseer.Data;
+using RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
+using RandomForeseer.Settings;
 using STS2RitsuLib.Settings;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>
 /// Synchronizes live combat-card prediction policies that are owned by the settings page.

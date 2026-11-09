@@ -1,9 +1,9 @@
 using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Modding;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Integrations;
+namespace RandomForeseer.Integrations;
 
 internal sealed class IntegrationCategoryPatcher(Harmony harmony, Assembly assembly)
 {

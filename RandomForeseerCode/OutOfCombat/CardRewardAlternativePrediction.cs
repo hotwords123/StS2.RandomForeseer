@@ -5,9 +5,9 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Rewards;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
+using RandomForeseer.Common.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 /// <summary>Owns prediction context and HoverTip presentation for card-reward alternative buttons.</summary>
 internal static class CardRewardAlternativeButtonHoverTips

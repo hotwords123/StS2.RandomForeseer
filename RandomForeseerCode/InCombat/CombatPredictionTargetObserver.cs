@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>Maps targetable UI nodes to the combat creatures they represent.</summary>
 internal static class CombatPredictionTargetResolver

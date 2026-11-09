@@ -4,10 +4,10 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Nodes;
+using RandomForeseer.Data;
+using RandomForeseer.OutOfCombat.Nodes;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class NextActPrediction
 {

@@ -1,4 +1,4 @@
-namespace RandomForeseer.RandomForeseerCode.Common.Mirrors;
+namespace RandomForeseer.Common.Mirrors;
 
 internal interface IMethodMirrorContext<in TBase>
     where TBase : class

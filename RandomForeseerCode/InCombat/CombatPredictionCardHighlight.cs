@@ -2,9 +2,9 @@ using Godot;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>Applies the card highlights requested by the active combat-action projection.</summary>
 internal static class CombatPredictionCardHighlight

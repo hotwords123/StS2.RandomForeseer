@@ -8,10 +8,10 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Odds;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.OutOfCombat.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class CardRewardPrediction
 {

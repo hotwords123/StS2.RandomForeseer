@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using MegaCrit.Sts2.Core.Modding;
 
-namespace RandomForeseer.RandomForeseerCode.Common.Mirrors;
+namespace RandomForeseer.Common.Mirrors;
 
 /// <summary>
 /// Describes the exact-runtime-type policy selected for one mirrored virtual method.

@@ -4,11 +4,11 @@ using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Data;
+using RandomForeseer.OutOfCombat.Events;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal sealed class EventPredictionRegistry
 {

@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors.Hooks.CardCreation;
+namespace RandomForeseer.OutOfCombat.Mirrors.Hooks.CardCreation;
 
 internal static class CardCreationResultUtils
 {

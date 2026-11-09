@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Random;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 internal static class PredictionUtils
 {

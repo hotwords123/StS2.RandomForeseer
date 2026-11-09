@@ -4,9 +4,9 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Random;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
+namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class DollRoomPrediction
 {

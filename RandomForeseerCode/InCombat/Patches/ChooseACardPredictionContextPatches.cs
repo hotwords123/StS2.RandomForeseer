@@ -2,9 +2,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
+namespace RandomForeseer.InCombat.Patches;
 
 [HarmonyPatch(typeof(CardSelectCmd), nameof(CardSelectCmd.FromChooseACardScreen))]
 internal static class ChooseACardPredictionContextPatch

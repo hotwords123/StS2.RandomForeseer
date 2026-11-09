@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>Describes which interaction owns a combat prediction session's presentation.</summary>
 internal enum CombatPredictionInteractionMode

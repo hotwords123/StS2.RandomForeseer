@@ -1,11 +1,11 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Orbs;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {

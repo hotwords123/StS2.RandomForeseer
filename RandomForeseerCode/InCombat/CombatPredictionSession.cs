@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Combat;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>Owns the legacy simulator for one synchronous prediction and its result projection.</summary>
 /// <remarks>

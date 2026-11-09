@@ -10,12 +10,12 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 using Models = MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterCardDrawnMirrorContext>;
 

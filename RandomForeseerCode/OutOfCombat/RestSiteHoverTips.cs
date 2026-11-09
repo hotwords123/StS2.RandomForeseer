@@ -1,9 +1,9 @@
 using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 /// <summary>Provides prediction HoverTips for rest-site option controls.</summary>
 internal static class RestSiteHoverTips

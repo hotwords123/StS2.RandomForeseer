@@ -3,9 +3,9 @@ using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Random;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Extensions;
+namespace RandomForeseer.InCombat.Extensions;
 
 internal static class CombatCardGenerationExtensions
 {

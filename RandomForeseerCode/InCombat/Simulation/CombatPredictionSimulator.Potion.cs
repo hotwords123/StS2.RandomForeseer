@@ -2,10 +2,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors.Potions.OnUse;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {

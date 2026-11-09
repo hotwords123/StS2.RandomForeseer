@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Debug;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Debug;
+namespace RandomForeseer.Debug;
 
 internal static class TelemetryDebugActions
 {

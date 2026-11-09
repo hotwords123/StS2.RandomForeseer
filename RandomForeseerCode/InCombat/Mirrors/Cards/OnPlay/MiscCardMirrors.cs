@@ -2,9 +2,9 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Events;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 // Card-specific entry points that do not currently share a dedicated effect group.
 internal static class MiscCardMirrors

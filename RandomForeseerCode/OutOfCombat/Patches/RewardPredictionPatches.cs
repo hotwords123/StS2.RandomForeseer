@@ -2,9 +2,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Rewards;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
+namespace RandomForeseer.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(Reward), nameof(Reward.HoverTips), MethodType.Getter)]
 internal static class RewardPredictionPatch

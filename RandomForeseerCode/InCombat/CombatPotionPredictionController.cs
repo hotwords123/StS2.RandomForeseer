@@ -6,9 +6,9 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Potions;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>Owns combat potion hover, use, targeting, and presentation sessions.</summary>
 internal static class CombatPotionPredictionController

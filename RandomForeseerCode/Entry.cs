@@ -2,18 +2,18 @@ using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Modding;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.InCombat;
-using RandomForeseer.RandomForeseerCode.Integrations;
-using RandomForeseer.RandomForeseerCode.Integrations.LemonSpire;
-using RandomForeseer.RandomForeseerCode.Localization;
-using RandomForeseer.RandomForeseerCode.Settings;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Data;
+using RandomForeseer.InCombat;
+using RandomForeseer.Integrations;
+using RandomForeseer.Integrations.LemonSpire;
+using RandomForeseer.Localization;
+using RandomForeseer.Settings;
+using RandomForeseer.Telemetry;
 using STS2RitsuLib;
 using STS2RitsuLib.Interop;
 using Logger = MegaCrit.Sts2.Core.Logging.Logger;
 
-namespace RandomForeseer.RandomForeseerCode;
+namespace RandomForeseer;
 
 [ModInitializer(nameof(Initialize))]
 public partial class Entry

@@ -1,4 +1,4 @@
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.Tests.Common;
 

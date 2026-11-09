@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 using STS2RitsuLib.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Telemetry;
+namespace RandomForeseer.Telemetry;
 
 internal sealed class SettingsTelemetryContribution : ITelemetryContributionProvider
 {

@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Enchantments.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Enchantments.OnPlay;
 
 internal sealed class EnchantmentOnPlayMirrorContext : CombatCardMirrorContext<EnchantmentModel>
 {

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.Common.Mirrors;
+namespace RandomForeseer.Common.Mirrors;
 
 // Identifies the original virtual method whose model-specific overrides are mirrored.
 // Keeping the base MethodInfo lets the registry support methods declared below AbstractModel,

@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.Entities.CardRewardAlternatives;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Rewards;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
+namespace RandomForeseer.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(CardRewardAlternative), nameof(CardRewardAlternative.Generate))]
 internal static class CardRewardAlternativeSourcePatch

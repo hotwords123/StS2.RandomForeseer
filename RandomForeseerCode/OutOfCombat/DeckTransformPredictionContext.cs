@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Utils;
+using RandomForeseer.Utils;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 /// <summary>
 /// Carries a deck-transform origin through the asynchronous game flow that opens its selector.

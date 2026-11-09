@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models.Orbs;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+namespace RandomForeseer.InCombat.Mirrors.Orbs;
 
 internal static class PlasmaOrbMirrors
 {

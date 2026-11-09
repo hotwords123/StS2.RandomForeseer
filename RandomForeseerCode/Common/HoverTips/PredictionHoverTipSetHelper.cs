@@ -3,7 +3,7 @@ using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Creates, tracks, and removes HoverTip sets explicitly owned by prediction-only UI surfaces.

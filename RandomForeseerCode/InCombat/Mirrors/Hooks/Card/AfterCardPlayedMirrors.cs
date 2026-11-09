@@ -12,12 +12,12 @@ using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Extensions;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterCardPlayedMirrorContext>;
 

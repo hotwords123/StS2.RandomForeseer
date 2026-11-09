@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Utils;
+using RandomForeseer.Utils;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 internal static class ChooseACardPredictionContext
 {

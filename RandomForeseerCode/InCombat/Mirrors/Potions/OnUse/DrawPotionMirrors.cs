@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models.Potions;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+namespace RandomForeseer.InCombat.Mirrors.Potions.OnUse;
 
 internal static class DrawPotionMirrors
 {

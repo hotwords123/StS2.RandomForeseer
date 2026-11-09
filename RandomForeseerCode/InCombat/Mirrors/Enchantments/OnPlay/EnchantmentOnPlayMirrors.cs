@@ -5,11 +5,11 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Enchantments.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Enchantments.OnPlay;
 
 using Registry = MethodMirrorRegistry<EnchantmentModel, EnchantmentOnPlayMirrorContext>;
 

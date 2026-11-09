@@ -1,10 +1,10 @@
-using RandomForeseer.RandomForeseerCode.Data.Migrations;
+using RandomForeseer.Data.Migrations;
 using STS2RitsuLib;
 using STS2RitsuLib.Data;
 using STS2RitsuLib.Utils.Persistence;
 using STS2RitsuLib.Utils.Persistence.Migration;
 
-namespace RandomForeseer.RandomForeseerCode.Data;
+namespace RandomForeseer.Data;
 
 internal static class ModData
 {

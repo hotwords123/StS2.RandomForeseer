@@ -2,7 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+namespace RandomForeseer.InCombat.Mirrors.Potions.OnUse;
 
 /// <summary>
 /// Provides simulator-owned state and the resolved source/target pair to one potion <see cref="PotionModel.OnUse"/>

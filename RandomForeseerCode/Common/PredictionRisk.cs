@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.HoverTips;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 internal enum PredictionRiskReason
 {

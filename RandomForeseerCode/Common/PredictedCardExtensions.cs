@@ -2,7 +2,7 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 internal static class PredictedCardExtensions
 {

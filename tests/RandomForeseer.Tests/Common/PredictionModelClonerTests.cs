@@ -2,7 +2,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Afflictions;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Enchantments;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 using RandomForeseer.Tests.Infrastructure;
 
 namespace RandomForeseer.Tests.Common;

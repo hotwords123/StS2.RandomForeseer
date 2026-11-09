@@ -1,7 +1,7 @@
 using Godot;
 using MegaCrit.Sts2.addons.mega_text;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Nodes;
+namespace RandomForeseer.InCombat.Nodes;
 
 // Mirrors the source icon/count layout from res://scenes/combat/power.tscn.
 [ScriptPath("res://RandomForeseerCode/InCombat/Nodes/NCombatPredictionSourceIcon.cs")]

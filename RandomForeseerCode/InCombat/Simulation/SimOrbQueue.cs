@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Orbs;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+using RandomForeseer.InCombat.Mirrors.Orbs;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 /// <summary>
 /// Mirrors <see cref="OrbQueue"/> without mutating real orb queue.

@@ -1,12 +1,12 @@
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
-using RandomForeseer.RandomForeseerCode.Localization;
+using RandomForeseer.Common;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.InCombat.Extensions;
+using RandomForeseer.InCombat.Simulation;
+using RandomForeseer.Localization;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>
 /// Preserves combat risk entries through a projection boundary and creates their compact player warning.

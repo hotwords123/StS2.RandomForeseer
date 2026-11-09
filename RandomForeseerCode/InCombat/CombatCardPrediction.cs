@@ -9,13 +9,13 @@ using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.InCombat.Extensions;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Common;
+using RandomForeseer.Data;
+using RandomForeseer.InCombat.Extensions;
+using RandomForeseer.InCombat.Simulation;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>
 /// Provides the single simulation facade used by combat-card HoverTips and target-aware UI surfaces.

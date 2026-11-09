@@ -3,13 +3,13 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Potions;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.InCombat;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.Data;
+using RandomForeseer.InCombat;
+using RandomForeseer.InCombat.Mirrors.Potions.OnUse;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 internal static class PotionPrediction
 {

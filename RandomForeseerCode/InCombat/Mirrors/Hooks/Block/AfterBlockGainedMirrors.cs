@@ -2,10 +2,10 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Block;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Block;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterBlockGainedMirrorContext>;
 

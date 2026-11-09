@@ -4,10 +4,10 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.TurnEnd;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.TurnEnd;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterAutoPostPlayMirrorContext>;
 

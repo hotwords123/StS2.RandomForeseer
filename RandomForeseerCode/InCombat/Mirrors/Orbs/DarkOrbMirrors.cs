@@ -2,7 +2,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.ValueProps;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+namespace RandomForeseer.InCombat.Mirrors.Orbs;
 
 internal static class DarkOrbMirrors
 {

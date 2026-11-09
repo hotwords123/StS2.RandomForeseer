@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
+namespace RandomForeseer.InCombat.Mirrors;
 
 internal abstract class CombatCardMirrorContext<TBase> : CombatMirrorContext<TBase>
     where TBase : AbstractModel

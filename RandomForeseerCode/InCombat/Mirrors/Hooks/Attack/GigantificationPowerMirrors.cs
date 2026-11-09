@@ -3,9 +3,9 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
+using RandomForeseer.InCombat.Mirrors.Hooks.Damage;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Attack;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Attack;
 
 internal static class GigantificationPowerMirrors
 {

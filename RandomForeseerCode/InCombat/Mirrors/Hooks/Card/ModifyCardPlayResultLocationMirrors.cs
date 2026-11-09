@@ -2,11 +2,11 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
 using Registry = MethodMirrorRegistry<AbstractModel, ModifyCardPlayResultLocationMirrorContext, CardLocation>;
 using AfterRegistry = MethodMirrorRegistry<AbstractModel, AfterModifyingCardPlayResultLocationMirrorContext>;

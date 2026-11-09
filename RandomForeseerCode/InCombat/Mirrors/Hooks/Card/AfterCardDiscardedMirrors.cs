@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterCardDiscardedMirrorContext>;
 

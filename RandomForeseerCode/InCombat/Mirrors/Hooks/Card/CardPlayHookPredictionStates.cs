@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
 // Shadow model state shared by card-play lifecycle hooks and their downstream value/predicate hook mirrors.
 internal sealed class CounterPredictionState(int value)

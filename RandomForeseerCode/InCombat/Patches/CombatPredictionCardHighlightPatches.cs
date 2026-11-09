@@ -1,8 +1,8 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
+namespace RandomForeseer.InCombat.Patches;
 
 [HarmonyPatch(typeof(NHandCardHolder))]
 internal static class CombatPredictionCardHighlightPatches

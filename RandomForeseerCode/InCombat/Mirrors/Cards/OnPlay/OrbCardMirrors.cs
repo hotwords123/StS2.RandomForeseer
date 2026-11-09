@@ -3,9 +3,9 @@ using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Orbs;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class OrbCardMirrors
 {

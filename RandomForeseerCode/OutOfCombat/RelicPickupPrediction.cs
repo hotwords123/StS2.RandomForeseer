@@ -12,13 +12,13 @@ using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Common;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.Data;
+using RandomForeseer.OutOfCombat.Mirrors;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class RelicPickupPrediction
 {

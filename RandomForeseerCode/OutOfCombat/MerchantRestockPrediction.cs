@@ -6,12 +6,12 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.Data;
+using RandomForeseer.OutOfCombat.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 internal static class MerchantRestockPrediction
 {

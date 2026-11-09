@@ -3,9 +3,9 @@ using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
+using RandomForeseer.Common.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Events;
+namespace RandomForeseer.OutOfCombat.Events;
 
 internal static class ColorfulPhilosophersPrediction
 {

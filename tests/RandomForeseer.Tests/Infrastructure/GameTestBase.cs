@@ -5,9 +5,9 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.Tests.Infrastructure;
 
@@ -107,7 +107,7 @@ public abstract class GameTestBase : IDisposable
         _active!.Calls.Add($"{__1.GetType().Name}:{__3.CombatId}");
     private static void AfterPower(CombatPredictionSimulator __0, PowerModel __1, Creature __3) =>
         _active!.PowerChanges.Add((__1.GetType().Name, __3,
-            RandomForeseerCode.InCombat.Mirrors.Hooks.PredictionStateStorePowerAmountExtensions
+            global::RandomForeseer.InCombat.Mirrors.Hooks.PredictionStateStorePowerAmountExtensions
                 .GetPowerAmount(__0.StateStore, __1).Amount));
     private static void BlockBroken()
     {

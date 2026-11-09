@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+namespace RandomForeseer.InCombat.Mirrors.Orbs;
 
 internal static class FrostOrbMirrors
 {

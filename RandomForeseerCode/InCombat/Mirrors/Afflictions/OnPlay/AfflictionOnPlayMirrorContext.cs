@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Afflictions.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Afflictions.OnPlay;
 
 internal sealed class AfflictionOnPlayMirrorContext : CombatCardMirrorContext<AfflictionModel>
 {

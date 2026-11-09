@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.InCombat;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.InCombat;
+using RandomForeseer.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Hooks.Death;
+using RandomForeseer.InCombat.Simulation;
 using RandomForeseer.Tests.Infrastructure;
 
 namespace RandomForeseer.Tests.Combat;

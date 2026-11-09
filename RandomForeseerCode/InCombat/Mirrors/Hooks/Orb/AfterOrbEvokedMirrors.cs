@@ -4,9 +4,9 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Orb;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Orb;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterOrbEvokedMirrorContext>;
 

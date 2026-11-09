@@ -2,9 +2,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
+namespace RandomForeseer.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(NTopBar))]
 internal static class NextActPredictionTopBarPatches

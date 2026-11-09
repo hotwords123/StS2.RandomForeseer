@@ -4,10 +4,10 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors.Hooks.CardCreation;
+using RandomForeseer.Common;
+using RandomForeseer.OutOfCombat.Mirrors.Hooks.CardCreation;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors;
+namespace RandomForeseer.OutOfCombat.Mirrors;
 
 // Prediction-facing facade for mirrored out-of-combat hooks. It owns context construction,
 // modifier enumeration, and hook phase order while registries remain implementation details.

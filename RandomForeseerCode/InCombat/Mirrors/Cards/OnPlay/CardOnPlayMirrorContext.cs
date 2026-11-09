@@ -2,9 +2,9 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 internal sealed class CardOnPlayMirrorContext : CombatCardMirrorContext<CardModel>
 {

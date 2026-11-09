@@ -1,8 +1,8 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
+namespace RandomForeseer.InCombat.Patches;
 
 [HarmonyPatch(typeof(NTargetManager))]
 internal static class NTargetManagerPatches

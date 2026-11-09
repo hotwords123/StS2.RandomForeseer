@@ -2,7 +2,7 @@ using Godot;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Assets;
 
-namespace RandomForeseer.RandomForeseerCode.Common.Nodes;
+namespace RandomForeseer.Common.Nodes;
 
 [ScriptPath("res://RandomForeseerCode/Common/Nodes/NMegaLabel.cs")]
 internal sealed partial class NMegaLabel : MegaLabel

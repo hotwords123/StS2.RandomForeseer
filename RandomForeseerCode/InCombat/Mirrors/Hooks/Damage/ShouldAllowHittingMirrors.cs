@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Damage;
 
 using Registry = MethodMirrorRegistry<AbstractModel, ShouldAllowHittingMirrorContext, bool>;
 

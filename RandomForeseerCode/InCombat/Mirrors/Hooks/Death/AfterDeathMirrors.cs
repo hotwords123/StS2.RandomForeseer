@@ -5,10 +5,10 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Death;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Death;
 
 using Registry = MethodMirrorRegistry<AbstractModel, AfterDeathMirrorContext>;
 

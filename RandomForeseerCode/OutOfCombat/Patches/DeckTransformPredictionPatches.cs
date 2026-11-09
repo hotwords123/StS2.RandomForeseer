@@ -8,9 +8,9 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Patches;
+namespace RandomForeseer.OutOfCombat.Patches;
 
 [HarmonyPatch(typeof(NDeckTransformSelectScreen))]
 internal static class DeckTransformSelectionScreenPatches

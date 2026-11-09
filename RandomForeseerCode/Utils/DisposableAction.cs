@@ -1,4 +1,4 @@
-namespace RandomForeseer.RandomForeseerCode.Utils;
+namespace RandomForeseer.Utils;
 
 public sealed class DisposableAction(Action action) : IDisposable
 {

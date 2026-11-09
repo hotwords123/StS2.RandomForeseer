@@ -8,10 +8,10 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Characters;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat;
+using RandomForeseer.InCombat.Mirrors.Hooks;
+using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.Tests.Infrastructure;
 

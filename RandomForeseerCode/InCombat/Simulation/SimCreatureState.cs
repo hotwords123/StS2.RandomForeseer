@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed class SimCreatureState(CombatPredictionSimulator simulator, Creature creature)
 {

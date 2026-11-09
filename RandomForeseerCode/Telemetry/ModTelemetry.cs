@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using RandomForeseer.RandomForeseerCode.Localization;
+using RandomForeseer.Localization;
 using STS2RitsuLib;
 using STS2RitsuLib.Settings;
 using STS2RitsuLib.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Telemetry;
+namespace RandomForeseer.Telemetry;
 
 internal static class ModTelemetry
 {

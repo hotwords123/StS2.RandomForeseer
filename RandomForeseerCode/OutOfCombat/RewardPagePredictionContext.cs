@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rewards;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat;
+namespace RandomForeseer.OutOfCombat;
 
 /// <summary>Tracks the reward page that owns each relic or card reward used by prediction.</summary>
 internal static class RewardPagePredictionContext

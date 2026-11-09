@@ -4,14 +4,14 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Afflictions.OnPlay;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Enchantments.OnPlay;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Afflictions.OnPlay;
+using RandomForeseer.InCombat.Mirrors.Cards;
+using RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
+using RandomForeseer.InCombat.Mirrors.Enchantments.OnPlay;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {

@@ -1,6 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+namespace RandomForeseer.InCombat.Mirrors.Orbs;
 
 internal class OrbMirrorContext : CombatMirrorContext;
 

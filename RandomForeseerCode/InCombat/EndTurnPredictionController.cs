@@ -9,13 +9,13 @@ using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.Settings;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.Data;
+using RandomForeseer.Settings;
+using RandomForeseer.Telemetry;
 using STS2RitsuLib.Settings;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 internal static class EndTurnPredictionController
 {

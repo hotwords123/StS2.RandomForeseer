@@ -1,6 +1,6 @@
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>
 /// Owns the global UI surfaces shared by combat card, potion, and end-turn predictions.

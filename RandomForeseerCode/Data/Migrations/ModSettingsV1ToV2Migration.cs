@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using STS2RitsuLib.Utils.Persistence.Migration;
 
-namespace RandomForeseer.RandomForeseerCode.Data.Migrations;
+namespace RandomForeseer.Data.Migrations;
 
 internal sealed class ModSettingsV1ToV2Migration : IMigration
 {

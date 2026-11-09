@@ -4,7 +4,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Saves;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips.Patches;
+namespace RandomForeseer.Common.HoverTips.Patches;
 
 [HarmonyPatch(typeof(NHoverTipCardContainer), nameof(NHoverTipCardContainer.Add))]
 internal static class PredictionCardDiscoveryScopePatch

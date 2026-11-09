@@ -1,6 +1,6 @@
 using MegaCrit.Sts2.Core.Combat;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Extensions;
+namespace RandomForeseer.InCombat.Extensions;
 
 internal static class CombatManagerExtensions
 {

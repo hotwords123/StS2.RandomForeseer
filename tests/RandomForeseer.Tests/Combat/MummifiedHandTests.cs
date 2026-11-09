@@ -4,8 +4,8 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Card;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.InCombat.Mirrors.Hooks.Card;
+using RandomForeseer.InCombat.Simulation;
 using RandomForeseer.Tests.Infrastructure;
 
 namespace RandomForeseer.Tests.Combat;

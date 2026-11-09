@@ -2,10 +2,10 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.InCombat.Mirrors.Potions.OnUse;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 /// <summary>Provides the unified simulation facade for in-combat potion prediction.</summary>
 internal static class CombatPotionPrediction

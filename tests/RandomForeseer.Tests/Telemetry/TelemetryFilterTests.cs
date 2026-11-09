@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 using STS2RitsuLib.Telemetry;
 
 namespace RandomForeseer.Tests.Telemetry;
@@ -72,7 +72,7 @@ public sealed class TelemetryFilterTests
             ["code"] = "Method/function failed. Returning: nullptr",
             ["script_backtrace"] = "C# backtrace:\n    [0] void Godot.Node.GetNode()"
         };
-        error[field] = "   at RandomForeseer.RandomForeseerCode.Common.HoverTips.PredictionHoverTipControlFactory.CreateAndAddCard()";
+        error[field] = "   at RandomForeseer.Common.HoverTips.PredictionHoverTipControlFactory.CreateAndAddCard()";
         var original = error.DeepClone();
         Assert.True(ShouldCapture("godot_engine_error", error));
         Assert.True(JsonNode.DeepEquals(original, error));

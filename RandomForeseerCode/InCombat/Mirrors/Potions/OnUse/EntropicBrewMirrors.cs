@@ -2,9 +2,9 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Random;
-using RandomForeseer.RandomForeseerCode.Common;
+using RandomForeseer.Common;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+namespace RandomForeseer.InCombat.Mirrors.Potions.OnUse;
 
 internal static class EntropicBrewMirrors
 {

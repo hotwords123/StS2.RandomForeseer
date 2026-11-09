@@ -3,9 +3,9 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Relics;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Mirrors.Hooks.CardCreation;
+namespace RandomForeseer.OutOfCombat.Mirrors.Hooks.CardCreation;
 
 using Registry = MethodMirrorRegistry<AbstractModel, ModifyMerchantCardCreationResultsMirrorContext>;
 

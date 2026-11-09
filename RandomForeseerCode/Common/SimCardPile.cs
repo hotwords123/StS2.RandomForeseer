@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 internal sealed class SimCardPile(PileType type, IEnumerable<PredictedCard> cards)
 {

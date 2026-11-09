@@ -2,9 +2,9 @@ using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Localization;
+using RandomForeseer.Localization;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Creates individual prediction HoverTips without advancing RNG or changing game model state.

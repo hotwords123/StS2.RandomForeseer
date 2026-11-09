@@ -8,11 +8,11 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Common;
+using RandomForeseer.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 using CardOnPlayAction = Action<CardModel, CardOnPlayMirrorContext>;
 

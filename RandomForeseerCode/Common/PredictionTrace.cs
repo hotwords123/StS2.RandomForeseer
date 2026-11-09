@@ -1,8 +1,8 @@
 using System.Reflection;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Utils;
+using RandomForeseer.Utils;
 
-namespace RandomForeseer.RandomForeseerCode.Common;
+namespace RandomForeseer.Common;
 
 /// <summary>Identifies action boundaries that affect prediction scope and causal ownership.</summary>
 internal enum PredictionActionKind

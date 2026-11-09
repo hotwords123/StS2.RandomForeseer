@@ -1,9 +1,9 @@
 using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 /// <summary>
 /// Mirrors <see cref="AttackContext"/>.

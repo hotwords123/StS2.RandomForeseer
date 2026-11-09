@@ -8,12 +8,12 @@ using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Screens;
-using RandomForeseer.RandomForeseerCode.Data;
-using RandomForeseer.RandomForeseerCode.Localization;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Data;
+using RandomForeseer.Localization;
+using RandomForeseer.Telemetry;
 using STS2RitsuLib.Utils.HarmonyIl;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Patches;
+namespace RandomForeseer.InCombat.Patches;
 
 [HarmonyPatch(typeof(NCardPileScreen))]
 internal static class FrozenEyeCardPileScreenPatches

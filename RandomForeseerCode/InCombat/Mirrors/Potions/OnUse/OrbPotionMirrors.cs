@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Models.Orbs;
 using MegaCrit.Sts2.Core.Models.Potions;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+namespace RandomForeseer.InCombat.Mirrors.Potions.OnUse;
 
 internal static class OrbPotionMirrors
 {

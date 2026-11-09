@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Builds Godot controls for prediction card bundles without invoking vanilla HoverTip card creation.

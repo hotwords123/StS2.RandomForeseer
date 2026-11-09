@@ -7,7 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 
-namespace RandomForeseer.RandomForeseerCode.Integrations.LemonSpire.Patches;
+namespace RandomForeseer.Integrations.LemonSpire.Patches;
 
 [HarmonyPatchCategory(LemonSpireTypes.PatchCategory)]
 [HarmonyPatch]

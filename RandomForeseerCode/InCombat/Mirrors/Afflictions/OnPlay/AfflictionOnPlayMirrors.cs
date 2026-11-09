@@ -2,11 +2,11 @@ using System.Reflection;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Afflictions.OnPlay;
+namespace RandomForeseer.InCombat.Mirrors.Afflictions.OnPlay;
 
 using Registry = MethodMirrorRegistry<AfflictionModel, AfflictionOnPlayMirrorContext>;
 

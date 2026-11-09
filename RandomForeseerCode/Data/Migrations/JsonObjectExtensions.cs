@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace RandomForeseer.RandomForeseerCode.Data.Migrations;
+namespace RandomForeseer.Data.Migrations;
 
 internal static class JsonObjectExtensions
 {

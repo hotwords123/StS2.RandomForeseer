@@ -7,9 +7,9 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Cards;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Nodes;
+namespace RandomForeseer.InCombat.Nodes;
 
 [ScriptPath("res://RandomForeseerCode/InCombat/Nodes/NCombatPredictionDamageIndicator.cs")]
 internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer

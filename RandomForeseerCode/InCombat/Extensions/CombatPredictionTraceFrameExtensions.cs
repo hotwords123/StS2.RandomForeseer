@@ -1,11 +1,11 @@
 
 
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Cards.OnPlay;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Potions.OnUse;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
+using RandomForeseer.InCombat.Mirrors.Potions.OnUse;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Extensions;
+namespace RandomForeseer.InCombat.Extensions;
 
 /// <summary>
 /// Provides combat-projection queries over the shared immutable prediction trace.

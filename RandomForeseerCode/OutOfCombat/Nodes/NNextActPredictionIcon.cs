@@ -7,9 +7,9 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Rooms;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
+using RandomForeseer.Common.HoverTips;
 
-namespace RandomForeseer.RandomForeseerCode.OutOfCombat.Nodes;
+namespace RandomForeseer.OutOfCombat.Nodes;
 
 internal enum NextActPredictionIconKind
 {

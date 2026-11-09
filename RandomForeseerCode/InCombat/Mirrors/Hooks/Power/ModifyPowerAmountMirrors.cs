@@ -2,10 +2,10 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Power;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Power;
 
 using DecimalRegistry = MethodMirrorRegistry<AbstractModel, ModifyPowerAmountMirrorContext, decimal>;
 using ReceivedRegistry = MethodMirrorRegistry<AbstractModel, ModifyPowerAmountMirrorContext, PowerAmountModification>;

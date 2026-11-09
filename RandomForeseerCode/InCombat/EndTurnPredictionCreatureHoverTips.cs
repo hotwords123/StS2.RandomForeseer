@@ -1,10 +1,10 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.Localization;
+using RandomForeseer.Common;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.Localization;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 internal static class EndTurnPredictionCreatureHoverTips
 {

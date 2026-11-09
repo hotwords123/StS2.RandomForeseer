@@ -1,8 +1,8 @@
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using RandomForeseer.RandomForeseerCode.Utils;
+using RandomForeseer.Utils;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Identifies prediction cards while their HoverTip nodes are being created, so vanilla card discovery is skipped.

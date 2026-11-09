@@ -2,12 +2,12 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
-using RandomForeseer.RandomForeseerCode.Common.HoverTips;
-using RandomForeseer.RandomForeseerCode.InCombat;
-using RandomForeseer.RandomForeseerCode.Integrations.LemonSpire;
-using RandomForeseer.RandomForeseerCode.OutOfCombat;
+using RandomForeseer.Common.HoverTips;
+using RandomForeseer.InCombat;
+using RandomForeseer.Integrations.LemonSpire;
+using RandomForeseer.OutOfCombat;
 
-namespace RandomForeseer.RandomForeseerCode.Common.Patches;
+namespace RandomForeseer.Common.Patches;
 
 /// <summary>
 /// Appends feature-specific prediction tips when vanilla creates a control's HoverTip set.

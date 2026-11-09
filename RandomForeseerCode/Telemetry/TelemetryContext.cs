@@ -3,7 +3,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 
-namespace RandomForeseer.RandomForeseerCode.Telemetry;
+namespace RandomForeseer.Telemetry;
 
 internal static class TelemetryContext
 {

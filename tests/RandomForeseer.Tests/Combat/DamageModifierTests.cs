@@ -5,10 +5,10 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Damage;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors.Hooks;
+using RandomForeseer.InCombat.Mirrors.Hooks.Damage;
 using RandomForeseer.Tests.Infrastructure;
 
 namespace RandomForeseer.Tests.Combat;

@@ -4,10 +4,10 @@ using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 using STS2RitsuLib.Combat.HealthBars;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat;
+namespace RandomForeseer.InCombat;
 
 internal sealed class DamagePredictionHealthBarForecastSource : IHealthBarForecastSource
 {

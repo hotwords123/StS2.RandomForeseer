@@ -1,8 +1,8 @@
-using RandomForeseer.RandomForeseerCode.Localization;
+using RandomForeseer.Localization;
 using STS2RitsuLib;
 using STS2RitsuLib.Settings;
 
-namespace RandomForeseer.RandomForeseerCode.Settings;
+namespace RandomForeseer.Settings;
 
 internal static class SettingsBootstrap
 {

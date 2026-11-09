@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 
-namespace RandomForeseer.RandomForeseerCode.Common.Patches;
+namespace RandomForeseer.Common.Patches;
 
 [HarmonyPatch(typeof(PotionModel), nameof(PotionModel.HoverTips), MethodType.Getter)]
 internal static class PotionPredictionHoverTipsPatch

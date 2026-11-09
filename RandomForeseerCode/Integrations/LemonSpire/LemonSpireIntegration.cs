@@ -6,11 +6,11 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.InCombat;
-using RandomForeseer.RandomForeseerCode.OutOfCombat;
+using RandomForeseer.Common;
+using RandomForeseer.InCombat;
+using RandomForeseer.OutOfCombat;
 
-namespace RandomForeseer.RandomForeseerCode.Integrations.LemonSpire;
+namespace RandomForeseer.Integrations.LemonSpire;
 
 /// <summary>Identifies the lemonSpire surface that owns a prediction context.</summary>
 internal enum LemonSpirePredictionKind

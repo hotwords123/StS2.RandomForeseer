@@ -1,7 +1,7 @@
-using RandomForeseer.RandomForeseerCode.Data;
+using RandomForeseer.Data;
 using STS2RitsuLib.Settings;
 
-namespace RandomForeseer.RandomForeseerCode.Settings;
+namespace RandomForeseer.Settings;
 
 internal static class SettingsUiBindings
 {

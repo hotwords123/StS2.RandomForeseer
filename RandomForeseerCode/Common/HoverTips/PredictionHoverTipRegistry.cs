@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.HoverTips;
-using RandomForeseer.RandomForeseerCode.Telemetry;
+using RandomForeseer.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Common.HoverTips;
+namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
 /// Maintains an ordered set of named prediction HoverTip providers for one input type.

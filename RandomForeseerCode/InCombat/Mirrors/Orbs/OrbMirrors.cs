@@ -3,10 +3,10 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Orbs;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
-using RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+using RandomForeseer.Common.Mirrors;
+using RandomForeseer.InCombat.Simulation;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Orbs;
+namespace RandomForeseer.InCombat.Mirrors.Orbs;
 
 using OrbPassiveRegistry = MethodMirrorRegistry<OrbModel, OrbPassiveMirrorContext>;
 using OrbEvokeRegistry = MethodMirrorRegistry<OrbModel, OrbMirrorContext, IReadOnlyList<Creature>>;

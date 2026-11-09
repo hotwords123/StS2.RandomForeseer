@@ -3,7 +3,7 @@ using MegaCrit.Sts2.Core.Localization;
 using STS2RitsuLib;
 using STS2RitsuLib.Utils;
 
-namespace RandomForeseer.RandomForeseerCode.Localization;
+namespace RandomForeseer.Localization;
 
 internal static class ModLocalization
 {

@@ -1,6 +1,6 @@
 using STS2RitsuLib.Telemetry;
 
-namespace RandomForeseer.RandomForeseerCode.Telemetry;
+namespace RandomForeseer.Telemetry;
 
 internal sealed class ModTelemetryAdapter(ITelemetryAdapter inner) : ITelemetryAdapter
 {

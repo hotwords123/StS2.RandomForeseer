@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using STS2RitsuLib.Utils.Persistence.Migration;
 
-namespace RandomForeseer.RandomForeseerCode.Data;
+namespace RandomForeseer.Data;
 
 internal sealed class ModSettings
 {

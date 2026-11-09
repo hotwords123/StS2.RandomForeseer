@@ -3,10 +3,10 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
-using RandomForeseer.RandomForeseerCode.Common;
-using RandomForeseer.RandomForeseerCode.Common.Mirrors;
+using RandomForeseer.Common;
+using RandomForeseer.Common.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Mirrors.Hooks.Power;
+namespace RandomForeseer.InCombat.Mirrors.Hooks.Power;
 
 using Registry = MethodMirrorRegistry<AbstractModel, PowerAmountChangedMirrorContext>;
 using AfterRegistry = MethodMirrorRegistry<AbstractModel, AfterModifyingPowerAmountMirrorContext>;

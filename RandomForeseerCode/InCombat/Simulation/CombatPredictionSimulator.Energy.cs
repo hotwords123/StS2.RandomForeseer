@@ -1,7 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Players;
-using RandomForeseer.RandomForeseerCode.InCombat.Mirrors;
+using RandomForeseer.InCombat.Mirrors;
 
-namespace RandomForeseer.RandomForeseerCode.InCombat.Simulation;
+namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
