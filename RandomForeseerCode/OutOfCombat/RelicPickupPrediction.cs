@@ -5,13 +5,13 @@ using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Blitz;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.Common.HoverTips;
@@ -60,7 +60,7 @@ internal static class RelicPickupPrediction
                     [.. PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["Potions"].IntValue,
-                        player.RunState.Rng.CombatPotionGeneration.Clone()).ToPredictionHoverTips()],
+                        context.Rng.NonCombatGeneration).ToPredictionHoverTips()],
                 ScrollBoxes =>
                     [.. PredictScrollBoxes(context)
                         .ToPredictionCardBundleHoverTips(PredictionCardBundleKind.ScrollBoxes)],
@@ -90,7 +90,7 @@ internal static class RelicPickupPrediction
                     [.. PotionFactory.CreateRandomPotionsOutOfCombat(
                         player,
                         relic.DynamicVars["PotionSlots"].IntValue,
-                        player.RunState.Rng.CombatPotionGeneration.Clone()).ToPredictionHoverTips()],
+                        context.Rng.NonCombatGeneration).ToPredictionHoverTips()],
                 GlassEye => [.. PredictGlassEyeBundles(context).ToPredictionCardBundleHoverTips()],
                 SandCastle when IsSingleplayerUnfairPredictionAllowed() =>
                     [.. PredictSandCastle(player, relic.DynamicVars.Cards.IntValue).ToPredictionHoverTips()],
@@ -102,7 +102,7 @@ internal static class RelicPickupPrediction
 
                 // Vakuu
                 DistinguishedCape when IsSingleplayerUnfairPredictionAllowed() =>
-                    [.. PredictCurses(context, relic.DynamicVars["Curses"].IntValue, context.SharedRng.Niche)
+                    [.. OutOfCombatPredictionUtils.PredictCurses(context, relic.DynamicVars["Curses"].IntValue)
                         .ToPredictionHoverTips()],
 
                 // Non-Ancient relics
@@ -203,7 +203,7 @@ internal static class RelicPickupPrediction
             var pools = context.Player.UnlockState.CharacterCardPools
                 .Where(pool => pool != context.Player.Character.CardPool)
                 .ToList()
-                .StableShuffle(context.SharedRng.Niche)
+                .StableShuffle(context.Rng.NonCombatGeneration)
                 .Take(3);
 
             foreach (var pool in pools)
@@ -230,7 +230,7 @@ internal static class RelicPickupPrediction
     {
         var bundles = OutOfCombatPredictionUtils.PredictDistinctDeckTransformResultBundles(
             player,
-            player.RunState.Rng.Niche,
+            player.PlayerRng.Transformations,
             3);
         return [.. bundles.Select(cards => cards.Select(PredictionUtils.CreateUpgradedCard).ToArray())];
     }
@@ -307,11 +307,11 @@ internal static class RelicPickupPrediction
 
             FastForwardRelicPickup(context, firstRelic);
             FastForwardRelicPickup(context, secondRelic);
-            var firstCurses = PredictCurses(context, curseCount, context.Rng.NonCombatGeneration);
+            var firstCurses = OutOfCombatPredictionUtils.PredictCurses(context, curseCount);
 
             FastForwardRelicPickup(clonedContext, secondRelic);
             FastForwardRelicPickup(clonedContext, firstRelic);
-            var secondCurses = PredictCurses(clonedContext, curseCount, clonedContext.Rng.NonCombatGeneration);
+            var secondCurses = OutOfCombatPredictionUtils.PredictCurses(clonedContext, curseCount);
 
             if (firstCurses.SequenceEqual(secondCurses))
             {
@@ -332,29 +332,6 @@ internal static class RelicPickupPrediction
         }
 
         return tips;
-    }
-
-    private static IReadOnlyList<CardModel> PredictCurses(RunPredictionContext context, int count, Rng rng)
-    {
-        var availableCurses = context.Player.GetUnlockedCurseCards()
-            .Where(card => card.CanBeGeneratedByModifiers)
-            .OrderBy(card => card.Id)
-            .ToList();
-        var curses = new List<CardModel>(count);
-
-        for (var i = 0; i < count; i++)
-        {
-            var card = rng.NextItem(availableCurses);
-            if (card == null)
-            {
-                break;
-            }
-
-            availableCurses.Remove(card);
-            curses.Add(card);
-        }
-
-        return curses;
     }
 
     /// <summary>
@@ -385,6 +362,12 @@ internal static class RelicPickupPrediction
             case NewLeaf:
                 OutOfCombatPredictionUtils.FastForwardDeckTransforms(context, relic.DynamicVars.Cards.IntValue);
                 break;
+            case PhialHolster:
+                _ = PotionFactory.CreateRandomPotionsOutOfCombat(
+                    context.Player,
+                    relic.DynamicVars["Potions"].IntValue,
+                    context.Rng.NonCombatGeneration).ToList();
+                break;
             case ScrollBoxes:
                 PredictScrollBoxes(context);
                 break;
@@ -396,18 +379,16 @@ internal static class RelicPickupPrediction
                 FastForwardRelicRewardsPickup(context, 1);
                 break;
             case WarPaint:
-                OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
-                    context.Player,
+                FastForwardDeckUpgrades(
+                    context,
                     relic.DynamicVars.Cards.IntValue,
-                    card => card.Type == CardType.Skill && card.IsUpgradable,
-                    context.SharedRng.Niche);
+                    card => card is { Type: CardType.Skill, IsUpgradable: true });
                 break;
             case Whetstone:
-                OutOfCombatPredictionUtils.PredictUpgradedDeckCards(
-                    context.Player,
+                FastForwardDeckUpgrades(
+                    context,
                     relic.DynamicVars.Cards.IntValue,
-                    card => card.Type == CardType.Attack && card.IsUpgradable,
-                    context.SharedRng.Niche);
+                    card => card is { Type: CardType.Attack, IsUpgradable: true });
                 break;
             case Cauldron:
                 PredictionUtils.PredictPotionRewards(
@@ -425,6 +406,21 @@ internal static class RelicPickupPrediction
         }
     }
 
+    private static void FastForwardDeckUpgrades(
+        RunPredictionContext context,
+        int count,
+        Func<CardModel, bool> filter)
+    {
+        foreach (var card in context.Deck.Cards
+                     .Where(card => filter(card.Preview))
+                     .ToList()
+                     .StableShuffle(context.Rng.NonCombatGeneration)
+                     .Take(count))
+        {
+            card.Upgrade();
+        }
+    }
+
     private static void FastForwardRelicRewardsPickup(RunPredictionContext context, int count)
     {
         var relics = OutOfCombatPredictionUtils.PredictRelicRewards(context, count);
@@ -436,6 +432,12 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<IHoverTip> PredictSilkenTressRewardTips(RunPredictionContext context, SilkenTress relic)
     {
+        // Blitz replaces the room's reward sequence; the default-room RNG fast-forward does not apply.
+        if (context.RunState.RunModels.Any(model => model is BlitzRunModel))
+        {
+            return [];
+        }
+
         var previewRelic = PredictionUtils.CreateRelic(relic.CanonicalInstance, context.Player);
 
         var options = OutOfCombatPredictionUtils.CreateMonsterCombatCardRewardOptions(context.Player);
@@ -453,12 +455,12 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<CardModel> PredictNewLeaf(Player player)
     {
-        return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(player, player.RunState.Rng.Niche);
+        return OutOfCombatPredictionUtils.PredictDistinctDeckTransformResults(player, player.PlayerRng.Transformations);
     }
 
     private static IReadOnlyList<CardModel> PredictPandorasBox(Player player)
     {
-        var rng = player.RunState.Rng.Niche.Clone();
+        var rng = player.PlayerRng.Transformations.Clone();
         return PileType.Deck.GetPile(player).Cards
             .Where(card => card.IsBasicStrikeOrDefend && card.IsRemovable)
             .Select(card => PredictionUtils.PredictTransformResult(card, rng, isInCombat: false))
@@ -571,7 +573,7 @@ internal static class RelicPickupPrediction
 
         return [..context.Deck.Cards
             .Where(card => swift.CanEnchant(card.Preview))
-            .TakeRandom(relic.DynamicVars.Cards.IntValue, context.SharedRng.Niche)
+            .TakeRandom(relic.DynamicVars.Cards.IntValue, context.Rng.NonCombatGeneration)
             .Select(card => card.Enchant(swift.ToMutable(), relic.DynamicVars["Swift"].IntValue))
             .SelectPreviews()];
     }

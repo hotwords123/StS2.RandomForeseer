@@ -32,11 +32,11 @@ internal static class DeckTransformPrediction
         {
             DeckTransformPredictionSource.Relic { Model: Astrolabe relic }
                 when IsPredictionAllowedForRelic(settings, relic) =>
-                new DeckTransformPreviewPredictor(prefs.MaxSelect, relic.Owner.RunState.Rng.Niche, upgradePreview: true),
+                new DeckTransformPreviewPredictor(prefs.MaxSelect, relic.Owner.PlayerRng.Transformations, upgradePreview: true),
 
             DeckTransformPredictionSource.Relic { Model: NewLeaf relic }
                 when IsPredictionAllowedForRelic(settings, relic) =>
-                new DeckTransformPreviewPredictor(prefs.MaxSelect, relic.Owner.RunState.Rng.Niche),
+                new DeckTransformPreviewPredictor(prefs.MaxSelect, relic.Owner.PlayerRng.Transformations),
 
             DeckTransformPredictionSource.Event
             {

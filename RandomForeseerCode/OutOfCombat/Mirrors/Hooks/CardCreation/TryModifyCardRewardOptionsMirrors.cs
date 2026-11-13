@@ -198,7 +198,7 @@ internal static class TryModifyCardRewardOptionsMirrors
 
         var swift = ModelDb.Enchantment<Swift>();
         var validResults = context.Results.Where(result => swift.CanEnchant(result.Card)).ToList();
-        var selected = context.SharedRng.Niche.NextItem(validResults);
+        var selected = context.Rng.Rewards.NextItem(validResults);
         if (selected is null)
         {
             return false;

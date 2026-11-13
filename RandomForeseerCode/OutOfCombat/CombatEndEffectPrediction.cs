@@ -10,7 +10,7 @@ internal static class CombatEndEffectPrediction
         RunPredictionContext context)
     {
         // Known deterministic AfterCombatEnd consumers that can affect out-of-combat predictions:
-        // Fishing Rod consumes run-level Niche and may upgrade a deck card; Pael's Tooth consumes
+        // Fishing Rod consumes its owner's NonCombatGeneration and may upgrade a deck card; Pael's Tooth consumes
         // each owner's Rewards RNG and may add an upgraded card to their deck before rewards resolve.
         foreach (var runPlayer in context.RunState.Players)
         {
@@ -48,7 +48,7 @@ internal static class CombatEndEffectPrediction
         var candidates = context.Deck.Cards
             .Where(card => card.Preview.IsUpgradable)
             .ToList();
-        context.SharedRng.Niche.NextItem(candidates)?.Upgrade();
+        context.Rng.NonCombatGeneration.NextItem(candidates)?.Upgrade();
     }
 
     private static void FastForwardPaelsToothAfterCombatEnd(

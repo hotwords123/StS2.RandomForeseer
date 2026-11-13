@@ -60,7 +60,7 @@ internal static class OutOfCombatPredictionUtils
             transformCount,
             PileType.Deck.GetPile(context.Player).Cards
                 .Count(card => card.Type != CardType.Quest && card.IsTransformable));
-        context.SharedRng.Niche.Advance(transformCount);
+        context.Rng.Transformations.Advance(transformCount);
     }
 
     public static CardCreationOptions CreateCharacterCardRewardOptions(Player player)
@@ -102,7 +102,7 @@ internal static class OutOfCombatPredictionUtils
         Func<CardModel, bool> filter,
         Rng? rng = null)
     {
-        rng ??= player.RunState.Rng.Niche.Clone();
+        rng ??= player.PlayerRng.NonCombatGeneration.Clone();
 
         return PileType.Deck.GetPile(player).Cards
             .Where(filter)
@@ -165,6 +165,31 @@ internal static class OutOfCombatPredictionUtils
         }
 
         return cards;
+    }
+
+    public static IReadOnlyList<CardModel> PredictCurses(RunPredictionContext context, int count, Rng? rng = null)
+    {
+        rng ??= context.Rng.NonCombatGeneration;
+
+        var availableCurses = context.Player.GetUnlockedCurseCards()
+            .Where(card => card.CanBeGeneratedByModifiers)
+            .OrderBy(card => card.Id)
+            .ToList();
+        var curses = new List<CardModel>(count);
+
+        for (var i = 0; i < count; i++)
+        {
+            var card = rng.NextItem(availableCurses);
+            if (card == null)
+            {
+                break;
+            }
+
+            availableCurses.Remove(card);
+            curses.Add(card);
+        }
+
+        return curses;
     }
 
     public static IReadOnlyList<PotionModel> PredictUniformPotions(
