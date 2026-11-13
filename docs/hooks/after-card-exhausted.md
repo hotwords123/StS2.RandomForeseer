@@ -26,6 +26,8 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 ## Parity notes
 
 - `Exhaust` stops when the owner is dead in prediction state, before pile movement, history or hook dispatch.
+- `JossPaper` commits its threshold remainder before drawing, matching vanilla's nested draw/exhaust timing; draws
+  caused by the trigger cannot see the already-consumed exhaust threshold.
 - `DrumOfBattle` applies energy gain once per predicted generated play and uses the same selected-modifier commit path
   as normal card play; details are recorded in `card-play-count-hooks.md`.
 - Ethereal exhaust records prediction-local counts without drawing immediately. After the hand flush,

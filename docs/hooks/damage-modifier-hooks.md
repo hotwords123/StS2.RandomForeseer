@@ -69,7 +69,7 @@ consumers documented below.
 | `LeadershipPower` | 领袖气质 | Owner buffs allied powered attacks by flat damage. | Implemented by original hook. |
 | `MiniatureCannon` | 微型大炮 | Owner upgraded-card powered attacks gain flat damage. | Implemented by original hook. |
 | `MysticLighter` | 神秘打火机 | Owner enchanted-card powered attacks gain flat damage. | Implemented by original hook. |
-| `OneForAllPower` | 一心化万 | Owner's powered non-X 0-cost attacks gain flat damage; real card execution checks `CardPlay.Resources.EnergySpent`, while preview calls with `cardPlay == null` check current modified cost. | Exact additive adapter preserves spent-energy and X-cost rules; the null-play branch uses `GetEnergyCostWithModifiers`, mirroring `CardEnergyCost.GetWithModifiers(All)`. |
+| `OneForAllPower` | 一心化万 | Owner's powered non-X attacks gain flat damage when manual play spends zero energy or autoplay has zero EnergyValue; null-play previews check current modified cost. | Exact additive adapter distinguishes manual EnergySpent from autoplay EnergyValue; the null-play branch uses prediction-aware modified cost. |
 | `PhantomBladesPower` | 幻影之刃 | Owner's first Shiv attack this turn gains flat damage. | Exact additive adapter combines live current-turn and predicted finished-card history, filtered by player and Shiv tag. Started-but-unfinished Shivs do not consume the bonus. |
 | `StrikeDummy` | 打击木偶 | Owner Strike-tag attacks gain flat damage. | Implemented by original hook. |
 | `StrengthPower` | 力量 | Owner powered attacks gain flat damage; negative amounts reduce damage. | Implemented by original hook. |
@@ -91,7 +91,7 @@ consumers documented below.
 | `HangPower` | 吊杀 | `Hang` damage against owner is multiplied by amount. | Implemented by original hook. |
 | `InterceptPower` | 拦截 | Powered attacks against owner are increased by covered-creature count. | Implemented by original hook. |
 | `KnockdownPower` | 击倒 | Powered attacks against owner are multiplied unless dealt by applier. | Implemented by original hook. |
-| `LethalityPower` | 致死性 | Owner's first Attack card this turn deals bonus powered damage. | Exact multiplier combines live current-turn and predicted started-card history, filtered by player and Attack type. Uses the shadow pile and preview play index to retain the first play's multi-hit bonus and reject repeated plays. |
+| `LethalityPower` | 致死性 | Owner's first Attack card this turn deals bonus powered damage. | Exact multiplier combines live current-turn and predicted started-card history, filtered by player and Attack type. Excludes the current Play-pile card from that count only for a non-null CardPlay; replay exclusion still uses its shadow pile and preview play index. |
 | `PenNib` | 钢笔尖 | Owner's every tenth Attack card is doubled. | Prediction-aware multiplier uses the shadow counter and original card identity shared with the before/after card hooks, matching vanilla's card-identity selection. |
 | `ShrinkPower` | 缩小 | Owner's powered attacks are reduced. | Implemented by original hook. |
 | `SlowPower` | 缓慢 | Powered attacks against owner scale up with cards played this turn. | Implemented by a prediction-aware multiplier reading the shadow card-play count. |
@@ -145,7 +145,7 @@ enum names rather than their numeric bit values.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `BufferPower` | 缓冲 | Sets owner's HP loss to 0. | Implemented by a prediction-aware late adapter that stops applying after the shadow amount reaches zero. |
+| `BufferPower` | 缓冲 | Sets owner's HP loss to 0, except damage sourced by BrightestFlame. | Implemented by a prediction-aware late adapter that stops applying after the shadow amount reaches zero; the original method supplies the source-card exception. |
 | `TheBoot` | 发条靴 | Raises owner's powered unblocked attack damage below threshold to minimum damage. | Implemented by original hook. |
 
 ## ModifyPreBlockDamageTarget listeners

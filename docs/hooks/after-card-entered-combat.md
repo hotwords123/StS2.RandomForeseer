@@ -15,7 +15,6 @@ Mirror file: none. The card-pile simulator currently adds generated cards to sim
 | `BansheesCry` | 女妖之嚎 | When this non-clone card enters combat, reduces this-combat cost by its energy amount for each Ethereal card owner played this combat. | Not mirrored. Requires shadow card-play history and preview cost mutation. |
 | `GalvanicPower` | 流电 | Unafflicted Power cards entering combat gain `Galvanized`. | Not mirrored. Affliction application on combat entry is currently absent. |
 | `HexPower` | 恶咒 | Owner's cards entering combat gain `Hexed` if unafflicted. | Not mirrored. Affliction application and Hexed-driven Ethereal are currently absent. |
-| `PhantomBladesPower` | 幻影之刃 | Owner's Shivs entering combat gain Retain. | Not mirrored. Keyword application on generated Shivs is currently absent. |
 | `RingingPower` | 昏眩 | Owner's unafflicted cards entering combat gain `Ringing`. | Not mirrored. This can affect `ShouldPlay` later in the turn. |
 | `SmoggyPower` | 烟雾弥漫 | Owner's unafflicted Skill cards entering combat gain `Smog` if owner has started a Skill this turn. | Not mirrored. Requires shadow card-play-started history and affliction application. |
 | `SwordSagePower` | 剑圣 | Owner's non-clone `SovereignBlade` entering combat gains Replay equal to the power amount. | Not mirrored. Replay count mutation on generated `SovereignBlade` is currently absent. |
@@ -31,6 +30,8 @@ Mirror file: none. The card-pile simulator currently adds generated cards to sim
 - Vanilla dispatches this hook from `CardPileCmd.Add` only when `oldPile == null`, the target is a combat pile, and the card is not merely changing owners.
 - `AddGeneratedCard(s)ToCombat` reaches this hook through `Add`, before `AfterCardChangedPiles` and before `AfterCardGeneratedForCombat`.
 - Most listeners mutate only the entering card: keywords, afflictions, cost, or replay count. Current generated-card prediction surfaces tolerate this drift, so dispatch is intentionally deferred.
+- `PhantomBladesPower` grants Retain through `TryModifyKeywordsInCombat` rather than an entering-card callback. The
+  prediction keyword facade already queries that original read-only hook for existing and generated Shivs.
 
 ## Mock model list
 

@@ -2,10 +2,26 @@
 
 ## Unreleased
 
+### feat
+
+- 补充新卡牌及瓶装歌曲的战斗预测。<br>
+  Expanded combat predictions for new cards and Bottled Song.
+
+- 新增酷刑博物馆、落难瓦皮和诺奴佩普的浴场的事件结果提示。<br>
+  Added event result predictions for Museum of Torture, Wuppy in Trouble, and Thermae Nonupeipe.
+
 ### fix
+
+- 适配游戏测试版 v0.113.0，更新遗物拾取、变牌、事件奖励和战斗效果预测。<br>
+  Updated relic pickup, transform, event reward, and combat effect predictions for game beta v0.113.0.
 
 - 优化浮木重掷预测，减少后续结果过早停止显示的情况。<br>
   Improved Driftwood reroll prediction to reduce cases where later results are hidden too early.
+
+### misc
+
+- 更新 RitsuLib 依赖到 0.6.11<br>
+  Updated the RitsuLib dependency to 0.6.11.
 
 ## v0.13.20
 

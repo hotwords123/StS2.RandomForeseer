@@ -14,7 +14,9 @@ Hook coverage is documented in [Power amount hooks](../hooks/power-amount-hooks.
   do not observe predicted changes.
 - **History and duration:** `PowerReceived` history and `SkipNextDurationTick` are not simulated. Consumers of
   these values need prediction-aware implementations.
-- **Lifecycle:** `BeforeApplied` and `AfterApplied` have placeholder registries; unsupported overrides record risk.
+- **Lifecycle:** `BeforeApplied` and `AfterApplied` use registries; unsupported overrides record risk.
+  `PhantomBladesPower.AfterApplied` is explicitly ignored because it only notifies existing Shivs to flash changed
+  keywords. Retain comes from the original read-only `TryModifyKeywordsInCombat` hook; no local keyword is written.
   `RemovePower` is a placeholder that clears the shadow amount and records `MethodMirrorIncomplete` for a non-null
   instance. It does not change collections or dispatch removal events and `AfterRemoved`; generic lookup still uses
   the live collection. Automatic removal after amount changes remains unmodeled.

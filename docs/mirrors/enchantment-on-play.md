@@ -14,10 +14,12 @@ Combat prediction dispatches the mutable preview enchantment through `Enchantmen
 | `Corrupted` | Deals 2 unblockable, unpowered Move damage to the owner with the predicted card and current `CardPlay` as sources. | Mirrored. |
 | `Inky` | Applies Weak to the selected enemy or all enemies. | Power application is not represented in shadow combat state; records `MethodMirrorIncomplete`. |
 | `Momentum` | Adds the enchantment amount to the mutable preview's accumulated extra damage for later plays in the series. | Mirrored. |
-| `Sown` | Once while normal, disables the preview enchantment and grants its amount of energy. | Mirrored. |
-| `Swift` | Once while normal, disables the preview enchantment and draws its amount from shadow piles. | Mirrored. |
+| `Sown` | While normal, grants its amount of energy; disables only when the card's AfterCardPlayed fires. | Mirrored across OnPlay and the after-card hook. |
+| `Swift` | While normal, draws its amount from shadow piles; disables only when the card's AfterCardPlayed fires. | Mirrored across OnPlay and the after-card hook. |
 
-`Sown` and `Swift` write the detached enchantment's `_status` field directly. Calling the original `Status` setter could invoke a `StatusChanged` delegate copied from the live model and leak a UI side effect out of prediction.
+`Sown` and `Swift` write the detached enchantment's `_status` field directly from their `AfterCardPlayed` mirrors.
+Their OnPlay effects leave it normal during nested actions. Calling the original `Status` setter could invoke a
+`StatusChanged` delegate copied from the live model and leak a UI side effect out of prediction.
 
 ## Dispatch and risk policy
 

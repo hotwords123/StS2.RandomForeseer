@@ -35,7 +35,7 @@ Mirror files:
 | --- | --- | --- | --- |
 | `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Implemented for immediate auto-play damage through simulator `AutoPlay` and the shared `CardOnPlayMirrors` handler. |
 | `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Implemented for draw-pile selection, play-pile movement, and immediate block gain through simulator `AutoPlayFromDrawPile` and the shared `CardOnPlayMirrors` handler. |
-| `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `Shuffle` RNG and calls generic simulator `AutoPlay`; unsupported generic `OnPlay` bodies are risk-marked, so this remains a partial mirror until individual attack effects or full card-play simulation are supported. |
+| `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `CombatCardSelection` RNG and calls generic simulator `AutoPlay`; unsupported generic `OnPlay` bodies retain risk. |
 
 ## BeforeSideTurnEndVeryEarly listeners
 
@@ -60,6 +60,7 @@ Mirror files:
 | `Orichalcum` | 奥利哈钢 | If very-early flag is set, owner gains block. | Implemented. |
 | `FakeOrichalcum` | 奥利哈钢？？？ | Same as Orichalcum. | Implemented. |
 | `CloakClasp` | 斗篷扣 | Owner gains block per card in hand. | Implemented. |
+| `ObsidianVice` | 黑曜石钳子 | At owner's turn end, deals unpowered damage per card in hand to a random hittable enemy. | Implemented using shadow hand size, cloned `CombatTargets`, and simulator `Damage`. |
 | `RippleBasin` | 波纹水盆 | Owner gains block if no Attack was played this turn. | Implemented. Uses live combat history like original. |
 | `HailstormPower` | 冰雹风暴 | If owner has enough Frost orbs, damages all hittable enemies. | Implemented via `Damage`. |
 | `ScreamingFlagon` | 尖叫酒壶 | If owner hand is empty, damages all hittable enemies. | Implemented via `Damage`. |
@@ -185,7 +186,8 @@ autoplay. These uncommon interactions are accepted for now without risk until th
   placeholder registry whose unregistered overrides record risk; regular and late side-end passes invoke only exact
   registered handlers and silently skip all other listeners without risk.
 - Remaining side-end work includes modeling `AfterDiedToDoom` consequences and other death recursion that can follow a
-  Doom batch kill. Deferred Ethereal draws for `DarkEmbracePower` and `JossPaper` now flow through
+  Doom batch kill. Before each queued Doom kill, the simulator rechecks shadow liveness and combat membership because
+  an earlier death can remove another queued creature. Deferred Ethereal draws for `DarkEmbracePower` and `JossPaper` flow through
   `CombatPredictionSimulator.Draw`, including prediction-aware draw hooks that can cause more draws, autoplay, RNG use,
   and damage.
 - Ethereal resolution uses `HookMirrors.ShouldEtherealTrigger`, preserving the original guarded all-must-allow

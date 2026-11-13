@@ -13,6 +13,7 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 | --- | --- | --- | --- |
 | `Aeonglass` | 永世沙漏 | Generated `Wither` cards are fake-upgraded to match Aeonglass's current `WitherUpgradeCount`. | Implemented. Mutates only the generated preview `Wither`. |
 | `ArsenalPower` | 武器库 | When the owner creates any card, applies Strength to owner. | Risk only. Apply Power is outside current simulator architecture. |
+| `AllIsWellPower` | 万事无忧 | When owner creates `Sadness`, gains block equal to the power amount. | Implemented via creator/card guards and simulator `GainBlock` with `Unpowered`; inherits current block hook gaps. |
 | `Regalite` | 君王矿石 | The first time its owner creates a card each turn, owner gains block. | Implemented via `GainBlock`; initializes a prediction-local used flag from the live relic and triggers at most once during the simulation. Inherits current block hook gaps. |
 | `SoulboundPower` | 灵魂绑定 | When the applier creates a `Soul`, adds this power's amount of `Soul` cards at random positions in the target owner's draw pile, guarded by a recursion flag. | Implemented. Uses prediction-local recursion state, recursive `AddGeneratedCardsToCombat`, and cloned Shuffle RNG for random insertion. StS2 v0.109.0 changed the insertion position from bottom to random. |
 | `PillarOfCreationPower` | 创世之柱 | Whenever its owner creates a card, owner gains block. | Implemented via `GainBlock`; inherits current block hook gaps. StS2 v0.110.0 removed the once-per-turn gate. |

@@ -59,6 +59,8 @@ Mirror files:
   value listeners call their original read-only methods; exact registrations replace only `PaelsLegion` and `Vambrace`
   live-state reads without unsupported-risk noise. Their selected-modifier commit shares the exact `CardPlay` with
   `AfterCardPlayed`, so cooldown and once-per-combat consumption remain occurrence-safe in nested chains.
+  `PaelsLegion` doubles only while no play has been selected or the current CardPlay is the selected occurrence;
+  nested plays do not borrow the pending outer play's doubling.
 - `AfterModifyingBlockAmount` is a side-effect hook and therefore uses the full action registry for listeners selected
   by the value passes. `FastenPower` is explicitly ignored because its original effect is visual-only;
   `PaelsLegion` and `Vambrace` commit shadow state. An unregistered override is not executed against the live model and

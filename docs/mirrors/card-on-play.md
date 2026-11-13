@@ -2,7 +2,7 @@
 
 ## Vanilla entry
 
-StS2 v0.109.0 runs each concrete `CardModel.OnPlay(PlayerChoiceContext, CardPlay)` from the card-play lifecycle. The lifecycle owns resource spending, play/result piles, wrapper hooks, enchantments, afflictions and history; the model-specific `OnPlay` body issues the card's commands.
+StS2 v0.113.0 runs each concrete `CardModel.OnPlay(PlayerChoiceContext, CardPlay)` from the card-play lifecycle. The lifecycle owns resource spending, play/result piles, wrapper hooks, enchantments, afflictions and history; the model-specific `OnPlay` body issues the card's commands.
 
 Combat prediction never invokes the real virtual method. `CombatPredictionSimulator.ManualPlay` creates a shadow `CardPlay`, then `CardOnPlayMirrors` dispatches the exact or inferred mirror against the mutable predicted card without mutating the real card, piles, creatures or RNG.
 
@@ -107,11 +107,36 @@ Draw shapes outside the owner-only rule remain exact registrations:
 | Ally draw | `Constellation`, `HuddleUp` | Resolves the selected player or all living player teammates from shadow state. |
 | Context-derived count | `CompileDriver`, `Scrawl` | Counts distinct shadow orbs or current shadow hand capacity. |
 | Conditional draw | `Fetch`, `Ftl`, `Impatience`, `Restlessness` | Evaluates the card-specific completed-play history, Osty or shadow-hand predicate before drawing. Live entries are combined with `CombatPredictionCardPlayFinishedEntry` records written at vanilla's `CardPlayFinished` point. |
-| Draw-result follow-up | `EscapePlan`, `Expertise`, `Pillage`, `Scrape` | Uses the actual shadow cards returned by draw to apply conditional block, retain, repeated draw or discard. |
+| Draw-result follow-up | `EscapePlan`, `Pillage`, `Scrape` | Uses the actual shadow cards returned by draw to apply conditional block, repeated draw or discard. |
+| Discard then draw | `CalculatedGamble`, `WheelOfFortune` / 命运之轮 | Snapshots the current shadow hand before discard hooks and their nested effects. Wheel of Fortune uses its fixed draw count, including when the hand is empty. |
 
 These handlers take priority over inference, including when their original IL also happens to match an owner-draw
 recipe. `CombatPredictionSimulator.Draw` returns the drawn `PredictedCard` objects for these follow-up mirrors while
 preserving the existing history and hook order.
+
+`Expertise` / 独门技术 and `Joy` / 喜悦 have no exact handler. They follow the general inference/unsupported policy:
+an inferred owner draw does not include RetainHandPower or energy gain. Expertise's hand-retention effect needs a
+complete power/listener domain; it is not approximated with per-card Retain flags.
+
+## Exact card generation and random selection
+
+Generation handlers retain the shared combat card-pool filtering, detached previews, cloned RNG and generation/pile
+hook order. The following cards use those existing domains:
+
+| Cards / 中文名 | Exact coverage |
+| --- | --- |
+| `TheHierophant` / 教皇 | Distinct colorless cards from `CombatCardGeneration`; applies each card's temporary -1 energy cost immediately before adding that card to hand. |
+| `TheLovers` / 恋人 | Generates enough cards to fill the shadow hand from the other unlocked character pools, with the original own-pool fallback and upgrade handling. |
+| `TheFool` / 愚者 | Repeatedly shuffles the current playable hand with `CombatCardSelection`, falls back to all hand cards, then auto-plays the selected card through the existing lifecycle. |
+| `TheWorld` / 世界 | Randomly returns discard cards to hand with `CombatCardSelection`, capped by the card value and current hand capacity. |
+
+`TheMoon` / 月亮, `TheSun` / 太阳, `Rummage` / 翻找 and `TheHermit` / 隐者 have no exact registrations. Fixed-card
+generation, energy and discard/exhaust choices are not covered by a recognized owner-draw recipe. These cards retain
+the general inference/unsupported boundary rather than claiming complete or choice-aware exact support.
+
+`BeatDown`, `Catastrophe` and `Uproar` also select cards with `CombatCardSelection`. Their shuffles are local random
+selection operations; actual pile shuffling continues to use `Shuffle`. Each auto-play iteration observes pile
+changes and nested effects from the preceding play.
 
 ## Miscellaneous exact mirrors
 
@@ -142,9 +167,15 @@ central `MultiHitAttackCardMirrors` registration group:
 | Live plus shadow history count | `Finisher`, `HelixDrill`, `LunarBlast`, `PullFromBelow`, `Radiate`, `Rattle`, `TearAsunder` | Combines matching vanilla history with prediction-local card-play, energy, star, attack, or damage entries. Current-turn queries use the simulator combat state instead of the detached card's null `CombatState`. |
 | Multi-step lifecycle | `FiendFire`, `GunkUp`, `Maul`, `SovereignBlade` | Exhausts a snapshot of the shadow hand before attacking, generates the fixed `Slimed`, grows all shadow `Maul` copies, or resolves Seeking Edge targeting and Parry block. |
 
-`GunkUp`, `SovereignBlade` and `Spite` read `DynamicVars.HitCount` in their dedicated logic. `CalculatedHitCountVar`
+`Dismantle`, `GunkUp`, `Maul`, `SovereignBlade` and `Spite` read `DynamicVars.HitCount` in their dedicated logic;
+the selection handlers for `Thrash` and `Uproar`, and the orb handler for `Refract`, do the same. Refract's separate
+orb-channel count still uses `Repeat`. `CalculatedHitCountVar`
 inherits `CalculatedVar`, but its multiplier can still depend on live piles or combat history, so the relevant
 handlers retain prediction-aware hit-count calculations.
+
+Helix Drill subtracts the current unfinished play's actual `Resources.EnergySpent` from the combined energy history.
+It does not subtract the energy value used for X or free-play resolution. Fiend Fire still snapshots and exhausts
+the actual shadow hand before attacking; its new calculated hit-count var does not replace that command sequence.
 
 These handlers never call `CalculatedVar.Calculate` on the detached card. `Dismantle` and `SovereignBlade` still read
 the target/owner's live power collection because power application is not a simulator-owned state domain; an earlier
@@ -160,6 +191,10 @@ ends combat.
 inside vanilla `AttackContext`, which the general attack inference cannot represent. Their handlers use
 `SimAttackContext` to dispatch the shared attack hooks and mirror each card's conditional or chained hit logic.
 
+Omnislice's spread uses `ValueProp.Move` with only the cap damage hooks. It carries the first hit's resolved damage
+without applying ordinary additive or multiplicative modifiers again, while retaining powered damage and Thorns
+semantics. The spread excludes the original selected target, matching vanilla even when the first hit is redirected.
+
 ## Deliberate limits and risks
 
 - Only calls directly present in the original `OnPlay`/`MoveNext` body are considered. Same-card helpers, virtual/interface dispatch, delegates, reflection and arbitrary transitive calls are not followed.
@@ -169,6 +204,7 @@ inside vanilla `AttackContext`, which the general attack inference cannot repres
 - Direct `Cards.IntValue` recipes reuse `Cards.BaseValue` when the cached action executes. Vanilla card-count vars are integral, but a Mod card with a fractional value could differ because the simulator applies draw-count ceiling instead of first truncating to `IntValue`.
 - Inference does not imply the complete `OnPlay` was mirrored. Outside the narrow Weak/Vulnerable templates, power application, HP loss, energy, card movement/generation and other commands remain omitted unless an exact handler covers the card.
 - The power-application boundary mirrors hook order and prediction-owned listener effects but does not yet maintain a complete shadow power collection. It therefore supports existing Artifact/Vicious state while recording mirror risk for unregistered power lifecycle or action-hook overrides.
+- New arrow/ArrowSlot and Melody state are not modeled. `BlotOutTheSky` / 遮天蔽日 and calculated Melody-dependent draws such as `SteadyCadence` / 平稳韵律 remain inferred or unsupported with risk. The complete transformations used by `MourningBlow` / 悲痛一击 and `PunchOfJoy` / 喜悦之拳 also remain outside exact coverage; a recognized attack does not imply their transformation lifecycle is supported.
 - A recognized attack or block whose runtime card lacks a supported damage/block var or target shape skips that general action and records incomplete risk; its Type-level classification remains cached.
 
 These limits are intentional. Expanding inference should add narrowly named, offline-verifiable templates rather than evolve into a general IL interpreter.

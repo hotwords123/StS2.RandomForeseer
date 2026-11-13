@@ -38,6 +38,7 @@ source. Existing handled listeners do not depend on this argument.
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
 | `GremlinHorn` | 地精之角 | When an enemy dies, owner gains energy and draws cards. | Implemented for energy and draw. Energy is applied before draw, matching vanilla order. |
+| `CompostPower` | 堆肥 | When an opposing creature dies, each living player teammate of the owner gains energy. | Implemented using shadow liveness and combat membership. Like vanilla, does not require `wasRemovalPrevented` to be false. |
 | `Aeonglass` | 永世沙漏 | Music/progression side effect on own death. | Ignored. |
 | `DecimillipedeSegment` | 残杀千足虫 | Segment death state/VFX handling. | Ignored in registry, but full combat-structure parity is unsupported. |
 | `KinPriest` | 同族神官 | Encounter-specific death behavior. | Ignored in registry; no current prediction-relevant player turn effect. |

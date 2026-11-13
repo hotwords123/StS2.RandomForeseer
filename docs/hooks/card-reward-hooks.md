@@ -41,7 +41,7 @@ The project reproduces the pure-ish creation-option and upgrade-odds listener pa
 | `Glitter` | 亮片 | Adds Glam to valid rewards. | Implemented. |
 | `FresnelLens` | 菲涅耳透镜 | Adds Nimble to valid rewards. | Implemented. |
 | `SilkenTress` | 华美发束 | Adds Glam to card rewards while unused. | Implemented. |
-| `WingCharm` | 羽翼护符 | Chooses one valid reward and adds Swift. StS2 v0.113.0 uses the owner's Rewards RNG. | Pending content adaptation: the existing mirror still uses Niche RNG. |
+| `WingCharm` | 羽翼护符 | Chooses one valid reward using the owner's Rewards RNG and adds Swift. | Implemented with the prediction context's cloned Rewards stream, including earlier card-generation consumption. |
 
 ## ModifyCardRewardCreationOptions listeners
 

@@ -19,7 +19,8 @@ StS2 v0.109.0 executes `PotionModel.OnUse(PlayerChoiceContext, Creature?)` insid
 | Card generation options | `AttackPotion`, `SkillPotion`, `PowerPotion`, `ColorlessPotion` | Generates the three exact options with cloned `CombatCardGeneration`, records one options entry and then records unresolved player-choice risk. The unknown selected card and its hand insertion are not fabricated. |
 | Card generation | `CosmicConcoction` | Generates the configured number of distinct colorless cards, upgrades them and adds them to the target shadow hand through generated-card history and hooks. |
 | Card generation | `OrobicAcid` | Generates one Attack, Skill and Power in vanilla RNG order, makes each free this turn and adds them to the target shadow hand through generated-card history and hooks. |
-| Potion generation | `EntropicBrew` | Uses cloned `CombatPotionGeneration` and the shared reward helper. It records enough results to fill the entire target potion belt, preserving the existing presentation policy that the player may discard potions before use; potion slots and procurement hooks are not mutated. |
+| Card generation | `BottledSong` | Uses all unlocked character pools to generate one Wah, Cho and Ki card in that order with cloned `CombatCardGeneration`. Each independent selection follows the combat/run filters and full distinct shuffle, skips an empty category, and makes the result free this turn before adding the batch. This does not execute Melody or arrow effects. |
+| Potion generation | `EntropicBrew` | Uses `Rng.ForPlayer(target).NonCombatGeneration` and the shared reward helper. The simulator caches a `CombatPredictionPlayerRngSet` per player, retaining the cloned stream across repeated calls. It records enough results to fill the entire target potion belt, preserving the existing presentation policy that the player may discard potions before use; potion slots and procurement hooks are not mutated. |
 | Draw-pile autoplay | `DistilledChaos` | Selects cards from the top of the shadow draw pile, records each direct autoplay entry and executes each supported child card through the shared nested card-play path. |
 | Draw | `BottledPotential` | Moves the shadow hand to draw, shuffles with cloned RNG and then draws the configured count. |
 | Draw | `Clarity` | Draws the configured count. Its later power application cannot affect the displayed draw result and remains outside the unsupported power state domain. |
@@ -34,6 +35,9 @@ StS2 v0.109.0 executes `PotionModel.OnUse(PlayerChoiceContext, Creature?)` insid
 `EntropicBrewMirrors.Generate` similarly shares the full-belt potion reward policy between combat history and out-of-combat HoverTips without fabricating combat state or mutating potion slots.
 
 ## Unsupported and intentionally omitted behavior
+
+`CrystallineEuphoria` has no exact registration. Its fixed Joy/Sadness generation and resulting hooks are not
+simulated; it follows the same unsupported boundary as other unregistered potions.
 
 All unregistered exact potion runtime types remain unsupported and are rejected by `CanMirror`; direct invocation records `MethodNotMirrored` risk. `Hook.BeforePotionUsed` and `Hook.AfterPotionUsed` are not mirrored and must not be assumed to run around a predicted potion use. Potion removal, VFX, waits, combat effect bookkeeping, vanilla potion-use history, run history, empty-hand checks, potion-slot mutation and UI cost animations are intentionally outside this entry.
 
