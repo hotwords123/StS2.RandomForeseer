@@ -78,7 +78,7 @@ internal sealed partial class CombatPredictionSimulator
 
         foreach (var card in cardsToDiscard)
         {
-            if (card.Preview.IsSlyThisTurn)
+            if (card.GetPile(State)?.Type == PileType.Hand && card.Preview.IsSlyThisTurn)
             {
                 slyCards.Add(card);
             }
@@ -103,7 +103,7 @@ internal sealed partial class CombatPredictionSimulator
     // Mirrors CardCmd.Exhaust.
     public void Exhaust(PredictedCard card, bool causedByEthereal = false)
     {
-        if (IsOverOrEnding)
+        if (IsOverOrEnding || State.GetCreature(card.Preview.Owner.Creature).IsDead)
         {
             return;
         }
@@ -255,6 +255,7 @@ internal sealed partial class CombatPredictionSimulator
         frame = CurrentFrame ?? throw new UnreachableException("No current frame after pushing action source.");
 
         var previewCard = card.MutablePreview;
+        previewCard._transformIntoAfterPlay = null;
         var originalOwner = previewCard.Owner;
         previewCard.CurrentTarget = target;
         previewCard.CurrentPlayIndex = 0;
@@ -349,6 +350,14 @@ internal sealed partial class CombatPredictionSimulator
             if (ownerCreature.IsDead)
             {
                 return;
+            }
+
+            if (previewCard.TransformIntoAfterPlay != null)
+            {
+                // CardCmd.Transform's card replacement and listener lifecycle are not owned by the
+                // simulator yet. New content using this path must remain explicitly incomplete.
+                History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+                break;
             }
         }
 

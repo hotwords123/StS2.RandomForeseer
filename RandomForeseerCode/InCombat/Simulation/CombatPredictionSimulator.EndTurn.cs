@@ -168,6 +168,11 @@ internal sealed partial class CombatPredictionSimulator
     {
         foreach (var card in cards)
         {
+            if (card.Preview.HasBeenRemovedFromState)
+            {
+                continue;
+            }
+
             AddToPile(card, PileType.Play);
             CardOnTurnEndInHandMirrors.Invoke(this, card);
 

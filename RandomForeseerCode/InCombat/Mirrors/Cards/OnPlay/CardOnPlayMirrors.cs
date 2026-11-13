@@ -93,16 +93,16 @@ internal static class CardOnPlayMirrors
         registry.Register<Scrawl>(CardDrawCardMirrors.ScrawlOnPlay);
 
         registry.Register<FlakCannon>(RandomTargetAttackCardMirrors.FlakCannonOnPlay);
-        registry.Register<Ricochet>(RandomTargetAttackCardMirrors.RicochetOnPlay);
-        registry.Register<RipAndTear>(RandomTargetAttackCardMirrors.RipAndTearOnPlay);
+        registry.Register<Ricochet>(GeneralCardMirrors.GeneralAttackOnPlay);
+        registry.Register<RipAndTear>(GeneralCardMirrors.GeneralAttackOnPlay);
         registry.Register<Stardust>(RandomTargetAttackCardMirrors.StardustOnPlay);
         registry.Register<SweepingGaze>(RandomTargetAttackCardMirrors.SweepingGazeOnPlay);
-        registry.Register<SwordBoomerang>(RandomTargetAttackCardMirrors.SwordBoomerangOnPlay);
+        registry.Register<SwordBoomerang>(GeneralCardMirrors.GeneralAttackOnPlay);
         registry.Register<Volley>(RandomTargetAttackCardMirrors.VolleyOnPlay);
 
-        registry.Register<AstralPulse>(MultiHitAttackCardMirrors.AstralPulseOnPlay);
+        registry.Register<AstralPulse>(GeneralCardMirrors.GeneralAttackOnPlay);
         registry.Register<Barrage>(MultiHitAttackCardMirrors.BarrageOnPlay);
-        registry.Register<DaggerSpray>(MultiHitAttackCardMirrors.DaggerSprayOnPlay);
+        registry.Register<DaggerSpray>(GeneralCardMirrors.GeneralAttackOnPlay);
         registry.Register<Dismantle>(MultiHitAttackCardMirrors.DismantleOnPlay);
         registry.Register<FiendFire>(MultiHitAttackCardMirrors.FiendFireOnPlay);
         registry.Register<Finisher>(MultiHitAttackCardMirrors.FinisherOnPlay);
@@ -118,7 +118,7 @@ internal static class CardOnPlayMirrors
         registry.Register<SovereignBlade>(MultiHitAttackCardMirrors.SovereignBladeOnPlay);
         registry.Register<Spite>(MultiHitAttackCardMirrors.SpiteOnPlay);
         registry.Register<TearAsunder>(MultiHitAttackCardMirrors.TearAsunderOnPlay);
-        registry.Register<TwinStrike>(MultiHitAttackCardMirrors.TwinStrikeOnPlay);
+        registry.Register<TwinStrike>(GeneralCardMirrors.GeneralAttackOnPlay);
 
         registry.Register<EchoingSlash>(SpecialAttackCardMirrors.EchoingSlashOnPlay);
         registry.Register<Omnislice>(SpecialAttackCardMirrors.OmnisliceOnPlay);

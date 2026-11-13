@@ -46,7 +46,7 @@ The general inferrer currently recognizes five direct templates:
 
 | Candidate | Recognized IL shape | Mirrored behavior |
 | --- | --- | --- |
-| Attack | Direct `AttackCommand.Execute` call | Builds an attack from `CalculatedDamage`, `Damage` or `OstyDamage`, applies optional `Repeat`, and targets a single, all or random enemy according to the card. |
+| Attack | Direct `AttackCommand.Execute` call | Builds an attack from `CalculatedDamage`, `Damage` or `OstyDamage`, reads optional `HitCount`, `Repeat` or `CalculatedHits` in that priority order (otherwise energy/star X), and targets a single, all or random enemy according to the card. |
 | Block | Direct `CreatureCmd.GainBlock` call | Uses `CalculatedBlock` or `Block`. Self-target cards and enemy-targeting attack cards gain block on the owner; `AnyAlly` uses the selected ally; `AllAllies` uses all living player teammates. |
 | Owner draw | A supported `CardPileCmd.Draw` call-site recipe | Draws a fixed one card or the standard `Cards` value for the owner from shadow piles, including shuffle and draw hooks. |
 | Vulnerable application | A direct, unguarded `PowerCmd.Apply<VulnerablePower>` call | Resolves the standard `VulnerablePower`/`Power` amount and target shape, then enters the shared shadow `PowerCmd.Apply` boundary. Artifact can consume the application before `AfterPowerAmountChanged`; an active Vicious then draws through the existing shadow draw pipeline. |
@@ -127,15 +127,24 @@ earlier play.
 
 ## Exact multi-hit attack mirrors
 
+`AstralPulse`, `DaggerSpray`, `TwinStrike`, `Ricochet`, `RipAndTear` and `SwordBoomerang` retain exact registrations
+but share `GeneralAttackOnPlay`, which recognizes `HitCount` before the older count shapes. These reviewed cards
+remain supported with inference disabled and do not gain inference-only risk. The handler reads the local count
+rather than `PreviewValue`; the shared attack pipeline applies hit-count hooks once.
+
 Multi-hit attacks whose count or follow-up effects cannot be reconstructed by the general attack template use the
 central `MultiHitAttackCardMirrors` registration group:
 
 | Shape | Exact cards | Prediction behavior |
 | --- | --- | --- |
-| Literal or local count | `AstralPulse`, `DaggerSpray`, `Dismantle`, `HeavenlyDrill`, `Spite`, `TwinStrike` | Reconstructs literal counts, target Vulnerable, the doubled energy-X threshold, and the current-turn HP-loss condition. |
+| Conditional count | `Dismantle`, `HeavenlyDrill`, `Spite` | Reconstructs target Vulnerable, the doubled energy-X threshold, and the current-turn HP-loss condition. |
 | Shadow card/orb count | `Barrage`, `Flechettes` | Counts the owner's shadow orb queue or shadow hand rather than querying the detached preview's live collections. |
 | Live plus shadow history count | `Finisher`, `HelixDrill`, `LunarBlast`, `PullFromBelow`, `Radiate`, `Rattle`, `TearAsunder` | Combines matching vanilla history with prediction-local card-play, energy, star, attack, or damage entries. Current-turn queries use the simulator combat state instead of the detached card's null `CombatState`. |
 | Multi-step lifecycle | `FiendFire`, `GunkUp`, `Maul`, `SovereignBlade` | Exhausts a snapshot of the shadow hand before attacking, generates the fixed `Slimed`, grows all shadow `Maul` copies, or resolves Seeking Edge targeting and Parry block. |
+
+`GunkUp`, `SovereignBlade` and `Spite` read `DynamicVars.HitCount` in their dedicated logic. `CalculatedHitCountVar`
+inherits `CalculatedVar`, but its multiplier can still depend on live piles or combat history, so the relevant
+handlers retain prediction-aware hit-count calculations.
 
 These handlers never call `CalculatedVar.Calculate` on the detached card. `Dismantle` and `SovereignBlade` still read
 the target/owner's live power collection because power application is not a simulator-owned state domain; an earlier

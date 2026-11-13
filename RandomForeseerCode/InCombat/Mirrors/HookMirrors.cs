@@ -925,13 +925,21 @@ internal static class HookMirrors
         decimal damage,
         ValueProp props,
         PredictedCard? cardSource,
-        CardPlay? cardPlay)
+        CardPlay? cardPlay,
+        ModifyDamageHookType modifyDamageHookType = ModifyDamageHookType.All)
     {
         var cardModel = cardSource?.Preview;
         if (cardModel?.Enchantment is { } enchantment)
         {
-            damage += enchantment.EnchantDamageAdditive(damage, props);
-            damage *= enchantment.EnchantDamageMultiplicative(damage, props);
+            if (modifyDamageHookType.HasFlag(ModifyDamageHookType.Additive))
+            {
+                damage += enchantment.EnchantDamageAdditive(damage, props);
+            }
+
+            if (modifyDamageHookType.HasFlag(ModifyDamageHookType.Multiplicative))
+            {
+                damage *= enchantment.EnchantDamageMultiplicative(damage, props);
+            }
         }
 
         var context = new ModifyDamageMirrorContext
@@ -944,22 +952,36 @@ internal static class HookMirrors
             CardSource = cardSource,
             CardPlay = cardPlay
         };
-        foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+        if (modifyDamageHookType.HasFlag(ModifyDamageHookType.Additive))
         {
-            context.Amount = damage;
-            damage += ModifyDamageMirrors.InvokeAdditive(listener, context);
+            foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+            {
+                context.Amount = damage;
+                damage += ModifyDamageMirrors.InvokeAdditive(listener, context);
+            }
         }
 
-        foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+        if (modifyDamageHookType.HasFlag(ModifyDamageHookType.Multiplicative))
         {
-            context.Amount = damage;
-            damage *= ModifyDamageMirrors.InvokeMultiplicative(listener, context);
+            foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+            {
+                context.Amount = damage;
+                damage *= ModifyDamageMirrors.InvokeMultiplicative(listener, context);
+            }
+
+            foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+            {
+                damage *= listener.ModifyDamageMultiplicativeLate(target, damage, props, dealer, cardModel, cardPlay);
+            }
         }
 
         var cap = decimal.MaxValue;
-        foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+        if (modifyDamageHookType.HasFlag(ModifyDamageHookType.Cap))
         {
-            cap = Math.Min(cap, listener.ModifyDamageCap(target, props, dealer, cardModel, cardPlay));
+            foreach (var listener in IterateRunHookListeners(simulator, applyCompatibilityFilter: false))
+            {
+                cap = Math.Min(cap, listener.ModifyDamageCap(target, props, dealer, cardModel, cardPlay));
+            }
         }
 
         return Math.Max(0, Math.Min(damage, cap));
@@ -1036,6 +1058,32 @@ internal static class HookMirrors
         }
 
         return context.Amount;
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="Hook.ModifyPreBlockDamageTarget"/>.
+    /// </summary>
+    public static Creature? ModifyPreBlockDamageTarget(
+        CombatPredictionSimulator simulator,
+        Creature originalTarget,
+        decimal amount,
+        ValueProp props,
+        Creature? dealer)
+    {
+        var context = new ModifyPreBlockDamageTargetMirrorContext
+        {
+            Simulator = simulator,
+            OriginalTarget = originalTarget,
+            Amount = amount,
+            Props = props,
+            Dealer = dealer
+        };
+        foreach (var listener in IterateCombatHookListeners(simulator, allowWhenCombatEnding: true))
+        {
+            ModifyPreBlockDamageTargetMirrors.Invoke(listener, context);
+        }
+
+        return context.Target;
     }
 
     // Mirrors Hook.AfterDamageGiven.
@@ -1242,12 +1290,14 @@ internal static class HookMirrors
     public static void AfterDeath(
         CombatPredictionSimulator simulator,
         Creature creature,
-        bool wasRemovalPrevented)
+        bool wasRemovalPrevented,
+        PredictedCard? source = null)
     {
         var context = new AfterDeathMirrorContext
         {
             Simulator = simulator,
             Creature = creature,
+            Source = source,
             WasRemovalPrevented = wasRemovalPrevented
         };
 

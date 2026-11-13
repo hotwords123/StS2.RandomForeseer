@@ -107,9 +107,9 @@ internal static class GeneralCardMirrors
             command.FromCard(card, context.CardPlay);
         }
 
-        if (TryGetDynamicVar(card, ["Repeat", "CalculatedHits"], out var repeat))
+        if (TryGetDynamicVar(card, ["HitCount", "Repeat", "CalculatedHits"], out var hitCount))
         {
-            command.WithHitCount((int)context.Calculate(repeat));
+            command.WithHitCount((int)context.Calculate(hitCount));
         }
         else if (card.EnergyCost.CostsX)
         {

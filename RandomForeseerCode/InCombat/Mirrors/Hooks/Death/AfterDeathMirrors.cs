@@ -20,6 +20,7 @@ internal static class AfterDeathMirrors
         [
             typeof(PlayerChoiceContext),
             typeof(Creature),
+            typeof(CardModel),
             typeof(bool),
             typeof(float)
         ]);
@@ -95,6 +96,8 @@ internal static class AfterDeathMirrors
 internal sealed class AfterDeathMirrorContext : CombatMirrorContext
 {
     public required Creature Creature { get; init; }
+
+    public PredictedCard? Source { get; init; }
 
     public required bool WasRemovalPrevented { get; init; }
 }

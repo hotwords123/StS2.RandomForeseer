@@ -9,11 +9,11 @@ namespace RandomForeseer.InCombat.Extensions;
 
 internal static class CombatCardGenerationExtensions
 {
-    public static IEnumerable<CardModel> FilterForCombatAndPlayerCount(
+    public static IEnumerable<CardModel> FilterForCombatAndRun(
         this IEnumerable<CardModel> cards,
         Player player)
     {
-        return CardFactory.FilterForPlayerCount(player.RunState, CardFactory.FilterForCombat(cards));
+        return CardFactory.FilterForRun(player.RunState, CardFactory.FilterForCombat(cards));
     }
 
     // Mirrors CardFactory.GetDistinctForCombat, but does not create cards for the player.
@@ -23,7 +23,7 @@ internal static class CombatCardGenerationExtensions
         int count,
         Rng rng)
     {
-        return cards.FilterForCombatAndPlayerCount(player).TakeRandom(count, rng);
+        return cards.FilterForCombatAndRun(player).TakeRandom(count, rng);
     }
 
     // Mirrors CardFactory.GetForCombat, but does not create cards for the player.
@@ -33,7 +33,7 @@ internal static class CombatCardGenerationExtensions
         int count,
         Rng rng)
     {
-        var options = cards.FilterForCombatAndPlayerCount(player).ToList();
+        var options = cards.FilterForCombatAndRun(player).ToList();
         if (options.Count == 0)
         {
             return [];

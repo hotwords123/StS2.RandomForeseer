@@ -57,7 +57,7 @@ internal static class AfterCardExhaustedMirrors
             if (!state.WasUsedThisCombat)
             {
                 context.Simulator.AddGeneratedCardToCombat(
-                    context.Card.CreateClone(),
+                    context.Card.CreateClone(context.State),
                     PileType.Hand,
                     relic.Owner,
                     resultKind: CardGenerationResultKind.Contextual);

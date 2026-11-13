@@ -22,8 +22,13 @@ internal static class CombatPredictedCardExtensions
     }
 
     // Mirrors CardModel.CreateClone, but returns a PredictedCard instead of a CardModel.
-    public static PredictedCard CreateClone(this PredictedCard card)
+    public static PredictedCard CreateClone(this PredictedCard card, CombatPredictionState state)
     {
+        if (card.Preview is { IsDupe: true, DupeOf: { } source })
+        {
+            card = state.FindCard(source) ?? new PredictedCard(source);
+        }
+
         var clonedCard = (CardModel)card.Preview.MutableClone();
         clonedCard._cloneOf = card.Original;
         clonedCard.ExhaustOnNextPlay = false;
@@ -33,9 +38,9 @@ internal static class CombatPredictedCardExtensions
     /// <summary>
     /// Mirrors <see cref="CardModel.CreateCloneForPlayer"/>.
     /// </summary>
-    public static PredictedCard CreateCloneForPlayer(this PredictedCard card, Player player)
+    public static PredictedCard CreateCloneForPlayer(this PredictedCard card, Player player, CombatPredictionState state)
     {
-        var clone = card.CreateClone();
+        var clone = card.CreateClone(state);
         clone.MutablePreview._owner = player;
         return clone;
     }

@@ -90,8 +90,7 @@ internal static class ShouldPlayMirrors
     private static bool HandleVelvetChoker(VelvetChoker relic, ShouldPlayMirrorContext context)
     {
         return context.Card.Preview.Owner != relic.Owner ||
-            context.StateStore.Get(relic, () => new CounterPredictionState(relic._cardsPlayedThisTurn)).Value <
-            relic.DynamicVars.Cards.IntValue;
+            CountCardPlaysStartedThisTurn(relic.Owner, context) < relic.DynamicVars.Cards.IntValue;
     }
 
     private static int CountCardPlaysStartedThisTurn(Player player, ShouldPlayMirrorContext context)

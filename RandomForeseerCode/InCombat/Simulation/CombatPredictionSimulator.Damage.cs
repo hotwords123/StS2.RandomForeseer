@@ -57,7 +57,8 @@ internal sealed partial class CombatPredictionSimulator
         ValueProp props,
         Creature? dealer,
         PredictedCard? cardSource,
-        CardPlay? cardPlay)
+        CardPlay? cardPlay,
+        ModifyDamageHookType modifyDamageHookType = ModifyDamageHookType.All)
     {
         if (dealer is not null && State.GetCreature(dealer).IsDead || targets.Count == 0)
         {
@@ -70,7 +71,14 @@ internal sealed partial class CombatPredictionSimulator
 
         foreach (var originalTarget in targets)
         {
-            results.AddRange(DamageTarget(originalTarget, amount, props, dealer, cardSource, cardPlay));
+            results.AddRange(DamageTarget(
+                originalTarget,
+                amount,
+                props,
+                dealer,
+                cardSource,
+                cardPlay,
+                modifyDamageHookType));
         }
 
         ProcessDamageResults(results, dealer, cardSource);
@@ -84,7 +92,8 @@ internal sealed partial class CombatPredictionSimulator
         ValueProp props,
         Creature? dealer,
         PredictedCard? cardSource,
-        CardPlay? cardPlay)
+        CardPlay? cardPlay,
+        ModifyDamageHookType modifyDamageHookType)
     {
         var originalTargetState = State.GetCreature(originalTarget);
         if (originalTargetState.IsDead)
@@ -98,7 +107,8 @@ internal sealed partial class CombatPredictionSimulator
             dealer, amount,
             props,
             cardSource,
-            cardPlay);
+            cardPlay,
+            modifyDamageHookType);
 
         HookMirrors.BeforeDamageReceived(
             this,
@@ -109,6 +119,8 @@ internal sealed partial class CombatPredictionSimulator
             cardSource);
 
         var blockTarget = originalTarget.PetOwner?.Creature ?? originalTarget;
+        // TODO: support block redirection hooks for pets
+        _ = HookMirrors.ModifyPreBlockDamageTarget(this, originalTarget, amount, props, dealer);
         var blockTargetState = State.GetCreature(blockTarget);
         var blockedDamage = blockTargetState.DamageBlock(modifiedAmount, props);
 
@@ -142,6 +154,8 @@ internal sealed partial class CombatPredictionSimulator
 
         var unblockedDamageTargetState = State.GetCreature(unblockedDamageTarget);
         var unblockedDamageResult = unblockedDamageTargetState.LoseHp(unblockedDamage, props);
+        unblockedDamageResult.OriginalTarget = originalTarget;
+        unblockedDamageResult.IntendedHpLoss = (int)Math.Max(modifiedAmount - blockedDamage, 0m);
         List<DamageResult> damageResults = [unblockedDamageResult];
 
         var wasBlockBroken = originalTargetState.Block <= 0 && blockedDamage > 0m;
@@ -171,6 +185,7 @@ internal sealed partial class CombatPredictionSimulator
             var damageResult = originalTargetDamage > 0m
                 ? originalTargetState.LoseHp(originalTargetDamage, props)
                 : new DamageResult(originalTarget, props);
+            damageResult.IntendedHpLoss = unblockedDamageResult.OverkillDamage;
             damageResult.BlockedDamage = (int)blockedDamage;
             damageResult.WasBlockBroken = wasBlockBroken;
             damageResult.WasFullyBlocked = wasFullyBlocked;
@@ -233,21 +248,21 @@ internal sealed partial class CombatPredictionSimulator
             }
         }
 
-        Kill(killedCreatures);
+        Kill(killedCreatures, cardSource: cardSource);
     }
 
     // Convenience overload for Kill with a single target.
-    public void Kill(Creature creature, bool force = false)
+    public void Kill(Creature creature, bool force = false, PredictedCard? cardSource = null)
     {
-        Kill([creature], force);
+        Kill([creature], force, cardSource);
     }
 
     // Mirrors CreatureCmd.Kill.
-    public void Kill(IReadOnlyList<Creature> creatures, bool force = false)
+    public void Kill(IReadOnlyList<Creature> creatures, bool force = false, PredictedCard? cardSource = null)
     {
         foreach (var creature in creatures)
         {
-            KillWithoutCheckingWinCondition(creature, force);
+            KillWithoutCheckingWinCondition(creature, force, cardSource);
         }
 
         if (State.Players.All(player => State.GetCreature(player.Creature).IsDead))
@@ -259,7 +274,7 @@ internal sealed partial class CombatPredictionSimulator
     }
 
     // Mirrors CreatureCmd.KillWithoutCheckingWinCondition, without recursion checks.
-    private void KillWithoutCheckingWinCondition(Creature creature, bool force)
+    private void KillWithoutCheckingWinCondition(Creature creature, bool force, PredictedCard? cardSource)
     {
         var creatureState = State.GetCreature(creature);
         var currentHp = creatureState.CurrentHp;
@@ -275,7 +290,7 @@ internal sealed partial class CombatPredictionSimulator
         {
             var shouldRemoveFromCombat = HookMirrors.ShouldCreatureBeRemovedFromCombatAfterDeath(this, creature);
 
-            HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: false);
+            HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: false, source: cardSource);
 
             var aliveTeammates = State.GetTeammatesOf(creature)
                 .Where(c => State.GetCreature(c).IsAlive)
@@ -296,7 +311,7 @@ internal sealed partial class CombatPredictionSimulator
             {
                 if (isPrimaryEnemy && aliveTeammates.Length > 0 && aliveTeammates.All(c => c.IsSecondaryEnemy))
                 {
-                    Kill(aliveTeammates);
+                    Kill(aliveTeammates, cardSource: cardSource);
                 }
             }
             else if (creature.Player is { } player)
@@ -306,7 +321,7 @@ internal sealed partial class CombatPredictionSimulator
         }
         else
         {
-            HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: true);
+            HookMirrors.AfterDeath(this, creature, wasRemovalPrevented: true, source: cardSource);
             HookMirrors.AfterPreventingDeath(this, preventer, creature);
 
             // Vanilla recursively calls KillWithoutCheckingWinCondition here, which is not mirrored.

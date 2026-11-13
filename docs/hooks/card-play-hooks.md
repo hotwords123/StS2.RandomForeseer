@@ -1,7 +1,7 @@
 # Card play hooks
 
 Research baseline: StS2 v0.110.1 (`a421e19`).
-`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`).
+`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`); API contracts follow v0.113.0.
 
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Card/BeforeCardPlayedMirrors.cs`,
@@ -79,6 +79,9 @@ suppresses dispatch after the shadow combat has started ending; both after passe
 simulator also mirrors `CardModel.OnPlayWrapper`'s `IsOverOrEnding` check at the head of every play index, so a replay
 does not enter its next lifecycle after an earlier index ends combat.
 
+`CardModel.ExtraReplayThisTurn` participates through the original local `GetEnchantedReplayCount`. Keyword-source
+tracking and downgrade replay likewise use the original detached mutable-card implementation.
+
 ## Feasibility labels
 
 - **Local feasible**: implementable with current simulator state, cloned RNG, card helpers, and optionally
@@ -155,7 +158,7 @@ The labels remain useful for architecture, while each row now records its implem
 | `TuningFork` | 音叉 | Counts owner Skills persistently and grants block at each threshold. | **Local feasible.** Initialize the shadow counter from `SkillsPlayed`; use simulator `GainBlock`. |
 | `UnsettlingLamp` | 不安油灯 | Marks its one-combat debuff-doubling trigger finished after the triggering card. | **Deferred without additional risk.** This state commit only matters after an unsupported power application; that source already records risk, so the after hook uses an exact no-op handler to avoid a duplicate warning. |
 | `Vambrace` | 臂甲 | After the card whose block was doubled finishes, consumes the once-per-combat doubling. | **Implemented cross-hook.** Shadow block multiplier and exact play commit cover chained block gains. |
-| `VelvetChoker` | 天鹅绒颈圈 | Increments the owner's cards-played counter used by `ShouldPlay`. | **Implemented cross-hook.** Nested auto-play gating reads the shadow counter. |
+| `VelvetChoker` | 天鹅绒颈圈 | Refreshes its displayed play count from started-play history. | **Ignored.** UI only; `ShouldPlay` combines live and prediction-local started plays. |
 
 ## AfterCardPlayed listeners: powers
 
@@ -197,7 +200,7 @@ The labels remain useful for architecture, while each row now records its implem
 | --- | --- | --- | --- |
 | `BansheesCry` | 女妖之嚎 | Whenever owner plays an Ethereal card, reduces this listener card's this-combat cost. | **Local feasible.** Find the predicted listener card and mutate only its preview cost. |
 | `Pinpoint` | 精密瞄准 | Whenever owner plays a Skill, reduces this listener card's this-turn cost. | **Local feasible.** Find the predicted listener card and mutate only its preview cost. |
-| `Glam` | 华彩 | Disables Replay on its card after the first play this combat. | **Implemented.** Mutates only detached enchantment used/status; the shadow play-count helper consumes it on later plays. |
+| `Glam` | 华彩 | Disables Replay on its card after the first play this combat. | **Implemented.** Mutates only detached `Status`; no separate used flag is required. |
 | `Goopy` | 黏糊 | Increments its enchantment amount, permanently increasing the card's block bonus. | **Local feasible for prediction.** Mutate only the detached enchantment/card preview; never touch `DeckVersion`. |
 | `Vigorous` | 活力 | Disables its damage bonus after its card is played. | **Local feasible.** Store disabled status on the detached predicted enchantment for later shadow plays. |
 | `Play20CardsSingleTurnAchievement` | 成就模型 | Counts local cards and unlocks an achievement at 20. | **Ignorable.** |
@@ -224,7 +227,7 @@ All seven vanilla overrides were reviewed against v0.111.0. Six use exact predic
 | `RingingPower` | 昏眩 | Prevents owner cards afflicted with Ringing after any owner card play has started this turn. | **Implemented.** Combines live current-turn and predicted started history; the previous card need not have Ringing. |
 | `SlothPower` | 懒惰 | Prevents owner plays once its cards-played counter reaches Amount. | **Implemented cross-hook.** Reads the counter advanced by `BeforeCardPlayed`. |
 | `SmoggyPower` | 烟雾弥漫 | Prevents owner cards afflicted with Smog. | **Original read-only call.** Only reads owner and the argument's affliction, including shadow Smog applied by `AfterCardPlayed`. |
-| `VelvetChoker` | 天鹅绒颈圈 | Prevents owner plays once its cards-played counter reaches the configured limit. | **Implemented cross-hook.** Reads the counter advanced by `AfterCardPlayed`. |
+| `VelvetChoker` | 天鹅绒颈圈 | Prevents owner plays once started-play history reaches the configured limit. | **Implemented.** Counts current-turn live and simulated started plays for its owner, including a play still resolving before nested auto-play. |
 
 Started-history predicates count every play index, including replays and an outer card whose effect is still
 resolving. They filter by player and must not substitute finished history or first-in-series counts. Predicted
@@ -255,6 +258,10 @@ affects manual playability; it does not restrict nested auto-play.
 
 ## Parity and risk notes
 
+- The simulator clears an out-of-play `TransformIntoAfterPlay`, matching vanilla. If a mirror sets it while playing,
+  it records incomplete risk and stops the replay series. Card replacement and transform-listener lifecycle are
+  deferred; content using that lifecycle must not be considered supported.
+- Gameplay clones of dupes copy the source card's prediction state rather than the temporary dupe state.
 - The former simulator TODOs were lifecycle gaps rather than merely missing visible bonus effects. The completed
   lifecycle and hook mirrors now advance shadow cost, `ShouldPlay`, block, and damage state through chained plays.
 - Selective hook mirrors preserve original listener order while replacing only exact listeners that consume card-play
@@ -287,6 +294,10 @@ single Mock listener gives 95 override occurrences:
 
 These counts classify override occurrences, so a paired model such as `AfterimagePower` appears once in each relevant
 phase.
+
+The totals describe the earlier content audit. `VelvetChoker.AfterCardPlayed` is UI-only in the current API,
+with its gameplay gate using started-play history. New content listeners remain a separate audit; unregistered
+action overrides retain unsupported risk.
 
 ## Mock model list
 

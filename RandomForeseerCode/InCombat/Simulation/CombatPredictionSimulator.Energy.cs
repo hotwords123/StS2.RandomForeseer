@@ -40,7 +40,7 @@ internal sealed partial class CombatPredictionSimulator
     // AfterStarsGained remains outside the current hook-mirror coverage.
     public void GainStars(Player player, decimal amount)
     {
-        if (IsEnding || !HookMirrors.ShouldGainStars(this, amount, player))
+        if (IsOverOrEnding || !HookMirrors.ShouldGainStars(this, amount, player))
         {
             return;
         }

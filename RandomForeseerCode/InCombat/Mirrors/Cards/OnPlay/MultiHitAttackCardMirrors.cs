@@ -10,19 +10,9 @@ namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class MultiHitAttackCardMirrors
 {
-    public static void AstralPulseOnPlay(AstralPulse card, CardOnPlayMirrorContext context)
-    {
-        context.AttackAllOpponents(hitCount: 2);
-    }
-
     public static void BarrageOnPlay(Barrage card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle(context.OwnerState.OrbQueue.Orbs.Count);
-    }
-
-    public static void DaggerSprayOnPlay(DaggerSpray card, CardOnPlayMirrorContext context)
-    {
-        context.AttackAllOpponents(hitCount: 2);
     }
 
     public static void DismantleOnPlay(Dismantle card, CardOnPlayMirrorContext context)
@@ -62,7 +52,7 @@ internal static class MultiHitAttackCardMirrors
 
     public static void GunkUpOnPlay(GunkUp card, CardOnPlayMirrorContext context)
     {
-        context.AttackSingle(card.DynamicVars.Repeat.IntValue);
+        context.AttackSingle(card.DynamicVars.HitCount.IntValue);
         context.Simulator.CreateAndAddGeneratedCardsToCombat<Slimed>(
             card.Owner,
             PileType.Discard,
@@ -172,7 +162,7 @@ internal static class MultiHitAttackCardMirrors
 
     public static void SovereignBladeOnPlay(SovereignBlade card, CardOnPlayMirrorContext context)
     {
-        var hitCount = card.DynamicVars.Repeat.IntValue;
+        var hitCount = card.DynamicVars.HitCount.IntValue;
         if (card.TargetType == TargetType.AllEnemies)
         {
             context.AttackAllOpponents(hitCount);
@@ -203,7 +193,7 @@ internal static class MultiHitAttackCardMirrors
                 entry.Receiver == card.Owner.Creature &&
                 entry.Result.UnblockedDamage > 0);
 
-        context.AttackSingle(lostHpThisTurn ? card.DynamicVars.Repeat.IntValue : 1);
+        context.AttackSingle(lostHpThisTurn ? card.DynamicVars.HitCount.IntValue : 1);
     }
 
     public static void TearAsunderOnPlay(TearAsunder card, CardOnPlayMirrorContext context)
@@ -220,10 +210,5 @@ internal static class MultiHitAttackCardMirrors
                 entry.Result.UnblockedDamage > 0);
 
         context.AttackSingle(hitCount);
-    }
-
-    public static void TwinStrikeOnPlay(TwinStrike card, CardOnPlayMirrorContext context)
-    {
-        context.AttackSingle(hitCount: 2);
     }
 }

@@ -150,7 +150,7 @@ internal static class BeforeCardPlayedMirrors
         for (var i = 0; i < power.Amount; i++)
         {
             context.Simulator.AddGeneratedCardToCombat(
-                context.Card.CreateClone(),
+                context.Card.CreateClone(context.State),
                 PileType.Hand,
                 power.Owner.Player,
                 resultKind: CardGenerationResultKind.Contextual);
@@ -172,7 +172,7 @@ internal static class BeforeCardPlayedMirrors
         var state = context.StateStore.Get(power, () => new ImitationLearningPredictionState(power));
         if (state.Amount > 0)
         {
-            state.CardAndClones.Add((context.Card, context.Card.CreateCloneForPlayer(owner)));
+            state.CardAndClones.Add((context.Card, context.Card.CreateCloneForPlayer(owner, context.State)));
         }
     }
 

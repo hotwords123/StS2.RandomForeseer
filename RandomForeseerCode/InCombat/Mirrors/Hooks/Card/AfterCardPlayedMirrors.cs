@@ -117,7 +117,7 @@ internal static class AfterCardPlayedMirrors
         registry.Register<TuningFork>(HandleTuningFork);
         registry.Register<UnsettlingLamp>(HandleUnsettlingLamp);
         registry.Register<Vambrace>(HandleVambrace);
-        registry.Register<VelvetChoker>(HandleVelvetChoker);
+        registry.RegisterIgnored<VelvetChoker>();
 
         return registry;
     }
@@ -258,7 +258,7 @@ internal static class AfterCardPlayedMirrors
             return;
         }
 
-        var clone = context.Card.CreateClone();
+        var clone = context.Card.CreateClone(context.State);
         clone.MutablePreview.LocalKeywords.Add(CardKeyword.Ethereal);
         context.Simulator.AddGeneratedCardToCombat(
             clone,
@@ -382,15 +382,6 @@ internal static class AfterCardPlayedMirrors
     private static void HandleUnsettlingLamp(UnsettlingLamp relic, AfterCardPlayedMirrorContext context)
     {
         // Depends on Power hooks; mirror not available for now.
-    }
-
-    private static void HandleVelvetChoker(VelvetChoker relic, AfterCardPlayedMirrorContext context)
-    {
-        if (context.PreviewCard.Owner == relic.Owner)
-        {
-            var state = context.StateStore.Get(relic, () => new CounterPredictionState(relic._cardsPlayedThisTurn));
-            state.Value++;
-        }
     }
 
     private static void HandleShuriken(Shuriken relic, AfterCardPlayedMirrorContext context)
@@ -700,7 +691,6 @@ internal static class AfterCardPlayedMirrors
     {
         if (context.Card.References(enchantment.Card) && context.MutablePreviewCard.Enchantment is Glam preview)
         {
-            preview._usedThisCombat = true;
             preview._status = EnchantmentStatus.Disabled;
         }
     }

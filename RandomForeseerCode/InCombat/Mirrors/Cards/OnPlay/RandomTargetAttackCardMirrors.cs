@@ -23,16 +23,6 @@ internal static class RandomTargetAttackCardMirrors
         context.AttackRandomOpponents(statuses.Count);
     }
 
-    public static void RicochetOnPlay(Ricochet card, CardOnPlayMirrorContext context)
-    {
-        context.AttackRandomOpponents(card.DynamicVars.Repeat.IntValue);
-    }
-
-    public static void RipAndTearOnPlay(RipAndTear card, CardOnPlayMirrorContext context)
-    {
-        context.AttackRandomOpponents(hitCount: 2);
-    }
-
     public static void StardustOnPlay(Stardust card, CardOnPlayMirrorContext context)
     {
         context.AttackRandomOpponents(context.ResolveStarXValue());
@@ -47,11 +37,6 @@ internal static class RandomTargetAttackCardMirrors
                 .TargetingRandomOpponents(context.CombatState)
                 .Simulate(context.Simulator);
         }
-    }
-
-    public static void SwordBoomerangOnPlay(SwordBoomerang card, CardOnPlayMirrorContext context)
-    {
-        context.AttackRandomOpponents(card.DynamicVars.Repeat.IntValue);
     }
 
     public static void VolleyOnPlay(Volley card, CardOnPlayMirrorContext context)

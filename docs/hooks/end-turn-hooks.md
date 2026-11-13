@@ -166,7 +166,8 @@ autoplay. These uncommon interactions are accepted for now without risk until th
 - StS2 v0.111.0 moved play-pile and result-pile transitions for cards with turn-end-in-hand effects out of
   `CardModel.OnTurnEndInHandWrapper` and into `CombatManager.DoTurnEndCards` / `ResolveTurnEndCardEffects`.
   Effects remain serialized in hand order; only their presentation tweens overlap. The simulator already follows the
-  same shadow-pile order and now documents the new ownership explicitly.
+  same shadow-pile order. Turn-end hand effects skip cards already removed from prediction state by an earlier
+  effect, matching `DoTurnEndCards`.
 - The end-turn simulator currently follows the prediction-relevant ordering of StS2 v0.111.0
   `CombatManager.EndPlayerTurnPhaseOneInternal`: auto-post-play hooks, `BeforeSideTurnEnd`, per-player orb triggers,
   ethereal exhaust, then turn-end card resolution. It invokes the simulator's `CheckWinCondition` safe point after
@@ -178,7 +179,8 @@ autoplay. These uncommon interactions are accepted for now without risk until th
   `SlumberingEssence` (沉眠精华), while unknown and late overrides record `MethodNotMirrored` risk.
 - Phase two mirrors `FlushPlayerHand` for each ending player, directly forwards `ShouldFlush`, moves shadow cards,
   and dispatches `AfterFlush`; it then dispatches regular and late side-end passes. `EndOfTurnCleanup` is intentionally
-  skipped to avoid cloning all combat cards, as described above. Keep
+  skipped to avoid cloning all combat cards, including the `ExtraReplayThisTurn` reset. This remains part of the
+  documented deferred-draw boundary rather than later-turn simulation support. Keep
   participant selection aligned with `PlayersTakingExtraTurn` and the actual ending players. `AfterFlush` remains a
   placeholder registry whose unregistered overrides record risk; regular and late side-end passes invoke only exact
   registered handlers and silently skip all other listeners without risk.

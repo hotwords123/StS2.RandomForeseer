@@ -16,7 +16,8 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 
 ## Parity notes
 
-- None.
+- Discarding a Sly card only schedules auto-play when its source prediction pile is Hand. Sly cards discarded from
+  other piles still move and dispatch discard hooks, but do not auto-play.
 
 ## Mock model list
 

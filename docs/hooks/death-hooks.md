@@ -13,12 +13,16 @@ Mirror files:
 ## Hook specs
 
 - `AbstractModel.BeforeDeath(Creature)`
-- `AbstractModel.AfterDeath(PlayerChoiceContext, Creature, bool wasRemovalPrevented, float deathAnimLength)`
+- `AbstractModel.AfterDeath(PlayerChoiceContext, Creature, CardModel? source, bool wasRemovalPrevented, float deathAnimLength)`
 - `AbstractModel.ShouldDie(Creature)`
 - `AbstractModel.ShouldDieLate(Creature)`
 - `AbstractModel.AfterPreventingDeath(Creature)`
 - `AbstractModel.ShouldCreatureBeRemovedFromCombatAfterDeath(Creature)`
 - `AbstractModel.ShouldStopCombatFromEnding()`
+
+Death dispatch carries the nullable source card. Damage-induced kills forward the prediction-owned source through
+batch kills and secondary-enemy cleanup into `AfterDeathMirrorContext.Source`; explicit non-card kills keep a null
+source. Existing handled listeners do not depend on this argument.
 
 ## BeforeDeath listeners
 
@@ -85,6 +89,7 @@ Mirror files:
   enumeration and short-circuit rules through `HookMirrors`; compatibility filtering removes Mod listeners only when
   explicitly enabled.
 - The simulator does not model power cleanup/removal, full creature revive, monster move/state transitions, hook deactivation, or full combat-loss side effects. Most missing death listeners need those capabilities.
+- New model-specific death listeners require a separate content audit and use the registry's normal risk fallback.
 - `HeistPower` and `SwipePower` are intentionally ignored because they only affect combat rewards/deck return, which is outside the current prediction scope.
 
 ## Mock model list

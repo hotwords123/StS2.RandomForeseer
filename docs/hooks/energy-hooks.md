@@ -21,7 +21,9 @@ listeners only flash UI and do not mutate prediction-relevant state.
 
 `LoseEnergy` mirrors `PlayerCmd.LoseEnergy`'s state change directly. Vanilla energy loss does not run an energy-gain modifier hook.
 
-`GainStars` runs the manually enumerated read-only `ShouldGainStars` predicate and mutates shadow state. The `AfterStarsGained`
+`GainStars` rejects both ending and fully ended shadow combats, matching `ShouldSkipCombatEffect`. Combat setup
+remains outside prediction entry scope, so the live `IsStarting` exemption does not require an extra simulator phase.
+It runs the manually enumerated read-only `ShouldGainStars` predicate and mutates shadow state. The `AfterStarsGained`
 hook family is not yet mirrored; in particular, Black Hole's damage after gaining stars remains a separate coverage
 gap. The resulting clamped star delta is recorded in prediction history so Radiate can combine live and shadow gains.
 

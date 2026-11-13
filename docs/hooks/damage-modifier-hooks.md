@@ -3,6 +3,7 @@
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/ModifyDamageMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/ModifyHpLostMirrors.cs`,
+`InCombat/Mirrors/Hooks/Damage/ModifyPreBlockDamageTargetMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/ModifyUnblockedDamageTargetMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/ShouldAllowHittingMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/AfterModifyingHpLostAfterOstyMirrors.cs`, and
@@ -14,19 +15,23 @@ This document covers the read-only damage modifier path used by `CombatPredictio
 
 `CreatureCmd.Damage` runs the modifier path once per original target:
 
-1. `Hook.ModifyDamage(..., CardPlay? cardPlay, ModifyDamageHookType.All, CardPreviewMode.None, out modifiers)`
+1. `Hook.ModifyDamage(..., CardPlay? cardPlay, modifyDamageHookType, CardPreviewMode.None, out modifiers)`
 2. `Hook.AfterModifyingDamageAmount(..., modifiers)`
 3. `Hook.BeforeDamageReceived(...)`
-4. Block loss on `originalTarget.PetOwner?.Creature ?? originalTarget`
-5. `Hook.ModifyHpLost(..., HpLossHookPhase.BeforeOsty, out modifiers)`
-6. `Hook.AfterModifyingHpLostBeforeOsty(..., modifiers)`
-7. `Hook.ModifyUnblockedDamageTarget(...)`
-8. `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for the redirected target
-9. `Hook.AfterModifyingHpLostAfterOsty(..., modifiers)`
-10. If damage was redirected, `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for original-target overkill damage
+4. `Hook.ModifyPreBlockDamageTarget(..., originalTarget, originalAmount, props, dealer)`
+5. If a pre-block target is returned, `Hook.ModifyHpLost(..., HpLossHookPhase.BeforeWuppy, out modifiers)` and HP
+   loss on that target; only its overkill continues to block loss.
+6. Block loss on `originalTarget.PetOwner?.Creature ?? originalTarget`
+7. `Hook.ModifyHpLost(..., HpLossHookPhase.BeforeOsty, out modifiers)`
+8. `Hook.AfterModifyingHpLostBeforeOsty(..., modifiers)`
+9. `Hook.ModifyUnblockedDamageTarget(...)`
+10. `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for the redirected target
 11. `Hook.AfterModifyingHpLostAfterOsty(..., modifiers)`
+12. If damage was redirected, `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for original-target overkill damage
+13. `Hook.AfterModifyingHpLostAfterOsty(..., modifiers)`
 
-The simulator mirrors the value-producing passes and dispatches `AfterModifyingHpLostAfterOsty` to the exact
+The simulator mirrors the supported value-producing passes, detects unsupported pre-block redirection, and
+dispatches `AfterModifyingHpLostAfterOsty` to the exact
 modifiers returned by the corresponding value pass. The other `AfterModifying*` hooks are currently omitted because
 their reviewed vanilla listeners are visual only.
 
@@ -34,8 +39,10 @@ their reviewed vanilla listeners are visual only.
 
 - `AbstractModel.ModifyDamageAdditive(Creature?, decimal, ValueProp, Creature?, CardModel?, CardPlay?)`
 - `AbstractModel.ModifyDamageMultiplicative(Creature?, decimal, ValueProp, Creature?, CardModel?, CardPlay?)`
+- `AbstractModel.ModifyDamageMultiplicativeLate(Creature?, decimal, ValueProp, Creature?, CardModel?, CardPlay?)`
 - `AbstractModel.ModifyDamageCap(Creature?, ValueProp, Creature?, CardModel?, CardPlay?)`
 - `AbstractModel.AfterModifyingDamageAmount(CardModel?)`
+- `AbstractModel.ModifyPreBlockDamageTarget(Creature originalTarget, Creature? currentTarget, decimal, ValueProp, Creature?)`
 - `AbstractModel.ModifyHpLostBeforeOsty(Creature, decimal, ValueProp, Creature?, CardModel?)`
 - `AbstractModel.ModifyHpLostBeforeOstyLate(Creature, decimal, ValueProp, Creature?, CardModel?)`
 - `AbstractModel.AfterModifyingHpLostBeforeOsty()`
@@ -47,8 +54,10 @@ their reviewed vanilla listeners are visual only.
 
 ## ModifyDamage listeners
 
-Current mirror status: the simulator preserves vanilla additive, multiplicative, and cap passes. It calls original
-read-only listener methods except for the prediction-state consumers documented below.
+Current mirror status: the simulator preserves vanilla additive, ordinary multiplicative, late multiplicative, and
+cap passes. `ModifyDamageHookType` controls the enchantment and listener phases; cap-only damage preserves caps
+without applying bonuses again. It calls original read-only listener methods except for the prediction-state
+consumers documented below.
 
 ### ModifyDamageAdditive listeners
 
@@ -95,6 +104,12 @@ read-only listener methods except for the prediction-state consumers documented 
 | `VulnerablePower` | 易伤 | Powered attacks against owner are multiplied, with Paper Phrog, dealer or pet owner's Cruelty, and Debilitate adjustments. | Implemented by original hook. StS2 v0.109.0 made attacking pets inherit their owner's Cruelty adjustment. |
 | `WeakPower` | 虚弱 | Owner's powered attacks are reduced, with Paper Krane and Debilitate adjustments. | Implemented by original hook. |
 
+### ModifyDamageMultiplicativeLate listeners
+
+A fresh listener pass runs after ordinary multiplication and before caps, with the same unfiltered run-listener
+enumeration as the other damage value passes. Vanilla currently has no concrete override; Mod value hooks follow
+the normal read-only fallback policy.
+
 ### ModifyDamageCap listeners
 
 | Model | 中文名 | Original effect | Current mirror status |
@@ -107,6 +122,9 @@ read-only listener methods except for the prediction-state consumers documented 
 Current mirror status: the phase-aware `HookMirrors.ModifyHpLost` mirrors the original phase flag and all four
 BeforeOsty/AfterOsty listener passes. Exact registered consumers read prediction state while all other listeners
 continue through their original read-only methods.
+
+`HpLossHookPhase.BeforeWuppy` currently executes no HP-loss modifier in vanilla. The mirror references phases by
+enum names rather than their numeric bit values.
 
 ### ModifyHpLostBeforeOstyLate listeners
 
@@ -129,6 +147,17 @@ continue through their original read-only methods.
 | --- | --- | --- | --- |
 | `BufferPower` | 缓冲 | Sets owner's HP loss to 0. | Implemented by a prediction-aware late adapter that stops applying after the shadow amount reaches zero. |
 | `TheBoot` | 发条靴 | Raises owner's powered unblocked attack damage below threshold to minimum damage. | Implemented by original hook. |
+
+## ModifyPreBlockDamageTarget listeners
+
+The original hook directly enumerates combat listeners without an ending guard, chaining a nullable pre-block
+target from an initial null value. The facade accepts the original target, unmodified damage amount, props and
+dealer, and returns the context's nullable pre-block target.
+
+The pet redirection domain is deferred. Every override is detected by an empty action registry and records
+unsupported risk; no live redirection method is invoked. The current result remains null and is discarded by the
+damage caller until pre-block pet HP loss, overkill and lifecycle handling are implemented. It does not replace the
+existing block target. A forecast with such a listener is explicitly incomplete.
 
 ## ModifyUnblockedDamageTarget listeners
 
