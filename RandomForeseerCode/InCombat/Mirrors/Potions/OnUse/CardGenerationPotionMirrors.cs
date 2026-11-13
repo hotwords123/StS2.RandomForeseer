@@ -66,6 +66,7 @@ internal static class CardGenerationPotionMirrors
                     .Select(static card => card.Upgrade())],
                 AddsToHand: true),
             OrobicAcid => new(GenerateOrobicAcidCards(target, rng), AddsToHand: true),
+            BottledSong => new(GenerateBottledSongCards(target, rng), AddsToHand: true),
             _ => null
         };
     }
@@ -95,6 +96,29 @@ internal static class CardGenerationPotionMirrors
         {
             cards.AddRange(player.GetUnlockedCharacterCards()
                 .Where(candidate => candidate.Type == type)
+                .GetDistinctForCombat(player, 1, rng));
+        }
+
+        foreach (var card in cards)
+        {
+            card.SetToFreeThisTurn();
+        }
+
+        return cards;
+    }
+
+    private static List<PredictedCard> GenerateBottledSongCards(Player player, Rng rng)
+    {
+        var candidates = player.UnlockState.CharacterCardPools
+            .SelectMany(player.GetUnlockedCards)
+            .ToArray();
+        CardTag[] tags = [CardTag.Wah, CardTag.Cho, CardTag.Ki];
+        List<PredictedCard> cards = [];
+
+        foreach (var tag in tags)
+        {
+            cards.AddRange(candidates
+                .Where(card => card.Tags.Contains(tag))
                 .GetDistinctForCombat(player, 1, rng));
         }
 

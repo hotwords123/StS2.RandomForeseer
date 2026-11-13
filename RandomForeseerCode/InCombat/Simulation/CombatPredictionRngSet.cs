@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
@@ -6,6 +7,8 @@ namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed class CombatPredictionRngSet
 {
+    private readonly Dictionary<Player, CombatPredictionPlayerRngSet> _playerRngs = [];
+
     public required Rng Shuffle { get; init; }
     public required Rng CombatCardGeneration { get; init; }
     public required Rng CombatPotionGeneration { get; init; }
@@ -25,6 +28,30 @@ internal sealed class CombatPredictionRngSet
             CombatEnergyCosts = rng.CombatEnergyCosts.Clone(),
             CombatTargets = rng.CombatTargets.Clone(),
             CombatOrbGeneration = rng.CombatOrbGeneration.Clone()
+        };
+    }
+
+    public CombatPredictionPlayerRngSet ForPlayer(Player player)
+    {
+        if (!_playerRngs.TryGetValue(player, out var playerRng))
+        {
+            playerRng = CombatPredictionPlayerRngSet.From(player.PlayerRng);
+            _playerRngs[player] = playerRng;
+        }
+
+        return playerRng;
+    }
+}
+
+internal sealed class CombatPredictionPlayerRngSet
+{
+    public required Rng NonCombatGeneration { get; init; }
+
+    public static CombatPredictionPlayerRngSet From(PlayerRngSet rng)
+    {
+        return new CombatPredictionPlayerRngSet
+        {
+            NonCombatGeneration = rng.NonCombatGeneration.Clone()
         };
     }
 }

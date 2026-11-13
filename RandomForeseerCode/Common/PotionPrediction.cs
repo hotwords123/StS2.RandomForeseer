@@ -65,7 +65,7 @@ internal static class PotionPrediction
 
         if (settings.PotionGenerationPredictionEnabled && potion is EntropicBrew)
         {
-            var rng = target.RunState.Rng.CombatPotionGeneration.Clone();
+            var rng = target.PlayerRng.NonCombatGeneration.Clone();
             hoverTips.AddRange(EntropicBrewMirrors.Generate(target, rng).ToPredictionHoverTips());
         }
 

@@ -62,6 +62,7 @@ internal static class PotionOnUseMirrors
         registry.Register<ColorlessPotion>(CardGenerationPotionMirrors.OnUse);
         registry.Register<CosmicConcoction>(CardGenerationPotionMirrors.OnUse);
         registry.Register<OrobicAcid>(CardGenerationPotionMirrors.OnUse);
+        registry.Register<BottledSong>(CardGenerationPotionMirrors.OnUse);
 
         registry.Register<EntropicBrew>(EntropicBrewMirrors.OnUse);
 

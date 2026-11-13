@@ -11,7 +11,7 @@ internal static class EntropicBrewMirrors
     public static void OnUse(EntropicBrew _, PotionOnUseMirrorContext context)
     {
         var target = context.TargetPlayer;
-        var potions = Generate(target, context.Rng.CombatPotionGeneration);
+        var potions = Generate(target, context.Rng.ForPlayer(target).NonCombatGeneration);
 
         foreach (var generatedPotion in potions)
         {
@@ -22,7 +22,7 @@ internal static class EntropicBrewMirrors
 
     /// <summary>Generates potion reward models without advancing real RNG or mutating potion slots.</summary>
     /// <param name="target">The player whose potion pool and belt capacity apply.</param>
-    /// <param name="rng">A prediction-owned clone of the target run's combat-potion-generation RNG.</param>
+    /// <param name="rng">A prediction-owned clone of the target player's non-combat-generation RNG.</param>
     public static IReadOnlyList<PotionModel> Generate(Player target, Rng rng)
     {
         // The player may discard existing potions before drinking Entropic Brew, so preserve the existing
