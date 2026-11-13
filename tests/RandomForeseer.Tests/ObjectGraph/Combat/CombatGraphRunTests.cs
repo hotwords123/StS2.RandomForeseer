@@ -7,11 +7,12 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Acts;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Characters;
+using MegaCrit.Sts2.Core.Models.Dread;
+using MegaCrit.Sts2.Core.Models.Dread.Mocks;
 using MegaCrit.Sts2.Core.Models.Encounters;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Models.Singleton;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.Rooms;
@@ -30,6 +31,7 @@ namespace RandomForeseer.Tests.ObjectGraph.Combat;
 /// entered gameplay, the act has not generated rooms, and the map is the constructor's placeholder. Events
 /// are cleared; initialized AI callbacks, conditional owner reads and random branches are copied without
 /// performing moves. Game-window capture and gameplay side effects remain outside this coverage.
+/// RunModel lifecycle initialization follows RunManager; Dread coverage captures a MockDominion without applying its effects.
 /// </remarks>
 [Collection(GameTestCollection.Name)]
 public sealed class CombatGraphRunTests() : GameTestBase(isolateGraphSourceServices: true)
@@ -64,9 +66,10 @@ public sealed class CombatGraphRunTests() : GameTestBase(isolateGraphSourceServi
         Assert.Same(copiedPlayer.Creature, Assert.Single(clone.Allies));
         Assert.Same(clone, copiedPlayer.Creature.CombatState);
         Assert.Same(clone, Assert.IsType<CombatRoom>(copiedRun.CurrentRoom).CombatState);
-        Assert.Same(copiedRun.MultiplayerScalingModel, clone.MultiplayerScalingModel);
-        Assert.Same(copiedRun, copiedRun.MultiplayerScalingModel._runState);
-        Assert.Same(clone, copiedRun.MultiplayerScalingModel._combatState);
+        var copiedRunModel = Assert.IsType<MultiplayerScalingModel>(Assert.Single(copiedRun.RunModels));
+        Assert.Same(copiedRunModel, Assert.Single(clone.RunModels));
+        Assert.Same(copiedRun, copiedRunModel._runState);
+        Assert.Same(clone, copiedRunModel._combatState);
         Assert.Same(copiedPlayer, copiedRelic.Owner);
         Assert.Same(copiedRelic, Assert.Single(copiedPlayer.Relics));
         Assert.Same(relic.CanonicalInstance, copiedRelic.CanonicalInstance);
@@ -105,6 +108,35 @@ public sealed class CombatGraphRunTests() : GameTestBase(isolateGraphSourceServi
         copiedRun._visitedEventIds.Clear();
         copiedRun.SharedRelicGrabBag._deques[RelicRarity.Common].Clear();
         copiedRun.Map.BossMapPoint.coord = new MapCoord(5, 6);
+        before.AssertUnchanged();
+    }
+
+    [Fact]
+    public void DominionAndAllRunModelsKeepCopiedRunAndCombatContexts()
+    {
+        var (run, combat, _, _) = CreateRunCombat(GameMode.Dread);
+        var policy = CombatGraphPolicy.Instance;
+        var before = GraphSourceSnapshot.Capture(combat, policy);
+        using var scope = new PredictionObjectScope();
+        var clone = new PredictionGraphCopier(scope, policy).Copy(combat);
+        var copiedRun = scope.GetClone(run);
+        var copiedDominion = scope.GetClone(run.Dominion!);
+
+        ObjectGraphAssert.Equivalent(combat, clone, scope, policy);
+        Assert.Same(copiedDominion, clone.Dominion);
+        Assert.Same(copiedDominion, copiedRun.Dominion);
+        Assert.Same(copiedRun, copiedDominion.RunState);
+        Assert.Contains(copiedRun.RunModels, model => model is DreadRunModel);
+        foreach (var runModel in run.RunModels)
+        {
+            var copiedModel = scope.GetClone(runModel);
+            Assert.Contains(clone.RunModels, model => model == copiedModel);
+            Assert.Same(copiedRun, copiedModel._runState);
+            Assert.Same(clone, copiedModel._combatState);
+        }
+
+        clone.SetDominion(null);
+        copiedRun.SetDominion(null);
         before.AssertUnchanged();
     }
 
@@ -231,7 +263,8 @@ public sealed class CombatGraphRunTests() : GameTestBase(isolateGraphSourceServi
         before.AssertUnchanged();
     }
 
-    private static (RunState Run, CombatState Combat, Player Player, BurningBlood Relic) CreateRunCombat()
+    private static (RunState Run, CombatState Combat, Player Player, BurningBlood Relic) CreateRunCombat(
+        GameMode gameMode = GameMode.Standard)
     {
         foreach (var type in new[] { typeof(Ironclad), typeof(StrikeIronclad), typeof(DefendIronclad),
             typeof(Overgrowth), typeof(MultiplayerScalingModel), typeof(BurningBlood), typeof(Anchor),
@@ -245,7 +278,28 @@ public sealed class CombatGraphRunTests() : GameTestBase(isolateGraphSourceServi
             new RelicGrabBag(), new UnlockState(["fixture-epoch"], [encounterId], 2));
         // Supply a small explicit bag instead of generating the game's complete relic catalog.
         player.RelicGrabBag._deques.Add(RelicRarity.Common, [ModelDb.Relic<Anchor>()]);
-        var run = RunState.CreateForTest([player], [ModelDb.Act<Overgrowth>()], seed: "graph-b7");
+        if (gameMode == GameMode.Dread)
+        {
+            ModelDb.Inject(typeof(DreadRunModel));
+            ModelDb.Inject(typeof(MockDominion));
+        }
+
+        var run = RunState.CreateForTest(
+            [player],
+            [ModelDb.Act<Overgrowth>()],
+            gameMode: gameMode,
+            seed: "graph-b7");
+        // RunState now creates RunModels; RunManager owns their run-lifecycle initialization.
+        foreach (var runModel in run.RunModels)
+        {
+            runModel.OnRunCreated(run);
+        }
+
+        if (gameMode == GameMode.Dread)
+        {
+            run.SetDominion(ModelDb.Dominion<MockDominion>());
+        }
+
         run._visitedEventIds.Add(new ModelId("EVENT", "FIXTURE_EVENT"));
         run.SharedRelicGrabBag._deques.Add(RelicRarity.Common, [ModelDb.Relic<Anchor>()]);
         var room = new CombatRoom(ModelDb.Encounter<BattlewornDummyEventV1Encounter>().ToMutable(), run);
@@ -253,7 +307,10 @@ public sealed class CombatGraphRunTests() : GameTestBase(isolateGraphSourceServi
         var combat = room.CombatState;
         combat.AddPlayer(player);
         player.ResetCombatState();
-        run.MultiplayerScalingModel.OnCombatEntered(combat);
+        foreach (var runModel in run.RunModels)
+        {
+            runModel.OnCombatEntered(combat);
+        }
         player.PlayerCombatState!._energy = 2;
         player.PlayerCombatState._stars = 7;
         player.Creature._block = 11;
