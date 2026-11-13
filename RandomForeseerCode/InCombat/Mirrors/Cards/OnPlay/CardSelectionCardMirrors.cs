@@ -39,7 +39,7 @@ internal static class CardSelectionCardMirrors
                 predictedCard.Preview.Type == CardType.Attack &&
                 !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
             .ToList()
-            .StableShuffle(context.Rng.Shuffle)
+            .StableShuffle(context.Rng.CombatCardSelection)
             .Take(card.DynamicVars.Cards.IntValue)
             .ToList();
         if (selectedCards.Count == 0)
@@ -77,12 +77,12 @@ internal static class CardSelectionCardMirrors
                 .Where(predictedCard =>
                     !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
                 .ToList()
-                .StableShuffle(context.Rng.Shuffle)
+                .StableShuffle(context.Rng.CombatCardSelection)
                 .FirstOrDefault();
 
             selectedCard ??= drawPileCards
                 .ToList()
-                .StableShuffle(context.Rng.Shuffle)
+                .StableShuffle(context.Rng.CombatCardSelection)
                 .FirstOrDefault();
 
             if (selectedCard is null)
@@ -191,7 +191,7 @@ internal static class CardSelectionCardMirrors
 
     public static void ThrashOnPlay(Thrash card, CardOnPlayMirrorContext context)
     {
-        context.AttackSingle(hitCount: 2);
+        context.AttackSingle(card.DynamicVars.HitCount.IntValue);
 
         var cardToExhaust = SelectRandomHandCard(context, cardModel => cardModel.Type == CardType.Attack);
         if (cardToExhaust is null)
@@ -236,6 +236,43 @@ internal static class CardSelectionCardMirrors
         context.Simulator.Exhaust(cardToExhaust);
     }
 
+    public static void TheFoolOnPlay(TheFool card, CardOnPlayMirrorContext context)
+    {
+        for (var i = 0; i < card.DynamicVars.Cards.BaseValue; i++)
+        {
+            var handCards = context.OwnerState.Hand.Cards;
+            var selectedCard = handCards
+                .Where(predictedCard =>
+                    !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
+                .ToList()
+                .StableShuffle(context.Rng.CombatCardSelection)
+                .FirstOrDefault();
+
+            selectedCard ??= handCards
+                .ToList()
+                .StableShuffle(context.Rng.CombatCardSelection)
+                .FirstOrDefault();
+
+            if (selectedCard is not null)
+            {
+                context.Simulator.History.CardsSelected([selectedCard]);
+                context.Simulator.AutoPlay(selectedCard);
+            }
+        }
+    }
+
+    public static void TheWorldOnPlay(TheWorld card, CardOnPlayMirrorContext context)
+    {
+        var handCapacity = CardPile.MaxCardsInHand - context.OwnerState.Hand.Cards.Count;
+        var count = Math.Max(0, Math.Min(card.DynamicVars.Cards.IntValue, handCapacity));
+        var cards = context.OwnerState.DiscardPile.Cards
+            .TakeRandom(count, context.Rng.CombatCardSelection)
+            .ToList();
+
+        context.Simulator.History.CardsSelected(cards);
+        context.Simulator.AddToPile(cards, PileType.Hand);
+    }
+
     public static void TrueGritOnPlay(TrueGrit card, CardOnPlayMirrorContext context)
     {
         context.GainBlock(card.Owner.Creature);
@@ -260,7 +297,7 @@ internal static class CardSelectionCardMirrors
 
     public static void UproarOnPlay(Uproar card, CardOnPlayMirrorContext context)
     {
-        context.AttackSingle(hitCount: 2);
+        context.AttackSingle(card.DynamicVars.HitCount.IntValue);
 
         var attackCards = context.OwnerState.DrawPile.Cards
             .Where(predictedCard => predictedCard.Preview.Type == CardType.Attack)
@@ -269,11 +306,11 @@ internal static class CardSelectionCardMirrors
         var selectedCard = attackCards
             .Where(predictedCard => !predictedCard.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
             .ToList()
-            .StableShuffle(context.Rng.Shuffle)
+            .StableShuffle(context.Rng.CombatCardSelection)
             .FirstOrDefault();
 
         selectedCard ??= attackCards
-            .StableShuffle(context.Rng.Shuffle)
+            .StableShuffle(context.Rng.CombatCardSelection)
             .FirstOrDefault();
 
         if (selectedCard is null)

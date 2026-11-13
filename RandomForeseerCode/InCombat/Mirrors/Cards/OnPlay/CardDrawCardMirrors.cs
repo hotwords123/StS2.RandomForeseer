@@ -40,15 +40,6 @@ internal static class CardDrawCardMirrors
         }
     }
 
-    public static void ExpertiseOnPlay(Expertise card, CardOnPlayMirrorContext context)
-    {
-        var drawnCards = context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.IntValue);
-        foreach (var drawnCard in drawnCards)
-        {
-            drawnCard.MutablePreview.GiveSingleTurnRetain();
-        }
-    }
-
     public static void FetchOnPlay(Fetch card, CardOnPlayMirrorContext context)
     {
         if (card.Owner.Osty is not { } osty || context.State.GetCreature(osty).IsDead)
@@ -142,6 +133,19 @@ internal static class CardDrawCardMirrors
     {
         var count = CardPile.MaxCardsInHand - context.OwnerState.Hand.Cards.Count;
         context.Simulator.Draw(card.Owner, count);
+    }
+
+    public static void WheelOfFortuneOnPlay(WheelOfFortune card, CardOnPlayMirrorContext context)
+    {
+        var cards = context.OwnerState.Hand.Cards.ToArray();
+        if (cards.Length > 0)
+        {
+            context.Simulator.DiscardAndDraw(cards, card.DynamicVars.Cards.IntValue);
+        }
+        else
+        {
+            context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
+        }
     }
 
     private static int CountCardPlaysFinishedThisTurn(CombatPredictionSimulator simulator, Player player)

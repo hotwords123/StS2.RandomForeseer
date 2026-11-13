@@ -17,7 +17,7 @@ internal static class MultiHitAttackCardMirrors
 
     public static void DismantleOnPlay(Dismantle card, CardOnPlayMirrorContext context)
     {
-        context.AttackSingle(context.Target.HasPower<VulnerablePower>() ? 2 : 1);
+        context.AttackSingle(context.Target.HasPower<VulnerablePower>() ? card.DynamicVars.HitCount.IntValue : 1);
     }
 
     public static void FiendFireOnPlay(FiendFire card, CardOnPlayMirrorContext context)
@@ -80,11 +80,8 @@ internal static class MultiHitAttackCardMirrors
         hitCount += context.History.OfType<CombatPredictionEnergySpentEntry>()
             .Where(entry => entry.Player == card.Owner)
             .Sum(entry => entry.Amount);
-        // Vanilla HelixDrill subtracts EnergyCost.GetWithModifiers(CostModifiers.All) here.
-        // That implementation is incorrect when dynamic cost-changing powers are active and
-        // can disagree with the card description in rare cases. The mirror uses the resolved
-        // resource value from CardPlay instead of reproducing that vanilla bug.
-        hitCount -= context.CardPlay.Resources.EnergyValue;
+        // OnPlay runs after this occurrence starts and before it finishes, so exclude its actual spending.
+        hitCount -= context.CardPlay.Resources.EnergySpent;
 
         context.AttackSingle(Math.Max(0, hitCount));
     }
@@ -104,7 +101,7 @@ internal static class MultiHitAttackCardMirrors
 
     public static void MaulOnPlay(Maul card, CardOnPlayMirrorContext context)
     {
-        context.AttackSingle(hitCount: 2);
+        context.AttackSingle(card.DynamicVars.HitCount.IntValue);
 
         var increase = card.DynamicVars["Increase"].BaseValue;
         foreach (var maul in context.OwnerState.AllCards.Where(predicted => predicted.Preview is Maul))

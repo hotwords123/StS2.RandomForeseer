@@ -81,7 +81,6 @@ internal static class CardOnPlayMirrors
         registry.Register<CompileDriver>(CardDrawCardMirrors.CompileDriverOnPlay);
         registry.Register<Constellation>(CardDrawCardMirrors.ConstellationOnPlay);
         registry.Register<EscapePlan>(CardDrawCardMirrors.EscapePlanOnPlay);
-        registry.Register<Expertise>(CardDrawCardMirrors.ExpertiseOnPlay);
         registry.Register<Fetch>(CardDrawCardMirrors.FetchOnPlay);
         registry.Register<Ftl>(CardDrawCardMirrors.FtlOnPlay);
         registry.Register<HuddleUp>(CardDrawCardMirrors.HuddleUpOnPlay);
@@ -91,6 +90,7 @@ internal static class CardOnPlayMirrors
         registry.Register<Restlessness>(CardDrawCardMirrors.RestlessnessOnPlay);
         registry.Register<Scrape>(CardDrawCardMirrors.ScrapeOnPlay);
         registry.Register<Scrawl>(CardDrawCardMirrors.ScrawlOnPlay);
+        registry.Register<WheelOfFortune>(CardDrawCardMirrors.WheelOfFortuneOnPlay);
 
         registry.Register<FlakCannon>(RandomTargetAttackCardMirrors.FlakCannonOnPlay);
         registry.Register<Ricochet>(GeneralCardMirrors.GeneralAttackOnPlay);
@@ -157,6 +157,8 @@ internal static class CardOnPlayMirrors
         registry.Register<DrainPower>(CardSelectionCardMirrors.DrainPowerOnPlay);
         registry.Register<HiddenGem>(CardSelectionCardMirrors.HiddenGemOnPlay);
         registry.Register<SeekerStrike>(CardSelectionCardMirrors.SeekerStrikeOnPlay);
+        registry.Register<TheFool>(CardSelectionCardMirrors.TheFoolOnPlay);
+        registry.Register<TheWorld>(CardSelectionCardMirrors.TheWorldOnPlay);
         registry.Register<Thrash>(CardSelectionCardMirrors.ThrashOnPlay);
         registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);
         registry.Register<Uproar>(CardSelectionCardMirrors.UproarOnPlay);
@@ -174,6 +176,8 @@ internal static class CardOnPlayMirrors
         registry.Register<Quasar>(CardGenerationCardMirrors.QuasarOnPlay);
         registry.Register<Splash>(CardGenerationCardMirrors.SplashOnPlay);
         registry.Register<Stoke>(CardGenerationCardMirrors.StokeOnPlay);
+        registry.Register<TheHierophant>(CardGenerationCardMirrors.TheHierophantOnPlay);
+        registry.Register<TheLovers>(CardGenerationCardMirrors.TheLoversOnPlay);
         registry.Register<WhiteNoise>(CardGenerationCardMirrors.WhiteNoiseOnPlay);
 
         registry.Register<StrikeIronclad>(GeneralCardMirrors.GeneralAttackOnPlay);

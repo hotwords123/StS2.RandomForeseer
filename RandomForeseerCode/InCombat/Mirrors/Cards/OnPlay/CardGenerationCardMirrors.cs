@@ -191,6 +191,37 @@ internal static class CardGenerationCardMirrors
         context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
     }
 
+    public static void TheHierophantOnPlay(TheHierophant card, CardOnPlayMirrorContext context)
+    {
+        var cards = card.Owner.GetUnlockedColorlessCards()
+            .GetDistinctForCombat(card.Owner, card.DynamicVars.Cards.IntValue, context.Rng.CombatCardGeneration)
+            .ToList();
+
+        foreach (var generatedCard in cards)
+        {
+            generatedCard.MutablePreview.EnergyCost.AddThisTurnOrUntilPlayed(-1);
+            context.Simulator.AddGeneratedCardsToCombat([generatedCard], PileType.Hand, card.Owner);
+        }
+    }
+
+    public static void TheLoversOnPlay(TheLovers card, CardOnPlayMirrorContext context)
+    {
+        var pools = card.Owner.UnlockState.CharacterCardPools.ToList();
+        if (pools.Count > 1)
+        {
+            pools.Remove(card.Owner.Character.CardPool);
+        }
+
+        var count = CardPile.MaxCardsInHand - context.OwnerState.Hand.Cards.Count;
+        var cards = pools
+            .SelectMany(card.Owner.GetUnlockedCards)
+            .GetForCombat(card.Owner, count, context.Rng.CombatCardGeneration)
+            .UpgradeIf(card.IsUpgraded)
+            .ToList();
+
+        context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
+    }
+
     public static void WhiteNoiseOnPlay(WhiteNoise card, CardOnPlayMirrorContext context)
     {
         var cards = card.Owner.GetUnlockedCharacterCards()

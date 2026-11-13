@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.ValueProps;
 
@@ -43,7 +44,7 @@ internal static class SpecialAttackCardMirrors
         }
 
         var targets = context.State.GetTeammatesOf(firstResult.Receiver)
-            .Where(creature => creature != firstResult.Receiver && context.State.GetCreature(creature).IsHittable)
+            .Where(creature => creature != context.Target && context.State.GetCreature(creature).IsHittable)
             .ToArray();
 
         if (targets.Length == 0)
@@ -54,9 +55,10 @@ internal static class SpecialAttackCardMirrors
         attackContext.AddHit(context.Simulator.Damage(
             targets,
             firstResult.TotalDamage + firstResult.OverkillDamage,
-            DamageProps.cardUnpowered,
+            ValueProp.Move,
             card.Owner.Creature,
             context.Card,
-            context.CardPlay));
+            context.CardPlay,
+            ModifyDamageHookType.Cap));
     }
 }

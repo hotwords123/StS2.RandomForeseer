@@ -128,7 +128,7 @@ internal static class OrbCardMirrors
 
     public static void RefractOnPlay(Refract card, CardOnPlayMirrorContext context)
     {
-        context.AttackSingle(hitCount: 2);
+        context.AttackSingle(card.DynamicVars.HitCount.IntValue);
         context.Simulator.OrbChannel<GlassOrb>(card.Owner, card.DynamicVars.Repeat.IntValue);
     }
 
