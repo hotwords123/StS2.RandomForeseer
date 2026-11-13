@@ -67,7 +67,7 @@ Steam 创意工坊：[随机数预测](https://steamcommunity.com/sharedfiles/fi
 |---|---|
 | 当前版本 | `0.13.20` |
 | 最低游戏版本 | `0.111.0` |
-| RitsuLib 依赖 | `0.5.14` |
+| RitsuLib 依赖 | `0.6.11` |
 
 ## 从源码构建
 

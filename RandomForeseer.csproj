@@ -50,7 +50,7 @@
     <ItemGroup>
         <PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all" />
         <PackageReference Include="Nothing.STS2RitsuLib.ModAnalyzers" Version="*" PrivateAssets="all" />
-        <PackageReference Include="STS2.RitsuLib" Version="0.5.14" GeneratePathProperty="true" />
+        <PackageReference Include="STS2.RitsuLib" Version="0.6.11" GeneratePathProperty="true" />
     </ItemGroup>
 
     <ItemGroup>

@@ -67,7 +67,7 @@ Current manifest targets:
 |---|---|
 | Current version | `0.13.20` |
 | Minimum game version | `0.111.0` |
-| RitsuLib dependency | `0.5.14` |
+| RitsuLib dependency | `0.6.11` |
 
 ## Build From Source
 
