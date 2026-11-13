@@ -67,11 +67,11 @@ internal static class EventOptionPrediction
         registry.Register<ColorfulPhilosophers>(ColorfulPhilosophersPrediction.GetHoverTips);
         registry.Register<DenseVegetation>(DenseVegetationPrediction.GetHoverTips);
         registry.Register<DollRoom>(DollRoomPrediction.GetHoverTips);
-        registry.Register<DoorsOfLightAndDark>(DoorsOfLightAndDarkPrediction.GetHoverTips);
         registry.Register<EndlessConveyor>(EndlessConveyorPrediction.GetHoverTips);
         registry.Register<InfestedAutomaton>(InfestedAutomatonPrediction.GetHoverTips);
         registry.Register<LuminousChoir>(LuminousChoirPrediction.GetHoverTips);
         registry.Register<MorphicGrove>(MorphicGrovePrediction.GetHoverTips);
+        registry.Register<MuseumOfTorture>(MuseumOfTorturePrediction.GetHoverTips);
         registry.Register<PotionCourier>(PotionCourierPrediction.GetHoverTips);
         registry.Register<PunchOff>(PunchOffPrediction.GetHoverTips);
         registry.Register<RanwidTheElder>(RanwidTheElderPrediction.GetHoverTips);
@@ -92,6 +92,7 @@ internal static class EventOptionPrediction
         registry.Register<WelcomeToWongos>(WelcomeToWongosPrediction.GetHoverTips);
         registry.Register<Wellspring>(WellspringPrediction.GetHoverTips);
         registry.Register<WhisperingHollow>(WhisperingHollowPrediction.GetHoverTips);
+        registry.Register<WuppyInTrouble>(WuppyInTroublePrediction.GetHoverTips);
 
         return registry;
     }
@@ -99,7 +100,7 @@ internal static class EventOptionPrediction
     public static IReadOnlyList<IHoverTip> GetHoverTips(EventOption option)
     {
         if (!EventOptionEventModelMap.TryGetEvent(option, out var eventModel) ||
-            eventModel.Owner is not {} owner || option.IsLocked)
+            eventModel.Owner is not { } owner || option.IsLocked)
         {
             Entry.Logger.Warn($"Event option prediction skipped for {option.TextKey}: no event model or owner found");
             return [];
@@ -129,12 +130,15 @@ internal static class EventOptionPrediction
             return option.Relic;
         }
 
-        if (eventModel is RelicTrader relicTrader)
+        return eventModel switch
         {
-            return RelicTraderPrediction.GetReceivedRelic(relicTrader, option);
-        }
-
-        return null;
+            RelicTrader relicTrader => RelicTraderPrediction.GetReceivedRelic(relicTrader, option),
+            MuseumOfTorture museum when option.TextKey == "MUSEUM_OF_TORTURE.pages.DISPLAY.options.TAKE" =>
+                museum._offeredRelic,
+            ThermaeNonupeipe thermae when option.TextKey == "THERMAE_NONUPEIPE.pages.INITIAL.options.DRINK_WATERS" =>
+                thermae.DrinkRelic,
+            _ => null
+        };
     }
 }
 

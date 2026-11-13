@@ -26,7 +26,9 @@ internal static class BattlewornDummyPrediction
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_2" =>
                 [.. PredictSetting2(battlewornDummy).ToPredictionHoverTips()],
             "BATTLEWORN_DUMMY.pages.INITIAL.options.SETTING_3" =>
-                OutOfCombatPredictionUtils.RelicTipsWithPickup(player, OutOfCombatPredictionUtils.PredictRelicRewards(player, 1)),
+                OutOfCombatPredictionUtils.RelicTipsWithPickup(
+                    player,
+                    OutOfCombatPredictionUtils.PredictRelicRewards(player, 1, battlewornDummy.Rng.Clone())),
             _ => []
         };
     }

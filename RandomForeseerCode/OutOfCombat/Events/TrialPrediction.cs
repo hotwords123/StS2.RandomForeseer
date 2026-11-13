@@ -17,7 +17,9 @@ internal static class TrialPrediction
         return option.TextKey switch
         {
             "TRIAL.pages.MERCHANT.options.GUILTY" =>
-                OutOfCombatPredictionUtils.RelicTipsWithPickup(player, OutOfCombatPredictionUtils.PredictRelicRewards(player, 2)),
+                OutOfCombatPredictionUtils.RelicTipsWithPickup(
+                    player,
+                    OutOfCombatPredictionUtils.PredictRelicRewards(player, 2, trial.Rng.Clone())),
             "TRIAL.pages.NONDESCRIPT.options.GUILTY" =>
                 [.. OutOfCombatPredictionUtils.PredictCardRewardBundles(
                     player,

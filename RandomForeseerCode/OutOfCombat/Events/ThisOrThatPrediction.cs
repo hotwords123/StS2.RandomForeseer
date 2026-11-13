@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models.Events;
+using RandomForeseer.Common;
 
 namespace RandomForeseer.OutOfCombat.Events;
 
@@ -11,7 +12,7 @@ internal static class ThisOrThatPrediction
         return option.TextKey == "THIS_OR_THAT.pages.INITIAL.options.ORNATE"
             ? OutOfCombatPredictionUtils.RelicTipsWithPickup(
                 thisOrThat.Owner!,
-                OutOfCombatPredictionUtils.PredictRelicRewards(thisOrThat.Owner!, 1))
+                OutOfCombatPredictionUtils.PredictRelicRewards(thisOrThat.Owner!, 1, thisOrThat.Rng.Clone()))
             : [];
     }
 }
