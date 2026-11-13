@@ -4,11 +4,11 @@
   "pck_name": "RandomForeseer",
   "author": "hotwords123",
   "description": "预测随机，预见未来。\nPredicts random outcomes and foresees the future.",
-  "version": "0.13.20",
+  "version": "0.14.0",
   "has_pck": true,
   "has_dll": true,
   "affects_gameplay": false,
-  "min_game_version": "0.111.0",
+  "min_game_version": "0.113.0",
   "dependencies": [
     {
       "id": "STS2-RitsuLib",
