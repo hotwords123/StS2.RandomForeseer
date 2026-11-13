@@ -25,7 +25,7 @@ internal sealed partial class NNextActPredictionIcon : NClickableControl
     private static readonly StringName TintColor = new("tint_color");
 
     private NextActPredictionIconKind _kind;
-    private HoverTip? _hoverTip;
+    private IHoverTip? _hoverTip;
 
     private TextureRect _icon = null!;
     private TextureRect _outline = null!;
@@ -144,7 +144,7 @@ internal sealed partial class NNextActPredictionIcon : NClickableControl
         }
     }
 
-    private static HoverTip CreateHoverTip(ActModel nextAct, NextActPredictionIconKind kind)
+    private static IHoverTip CreateHoverTip(ActModel nextAct, NextActPredictionIconKind kind)
     {
         return kind switch
         {
@@ -154,14 +154,14 @@ internal sealed partial class NNextActPredictionIcon : NClickableControl
         };
     }
 
-    private static HoverTip CreateAncientHoverTip(ActModel nextAct)
+    private static IHoverTip CreateAncientHoverTip(ActModel nextAct)
     {
         return PredictionHoverTipFactory.Text(
             "next_act_ancient_prediction",
             description => description.Add("Ancient", nextAct.Ancient.Title));
     }
 
-    private static HoverTip CreateBossHoverTip(ActModel nextAct)
+    private static IHoverTip CreateBossHoverTip(ActModel nextAct)
     {
         List<string> bossNames = [nextAct.BossEncounter.Title.GetFormattedText()];
         if (nextAct.SecondBossEncounter != null)

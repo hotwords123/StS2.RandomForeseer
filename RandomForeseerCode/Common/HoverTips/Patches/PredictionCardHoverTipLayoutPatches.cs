@@ -156,11 +156,14 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
     }
 
     /// <summary>
-    /// Supplies layout for unaligned prediction cards and records arbitrary hovered-control bounds.
+    /// Supplies centered layout for unaligned prediction cards and records the centered control's bounds.
     /// </summary>
-    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment))]
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment), typeof(Control), typeof(HoverTipAlignment))]
     [HarmonyPrefix]
-    private static void RecordControlSourceRect(NHoverTipSet __instance, Control node, ref HoverTipAlignment alignment)
+    private static void RecordControlSourceRect(
+        NHoverTipSet __instance,
+        Control node,
+        ref HoverTipAlignment alignment)
     {
         var container = __instance._cardHoverTipContainer;
         if (ShouldRecordSourceRect(container))
@@ -172,16 +175,50 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
                 alignment = HoverTipAlignment.Center;
             }
 
-            PredictionCardHoverTipLayoutState.RecordSourceRect(container, node.GetGlobalRect(), alignment);
+            // Left/right alignment delegates to the Rect2 overload, which records its actual source geometry.
+            if (alignment is HoverTipAlignment.Center)
+            {
+                PredictionCardHoverTipLayoutState.RecordSourceRect(container, node.GetGlobalRect(), alignment);
+            }
         }
     }
 
     /// <summary>
-    /// Checks whether generic vanilla alignment still requires prediction top/bottom fallback.
+    /// Checks centered control alignment for overflow; delegated left/right alignment handles its own fallback.
     /// </summary>
-    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment))]
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment), typeof(Control), typeof(HoverTipAlignment))]
     [HarmonyPostfix]
-    private static void ApplyControlFallbackLayout(NHoverTipSet __instance)
+    private static void ApplyControlFallbackLayout(NHoverTipSet __instance, HoverTipAlignment alignment)
+    {
+        if (alignment is HoverTipAlignment.Center)
+        {
+            PredictionCardHoverTipLayout.ApplyFallbackLayoutIfStillOverflowing(__instance);
+        }
+    }
+
+    /// <summary>
+    /// Records the requested global bounds, including merchant hitboxes at their final hover-tween scale.
+    /// </summary>
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment), typeof(Rect2), typeof(HoverTipAlignment))]
+    [HarmonyPrefix]
+    private static void RecordRectSourceRect(
+        NHoverTipSet __instance,
+        Rect2 globalRect,
+        HoverTipAlignment alignment)
+    {
+        var container = __instance._cardHoverTipContainer;
+        if (ShouldRecordSourceRect(container))
+        {
+            PredictionCardHoverTipLayoutState.RecordSourceRect(container, globalRect, alignment);
+        }
+    }
+
+    /// <summary>
+    /// Checks arbitrary-rectangle alignment for prediction top/bottom fallback after vanilla overflow correction.
+    /// </summary>
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment), typeof(Rect2), typeof(HoverTipAlignment))]
+    [HarmonyPostfix]
+    private static void ApplyRectFallbackLayout(NHoverTipSet __instance)
     {
         PredictionCardHoverTipLayout.ApplyFallbackLayoutIfStillOverflowing(__instance);
     }

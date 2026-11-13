@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
@@ -94,7 +95,7 @@ internal static class PredictionHoverTipFactory
     /// <param name="key">Localization key stem with <c>.title</c> and <c>.description</c> entries.</param>
     /// <param name="configureDescription">Optional callback to add formatter variables before display.</param>
     /// <param name="icon">Optional model icon displayed beside the title.</param>
-    public static HoverTip Text(
+    public static IHoverTip Text(
         string key,
         Action<LocString>? configureDescription = null,
         Texture2D? icon = null)
@@ -103,24 +104,26 @@ internal static class PredictionHoverTipFactory
         var description = ModLocalization.Text($"{key}.description");
         configureDescription?.Invoke(description);
 
-        var tip = new HoverTip(title, description, icon)
-        {
-            Id = $"{HoverTipIdPrefix}:{key}",
-            IsInstanced = true
-        };
+        var tip = new HoverTip(title, description, icon);
+        Id(ref tip) = $"{HoverTipIdPrefix}:{key}";
+        IsInstanced(ref tip) = true;
         return tip;
     }
 
     private static HoverTip FromModelHoverTip(HoverTip tip, Texture2D? icon = null)
     {
-        return tip with
-        {
-            Icon = icon ?? tip.Icon,
-            Id = $"{HoverTipIdPrefix}:{tip.Id}",
-            IsInstanced = true,
-            // Vanilla records hover tips with canonical models as discovered progress.
-            // Prediction tips are informational only, so they must not reveal cards/relics/potions in the save.
-            CanonicalModel = null
-        };
+        Id(ref tip) = $"{HoverTipIdPrefix}:{tip.Id}";
+        IsInstanced(ref tip) = true;
+        tip.Icon = icon ?? tip.Icon;
+        // Vanilla records tips with canonical models as discovered progress. Only change this local copy.
+        tip.CanonicalModel = null;
+        return tip;
     }
+
+    // These getter-only properties have no setters. Access their compiler-generated fields on the local struct.
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<Id>k__BackingField")]
+    private static extern ref string Id(ref HoverTip tip);
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<IsInstanced>k__BackingField")]
+    private static extern ref bool IsInstanced(ref HoverTip tip);
 }
