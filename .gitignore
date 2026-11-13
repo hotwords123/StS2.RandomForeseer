@@ -4,6 +4,7 @@ artifacts/
 /temp/
 TestResults/
 /services/
+/tools/
 ModUploader-win-x64/
 .vs/
 .idea/
