@@ -41,7 +41,7 @@ The project reproduces the pure-ish creation-option and upgrade-odds listener pa
 | `Glitter` | 亮片 | Adds Glam to valid rewards. | Implemented. |
 | `FresnelLens` | 菲涅耳透镜 | Adds Nimble to valid rewards. | Implemented. |
 | `SilkenTress` | 华美发束 | Adds Glam to card rewards while unused. | Implemented. |
-| `WingCharm` | 羽翼护符 | Chooses one valid reward with niche RNG and adds Swift. | Implemented. |
+| `WingCharm` | 羽翼护符 | Chooses one valid reward and adds Swift. StS2 v0.113.0 uses the owner's Rewards RNG. | Pending content adaptation: the existing mirror still uses Niche RNG. |
 
 ## ModifyCardRewardCreationOptions listeners
 
@@ -81,6 +81,9 @@ No vanilla non-mock listeners were found in StS2 v0.108.0 for:
 
 ## Parity notes
 
+- StS2 v0.113.0 forwards `CardCreationOptions.RngOverride` to rarity rolls as well as card selection and upgrades.
+  Prediction preserves that shared RNG sequence and still changes the cloned rarity odds only for encounter or
+  `ForceRarityOddsChange` generation. `CardFactory.FilterForRun` also applies the current run-mode constraints.
 - `ModifyCardRewardCreationOptions` and `ModifyCardRewardUpgradeOdds` reproduce vanilla listener order and phase
   chaining in the prediction facade. They may mutate `CardCreationOptions`; prediction callers protect parity by
   passing a fresh options instance and not reusing it. Compatibility filtering may omit Mod listeners.

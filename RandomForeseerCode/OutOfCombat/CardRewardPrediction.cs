@@ -158,7 +158,7 @@ internal static class CardRewardPrediction
 
         var blacklistSet = blacklist.ToHashSet();
         var possibleCards = options.GetPossibleCards(player).Except(blacklistSet);
-        var filteredCards = CardFactory.FilterForPlayerCount(player.RunState, possibleCards).ToArray();
+        var filteredCards = CardFactory.FilterForRun(player.RunState, possibleCards).ToArray();
         var selectedRarity = CardRarity.None;
 
         IEnumerable<CardModel> candidates;
@@ -171,10 +171,8 @@ internal static class CardRewardPrediction
             var allowedRarities = filteredCards.Select(card => card.Rarity).ToHashSet();
             selectedRarity = RollForRarity(
                 rarityOdds,
-                options.RarityOdds,
-                options.Source,
-                allowedRarities,
-                options.Flags.HasFlag(CardCreationFlags.ForceRarityOddsChange));
+                options,
+                allowedRarities);
 
             if (selectedRarity == CardRarity.None)
             {
@@ -205,18 +203,19 @@ internal static class CardRewardPrediction
     // that advance the shared CardRarityOdds state.
     private static CardRarity RollForRarity(
         CardRarityOdds rarityOdds,
-        CardRarityOddsType rollMethod,
-        CardCreationSource source,
-        HashSet<CardRarity> allowedRarities,
-        bool forceRarityOddsChange)
+        CardCreationOptions options,
+        HashSet<CardRarity> allowedRarities)
     {
         var shouldChangeOdds =
-            forceRarityOddsChange ||
-            source == CardCreationSource.Encounter &&
-            rollMethod is CardRarityOddsType.RegularEncounter or CardRarityOddsType.EliteEncounter or CardRarityOddsType.BossEncounter;
+            options.Flags.HasFlag(CardCreationFlags.ForceRarityOddsChange) ||
+            options.Source == CardCreationSource.Encounter &&
+            options.RarityOdds is
+                CardRarityOddsType.RegularEncounter or
+                CardRarityOddsType.EliteEncounter or
+                CardRarityOddsType.BossEncounter;
         var rarity = shouldChangeOdds
-            ? rarityOdds.Roll(rollMethod)
-            : rarityOdds.RollWithBaseOdds(rollMethod);
+            ? rarityOdds.Roll(options.RarityOdds, options.RngOverride)
+            : rarityOdds.RollWithBaseOdds(options.RarityOdds, options.RngOverride);
 
         return GetNextAllowedRarity(rarity, allowedRarities.Contains);
     }

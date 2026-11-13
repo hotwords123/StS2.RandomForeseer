@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Models.Characters;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Events;
 using MegaCrit.Sts2.Core.Models.Relics;
+using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.Common.HoverTips;
@@ -101,7 +102,8 @@ internal static class RelicPickupPrediction
 
                 // Vakuu
                 DistinguishedCape when IsSingleplayerUnfairPredictionAllowed() =>
-                    [.. PredictCurses(context, relic.DynamicVars["Curses"].IntValue).ToPredictionHoverTips()],
+                    [.. PredictCurses(context, relic.DynamicVars["Curses"].IntValue, context.SharedRng.Niche)
+                        .ToPredictionHoverTips()],
 
                 // Non-Ancient relics
                 Cauldron => [.. PredictionUtils.PredictPotionRewards(
@@ -293,7 +295,7 @@ internal static class RelicPickupPrediction
             .OfType<RelicModel>()
             .Where(relic => relic.IsAllowedAtNeow(context.Player) && relic is not NeowsBones)
             .ToList();
-        context.Rng.Rewards.Shuffle(validRelics);
+        validRelics.UnstableShuffle(context.Rng.NonCombatGeneration);
 
         var predictedRelics = validRelics.Take(relic.DynamicVars["Relics"].IntValue).ToList();
         var tips = predictedRelics.ToPredictionHoverTips().ToList();
@@ -305,11 +307,11 @@ internal static class RelicPickupPrediction
 
             FastForwardRelicPickup(context, firstRelic);
             FastForwardRelicPickup(context, secondRelic);
-            var firstCurses = PredictCurses(context, curseCount);
+            var firstCurses = PredictCurses(context, curseCount, context.Rng.NonCombatGeneration);
 
             FastForwardRelicPickup(clonedContext, secondRelic);
             FastForwardRelicPickup(clonedContext, firstRelic);
-            var secondCurses = PredictCurses(clonedContext, curseCount);
+            var secondCurses = PredictCurses(clonedContext, curseCount, clonedContext.Rng.NonCombatGeneration);
 
             if (firstCurses.SequenceEqual(secondCurses))
             {
@@ -332,7 +334,7 @@ internal static class RelicPickupPrediction
         return tips;
     }
 
-    private static IReadOnlyList<CardModel> PredictCurses(RunPredictionContext context, int count)
+    private static IReadOnlyList<CardModel> PredictCurses(RunPredictionContext context, int count, Rng rng)
     {
         var availableCurses = context.Player.GetUnlockedCurseCards()
             .Where(card => card.CanBeGeneratedByModifiers)
@@ -342,7 +344,7 @@ internal static class RelicPickupPrediction
 
         for (var i = 0; i < count; i++)
         {
-            var card = context.SharedRng.Niche.NextItem(availableCurses);
+            var card = rng.NextItem(availableCurses);
             if (card == null)
             {
                 break;

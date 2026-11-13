@@ -151,4 +151,6 @@ internal sealed class RunPredictionPlayerRngSet(PlayerRngSet source, RunPredicti
     public Rng Rewards => rngMap.GetOrClone(source.Rewards);
 
     public Rng Shops => rngMap.GetOrClone(source.Shops);
+
+    public Rng NonCombatGeneration => rngMap.GetOrClone(source.NonCombatGeneration);
 }

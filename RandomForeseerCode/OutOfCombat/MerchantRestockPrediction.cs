@@ -20,13 +20,13 @@ internal static class MerchantRestockPrediction
         var settings = ModData.Settings;
         if (!settings.IsPredictionEnabled || !settings.MerchantRestockPredictionEnabled ||
             entry is not { IsStocked: true, EnoughGold: true } ||
-            entry._player is not { RunState.CurrentRoom: MerchantRoom room } player ||
-            room.Inventories.Find(inventory => inventory.Player == player) is not { } inventory ||
+            entry._player is not { RunState.CurrentRoom: MerchantRoom } player ||
             !HookMirrors.ShouldRefillMerchantEntry(player.RunState, entry, player))
         {
             return [];
         }
 
+        var inventory = RunManager.Instance.MerchantSynchronizer.GetInventoryFor(player);
         var context = new RunPredictionContext(player);
         return entry switch
         {
@@ -48,17 +48,17 @@ internal static class MerchantRestockPrediction
             .OfType<CardModel>()
             .ToHashSet();
 
-        var options = entry._cardPool.Except(blacklist);
-        options = HookMirrors.ModifyMerchantCardPool(player.RunState, player, options);
+        var options = HookMirrors.ModifyMerchantCardPool(player.RunState, player, entry._cardPool);
         options = options.Where(card => card.Rarity != CardRarity.Basic);
-        options = CardFactory.FilterForPlayerCount(player.RunState, options);
+        options = CardFactory.FilterForRun(player.RunState, options);
+        options = options.Except(blacklist);
 
         var filteredOptions = options.ToArray();
 
         IEnumerable<CardModel> candidates;
         if (entry._cardType is { } cardType)
         {
-            var cardRarity = context.CardRarityOdds.RollWithoutChangingFutureOdds(CardRarityOddsType.Shop);
+            var cardRarity = context.CardRarityOdds.RollWithoutChangingFutureOdds(CardRarityOddsType.Shop, context.Rng.Shops);
             cardRarity = HookMirrors.ModifyMerchantCardRarity(player.RunState, player, cardRarity);
             cardRarity = CardFactory.GetNextAllowedRarity(
                 cardRarity,
@@ -85,9 +85,9 @@ internal static class MerchantRestockPrediction
             ?? throw new InvalidOperationException("Could not predict a merchant restock card.");
         var result = new CardCreationResult(PredictionUtils.CreateCard(canonicalCard, player));
 
-        // Mirrors CardFactory.CreateForMerchant. Vanilla always consumes this Rewards roll even though its
+        // Mirrors CardFactory.CreateForMerchant. Vanilla always consumes this Shops roll even though its
         // -999999999 base chance normally prevents a merchant card from being upgraded by this roll.
-        CardRewardPrediction.RollForUpgrade(player, result.Card, -999999999m, context.Rng.Rewards);
+        CardRewardPrediction.RollForUpgrade(player, result.Card, -999999999m, context.Rng.Shops);
         HookMirrors.ModifyMerchantCardCreationResults(context, [result]);
 
         var cost = MerchantCardEntry.GetCost(result.Card);
@@ -132,7 +132,7 @@ internal static class MerchantRestockPrediction
         var obtainedRelic = PredictionUtils.CreateRelic(entry.Model!, player);
         RelicPickupPrediction.FastForwardRelicPickup(context, obtainedRelic);
 
-        var rarity = RelicFactory.RollRarity(context.Rng.Rewards);
+        var rarity = RelicFactory.RollRarity(context.Rng.Shops);
         var blacklist = inventory.RelicEntries
             .Select(other => other.Model?.CanonicalInstance)
             .OfType<RelicModel>()
@@ -154,7 +154,7 @@ internal static class MerchantRestockPrediction
         ];
     }
 
-    private static HoverTip CreateTextTip(string modelName, int cost)
+    private static IHoverTip CreateTextTip(string modelName, int cost)
     {
         return PredictionHoverTipFactory.Text("merchant_restock", description =>
         {

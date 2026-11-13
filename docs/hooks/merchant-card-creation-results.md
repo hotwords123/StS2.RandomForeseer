@@ -30,6 +30,10 @@ prediction must use exact mirrors against detached preview cards instead of invo
 
 ## Parity notes
 
+- StS2 v0.113.0 applies the merchant pool hook and `CardFactory.FilterForRun` before excluding inventory cards.
+  Restock prediction follows this order, so a pool hook cannot reintroduce a blacklisted card. Merchant rarity,
+  card selection, the otherwise ineffective upgrade roll, and pricing all use the cloned `Shops` RNG. Relic restock
+  rarity also uses `Shops`; obtaining the purchased relic is still simulated before generating the replacement.
 - `OutOfCombat.Mirrors.HookMirrors.ModifyMerchantCardCreationResults` preserves the original full listener pass and
   delegates exact-type dispatch to `ModifyMerchantCardCreationResultsMirrors`.
 - The three Egg handlers intentionally do not apply the card-reward-only `NoHookUpgrades` gate; vanilla merchant
