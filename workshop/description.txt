@@ -9,7 +9,7 @@
 [*]测试版：[b]v0.113.0[/b]（Mod 版本 [b]v0.14.0[/b]）
 [/list]
 
-GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
+GitHub：[b]hotwords123/StS2.RandomForeseer[/b]
 
 [h2]功能[/h2]
 
@@ -41,7 +41,7 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 
 [h2]致谢[/h2]
 
-特别感谢：封面图作者 月上猫啊（B 站：@[url=https://space.bilibili.com/325913526]yuepcat[/url]）
+特别感谢：封面图作者 月上猫啊（B 站：@yuepcat）
 
 感谢和我一起玩联机的朋友们。他们帮我测试了原型 Mod，也提出了很多改进意见。
 
@@ -66,7 +66,7 @@ GitHub 地址：[url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.Ran
 
 [h2]反馈问题[/h2]
 
-如果以上都无法解决你的问题，可以在 [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam 讨论区[/url] 或 [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url] 中反馈。
+如果以上都无法解决你的问题，可以在 [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam 讨论区[/url] 或 GitHub Issues 中反馈。
 
 对于 Mod 加载失败、无法使用、冲突报错类问题，只靠现象描述通常无法准确定位原因，必须依靠日志中的信息排查。[b]因此，反馈此类问题时请务必附上完整的游戏日志。[/b]（[url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]如何找到日志？[/url]）
 日志可以使用网盘等方式分享，或发送到邮箱 [b]hotwords123@outlook.com[/b]。发送后请在讨论区或 Issues 中留言告知。

@@ -9,7 +9,7 @@ Currently supported game versions:
 [*]public-beta: [b]v0.113.0[/b] (mod version [b]v0.14.0[/b])
 [/list]
 
-GitHub: [url=https://github.com/hotwords123/StS2.RandomForeseer]StS2.RandomForeseer[/url]
+GitHub: [b]hotwords123/StS2.RandomForeseer[/b]
 
 [h2]Features[/h2]
 
@@ -41,7 +41,7 @@ You can manage each prediction feature from the settings page provided by RitsuL
 
 [h2]Credits[/h2]
 
-Special thanks: cover art by 月上猫啊 (Bilibili: @[url=https://space.bilibili.com/325913526]yuepcat[/url])
+Special thanks: cover art by 月上猫啊 (Bilibili: @yuepcat)
 
 Thanks to the friends who played multiplayer with me. They helped test the prototype mod and suggested many improvements.
 
@@ -66,7 +66,7 @@ Here are some common questions. [b]Please try these solutions before reporting a
 
 [h2]Reporting Issues[/h2]
 
-If none of the above solves your issue, you can report it in the [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam discussions[/url] or [url=https://github.com/hotwords123/StS2.RandomForeseer/issues]GitHub Issues[/url].
+If none of the above solves your issue, you can report it in the [url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]Steam discussions[/url] or GitHub Issues.
 
 For mod loading failures, broken functionality, conflict errors, and similar issues, a description of the symptoms alone is usually not enough to identify the cause. The information in the log is required for troubleshooting. [b]Therefore, please be sure to include the complete game log when reporting these issues.[/b] ([url=https://steamcommunity.com/workshop/filedetails/discussion/3747531952/567037949153327700/]How do I find the log?[/url])
 You can share the log through a cloud storage service or email it to [b]hotwords123@outlook.com[/b]. After emailing it, please post a message in the Steam discussions or on GitHub Issues to let me know.
