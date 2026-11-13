@@ -49,7 +49,10 @@ internal static class DoomPowerMirrors
 
         foreach (var creature in creatures)
         {
-            simulator.Kill(creature);
+            if (simulator.State.GetCreature(creature).IsAlive && simulator.State.Creatures.Contains(creature))
+            {
+                simulator.Kill(creature);
+            }
         }
 
         // TODO: Hook.AfterDiedToDoom

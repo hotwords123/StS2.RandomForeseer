@@ -41,6 +41,7 @@ internal static class BeforeCardPlayedMirrors
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
         registry.Register<DanseMacabrePower>(HandleDanseMacabrePower);
         registry.Register<FreeAttackPower>(HandleFreeAttackPower);
+        registry.Register<FreeCardPower>(HandleFreeCardPower);
         registry.Register<FreePowerPower>(HandleFreePowerPower);
         registry.Register<FreeSkillPower>(HandleFreeSkillPower);
         registry.Register<GravityPower>(HandleGravityPower);
@@ -123,6 +124,15 @@ internal static class BeforeCardPlayedMirrors
         ConsumeFreeCardPower(power, CardType.Power, context);
     }
 
+    private static void HandleFreeCardPower(FreeCardPower power, BeforeCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner.Creature == power.Owner &&
+            context.Card.GetPile(context.State)?.Type is PileType.Hand or PileType.Play)
+        {
+            context.StateStore.GetPowerAmount(power).Decrement();
+        }
+    }
+
     private static void HandleFreeSkillPower(FreeSkillPower power, BeforeCardPlayedMirrorContext context)
     {
         ConsumeFreeCardPower(power, CardType.Skill, context);
@@ -147,14 +157,7 @@ internal static class BeforeCardPlayedMirrors
             return;
         }
 
-        for (var i = 0; i < power.Amount; i++)
-        {
-            context.Simulator.AddGeneratedCardToCombat(
-                context.Card.CreateClone(context.State),
-                PileType.Hand,
-                power.Owner.Player,
-                resultKind: CardGenerationResultKind.Contextual);
-        }
+        state.CardToClone = context.Card.Original;
     }
 
     private static void HandleImitationLearningPower(
@@ -364,6 +367,8 @@ internal sealed class JugglingPredictionState(JugglingPower power)
 {
     public int AttacksPlayedThisTurn { get; set; } =
         power.GetInternalData<JugglingPower.Data>().attacksPlayedThisTurn;
+
+    public CardModel? CardToClone { get; set; } = power.GetInternalData<JugglingPower.Data>().cardToClone;
 }
 
 internal sealed class MusicBoxPredictionState(MusicBox relic)

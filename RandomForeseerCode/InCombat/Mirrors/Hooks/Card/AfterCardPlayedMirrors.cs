@@ -59,6 +59,8 @@ internal static class AfterCardPlayedMirrors
 
         registry.Register<Glam>(HandleGlam);
         registry.Register<Goopy>(HandleGoopy);
+        registry.Register<Sown>(HandleSown);
+        registry.Register<Swift>(HandleSwift);
         registry.Register<Vigorous>(HandleVigorous);
 
         registry.Register<AfterimagePower>(HandleAfterimagePower);
@@ -72,6 +74,7 @@ internal static class AfterCardPlayedMirrors
         registry.Register<GravityPower>(HandleGravityPower);
         registry.Register<HauntPower>(HandleHauntPower);
         registry.Register<ImitationLearningPower>(HandleImitationLearningPower);
+        registry.Register<JugglingPower>(HandleJugglingPower);
         registry.Register<MasterPlannerPower>(HandleMasterPlannerPower);
         registry.Register<MonologuePower>(HandleMonologuePower);
         registry.Register<OblivionPower>(HandleOblivionPower);
@@ -259,7 +262,7 @@ internal static class AfterCardPlayedMirrors
         }
 
         var clone = context.Card.CreateClone(context.State);
-        clone.MutablePreview.LocalKeywords.Add(CardKeyword.Ethereal);
+        clone.MutablePreview.AddKeyword(CardKeyword.Ethereal);
         context.Simulator.AddGeneratedCardToCombat(
             clone,
             PileType.Hand,
@@ -483,7 +486,7 @@ internal static class AfterCardPlayedMirrors
     {
         if (context.PreviewCard.Owner == power.Owner.Player && context.PreviewCard.Type == CardType.Skill)
         {
-            context.MutablePreviewCard.LocalKeywords.Add(CardKeyword.Sly);
+            context.MutablePreviewCard.AddKeyword(CardKeyword.Sly);
         }
     }
 
@@ -506,8 +509,31 @@ internal static class AfterCardPlayedMirrors
         var clone = state.CardAndClones[index].Clone;
         state.CardAndClones.RemoveAt(index);
 
-        state.Amount--;
+        if (HookMirrors.ShouldPlay(context.Simulator, clone, out _, AutoPlayType.Default))
+        {
+            state.Amount--;
+        }
+
         context.Simulator.AutoPlay(clone);
+    }
+
+    private static void HandleJugglingPower(JugglingPower power, AfterCardPlayedMirrorContext context)
+    {
+        var state = context.StateStore.Get(power, () => new JugglingPredictionState(power));
+        if (!context.Card.References(state.CardToClone))
+        {
+            return;
+        }
+
+        state.CardToClone = null;
+        for (var i = 0; i < power.Amount; i++)
+        {
+            context.Simulator.AddGeneratedCardToCombat(
+                context.Card.CreateClone(context.State),
+                PileType.Hand,
+                power.Owner.Player,
+                resultKind: CardGenerationResultKind.Contextual);
+        }
     }
 
     private static void HandleMonologuePower(MonologuePower power, AfterCardPlayedMirrorContext context)
@@ -698,6 +724,22 @@ internal static class AfterCardPlayedMirrors
     private static void HandleVigorous(Vigorous enchantment, AfterCardPlayedMirrorContext context)
     {
         if (context.Card.References(enchantment.Card) && context.MutablePreviewCard.Enchantment is Vigorous preview)
+        {
+            preview._status = EnchantmentStatus.Disabled;
+        }
+    }
+
+    private static void HandleSown(Sown enchantment, AfterCardPlayedMirrorContext context)
+    {
+        if (context.Card.References(enchantment.Card) && context.MutablePreviewCard.Enchantment is Sown preview)
+        {
+            preview._status = EnchantmentStatus.Disabled;
+        }
+    }
+
+    private static void HandleSwift(Swift enchantment, AfterCardPlayedMirrorContext context)
+    {
+        if (context.Card.References(enchantment.Card) && context.MutablePreviewCard.Enchantment is Swift preview)
         {
             preview._status = EnchantmentStatus.Disabled;
         }

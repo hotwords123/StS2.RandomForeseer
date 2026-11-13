@@ -33,6 +33,7 @@ internal static class AfterCardGeneratedForCombatMirrors
 
         registry.Register<Aeonglass>(HandleAeonglass);
         registry.Register<ArsenalPower>(HandleArsenalPower);
+        registry.Register<AllIsWellPower>(HandleAllIsWellPower);
         registry.Register<Regalite>(HandleRegalite);
         registry.Register<SoulboundPower>(HandleSoulboundPower);
         registry.Register<PillarOfCreationPower>(HandlePillarOfCreationPower);
@@ -79,6 +80,14 @@ internal static class AfterCardGeneratedForCombatMirrors
 
         state.UsedThisTurn = true;
         context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
+    }
+
+    private static void HandleAllIsWellPower(AllIsWellPower power, AfterCardGeneratedForCombatMirrorContext context)
+    {
+        if (context.Creator?.Creature == power.Owner && context.PreviewCard is Sadness)
+        {
+            context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
+        }
     }
 
     private static void HandleSoulboundPower(SoulboundPower power, AfterCardGeneratedForCombatMirrorContext context)

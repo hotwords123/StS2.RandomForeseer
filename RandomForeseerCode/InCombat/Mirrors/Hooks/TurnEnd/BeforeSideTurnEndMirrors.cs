@@ -80,6 +80,7 @@ internal static class BeforeSideTurnEndMirrors
         registry.Register<Orichalcum>(OrichalcumMirrors.BeforeSideTurnEnd);
         registry.Register<FakeOrichalcum>(OrichalcumMirrors.BeforeSideTurnEnd);
         registry.Register<CloakClasp>(HandleCloakClasp);
+        registry.Register<ObsidianVice>(HandleObsidianVice);
         registry.Register<RippleBasin>(HandleRippleBasin);
         registry.Register<HailstormPower>(HandleHailstormPower);
         registry.Register<ScreamingFlagon>(HandleScreamingFlagon);
@@ -157,6 +158,24 @@ internal static class BeforeSideTurnEndMirrors
         }
 
         context.Simulator.GainBlock(relic.Owner.Creature, relic.DynamicVars.Block);
+    }
+
+    private static void HandleObsidianVice(ObsidianVice relic, SideTurnEndMirrorContext context)
+    {
+        if (!context.Participants.Contains(relic.Owner.Creature))
+        {
+            return;
+        }
+
+        var cardsInHand = context.State.GetPlayerCombatState(relic.Owner).Hand.Cards.Count;
+        if (cardsInHand != 0 && context.Rng.CombatTargets.NextItem(context.State.HittableEnemies) is { } target)
+        {
+            context.Simulator.Damage(
+                target,
+                relic.DynamicVars.Damage.BaseValue * cardsInHand,
+                ValueProp.Unpowered,
+                relic.Owner.Creature);
+        }
     }
 
     private static void HandleHailstormPower(HailstormPower power, SideTurnEndMirrorContext context)

@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
@@ -43,9 +42,7 @@ internal static class BeforeDamageReceivedMirrors
 
     private static void HandleThornsPower(ThornsPower power, BeforeDamageReceivedMirrorContext context)
     {
-        if (context.Target == power.Owner &&
-            context.Dealer != null &&
-            (context.Props.IsPoweredAttack() || context.Source?.Original is Omnislice))
+        if (context.Target == power.Owner && context.Dealer != null && context.Props.IsPoweredAttack())
         {
             context.Simulator.Damage(
                 context.Dealer,

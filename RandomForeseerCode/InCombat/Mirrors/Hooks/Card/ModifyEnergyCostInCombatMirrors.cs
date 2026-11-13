@@ -51,6 +51,7 @@ internal static class ModifyEnergyCostInCombatMirrors
         var registry = new Registry(ModifyEnergyCostInCombatLate);
 
         registry.Register<FreeAttackPower>(HandleFreeAttackPower);
+        registry.Register<FreeCardPower>(HandleFreeCardPower);
         registry.Register<FreePowerPower>(HandleFreePowerPower);
         registry.Register<FreeSkillPower>(HandleFreeSkillPower);
         registry.Register<VeilpiercerPower>(HandleVeilpiercerPower);
@@ -69,6 +70,15 @@ internal static class ModifyEnergyCostInCombatMirrors
     private static decimal HandleFreePowerPower(FreePowerPower power, ModifyEnergyCostInCombatMirrorContext context)
     {
         return HandleFreeCardPower(power, CardType.Power, context);
+    }
+
+    private static decimal HandleFreeCardPower(FreeCardPower power, ModifyEnergyCostInCombatMirrorContext context)
+    {
+        return context.Card.Preview.Owner.Creature == power.Owner &&
+               IsInPlayablePile(context) &&
+               context.StateStore.GetPowerAmount(power).IsActive
+            ? 0
+            : context.Cost;
     }
 
     private static decimal HandleFreeSkillPower(FreeSkillPower power, ModifyEnergyCostInCombatMirrorContext context)

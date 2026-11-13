@@ -1,5 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Mirrors;
 using RandomForeseer.InCombat.Simulation;
@@ -9,7 +10,7 @@ namespace RandomForeseer.InCombat.Mirrors.Hooks.Power;
 using Registry = MethodMirrorRegistry<PowerModel, PowerAppliedMirrorContext>;
 
 /// <summary>
-/// Placeholder registries for model-specific PowerModel application lifecycle methods.
+/// Mirrors model-specific PowerModel application lifecycle methods.
 /// </summary>
 internal static class PowerAppliedMirrors
 {
@@ -26,7 +27,14 @@ internal static class PowerAppliedMirrors
         [typeof(Creature), typeof(CardModel)]);
 
     private static readonly Registry BeforeRegistry = new(BeforeApplied);
-    private static readonly Registry AfterRegistry = new(AfterApplied);
+    private static readonly Registry AfterRegistry = CreateAfterRegistry();
+
+    private static Registry CreateAfterRegistry()
+    {
+        var registry = new Registry(AfterApplied);
+        registry.RegisterIgnored<PhantomBladesPower>();
+        return registry;
+    }
 
     public static void InvokeBefore(
         CombatPredictionSimulator simulator,

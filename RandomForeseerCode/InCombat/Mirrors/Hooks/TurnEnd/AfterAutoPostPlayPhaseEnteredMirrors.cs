@@ -76,7 +76,7 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
                     card.Preview.Type == CardType.Attack &&
                     !card.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
                 .ToList();
-            var card = context.Rng.Shuffle.NextItem(candidates);
+            var card = context.Rng.CombatCardSelection.NextItem(candidates);
 
             if (card != null)
             {

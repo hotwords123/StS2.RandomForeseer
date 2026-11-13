@@ -55,7 +55,8 @@ internal static class ModifyBlockMultiplicativeMirrors
         var state = context.StateStore.Get(relic, () => new PaelsLegionPredictionState(relic));
         return context.Props.IsCardOrMonsterMove() &&
             context.CardSource?.Preview.Owner == relic.Owner &&
-            state.Cooldown <= 0
+            state.Cooldown <= 0 &&
+            (state.AffectedCardPlay is null || state.AffectedCardPlay == context.CardPlay)
                 ? 2
                 : 1;
     }

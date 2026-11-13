@@ -48,6 +48,7 @@ internal static class AfterDeathMirrors
         registry.RegisterIgnored<WaterfallGiant>();
 
         registry.Register<CrabRagePower>(HandleCrabRagePower);
+        registry.Register<CompostPower>(HandleCompostPower);
         registry.Register<GremlinHorn>(HandleGremlinHorn);
         registry.Register<Melancholy>(HandleMelancholy);
 
@@ -80,6 +81,22 @@ internal static class AfterDeathMirrors
         {
             context.Simulator.GainEnergy(relic.Owner, relic.DynamicVars.Energy.BaseValue);
             context.Simulator.Draw(relic.Owner, relic.DynamicVars.Cards.BaseValue);
+        }
+    }
+
+    private static void HandleCompostPower(CompostPower power, AfterDeathMirrorContext context)
+    {
+        if (context.Creature.Side == power.Owner.Side)
+        {
+            return;
+        }
+
+        foreach (var teammate in context.State.GetTeammatesOf(power.Owner))
+        {
+            if (teammate.Player is { } player && context.State.GetCreature(teammate).IsAlive)
+            {
+                context.Simulator.GainEnergy(player, power.Amount);
+            }
         }
     }
 

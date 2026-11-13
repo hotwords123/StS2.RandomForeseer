@@ -49,8 +49,8 @@ internal static class JossPaperMirrors
         }
 
         var count = (int)(state.CardsExhausted / relic.DynamicVars["ExhaustAmount"].BaseValue);
-        context.Simulator.Draw(relic.Owner, count);
         state.CardsExhausted %= relic.DynamicVars["ExhaustAmount"].IntValue;
+        context.Simulator.Draw(relic.Owner, count);
     }
 
     private sealed class State(JossPaper relic)

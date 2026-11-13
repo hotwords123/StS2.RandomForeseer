@@ -116,7 +116,7 @@ internal static class ModifyDamageMirrors
         }
 
         var energyCost = context.CardPlay is { } cardPlay
-            ? cardPlay.Resources.EnergySpent
+            ? (cardPlay.IsAutoPlay ? cardPlay.Resources.EnergyValue : cardPlay.Resources.EnergySpent)
             : card.GetEnergyCostWithModifiers(context.Simulator);
         return energyCost == 0 ? power.Amount : 0;
     }
@@ -157,7 +157,9 @@ internal static class ModifyDamageMirrors
                 entry.CardPlay.Card.Type == CardType.Attack) +
             context.History.OfType<CombatPredictionCardPlayStartedEntry>().Count(entry =>
                 entry.CardPlay.Player == power.Owner.Player && entry.Card.Preview.Type == CardType.Attack);
-        return attacksStarted > (isInPlay ? 1 : 0) ? 1 : 1 + power.Amount / 100m;
+        return attacksStarted > (isInPlay && context.CardPlay is not null ? 1 : 0)
+            ? 1
+            : 1 + power.Amount / 100m;
     }
 
     private static decimal HandleFlutterPower(FlutterPower power, ModifyDamageMirrorContext context)
