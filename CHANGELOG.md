@@ -20,7 +20,7 @@
 
 ### misc
 
-- 更新 RitsuLib 依赖到 0.6.11<br>
+- 更新 RitsuLib 依赖到 0.6.11。<br>
   Updated the RitsuLib dependency to 0.6.11.
 
 ## v0.13.20
