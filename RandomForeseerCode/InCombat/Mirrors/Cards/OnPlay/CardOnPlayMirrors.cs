@@ -75,6 +75,8 @@ internal static class CardOnPlayMirrors
         registry.Register<Expose>(VulnerableCardMirrors.ExposeOnPlay);
         registry.Register<HighFive>(VulnerableCardMirrors.HighFiveOnPlay);
         registry.Register<MoltenFist>(VulnerableCardMirrors.MoltenFistOnPlay);
+        registry.Register<Nail>(VulnerableCardMirrors.NailOnPlay);
+        registry.Register<Uproot>(VulnerableCardMirrors.UprootOnPlay);
         registry.Register<Shockwave>(VulnerableCardMirrors.ShockwaveOnPlay);
 
         registry.Register<CalculatedGamble>(CardDrawCardMirrors.CalculatedGambleOnPlay);
@@ -85,12 +87,15 @@ internal static class CardOnPlayMirrors
         registry.Register<Ftl>(CardDrawCardMirrors.FtlOnPlay);
         registry.Register<HuddleUp>(CardDrawCardMirrors.HuddleUpOnPlay);
         registry.Register<Impatience>(CardDrawCardMirrors.ImpatienceOnPlay);
+        registry.Register<KiHop>(CardDrawCardMirrors.KiHopOnPlay);
         registry.Register<Pillage>(CardDrawCardMirrors.PillageOnPlay);
         registry.Register<Reboot>(CardDrawCardMirrors.RebootOnPlay);
         registry.Register<Restlessness>(CardDrawCardMirrors.RestlessnessOnPlay);
         registry.Register<Scrape>(CardDrawCardMirrors.ScrapeOnPlay);
         registry.Register<Scrawl>(CardDrawCardMirrors.ScrawlOnPlay);
+        registry.Register<SteadyCadence>(CardDrawCardMirrors.SteadyCadenceOnPlay);
         registry.Register<WheelOfFortune>(CardDrawCardMirrors.WheelOfFortuneOnPlay);
+        registry.Register<Wrest>(CardDrawCardMirrors.WrestOnPlay);
 
         registry.Register<FlakCannon>(RandomTargetAttackCardMirrors.FlakCannonOnPlay);
         registry.Register<Ricochet>(GeneralCardMirrors.GeneralAttackOnPlay);
@@ -122,9 +127,13 @@ internal static class CardOnPlayMirrors
 
         registry.Register<EchoingSlash>(SpecialAttackCardMirrors.EchoingSlashOnPlay);
         registry.Register<Omnislice>(SpecialAttackCardMirrors.OmnisliceOnPlay);
+        registry.Register<Timber>(SpecialAttackCardMirrors.TimberOnPlay);
+        registry.Register<WahBlast>(SpecialAttackCardMirrors.WahBlastOnPlay);
+        registry.Register<WahHammer>(GeneralCardMirrors.GeneralAttackOnPlay);
 
         registry.Register<BallLightning>(OrbCardMirrors.BallLightningOnPlay);
         registry.Register<Chaos>(OrbCardMirrors.ChaosOnPlay);
+        registry.Register<TheMagician>(OrbCardMirrors.TheMagicianOnPlay);
         registry.Register<Chill>(OrbCardMirrors.ChillOnPlay);
         registry.Register<ColdSnap>(OrbCardMirrors.ColdSnapOnPlay);
         registry.Register<ConsumingShadow>(OrbCardMirrors.ConsumingShadowOnPlay);
@@ -154,10 +163,13 @@ internal static class CardOnPlayMirrors
         registry.Register<BeatDown>(CardSelectionCardMirrors.BeatDownOnPlay);
         registry.Register<Catastrophe>(CardSelectionCardMirrors.CatastropheOnPlay);
         registry.Register<Cinder>(CardSelectionCardMirrors.CinderOnPlay);
+        registry.Register<ChoChorus>(CardSelectionCardMirrors.ChoChorusOnPlay);
         registry.Register<DrainPower>(CardSelectionCardMirrors.DrainPowerOnPlay);
         registry.Register<HiddenGem>(CardSelectionCardMirrors.HiddenGemOnPlay);
+        registry.Register<KiChant>(CardSelectionCardMirrors.KiChantOnPlay);
         registry.Register<SeekerStrike>(CardSelectionCardMirrors.SeekerStrikeOnPlay);
         registry.Register<TheFool>(CardSelectionCardMirrors.TheFoolOnPlay);
+        registry.Register<TheDevil>(CardSelectionCardMirrors.TheDevilOnPlay);
         registry.Register<TheWorld>(CardSelectionCardMirrors.TheWorldOnPlay);
         registry.Register<Thrash>(CardSelectionCardMirrors.ThrashOnPlay);
         registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);
@@ -165,6 +177,7 @@ internal static class CardOnPlayMirrors
 
         registry.Register<Abundance>(CardGenerationCardMirrors.AbundanceOnPlay);
         registry.Register<BundleOfJoy>(CardGenerationCardMirrors.BundleOfJoyOnPlay);
+        registry.Register<BlotOutTheSky>(CardGenerationCardMirrors.BlotOutTheSkyOnPlay);
         registry.Register<Distraction>(CardGenerationCardMirrors.DistractionOnPlay);
         registry.Register<Discovery>(CardGenerationCardMirrors.DiscoveryOnPlay);
         registry.Register<InfernalBlade>(CardGenerationCardMirrors.InfernalBladeOnPlay);

@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
+using RandomForeseer.Common;
 using RandomForeseer.InCombat.Mirrors.Hooks;
 using RandomForeseer.InCombat.Simulation;
 
@@ -66,6 +67,31 @@ internal static class VulnerableCardMirrors
         {
             context.ApplyPower<VulnerablePower>(context.Target, amount);
         }
+    }
+
+    public static void NailOnPlay(Nail card, CardOnPlayMirrorContext context)
+    {
+        if (!ArrowCmd.CreatureIsImpaledByArrow(context.Target))
+        {
+            return;
+        }
+
+        context.AttackSingle();
+
+        var amount = card.DynamicVars["Power"].BaseValue;
+        ApplyWeakAndVulnerable(context, context.Target, amount, amount);
+    }
+
+    public static void UprootOnPlay(Uproot card, CardOnPlayMirrorContext context)
+    {
+        if (!ArrowCmd.CreatureIsImpaledByPlayersArrow(context.Target, card.Owner))
+        {
+            return;
+        }
+
+        // ArrowCmd.DislodgeArrow would mutate arrows/powers and dispatch their lifecycle before this application.
+        context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+        context.ApplyPower<VulnerablePower>(context.Target);
     }
 
     public static void MadScienceSappingOnPlay(MadScience card, CardOnPlayMirrorContext context)

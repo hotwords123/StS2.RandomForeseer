@@ -33,6 +33,7 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
 
         registry.Register<HowlFromBeyond>(HandleHowlFromBeyond);
         registry.Register<IAmInvincible>(HandleIAmInvincible);
+        registry.Register<SimpletonPower>(HandleSimpletonPower);
         registry.Register<StampedePower>(HandleStampedePower);
 
         return registry;
@@ -80,6 +81,37 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
 
             if (card != null)
             {
+                context.Simulator.AutoPlay(card);
+            }
+        }
+    }
+
+    private static void HandleSimpletonPower(SimpletonPower power, AfterAutoPostPlayMirrorContext context)
+    {
+        if (context.Player.Creature != power.Owner)
+        {
+            return;
+        }
+
+        var hand = context.State.GetPlayerCombatState(context.Player).Hand;
+        for (var i = 0; i < context.StateStore.GetPowerAmount(power).Amount; i++)
+        {
+            var cheapest = hand.Cards
+                .Where(card => !card.GetKeywords(context.Simulator).Contains(CardKeyword.Unplayable))
+                .GroupBy(card => card.Preview.EnergyCost.CostsX
+                    ? 999999999
+                    : Math.Max(0, card.GetEnergyCostWithModifiers(context.Simulator)))
+                .OrderBy(group => group.Key)
+                .FirstOrDefault();
+            if (cheapest is null)
+            {
+                continue;
+            }
+
+            var card = context.Rng.CombatCardSelection.NextItem(cheapest);
+            if (card is not null)
+            {
+                context.History.CardsSelected([card]);
                 context.Simulator.AutoPlay(card);
             }
         }

@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
@@ -10,6 +11,18 @@ namespace RandomForeseer.InCombat.Simulation;
 internal sealed partial class CombatPredictionSimulator
 {
     private const int MaxSimulatedChanneledOrbs = 1000;
+
+    /// <summary>Mirrors <see cref="OrbCmd.AddSlots(Player, int)"/>.</summary>
+    public void OrbAddSlots(Player player, int amount)
+    {
+        if (IsOverOrEnding)
+        {
+            return;
+        }
+
+        var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
+        orbQueue.AddCapacity(Math.Min(10 - orbQueue.Capacity, amount));
+    }
 
     // Mirrors OrbModel.TriggerPassive without VFX/SFX, waits, or real model-stack updates.
     internal void TriggerOrbPassive(OrbModel orb, Creature? target)
@@ -52,7 +65,7 @@ internal sealed partial class CombatPredictionSimulator
         var orbQueue = State.GetPlayerCombatState(player).OrbQueue;
         if (player.Character.BaseOrbSlotCount == 0 && orbQueue.Capacity == 0)
         {
-            orbQueue.AddCapacity(1);
+            OrbAddSlots(player, 1);
         }
 
         orb.AssertMutable();

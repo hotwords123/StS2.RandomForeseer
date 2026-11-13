@@ -181,6 +181,8 @@ The labels remain useful for architecture, while each row now records its implem
 | `HauntPower` | 纠缠 | An owner Soul damages one random hittable enemy. | **Local feasible.** Cloned `CombatTargets` plus simulator `Damage`. |
 | `ImitationLearningPower` | 模仿学习 | Attempts to auto-play the paired ally Power clone; decrements only when `ShouldPlay` allows it. | **Implemented.** Checks the shadow predicate before local amount consumption, then attempts normal AutoPlay in vanilla order; the cloned card's mirror independently reports support or risk. |
 | `JugglingPower` | 杂耍 | After its remembered third Attack resolves, clears the pending card and adds `Amount` clones to hand. | **Implemented.** Clones the source card's current prediction state through normal contextual generation, including nested action ordering. |
+| `LostLutePower` | 失落鲁特琴 | On the first started play of each Wah/Cho/Ki tag, auto-plays cards from draw-pile top after the card finishes. | **Implemented for existing listeners.** Combines live and shadow current-turn started history, preserving vanilla's count-of-one check for each tag; uses the shared batch-selection/auto-play pipeline. |
+| `MotifPower` | 曲中意 | On the first started play of each Wah/Cho/Ki tag, draws cards after the card finishes. | **Implemented for existing listeners.** Counts qualifying tags from live plus shadow started history and draws their total using the existing shadow power amount. |
 | `MasterPlannerPower` | 谋划专家 | Adds Sly to every owner Skill after it resolves. | **Local feasible.** Mutate only predicted keywords so later shadow plays see it. |
 | `MonologuePower` | 独白 | Applies the paired Strength amount to the power owner and updates its accumulator. | **Risk on trigger.** Only a matching paired occurrence records risk. |
 | `OblivionPower` | 湮灭 | Applies the paired Doom amount to the owner. | **Risk on trigger.** Only a matching paired occurrence records risk. |
@@ -201,6 +203,12 @@ The labels remain useful for architecture, while each row now records its implem
 | `WitheringPresencePower` | 凋萎存在 | Counts target-player cards and adds a Wither to hand every six. | **Local feasible.** State-store counter plus fixed generated-card flow. |
 
 ## AfterCardPlayed listeners: cards, enchantments, and bookkeeping
+
+Melody-dependent card effects use `Mirrors/Shared/MelodyMirrors` to combine live and prediction-local history.
+The Wah/Cho/Ki presence checks read finished plays, while Motif/Lost Lute retain their original started-count-equals-one
+rule. This does not substitute the different identity-based `MelodyCmd.IsFirstPlayThisTurn` helper. No separate melody
+counter is maintained. New power instances created during prediction still do not join the listener collection;
+playing Motif, Lost Lute or Simpleton for the first time is therefore not complete support for their later hooks.
 
 | Model | 中文名 | Original effect | Prediction status |
 | --- | --- | --- | --- |

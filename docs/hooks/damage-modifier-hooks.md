@@ -97,6 +97,7 @@ consumers documented below.
 | `SlowPower` | 缓慢 | Powered attacks against owner scale up with cards played this turn. | Implemented by a prediction-aware multiplier reading the shadow card-play count. |
 | `SoarPower` | 翱翔 | Powered attacks against owner are reduced by configured percentage. | Implemented by original hook. |
 | `SurroundedPower` | 遭到包围 | Back attacks against owner are multiplied. | Implemented by a prediction-aware multiplier reading the facing updated by the simulated targeted card. |
+| `WahHammer` | 哇 战锤 | Doubles its own damage against a target with ImpaledPower. | Exact adapter matches either original or preview source identity through PredictedCard.References, then reads the target's current live ImpaledPower membership. Arrow/power state is intentionally frozen during prediction; simulated hits do not update impalement. |
 | `TankPower` | 肉盾 | Powered attacks against owner deal 50% more damage. | Implemented by original hook. |
 | `TrackingPower` | 跟踪 | Owner or pet powered card attacks against Weak targets are multiplied. | Implemented by original hook. |
 | `UndyingSigil` | 不死符文 | Incoming powered attacks from dealers whose Doom is at least their HP are reduced. | Original hook retained. Enemy attacks are outside the current prediction scope, so no dedicated shadow-HP adapter is needed. |

@@ -15,6 +15,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Mirrors;
 using RandomForeseer.InCombat.Extensions;
+using RandomForeseer.InCombat.Mirrors.Shared;
 using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
@@ -75,8 +76,10 @@ internal static class AfterCardPlayedMirrors
         registry.Register<HauntPower>(HandleHauntPower);
         registry.Register<ImitationLearningPower>(HandleImitationLearningPower);
         registry.Register<JugglingPower>(HandleJugglingPower);
+        registry.Register<LostLutePower>(HandleLostLutePower);
         registry.Register<MasterPlannerPower>(HandleMasterPlannerPower);
         registry.Register<MonologuePower>(HandleMonologuePower);
+        registry.Register<MotifPower>(HandleMotifPower);
         registry.Register<OblivionPower>(HandleOblivionPower);
         registry.RegisterIgnored<PaleBlueDotPower>();
         registry.Register<PanachePower>(HandlePanachePower);
@@ -133,6 +136,40 @@ internal static class AfterCardPlayedMirrors
         registry.Register<RightHandHand>(HandleRightHandHand);
 
         return registry;
+    }
+
+    private static void HandleMotifPower(MotifPower power, AfterCardPlayedMirrorContext context)
+    {
+        var count = CountFirstMelodies(power, context);
+        if (count > 0)
+        {
+            context.Simulator.Draw(context.PreviewCard.Owner, count * context.StateStore.GetPowerAmount(power).Amount);
+        }
+    }
+
+    private static void HandleLostLutePower(LostLutePower power, AfterCardPlayedMirrorContext context)
+    {
+        var count = CountFirstMelodies(power, context);
+        if (count > 0)
+        {
+            context.Simulator.AutoPlayFromDrawPile(
+                context.PreviewCard.Owner,
+                count * context.StateStore.GetPowerAmount(power).Amount,
+                CardPilePosition.Top);
+        }
+    }
+
+    private static int CountFirstMelodies(PowerModel power, AfterCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner != power.Owner.Player)
+        {
+            return 0;
+        }
+
+        // These listeners use a started-play count of one, rather than MelodyCmd.IsFirstPlayThisTurn.
+        return context.PreviewCard.Tags.Count(tag =>
+            tag is CardTag.Wah or CardTag.Cho or CardTag.Ki &&
+            MelodyMirrors.CountStartedThisTurn(context.Simulator, context.PreviewCard.Owner, tag) == 1);
     }
 
     private static void HandleDaughterOfTheWind(DaughterOfTheWind relic, AfterCardPlayedMirrorContext context)

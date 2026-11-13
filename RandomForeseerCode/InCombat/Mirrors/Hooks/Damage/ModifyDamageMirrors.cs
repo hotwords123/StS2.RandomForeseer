@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -99,10 +100,18 @@ internal static class ModifyDamageMirrors
         registry.Register<LethalityPower>(HandleLethalityPower);
         registry.Register<SlowPower>(HandleSlowPower);
         registry.Register<SurroundedPower>(HandleSurroundedPower);
+        registry.Register<WahHammer>(HandleWahHammer);
 
         registry.Register<PenNib>(HandlePenNib);
 
         return registry;
+    }
+
+    private static decimal HandleWahHammer(WahHammer card, ModifyDamageMirrorContext context)
+    {
+        return context.CardSource?.References(card) == true && context.Target?.HasPower<ImpaledPower>() == true
+            ? 2m
+            : 1m;
     }
 
     private static decimal HandleOneForAllPower(OneForAllPower power, ModifyDamageMirrorContext context)

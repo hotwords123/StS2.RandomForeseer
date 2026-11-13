@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 补充愚者的条件攻击、抽牌、选牌与自动打出预测，并支持魔术师和恶魔。<br>
+  Expanded predictions for the Fool's conditional attacks, draws, selections, and autoplay, plus The Magician and The Devil.
+
+- 回合结束预测现在支持傻瓜的随机自动打出效果。<br>
+  End-turn prediction now supports Simpleton's random autoplay.
+
+- 战斗预测现在支持曲中意和失落鲁特琴的抽牌和自动打出效果。<br>
+  Combat prediction now supports draws and autoplay from Motif and Lost Lute.
+
 ## v0.14.0
 
 ### feat

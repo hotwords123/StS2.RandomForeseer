@@ -36,6 +36,7 @@ Mirror files:
 | `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Implemented for immediate auto-play damage through simulator `AutoPlay` and the shared `CardOnPlayMirrors` handler. |
 | `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Implemented for draw-pile selection, play-pile movement, and immediate block gain through simulator `AutoPlayFromDrawPile` and the shared `CardOnPlayMirrors` handler. |
 | `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `CombatCardSelection` RNG and calls generic simulator `AutoPlay`; unsupported generic `OnPlay` bodies retain risk. |
+| `SimpletonPower` | 傻瓜 | Repeatedly chooses a lowest-energy-cost playable hand card at random and auto-plays it. | Recomputes shadow hand candidates and prediction-aware costs before each selection; energy X uses vanilla's high sentinel. Uses cloned CombatCardSelection and normal AutoPlay, with no resource-affordability prefilter. Existing listener only; prediction-created power membership remains unsupported. |
 
 ## BeforeSideTurnEndVeryEarly listeners
 

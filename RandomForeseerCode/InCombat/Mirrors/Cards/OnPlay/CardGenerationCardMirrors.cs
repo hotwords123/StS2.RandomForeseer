@@ -31,6 +31,17 @@ internal static class CardGenerationCardMirrors
         context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
     }
 
+    public static void BlotOutTheSkyOnPlay(BlotOutTheSky card, CardOnPlayMirrorContext context)
+    {
+        var cards = card.Owner.GetUnlockedCharacterCards()
+            .Where(candidate => candidate.Tags.Contains(CardTag.Shoot))
+            .GetDistinctForCombat(card.Owner, 1, context.Rng.CombatCardGeneration)
+            .Select(generatedCard => generatedCard.SetToFreeThisTurn())
+            .ToList();
+
+        context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
+    }
+
     public static void DistractionOnPlay(Distraction card, CardOnPlayMirrorContext context)
     {
         var cards = card.Owner.GetUnlockedCharacterCards()

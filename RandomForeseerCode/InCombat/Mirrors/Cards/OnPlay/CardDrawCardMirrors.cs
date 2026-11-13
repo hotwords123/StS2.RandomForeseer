@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models.Cards;
 using RandomForeseer.Common;
+using RandomForeseer.InCombat.Mirrors.Shared;
 using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
@@ -86,6 +87,17 @@ internal static class CardDrawCardMirrors
         }
     }
 
+    public static void KiHopOnPlay(KiHop card, CardOnPlayMirrorContext context)
+    {
+        var wasImpaled = ArrowCmd.CreatureIsImpaledByArrow(context.Target);
+        context.AttackSingle();
+
+        if (wasImpaled)
+        {
+            context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
+        }
+    }
+
     public static void PillageOnPlay(Pillage card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle();
@@ -135,6 +147,15 @@ internal static class CardDrawCardMirrors
         context.Simulator.Draw(card.Owner, count);
     }
 
+    public static void SteadyCadenceOnPlay(SteadyCadence card, CardOnPlayMirrorContext context)
+    {
+        context.AttackSingle();
+
+        var count = card.DynamicVars.CalculationBase.BaseValue +
+            card.DynamicVars.CalculationExtra.BaseValue * MelodyMirrors.MelodiesThisTurn(context.Simulator, card.Owner);
+        context.Simulator.Draw(card.Owner, count);
+    }
+
     public static void WheelOfFortuneOnPlay(WheelOfFortune card, CardOnPlayMirrorContext context)
     {
         var cards = context.OwnerState.Hand.Cards.ToArray();
@@ -146,6 +167,18 @@ internal static class CardDrawCardMirrors
         {
             context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
         }
+    }
+
+    public static void WrestOnPlay(Wrest card, CardOnPlayMirrorContext context)
+    {
+        if (!ArrowCmd.CreatureIsImpaledByPlayersArrow(context.Target, card.Owner))
+        {
+            return;
+        }
+
+        // ArrowCmd.DislodgeArrow would mutate arrows/powers and dispatch their lifecycle before this draw.
+        context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+        context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
     }
 
     private static int CountCardPlaysFinishedThisTurn(CombatPredictionSimulator simulator, Player player)

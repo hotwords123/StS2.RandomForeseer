@@ -1,11 +1,38 @@
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.ValueProps;
+using RandomForeseer.InCombat.Mirrors.Shared;
+using RandomForeseer.InCombat.Simulation;
 
 namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class SpecialAttackCardMirrors
 {
+    public static void TimberOnPlay(Timber card, CardOnPlayMirrorContext context)
+    {
+        var attack = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
+            .FromCard(card, context.CardPlay)
+            .Targeting(context.Target);
+        attack.Simulate(context.Simulator);
+
+        if (attack.Results.SelectMany(results => results).Any(result => result.WasTargetKilled))
+        {
+            DamageCmd.Attack(card.DynamicVars["OnKillDamage"].BaseValue)
+                .FromCard(card, context.CardPlay)
+                .TargetingAllOpponents(context.CombatState)
+                .Simulate(context.Simulator);
+        }
+    }
+
+    public static void WahBlastOnPlay(WahBlast card, CardOnPlayMirrorContext context)
+    {
+        var hitsTwice = MelodyMirrors.PlayedThisTurn(context.Simulator, card.Owner, CardTag.Cho) ||
+            MelodyMirrors.PlayedThisTurn(context.Simulator, card.Owner, CardTag.Ki);
+        context.AttackAllOpponents(hitsTwice ? 2 : 1);
+    }
+
     public static void EchoingSlashOnPlay(EchoingSlash card, CardOnPlayMirrorContext context)
     {
         using var attackContext = context.Simulator.CreateAttackContext(context.CardPlay);

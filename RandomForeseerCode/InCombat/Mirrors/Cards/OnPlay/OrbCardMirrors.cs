@@ -165,6 +165,17 @@ internal static class OrbCardMirrors
         context.Simulator.OrbChannel<LightningOrb>(card.Owner, count);
     }
 
+    public static void TheMagicianOnPlay(TheMagician card, CardOnPlayMirrorContext context)
+    {
+        context.Simulator.OrbAddSlots(card.Owner, card.DynamicVars.Repeat.IntValue);
+
+        for (var i = 0; i < card.DynamicVars.Repeat.IntValue; i++)
+        {
+            var orb = OrbModel.GetRandomOrb(context.Rng.CombatOrbGeneration).ToMutable();
+            context.Simulator.OrbChannel(card.Owner, orb);
+        }
+    }
+
     public static void TeslaCoilOnPlay(TeslaCoil card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle();

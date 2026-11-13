@@ -106,6 +106,70 @@ internal static class CardSelectionCardMirrors
         }
     }
 
+    public static void ChoChorusOnPlay(ChoChorus card, CardOnPlayMirrorContext context)
+    {
+        context.GainBlock(card.Owner.Creature);
+
+        var cards = context.OwnerState.Hand.Cards
+            .Where(predictedCard =>
+                predictedCard.Preview.Tags.Contains(CardTag.Wah) ||
+                predictedCard.Preview.Tags.Contains(CardTag.Ki))
+            .ToArray();
+
+        foreach (var predictedCard in cards)
+        {
+            context.Simulator.AutoPlay(predictedCard);
+        }
+    }
+
+    public static void KiChantOnPlay(KiChant card, CardOnPlayMirrorContext context)
+    {
+        var count = card.DynamicVars.Cards.IntValue;
+        var drawPile = context.OwnerState.DrawPile;
+        if (drawPile.Cards.Count == 0)
+        {
+            if (!context.OwnerState.DiscardPile.IsEmpty)
+            {
+                context.Simulator.Shuffle(card.Owner);
+            }
+        }
+        else if (drawPile.Cards.Count < count && !context.OwnerState.DiscardPile.IsEmpty)
+        {
+            var alreadyInDraw = drawPile.Cards.ToArray();
+            context.Simulator.Shuffle(card.Owner);
+            context.Simulator.AddToPile(
+                alreadyInDraw.Where(predictedCard => predictedCard.GetPile(context.State) == drawPile)
+                    .Reverse()
+                    .ToArray(),
+                drawPile,
+                CardPilePosition.Top);
+        }
+
+        var topCards = drawPile.Cards.Take(count).ToArray();
+        if (topCards.Length == 0)
+        {
+            return;
+        }
+
+        context.History.CardsSelected(topCards);
+        context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
+    }
+
+    public static void TheDevilOnPlay(TheDevil card, CardOnPlayMirrorContext context)
+    {
+        var cards = context.OwnerState.Hand.Cards.ToArray();
+        foreach (var predictedCard in cards)
+        {
+            context.Simulator.Exhaust(predictedCard);
+        }
+
+        context.Simulator.AutoPlayFromDrawPile(
+            card.Owner,
+            cards.Length,
+            CardPilePosition.Top,
+            cardModification: card.IsUpgraded ? predictedCard => context.Simulator.Upgrade(predictedCard) : null);
+    }
+
     public static void DrainPowerOnPlay(DrainPower card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle();

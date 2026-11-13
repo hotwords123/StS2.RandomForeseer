@@ -48,14 +48,15 @@ internal sealed partial class CombatPredictionSimulator
         Player player,
         int count,
         CardPilePosition position,
-        bool forceExhaust = false)
+        bool forceExhaust = false,
+        Action<PredictedCard>? cardModification = null)
     {
         if (IsOverOrEnding)
         {
             return;
         }
 
-        foreach (var card in MoveCardsForAutoPlay(player, count, position))
+        foreach (var card in MoveCardsForAutoPlay(player, count, position, cardModification))
         {
             if (State.GetCreature(card.Preview.Owner.Creature).IsDead)
             {
@@ -68,7 +69,11 @@ internal sealed partial class CombatPredictionSimulator
     }
 
     // Mirrors CardPileCmd.AutoPlayFromDrawPile until the card is moved to the play pile.
-    private IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(Player player, int count, CardPilePosition position)
+    private IReadOnlyList<PredictedCard> MoveCardsForAutoPlay(
+        Player player,
+        int count,
+        CardPilePosition position,
+        Action<PredictedCard>? cardModification)
     {
         var cards = new List<PredictedCard>(count);
         var playerCombatState = State.GetPlayerCombatState(player);
@@ -90,6 +95,7 @@ internal sealed partial class CombatPredictionSimulator
                 break;
             }
 
+            cardModification?.Invoke(card);
             cards.Add(card);
             AddToPile(card, playerCombatState.PlayPile);
             History.AutoPlayFromDrawPile(card);
