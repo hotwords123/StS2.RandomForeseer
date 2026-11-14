@@ -24,7 +24,7 @@ internal sealed class GraphCopyPolicy
 
     private readonly Dictionary<Type, GraphTypePlan> _plans = [];
 
-    /// <summary>Opaque-type rejection precedes specific and common rules; fallbacks run only when none matches.</summary>
+    /// <summary>Specific rules precede common rules, where immutable sharing/keeping precedes opaque rejection; fallbacks run only when none matches.</summary>
     public GraphCopyPolicy(
         IEnumerable<GraphReferenceRule>? referenceRules = null,
         IEnumerable<GraphValueRule>? valueRules = null,
@@ -33,18 +33,8 @@ internal sealed class GraphCopyPolicy
         GraphReferenceStrategy? referenceFallback = null,
         GraphValueAction valueFallback = GraphValueAction.Reject)
     {
-        _references =
-        [
-            CommonGraphRules.RejectOpaqueReference,
-            .. referenceRules ?? [],
-            .. CommonGraphRules.References
-        ];
-        _values =
-        [
-            CommonGraphRules.RejectOpaqueValue,
-            .. valueRules ?? [],
-            .. CommonGraphRules.Values
-        ];
+        _references = [.. referenceRules ?? [], .. CommonGraphRules.References];
+        _values = [.. valueRules ?? [], .. CommonGraphRules.Values];
         _fields = [.. fieldRules ?? [], .. CommonGraphRules.Fields];
         _keys = [.. keyRules ?? [], .. CommonGraphRules.Keys];
         _referenceFallback = new("reference.fallback", referenceFallback ?? GraphReferenceStrategy.Reject);

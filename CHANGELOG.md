@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复部分 Mod 卡牌包含类型或反射元数据时，战斗预测中断的问题。<br>
+  Fixed combat predictions failing for some modded cards containing type or reflection metadata.
+
 ## v0.15.0
 
 ### feat

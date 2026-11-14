@@ -72,12 +72,13 @@ internal static class CommonGraphRules
 
     public static IReadOnlyList<GraphReferenceRule> References { get; } =
     [
-        ShareImmutableReference, Box, Delegate, Array, List, Dictionary, HashSet
+        ShareImmutableReference, RejectOpaqueReference,
+        Box, Delegate, Array, List, Dictionary, HashSet
     ];
 
     public static IReadOnlyList<GraphValueRule> Values { get; } =
     [
-        KeepImmutableValue
+        KeepImmutableValue, RejectOpaqueValue
     ];
 
     public static IReadOnlyList<GraphFieldRule> Fields { get; } =

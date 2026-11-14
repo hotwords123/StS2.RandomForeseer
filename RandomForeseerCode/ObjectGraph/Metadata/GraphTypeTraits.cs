@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using System.Numerics;
+using System.Reflection;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.ObjectGraph.Metadata;
@@ -23,16 +23,13 @@ internal static class GraphTypeTraits
         [typeof(float)] = true,
         [typeof(double)] = true,
         [typeof(decimal)] = true,
-        [typeof(nint)] = true,
-        [typeof(nuint)] = true,
-
-        [typeof(Int128)] = true,
-        [typeof(UInt128)] = true,
-        [typeof(Half)] = true,
-        [typeof(Complex)] = true,
 
         [typeof(string)] = true,
-        [typeof(object)] = true
+        [typeof(object)] = true,
+
+        // Intentionally register System.RuntimeType, the CLR implementation of Type.
+        // ReSharper disable once PossibleMistakenCallToGetType
+        [typeof(Type).GetType()] = true
     };
 
     private static readonly ConcurrentDictionary<(Type Declared, Type Runtime), bool> IdentityKeyTypes = new();
@@ -43,7 +40,7 @@ internal static class GraphTypeTraits
     public static bool IsOpaque(Type type)
     {
         if (type.IsByRefLike || type.IsByRef || type.IsPointer || type.IsFunctionPointer ||
-            type == typeof(IntPtr) || type == typeof(UIntPtr))
+            type == typeof(nint) || type == typeof(nuint))
         {
             return true;
         }
@@ -53,21 +50,23 @@ internal static class GraphTypeTraits
             return true;
         }
 
-        if (type.IsClass && type.GetMethod("Finalize", ReflectionFlags.NonPublicInstance)?.DeclaringType != typeof(object))
+        if (type.IsClass &&
+            type.GetMethod("Finalize", ReflectionFlags.NonPublicInstance)?.DeclaringType != typeof(object))
         {
             return true;
         }
 
-        if (type.Namespace is { } ns && (ns.StartsWith("System.Threading", StringComparison.Ordinal) ||
-                                         ns.StartsWith("System.Runtime.InteropServices", StringComparison.Ordinal) ||
-                                         ns.StartsWith("System.Reflection", StringComparison.Ordinal)))
+        if (type.Namespace is { } ns &&
+            (ns.StartsWith("System.Threading", StringComparison.Ordinal) ||
+             ns.StartsWith("System.Runtime.InteropServices", StringComparison.Ordinal) ||
+             ns.StartsWith("System.Reflection", StringComparison.Ordinal)))
         {
             return true;
         }
 
         if (typeof(WeakReference).IsAssignableFrom(type) ||
-            type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(WeakReference<>) ||
-                                   type.GetGenericTypeDefinition() == typeof(Lazy<>)))
+            type.IsGenericType && type.GetGenericTypeDefinition() is { } definition &&
+            (definition == typeof(WeakReference<>) || definition == typeof(Lazy<>)))
         {
             return true;
         }
@@ -122,7 +121,7 @@ internal static class GraphTypeTraits
 
     private static bool ProveImmutable(Type type, HashSet<Type> visiting)
     {
-        if (type.IsEnum)
+        if (type.IsEnum || IsRuntimeMetadata(type))
         {
             return true;
         }
@@ -144,5 +143,19 @@ internal static class GraphTypeTraits
 
         return GraphTypeLayout.For(type).Fields.All(field =>
             field.IsInitOnly && field.FieldType.IsSealed && AnalyzeImmutable(field.FieldType, visiting));
+    }
+
+    /// <summary>Shares CLR metadata identities without traversing runtime caches, handles or loader state.</summary>
+    private static bool IsRuntimeMetadata(Type type)
+    {
+        // Restrict the exception to CoreCLR implementations. Emit builders and user-defined reflection
+        // wrappers can carry mutable state; inheriting a metadata API alone does not grant sharing.
+        return type is { IsAbstract: false, Namespace: "System.Reflection" } &&
+               type.Assembly == typeof(Type).Assembly &&
+               !typeof(TypeDelegator).IsAssignableFrom(type) &&
+               (typeof(MemberInfo).IsAssignableFrom(type) ||
+                typeof(ParameterInfo).IsAssignableFrom(type) ||
+                typeof(Assembly).IsAssignableFrom(type) ||
+                typeof(Module).IsAssignableFrom(type));
     }
 }
