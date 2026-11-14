@@ -52,6 +52,7 @@ internal static class NextActPrediction
     {
         var settings = ModData.Settings;
         return isTerminal &&
+            runState.GameMode != GameMode.Blitz &&
             settings.IsPredictionEnabled && settings.NextActPredictionEnabled &&
             runState.CurrentActIndex + 1 < runState.Acts.Count &&
             runState.CurrentRoom?.RoomType == RoomType.Boss &&
