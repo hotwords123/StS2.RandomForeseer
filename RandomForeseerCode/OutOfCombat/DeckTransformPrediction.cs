@@ -74,6 +74,10 @@ internal static class DeckTransformPrediction
                 Option.TextKey: "WHISPERING_HOLLOW.pages.INITIAL.options.HUG"
             } => new DeckTransformPreviewPredictor(prefs.MaxSelect, eventModel.Rng),
 
+            DeckTransformPredictionSource.BlitzMerchant { Entry: var entry }
+                when settings.BlitzMerchantPredictionEnabled =>
+                new DeckTransformPreviewPredictor(prefs.MaxSelect, entry.Player.PlayerRng.Transformations),
+
             _ => null
         };
 

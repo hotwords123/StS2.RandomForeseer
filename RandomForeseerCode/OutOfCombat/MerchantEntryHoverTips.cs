@@ -27,6 +27,9 @@ internal static class MerchantEntryHoverTips
                 .. MerchantRestockPrediction.GetHoverTips(potionEntry)
             ],
 
+            NBlitzMerchantSlot { Entry: BlitzMerchantEntry blitzEntry } =>
+                BlitzMerchantPrediction.GetHoverTips(blitzEntry),
+
             _ => []
         };
     }

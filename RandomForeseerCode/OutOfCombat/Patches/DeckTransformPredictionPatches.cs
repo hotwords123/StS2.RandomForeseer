@@ -2,6 +2,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Models;
@@ -93,6 +94,10 @@ internal static class DeckTransformPredictionInjectionPatch
                 Event = TelemetryContext.ForModel(eventSource.Model),
                 Option = eventSource.Option.TextKey
             },
+            DeckTransformPredictionSource.BlitzMerchant merchantSource => new
+            {
+                MerchantEntry = merchantSource.Entry.MerchantEntryType.ToString()
+            },
             _ => null
         };
     }
@@ -129,6 +134,22 @@ internal static class DeckTransformPredictionEventOptionSourcePatch
     private static void RestoreCallerSource(IDisposable? __state)
     {
         // EventOption.Chosen captures the source for its continuations before returning its Task.
+        __state?.Dispose();
+    }
+}
+
+[HarmonyPatch(typeof(BlitzMerchantCardTransformEntry), "OnTrySelect")]
+internal static class DeckTransformPredictionBlitzMerchantSourcePatch
+{
+    [HarmonyPrefix]
+    private static void EnterSource(BlitzMerchantCardTransformEntry __instance, out IDisposable __state)
+    {
+        __state = DeckTransformPredictionContext.EnterBlitzMerchant(__instance);
+    }
+
+    [HarmonyFinalizer]
+    private static void RestoreCallerSource(IDisposable? __state)
+    {
         __state?.Dispose();
     }
 }

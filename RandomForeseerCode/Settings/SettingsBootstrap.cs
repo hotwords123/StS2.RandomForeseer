@@ -53,6 +53,7 @@ internal static class SettingsBootstrap
                 .AddHeader("general_out_of_combat_predictions")
                 .AddToggle("deck_transform_prediction_enabled", SettingsUiBindings.DeckTransformPredictionEnabled)
                 .AddToggle("next_act_prediction_enabled", SettingsUiBindings.NextActPredictionEnabled)
+                .AddToggle("blitz_merchant_prediction_enabled", SettingsUiBindings.BlitzMerchantPredictionEnabled)
                 .AddHeader("event_predictions")
                 .AddToggle("event_option_prediction_enabled", SettingsUiBindings.EventOptionPredictionEnabled)
                 .AddIntSlider(

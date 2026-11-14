@@ -25,6 +25,7 @@ internal sealed class ModSettings
     // Out-of-combat prediction settings
     public bool DeckTransformPredictionEnabled { get; set; } = true;
     public bool NextActPredictionEnabled { get; set; } = true;
+    public bool BlitzMerchantPredictionEnabled { get; set; } = true;
 
     public bool EventOptionPredictionEnabled { get; set; } = true;
     public int SlipperyBridgeRerollPreviewCount

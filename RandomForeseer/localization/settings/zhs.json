@@ -42,6 +42,8 @@
   "toggle.deck_transform_prediction_enabled.description": "启用后，[gold]星盘[/gold]、[gold]变形灵林谷[/gold]等遗物和事件的变牌选择中，悬浮卡牌会显示预测结果；选完牌后，确认提示框会直接显示变化后的牌。",
   "toggle.next_act_prediction_enabled.label": "预测下一阶段先古之民和 Boss",
   "toggle.next_act_prediction_enabled.description": "启用后，Boss 奖励界面的状态栏会显示下一阶段的先古之民和 Boss。",
+  "toggle.blitz_merchant_prediction_enabled.label": "预测极速模式商店选项",
+  "toggle.blitz_merchant_prediction_enabled.description": "启用后，悬浮[green]极速[/green]模式的商店选项，会显示对应的卡牌、药水、遗物、诅咒和随机升级结果。",
 
   "header.event_predictions.label": "事件预测",
   "toggle.event_option_prediction_enabled.label": "预测事件选项结果",

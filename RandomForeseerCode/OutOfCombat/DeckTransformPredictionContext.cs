@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.Utils;
@@ -25,6 +26,11 @@ internal static class DeckTransformPredictionContext
             : null;
     }
 
+    public static IDisposable EnterBlitzMerchant(BlitzMerchantCardTransformEntry entry)
+    {
+        return Enter(new DeckTransformPredictionSource.BlitzMerchant(entry));
+    }
+
     private static IDisposable Enter(DeckTransformPredictionSource source)
     {
         var previous = Current.Value;
@@ -38,4 +44,6 @@ internal abstract record DeckTransformPredictionSource
     internal sealed record Relic(RelicModel Model) : DeckTransformPredictionSource;
 
     internal sealed record Event(EventModel Model, EventOption Option) : DeckTransformPredictionSource;
+
+    internal sealed record BlitzMerchant(BlitzMerchantCardTransformEntry Entry) : DeckTransformPredictionSource;
 }

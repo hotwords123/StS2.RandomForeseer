@@ -32,6 +32,9 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> NextActPredictionEnabled { get; } =
         Binding(s => s.NextActPredictionEnabled, (s, v) => s.NextActPredictionEnabled = v);
 
+    public static IModSettingsValueBinding<bool> BlitzMerchantPredictionEnabled { get; } =
+        Binding(s => s.BlitzMerchantPredictionEnabled, (s, v) => s.BlitzMerchantPredictionEnabled = v);
+
     public static IModSettingsValueBinding<bool> EventOptionPredictionEnabled { get; } =
         Binding(s => s.EventOptionPredictionEnabled, (s, v) => s.EventOptionPredictionEnabled = v);
 

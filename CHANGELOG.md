@@ -4,6 +4,9 @@
 
 ### feat
 
+- 新增极速模式商店预测，悬停商店选项时会显示对应的卡牌、药水、遗物、诅咒和随机升级结果。<br>
+  Added Blitz merchant prediction to show cards, potions, relics, curses, and random upgrades when hovering merchant options.
+
 - 新增明显有秘密的瀑布的事件结果预测。<br>
   Added event prediction for Waterfall of Obvious Secrets.
 

@@ -42,6 +42,8 @@
   "toggle.deck_transform_prediction_enabled.description": "When enabled, hovering cards in transform selections from relics and events such as [gold]Astrolabe[/gold] and [gold]Morphic Grove[/gold] shows their predicted results. After you finish selecting cards, the confirmation popup displays the transformed cards directly.",
   "toggle.next_act_prediction_enabled.label": "Predict the next Act's Ancient and boss",
   "toggle.next_act_prediction_enabled.description": "When enabled, the top bar on boss reward screens shows the next Act's Ancient and boss.",
+  "toggle.blitz_merchant_prediction_enabled.label": "Predict Blitz merchant options",
+  "toggle.blitz_merchant_prediction_enabled.description": "When enabled, hovering [green]Blitz[/green] merchant options shows the cards, potions, relics, curses, and random upgrades they would currently generate.",
 
   "header.event_predictions.label": "Event predictions",
   "toggle.event_option_prediction_enabled.label": "Predict event option results",
