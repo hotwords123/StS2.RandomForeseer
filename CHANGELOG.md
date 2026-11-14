@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复与特定 Mod 一起使用时，变牌预测可能失效的问题。<br>
+  Fixed transform predictions potentially failing when used with certain mods.
+
 - 优化浮木重掷预测，减少后续结果过早停止显示的情况。<br>
   Improved Driftwood reroll prediction to reduce cases where later results are hidden too early.
 

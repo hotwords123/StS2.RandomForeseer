@@ -49,7 +49,10 @@ internal static class DeckTransformSelectionScreenPatches
     typeof(Func<CardModel, CardTransformation>))]
 internal static class DeckTransformPredictionInjectionPatch
 {
+    // Work around Harmony 2.4.2/2.4.3 writing stale __args values over earlier ref changes.
+    // Run after observers such as Skada until the game's bundled Harmony synchronizes these values.
     [HarmonyPrefix]
+    [HarmonyPriority(Priority.Last)]
     private static void InjectPredictor(
         CardSelectorPrefs prefs,
         ref Func<CardModel, CardTransformation>? cardToTransformation)
