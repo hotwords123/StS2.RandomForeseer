@@ -6,7 +6,7 @@
 目前适配的游戏版本：
 [list]
 [*]正式版：[b]v0.107.1[/b]（Mod 版本 [b]v0.8.4[/b]）
-[*]测试版：[b]v0.113.0[/b]（Mod 版本 [b]v0.14.0[/b]）
+[*]测试版：[b]v0.113.0[/b]（Mod 版本 [b]v0.15.0[/b]）
 [/list]
 
 GitHub：[b]hotwords123/StS2.RandomForeseer[/b]
