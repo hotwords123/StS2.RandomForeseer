@@ -5,7 +5,6 @@ using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Blitz;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Characters;
@@ -432,12 +431,6 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<IHoverTip> PredictSilkenTressRewardTips(RunPredictionContext context, SilkenTress relic)
     {
-        // Blitz replaces the room's reward sequence; the default-room RNG fast-forward does not apply.
-        if (context.RunState.RunModels.Any(model => model is BlitzRunModel))
-        {
-            return [];
-        }
-
         var previewRelic = PredictionUtils.CreateRelic(relic.CanonicalInstance, context.Player);
 
         var options = OutOfCombatPredictionUtils.CreateMonsterCombatCardRewardOptions(context.Player);

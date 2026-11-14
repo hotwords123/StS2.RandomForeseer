@@ -2,7 +2,6 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Models.Blitz;
 using MegaCrit.Sts2.Core.Models.Events;
 using RandomForeseer.Common.HoverTips;
 using RandomForeseer.Data;
@@ -30,12 +29,6 @@ internal static class PunchOffPrediction
     private static IReadOnlyList<IHoverTip> PredictFightRewards(Player player)
     {
         if (!ModData.Settings.Allows(PredictionFairness.UnfairInAllModes))
-        {
-            return [];
-        }
-
-        // Blitz replaces the room's reward sequence before the event's extra rewards are generated.
-        if (player.RunState.RunModels.Any(model => model is BlitzRunModel))
         {
             return [];
         }
