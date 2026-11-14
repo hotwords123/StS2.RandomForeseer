@@ -152,7 +152,16 @@ internal static class CardSelectionCardMirrors
         }
 
         context.History.CardsSelected(topCards);
-        context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
+
+        if (topCards.Length == 1)
+        {
+            context.Simulator.AddToPile(topCards, PileType.Hand);
+        }
+        else
+        {
+            context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
+            context.Simulator.AddToPile(topCards, PileType.Discard);
+        }
     }
 
     public static void TheDevilOnPlay(TheDevil card, CardOnPlayMirrorContext context)
@@ -343,7 +352,11 @@ internal static class CardSelectionCardMirrors
 
         if (card.IsUpgraded)
         {
-            if (!context.OwnerState.Hand.IsEmpty)
+            if (context.OwnerState.Hand.Cards is [var singleCard])
+            {
+                context.Simulator.Exhaust(singleCard);
+            }
+            else if (context.OwnerState.Hand.Cards.Count > 1)
             {
                 // Vanilla asks the player which hand card to exhaust. The choice and resulting
                 // pile state cannot be determined during prediction.
