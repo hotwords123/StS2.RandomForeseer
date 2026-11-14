@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Models.Cards;
 using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Models.Relics;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Mirrors;
 
@@ -48,11 +49,43 @@ internal static class AfterDeathMirrors
         registry.RegisterIgnored<WaterfallGiant>();
 
         registry.Register<CrabRagePower>(HandleCrabRagePower);
+        registry.Register<ExplosivePower>(HandleExplosivePower);
+        registry.Register<GuardedPower>(HandleApplierDeath);
+        registry.Register<ShrinkPower>(HandleShrinkPower);
+        registry.Register<ConstrictPower>(HandleApplierDeath);
+        registry.Register<MagicBombPower>(HandleApplierDeath);
         registry.Register<CompostPower>(HandleCompostPower);
         registry.Register<GremlinHorn>(HandleGremlinHorn);
         registry.Register<Melancholy>(HandleMelancholy);
 
         return registry;
+    }
+
+    private static void HandleApplierDeath(PowerModel power, AfterDeathMirrorContext context)
+    {
+        if (!context.WasRemovalPrevented && context.Creature == power.Applier)
+        {
+            context.StateStore.GetPowerAmount(power).Consume();
+        }
+    }
+
+    private static void HandleShrinkPower(ShrinkPower power, AfterDeathMirrorContext context)
+    {
+        if (!context.Creature.IsPlayer)
+        {
+            HandleApplierDeath(power, context);
+        }
+    }
+
+    private static void HandleExplosivePower(ExplosivePower power, AfterDeathMirrorContext context)
+    {
+        if (context.Creature == power.Owner && !context.WasRemovalPrevented)
+        {
+            var targets = context.State.PlayerCreatures
+                .Where(creature => context.State.GetCreature(creature).IsAlive)
+                .ToList();
+            context.Simulator.Damage(targets, power.Amount, ValueProp.Unpowered | ValueProp.SkipHurtAnim, dealer: null);
+        }
     }
 
     private static void HandleCrabRagePower(CrabRagePower power, AfterDeathMirrorContext context)

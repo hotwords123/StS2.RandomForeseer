@@ -132,6 +132,8 @@ The labels remain useful for architecture, while each row now records its implem
 | `MusicBox` | 音乐盒 | Remembers the first owner Attack this turn so the matching after hook can clone it with Ethereal. | **Local feasible.** Pair state, preview cloning, keyword mutation, and `Contextual` generated-card flow are available. |
 | `PaelsEye` | 佩尔之眼 | Changes relic display status when owner manually plays a card before the relic has triggered. | **Ignorable.** Gameplay uses combat history/extra-turn hooks, not this status mutation. |
 | `PenNib` | 钢笔尖 | Advances the Attack counter and marks every tenth owner Attack as the card whose damage is doubled. | **Implemented cross-hook.** Shadow counter and exact play occurrence feed a prediction-aware multiplier. |
+| `EncorePower` | 安可 | Adds the owner card to its pending-play list. | **Implemented cross-hook.** Copies the live pending list and records original card identity; pending and finished plays share the ShouldPlay limit. |
+| `StretchPower` | 拉伸 | Selects the first owner block-gaining CardPlay and snapshots its starting amount. | **Implemented cross-hook.** Stores the exact CardPlay occurrence for block additive and after-play consumption; nested plays cannot borrow the selected occurrence. |
 
 ## AfterCardPlayed listeners: relics
 
@@ -181,8 +183,8 @@ The labels remain useful for architecture, while each row now records its implem
 | `HauntPower` | 纠缠 | An owner Soul damages one random hittable enemy. | **Local feasible.** Cloned `CombatTargets` plus simulator `Damage`. |
 | `ImitationLearningPower` | 模仿学习 | Attempts to auto-play the paired ally Power clone; decrements only when `ShouldPlay` allows it. | **Implemented.** Checks the shadow predicate before local amount consumption, then attempts normal AutoPlay in vanilla order; the cloned card's mirror independently reports support or risk. |
 | `JugglingPower` | 杂耍 | After its remembered third Attack resolves, clears the pending card and adds `Amount` clones to hand. | **Implemented.** Clones the source card's current prediction state through normal contextual generation, including nested action ordering. |
-| `LostLutePower` | 失落鲁特琴 | On the first started play of each Wah/Cho/Ki tag, auto-plays cards from draw-pile top after the card finishes. | **Implemented for existing listeners.** Combines live and shadow current-turn started history, preserving vanilla's count-of-one check for each tag; uses the shared batch-selection/auto-play pipeline. |
-| `MotifPower` | 曲中意 | On the first started play of each Wah/Cho/Ki tag, draws cards after the card finishes. | **Implemented for existing listeners.** Counts qualifying tags from live plus shadow started history and draws their total using the existing shadow power amount. |
+| `LostLutePower` | 失落鲁特琴 | On the first started play of each Wah/Cho/Ki tag, auto-plays cards from draw-pile top after the card finishes. | **Implemented for existing listeners.** `MelodyMirrors` combines live/shadow started history and retains the original count-equals-one check per tag, distinct from IsFirstPlayThisTurn identity; uses shared batch-selection/autoplay. No separate melody counter; newly applied powers remain absent from listener enumeration. |
+| `MotifPower` | 曲中意 | On the first started play of each Wah/Cho/Ki tag, draws cards after the card finishes. | **Implemented for existing listeners.** `MelodyMirrors` combines live/shadow started history and draws the qualifying tag total using shadow power amount. Retains the original count-equals-one rule, distinct from identity-based first-play checks; newly applied powers remain absent from listener enumeration. |
 | `MasterPlannerPower` | 谋划专家 | Adds Sly to every owner Skill after it resolves. | **Local feasible.** Mutate only predicted keywords so later shadow plays see it. |
 | `MonologuePower` | 独白 | Applies the paired Strength amount to the power owner and updates its accumulator. | **Risk on trigger.** Only a matching paired occurrence records risk. |
 | `OblivionPower` | 湮灭 | Applies the paired Doom amount to the owner. | **Risk on trigger.** Only a matching paired occurrence records risk. |
@@ -201,14 +203,14 @@ The labels remain useful for architecture, while each row now records its implem
 | `VitalSparkPower` | 活力火花 | A Tainted card applies TaintedPower to its owner after play. | **Ignorable for current scope.** `TaintedPower` only changes later powered attack damage received and does not affect the current-player-turn prediction surface. |
 | `VoidFormPower` | 虚空形态 | Counts non-auto owner cards on the last play in a series; later cards stop being free at the power amount. | **Implemented cross-hook.** Shadow count feeds both energy- and star-cost helpers. |
 | `WitheringPresencePower` | 凋萎存在 | Counts target-player cards and adds a Wither to hand every six. | **Local feasible.** State-store counter plus fixed generated-card flow. |
+| `EncorePower` | 安可 | Removes a pending owner card and increments the finished-play counter. | **Implemented cross-hook.** Updates the copied pending list and finished counter used by ShouldPlay. Owner side-end deactivates the local limit. |
+| `EnsemblePower` | 大合唱 | Consumes one stack after another player's card finishes. | **Implemented cross-hook.** Shared shadow amount feeds the late energy-cost pass; live amount is unchanged. |
+| `LullabyPower` | 摇篮曲 | Once per turn, grants block after all three melodies finish. | **Implemented.** Combines live/shadow finished history and shadow in-progress state; a local flag initialized from the live listener prevents repeat grants. |
+| `SongPathPower` | 歌之道 | Grants block after the first Cho play this turn. | **Implemented.** Uses first-started CardPlay identity, so nested plays started before the outer after hook do not steal its trigger. |
+| `StretchPower` | 拉伸 | Clears the selected CardPlay and consumes its starting amount only if it granted bonus block. | **Implemented cross-hook.** Shares the block additive occurrence/bonus state and shadow amount; does not call the original additive hook that writes live internal data. |
+| `ViolentChordPower` | 暴力和弦 | Deals unpowered damage to all hittable enemies after the first Wah play this turn. | **Implemented.** Uses first-started CardPlay identity across live/shadow history and simulator Damage, preserving the outer trigger during nested plays. |
 
 ## AfterCardPlayed listeners: cards, enchantments, and bookkeeping
-
-Melody-dependent card effects use `Mirrors/Shared/MelodyMirrors` to combine live and prediction-local history.
-The Wah/Cho/Ki presence checks read finished plays, while Motif/Lost Lute retain their original started-count-equals-one
-rule. This does not substitute the different identity-based `MelodyCmd.IsFirstPlayThisTurn` helper. No separate melody
-counter is maintained. New power instances created during prediction still do not join the listener collection;
-playing Motif, Lost Lute or Simpleton for the first time is therefore not complete support for their later hooks.
 
 | Model | 中文名 | Original effect | Prediction status |
 | --- | --- | --- | --- |
@@ -232,8 +234,8 @@ playing Motif, Lost Lute or Simpleton for the first time is therefore not comple
 
 ## ShouldPlay listeners
 
-All seven vanilla overrides were reviewed against v0.111.0. Six use exact prediction-aware registrations;
-`SmoggyPower` safely uses the original read-only predicate with the predicted card as its argument.
+Exact prediction-aware registrations replace listeners that consume shadow state; `SmoggyPower` uses its
+original read-only predicate with the predicted card as its argument.
 
 | Model | 中文名 | Original effect | Prediction status |
 | --- | --- | --- | --- |
@@ -244,6 +246,7 @@ All seven vanilla overrides were reviewed against v0.111.0. Six use exact predic
 | `SlothPower` | 懒惰 | Prevents owner plays once its cards-played counter reaches Amount. | **Implemented cross-hook.** Reads the counter advanced by `BeforeCardPlayed`. |
 | `SmoggyPower` | 烟雾弥漫 | Prevents owner cards afflicted with Smog. | **Original read-only call.** Only reads owner and the argument's affliction, including shadow Smog applied by `AfterCardPlayed`. |
 | `VelvetChoker` | 天鹅绒颈圈 | Prevents owner plays once started-play history reaches the configured limit. | **Implemented.** Counts current-turn live and simulated started plays for its owner, including a play still resolving before nested auto-play. |
+| `EncorePower` | 安可 | Prevents further owner plays when pending plus finished plays reach Amount. | **Implemented cross-hook.** Reads the copied pending list and finished counter shared with before/after hooks; permits plays after its owner-side-end deactivation. |
 
 Started-history predicates count every play index, including replays and an outer card whose effect is still
 resolving. They filter by player and must not substitute finished history or first-in-series counts. Predicted
@@ -253,6 +256,26 @@ Remaining upstream gaps: prediction-generated `Normality`/`Enthralled` copies ar
 sequence, and the skipped `AfterCardEnteredCombat` hook can omit Ringing/Smog on entering cards. These cases are
 not fixed by the predicate registrations and have no dedicated risk marker here. `Enthralled`'s shadow-pile fix
 affects manual playability; it does not restrict nested auto-play.
+
+## TryModifyEnergyCostInCombat listeners
+
+| Model | 中文名 | Original effect | Prediction status |
+| --- | --- | --- | --- |
+| `ChoLimbs` | 啾 四肢 | Reduces its own positive cost by 2 when Wah or Ki has finished this turn. | Exact adapter matches original/preview identity and reads combined live/shadow finished melody history. |
+| `Coda` | 终曲 | Reduces its own positive cost by 2 for each completed melody type. | Exact adapter matches original/preview identity and reads combined live/shadow finished history; unfinished plays do not count. |
+
+## TryModifyEnergyCostInCombatLate listeners
+
+| Model | 中文名 | Original effect | Prediction status |
+| --- | --- | --- | --- |
+| `FreeAttackPower` | 免费攻击 | Makes the owner's next qualifying Attacks free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
+| `FreeCardPower` | 免费出牌 | Makes the owner's next qualifying cards free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
+| `FreePowerPower` | 免费能力 | Makes the owner's next qualifying Powers free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
+| `FreeSkillPower` | 免费技能 | Makes the owner's next qualifying Skills free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
+| `EnsemblePower` | 大合唱 | Makes other players' Hand/Play cards free while stacks remain. | Exact adapter reads shadow pile and amount shared with AfterCardPlayed instead of original Preview.Pile. |
+| `VeilpiercerPower` | 刺破帷幕 | Makes the owner's qualifying Ethereal cards free. | Exact adapter reads prediction-aware keywords, Hand/Play membership and remaining amount. |
+| `VoidFormPower` | 虚空形态 | Makes the owner's cards free until its play-count limit is reached. | Exact adapter reads the shadow non-auto-play counter shared with AfterCardPlayed. |
+| `BrilliantScarf` | 艳丽围巾 | Makes the owner's configured sixth manual card free. | Exact adapter reads the shadow manual-play counter; the same counter feeds star-cost modification. |
 
 ## Implemented slices
 
@@ -286,7 +309,8 @@ affects manual playability; it does not restrict nested auto-play.
   shadow state. Other cost, predicate, damage, and block value listeners continue to call their original read-only
   methods; those selective registry misses bypass unsupported lookup and do not record mirror risk. Side-effect hooks
   such as `AfterModifyingBlockAmount` retain normal action-registry unsupported-risk handling.
-- Hook listeners are currently enumerated from the live `CombatState`. Prediction-generated cards are not added as
+- Hook listeners are currently enumerated from the live `CombatState`; new power membership and arbitrary
+  removal/application callbacks remain deferred. Prediction-generated cards are not added as
   listeners, so generated copies of `Stomp`, `BansheesCry`, `Pinpoint`, `MakeItSo`, or `RightHandHand` remain a parity
   gap until hook iteration can include shadow generated cards in vanilla order. Their generation now records
   `MethodMirrorIncomplete` rather than silently omitting that future listener behavior.

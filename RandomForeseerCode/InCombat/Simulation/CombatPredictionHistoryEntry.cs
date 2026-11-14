@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.InCombat.Simulation;
@@ -153,4 +154,12 @@ internal sealed class CombatPredictionAutoPlayFromDrawPileEntry : CombatPredicti
 internal sealed class CombatPredictionPotionGeneratedEntry : CombatPredictionHistoryEntry
 {
     public required PotionModel PreviewPotion { get; init; }
+}
+
+internal sealed class CombatPredictionBlockGainedEntry : CombatPredictionHistoryEntry
+{
+    public required Creature Creature { get; init; }
+    public required int Amount { get; init; }
+    public required CardPlay? CardPlay { get; init; }
+    public required ValueProp Props { get; init; }
 }

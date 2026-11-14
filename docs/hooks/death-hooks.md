@@ -49,26 +49,27 @@ source. Existing handled listeners do not depend on this argument.
 | `TheInsatiable` | 无厌沙虫 | Encounter-specific death behavior. | Ignored in registry. |
 | `Vantom` | 墨影幻灵 | Encounter-specific death behavior. | Ignored in registry. |
 | `WaterfallGiant` | 瀑布巨兽 | Encounter-specific death behavior. | Ignored in registry. |
-| `AdaptablePower` | 适者生存 | Revives/transitions Test Subject. | Missing; not implementable without revive/combat-structure support. |
-| `ConstrictPower` | 紧缠 | Removes this power when applier dies. | Missing; power removal unsupported. |
-| `DampenPower` | 抑制 | Removes/decrements delayed card downgrade state. | Missing; power removal/card mutation flow unsupported. |
+| `AdaptablePower` | 适者生存 | Revives/transitions Test Subject. | Deferred: requires coherent revive/transition, combat-ending and hittability state beyond source-backed membership. Retains unsupported risk. |
+| `ConstrictPower` | 紧缠 | Removes this power when applier dies. | Existing-listener amount is consumed on non-prevented applier death; its side-end damage adapter reads the same state. Full collection/removal lifecycle is not simulated. |
+| `DampenPower` | 抑制 | Removes/decrements delayed card downgrade state. | Deferred: removal restores card upgrades through AfterRemoved; needs full removal/card restoration flow. Retains unsupported risk. |
 | `CrabRagePower` | 蟹之怒 | When another same-side creature dies, applies Strength, gains 99 block, then removes itself. | Partial: grants the configured BlockVar through simulator GainBlock and consumes a prediction-local amount to prevent repeated grants. Strength application and power removal/listener changes remain unsupported and record incomplete risk when triggered. |
-| `CoveredPower` | 掩护 | Removes covered/intercept state when applier dies. | Missing; power removal unsupported. |
-| `InfestedPower` | 寄生物 | Death-triggered infestation behavior. | Missing; likely spawn/apply-power flow, unsupported. |
-| `GuardedPower` | 护卫 | Removes guard relation when guard dies. | Missing; power removal unsupported. |
-| `IllusionPower` | 幻象 | Revive/stun/next move behavior. | Missing; not implementable without combat-structure and move support. |
-| `HexPower` | 恶咒 | Death-triggered power/card effect. | Missing; likely power/card mutation support needed. |
-| `MagicBombPower` | 魔法炸弹 | Removes bomb if applier dies. | Missing; power removal unsupported. |
-| `ReattachPower` | 接续 | Revives/reattaches segment state. | Missing; not implementable without revive/combat-structure support. |
+| `CoveredPower` | 掩护 | Removes covered/intercept state when applier dies. | Deferred: removal updates Intercept.coveredCreatures and may remove Intercept; consuming a single amount cannot represent this relation. Retains unsupported risk. |
+| `InfestedPower` | 寄生物 | Spawns four stunned `Wriggler` creatures on owner death. | Deferred: requires creature creation, slots and new target/listener membership beyond fixed source-backed members; retains unsupported risk. |
+| `GuardedPower` | 护卫 | Removes guard relation when guard dies. | Existing-listener amount is consumed on non-prevented applier death; its damage multiplier then returns neutral. No relevant model-specific removal callback exists; generic removal events remain deferred. |
+| `IllusionPower` | 幻象 | Revive/stun/next move behavior. | Deferred: requires coherent revive/transition, combat-ending and hittability state. Retains unsupported risk. |
+| `HexPower` | 恶咒 | Death-triggered power/card effect. | Deferred: removal clears Hexed and its global Ethereal contribution; needs coherent removal, keyword sources and card restoration. Retains unsupported risk. |
+| `MagicBombPower` | 魔法炸弹 | Removes bomb if applier dies. | Existing-listener amount is consumed on non-prevented applier death; its side-end damage adapter reads the same state. Full collection/removal lifecycle is not simulated. |
+| `ReattachPower` | 接续 | Revives/reattaches segment state. | Deferred: requires coherent segment revive/transition, combat-ending and hittability state. Retains unsupported risk. |
 | `RavenousPower` | 饥饿 | Ally death causes devour/stun/strength behavior. | Missing; Apply Power/stun unsupported. |
-| `PossessStrengthPower` | 抢夺力量 | Restores stolen Strength on owner death. | Missing; Apply Power unsupported. |
-| `PossessSpeedPower` | 抢夺速度 | Restores stolen Dexterity on owner death. | Missing; Apply Power unsupported. |
-| `ShrinkPower` | 缩小 | Removes this power when applier dies. | Missing; power removal unsupported. |
+| `PossessStrengthPower` | 抢夺力量 | Restores stolen Strength on owner death. | Deferred: restoring Strength needs power application/collection state shared with later value consumers. Retains unsupported risk. |
+| `PossessSpeedPower` | 抢夺速度 | Restores stolen Dexterity on owner death. | Deferred: restoring Dexterity needs power application/collection state shared with later value consumers. Retains unsupported risk. |
+| `ShrinkPower` | 缩小 | Removes this power when applier dies. | Existing-listener amount is consumed only on non-prevented non-player applier death; its damage multiplier shares that state. Side-end preserves negative infinite duration. Removed visuals are omitted; generic removal events remain deferred. |
 | `Melancholy` | 忧郁 | On a non-prevented death, reduces this card's cost while it is in a combat pile. | Implemented for shadow hand/draw/discard/exhaust/play pile cards. |
 | `SurroundedPower` | 遭到包围 | Encounter positioning/side behavior on death. | Missing; combat-structure/position support needed. |
-| `SurprisePower` | 意外 | Death-triggered encounter behavior. | Missing; needs separate review. |
-| `StockPower` | 库存 | Death-triggered encounter behavior. | Missing; needs separate review. |
+| `SurprisePower` | 意外 | Spawns `SneakyGremlin` and `FatGremlin` creatures and transfers stolen-gold state on owner death. | Deferred: requires creature creation, slots and new target/listener membership; retains unsupported risk. |
+| `StockPower` | 库存 | Spawns a replacement `Axebot` with one fewer Stock stack on owner death. | Deferred: requires replacement creature creation and target/listener membership beyond fixed source-backed members; retains unsupported risk. |
 | `SteamEruptionPower` | 蒸汽喷发 | Waterfall Giant transitions to about-to-blow state. | Missing; not implementable without monster state support. |
+| `ExplosivePower` | 爆炸 | Deals unpowered damage to living player creatures when its owner dies without removal prevention. | Implemented through simulator Damage over living shadow PlayerCreatures, with no dealer and SkipHurtAnim props; updates shadow player HP. |
 
 ## Death-prevention listeners
 

@@ -26,12 +26,18 @@
 
 ## Mirror registry architecture
 
+- `Mirrors/Hooks/SharedPredictionStates.cs` owns shared model-local flags, counters, power amounts and CardPlay
+  pairs. `RecordCardPlayAmount` and `TryTakeCardPlayAmount` pair an amount by model and exact CardPlay reference, so nested
+  occurrences of the same card remain independent. Successful consumption is distinct from a zero or negative
+  payload and removes only that occurrence; model-specific compound states remain with their listener domain.
 - `Common/Mirrors/MethodMirrorRegistry.cs` centralizes exact-type registration and dispatch, override detection,
   lookup caching, trace scoping, and unsupported-risk recording. Action registries can infer unregistered gameplay
   overrides and record incomplete risk; result registries require handlers that supply a return value and do not infer.
 - Selective read-only value and predicate mirrors use `TryInvokeRegistered` for exact prediction-state overrides.
   A miss neither caches an unsupported lookup nor records risk; the facade calls the original listener in the same
-  pass. Side-effect hooks use the full action registry: reviewed visual/no-op overrides are ignored, while unknown
+  pass. Original forwarding is centralized in phase-specific `InvokeOriginal...` helpers, shared by fallback paths
+  and explicit registrations that can safely reuse vanilla behavior. Side-effect hooks use the full action registry:
+  reviewed visual/no-op overrides are ignored, while unknown
   gameplay overrides record risk instead of running against live models.
 - `IMethodMirrorContext<TBase>` is a dispatcher-only contract. Contexts select the appropriate trace source identity
   for the receiver, keeping original card identity separate from detached previews and using shadow receivers where

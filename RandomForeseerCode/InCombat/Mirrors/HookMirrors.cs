@@ -391,17 +391,7 @@ internal static class HookMirrors
             block *= enchantment.EnchantBlockMultiplicative(block);
         }
 
-        foreach (var listener in IterateCombatHookListeners(simulator))
-        {
-            var additive = listener.ModifyBlockAdditive(target, block, props, cardModel, cardPlay);
-            block += additive;
-            if (additive != 0)
-            {
-                modifiers.Add(listener);
-            }
-        }
-
-        var context = new ModifyBlockMultiplicativeMirrorContext
+        var context = new ModifyBlockMirrorContext
         {
             Simulator = simulator,
             Target = target,
@@ -414,7 +404,18 @@ internal static class HookMirrors
         foreach (var listener in IterateCombatHookListeners(simulator))
         {
             context.Amount = block;
-            var multiplier = ModifyBlockMultiplicativeMirrors.Invoke(listener, context);
+            var addition = ModifyBlockMirrors.InvokeAdditive(listener, context);
+            block += addition;
+            if (addition != 0)
+            {
+                modifiers.Add(listener);
+            }
+        }
+
+        foreach (var listener in IterateCombatHookListeners(simulator))
+        {
+            context.Amount = block;
+            var multiplier = ModifyBlockMirrors.InvokeMultiplicative(listener, context);
             block *= multiplier;
             if (multiplier != 1)
             {

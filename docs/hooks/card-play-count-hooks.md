@@ -28,6 +28,7 @@ play count after being exhausted, matching vanilla state consumption even though
 | `BurstPower` | 爆发 | The next configured owner Skills play one additional time. | Implemented with shared shadow amount, consuming one stack only when selected as a modifier. |
 | `DuplicationPower` | 复制 | The next configured owner cards play one additional time. | Implemented with shared shadow amount. |
 | `EchoFormPower` | 回响形态 | The first configured owner card series each turn play one additional time. | Implemented by combining live and shadow first-in-series started history; selected after hook is visual-only. |
+| `KiVersePower` | 叽 诗句 | The next owner Wah/Cho/Ki cards play once more. | Implemented with shadow amount; only a selected modifier consumes one stack. Owner side-end consumes the remaining amount. |
 | `OneTwoPunchPower` | 连环拳 | The next configured owner Attacks play one additional time. | Implemented with shared shadow amount. |
 | `SignalBoostPower` | 信号增强 | The next configured owner Powers play one additional time. | Implemented with shared shadow amount. |
 | `TagTeamPower` | 多人组队 | Another player's next qualifying Attack against the owner plays additional times equal to amount, then removes this power. | Implemented by reading the shadow amount through the original predicate logic and consuming all shadow stacks when selected. |

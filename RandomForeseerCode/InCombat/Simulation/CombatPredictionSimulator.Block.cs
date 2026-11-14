@@ -92,9 +92,7 @@ internal sealed partial class CombatPredictionSimulator
 
         State.GetCreature(creature).GainBlock(modifiedBlock);
 
-        // Vanilla records BlockGained history before AfterBlockGained. Preview does not mutate
-        // run/combat history, but it still scans AfterBlockGained through HookMirrors below so
-        // known block-triggered state changes can be mirrored or marked as risk.
+        History.BlockGained(creature, (int)modifiedBlock, cardPlay, props);
         HookMirrors.AfterBlockGained(this, creature, modifiedBlock, props, cardSource);
         return modifiedBlock;
     }

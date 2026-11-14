@@ -11,7 +11,7 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs` and
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `NoDrawPower` | 不可抽牌 | Blocks non-hand draws for the owner. Original flashes as side effect. | Implemented manually. Predicate matches original and avoids flash. |
+| `NoDrawPower` | 不可抽牌 | Blocks non-hand draws for the owner. Original flashes as side effect. | Implemented manually using shadow active amount. Owner side-end consumes that amount so later deferred draws are allowed; no live removal or flash. |
 | `Fiddle` | 小提琴 | Blocks non-hand draws during the owner's turn. | Implemented manually to avoid future original-method side effects. |
 
 ## Parity notes

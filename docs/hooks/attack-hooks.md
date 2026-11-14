@@ -59,10 +59,13 @@ Per-hit `CreatureCmd.Damage` modifier and result hooks are documented in `damage
 
 ## ModifyAttackHitCount listeners
 
-No vanilla gameplay model currently overrides `ModifyAttackHitCount`.
+| Model | 中文名 | Original effect | Current status and feasibility |
+| --- | --- | --- | --- |
+| `Thumbscrew` | 拇指夹 | Adds one hit when the incoming count exceeds one and the command comes from its owner's Attack card. | Uses the original-method fallback through `InvokeOriginal`; preserves the original read-only conditions and listener-to-listener chaining. |
 
-The attack mirror dispatches a result registry for this hook, chains each listener's result into the
-next invocation like vanilla, and marks unknown modded overrides risky because the original hook sits
+The attack mirror uses a selective result registry for this hook, currently with no exact registrations.
+Unregistered listeners call their original methods without unsupported-risk recording, including Mod overrides
+that pass the compatibility filter. Each listener's result chains into the next invocation like vanilla,
 between `BeforeAttack` and the per-hit target loop.
 
 ## AfterAttack listeners

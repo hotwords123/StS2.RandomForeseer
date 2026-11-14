@@ -1,6 +1,8 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Blitz;
+using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Models.Enchantments;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Odds;
@@ -66,8 +68,38 @@ internal static class TryModifyCardRewardOptionsMirrors
         registry.Register<FresnelLens>(HandleFresnelLens);
         registry.Register<SilkenTress>(HandleSilkenTress);
         registry.Register<WingCharm>(HandleWingCharm);
+        registry.Register<BlitzRunModel>(HandleBlitzRunModel);
 
         return registry;
+    }
+
+    private static bool HandleBlitzRunModel(BlitzRunModel model, TryModifyCardRewardOptionsMirrorContext context)
+    {
+        var run = context.Player.RunState;
+        if (run.CurrentActIndex == 0 ||
+            !context.Options.Flags.HasFlag(CardCreationFlags.IsFromCombat) ||
+            run.CurrentRoom?.RoomType == RoomType.Boss)
+        {
+            return false;
+        }
+
+        // BlitzRunModel.TryModifyCardRewardOptionsLate uses RunState.CloneCard, which registers a live card.
+        // Select with the cloned Rewards stream and upgrade detached previews instead.
+        var selected = run.CurrentActIndex switch
+        {
+            1 => [context.Rng.Rewards.NextItem(context.Results)!],
+            2 => context.Results.UnstableShuffle(context.Rng.Rewards).Take(2),
+            _ => []
+        };
+        foreach (var result in selected)
+        {
+            if (result.Card.IsUpgradable)
+            {
+                result.ModifyCard(PredictionUtils.CreateUpgradedCard(result.Card));
+            }
+        }
+
+        return true;
     }
 
     private static bool HandleLastingCandy(LastingCandy relic, TryModifyCardRewardOptionsMirrorContext context)

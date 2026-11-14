@@ -20,7 +20,14 @@ internal static class ModifyUnblockedDamageTargetMirrors
     {
         return Registry.TryInvokeRegistered(listener, context, out var result)
             ? result.Value
-            : listener.ModifyUnblockedDamageTarget(context.Target, context.Amount, context.Props, context.Dealer);
+            : InvokeOriginal(listener, context);
+    }
+
+    private static Creature InvokeOriginal(
+        AbstractModel listener,
+        ModifyUnblockedDamageTargetMirrorContext context)
+    {
+        return listener.ModifyUnblockedDamageTarget(context.Target, context.Amount, context.Props, context.Dealer);
     }
 
     private static Registry CreateRegistry()

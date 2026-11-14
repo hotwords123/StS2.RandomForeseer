@@ -95,11 +95,14 @@ internal static class ModifyDamageMirrors
     {
         var registry = new Registry(ModifyDamageMultiplicative);
 
-        registry.Register<FlutterPower>(HandleFlutterPower);
+        registry.Register<FlutterPower>(HandleActivePowerMultiplicative);
         registry.Register<GigantificationPower>(GigantificationPowerMirrors.ModifyDamageMultiplicative);
         registry.Register<LethalityPower>(HandleLethalityPower);
         registry.Register<SlowPower>(HandleSlowPower);
         registry.Register<SurroundedPower>(HandleSurroundedPower);
+        registry.Register<GuardedPower>(HandleActivePowerMultiplicative);
+        registry.Register<ShrinkPower>(HandleActivePowerMultiplicative);
+        registry.Register<DoubleDamagePower>(HandleActivePowerMultiplicative);
         registry.Register<WahHammer>(HandleWahHammer);
 
         registry.Register<PenNib>(HandlePenNib);
@@ -171,7 +174,7 @@ internal static class ModifyDamageMirrors
             : 1 + power.Amount / 100m;
     }
 
-    private static decimal HandleFlutterPower(FlutterPower power, ModifyDamageMirrorContext context)
+    private static decimal HandleActivePowerMultiplicative(PowerModel power, ModifyDamageMirrorContext context)
     {
         return context.StateStore.GetPowerAmount(power).IsActive
             ? InvokeOriginalMultiplicative(power, context)

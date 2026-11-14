@@ -40,6 +40,7 @@ internal static class BeforeCardPlayedMirrors
         registry.Register<CalamityPower>(HandleCalamityPower);
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
         registry.Register<DanseMacabrePower>(HandleDanseMacabrePower);
+        registry.Register<EncorePower>(HandleEncorePower);
         registry.Register<FreeAttackPower>(HandleFreeAttackPower);
         registry.Register<FreeCardPower>(HandleFreeCardPower);
         registry.Register<FreePowerPower>(HandleFreePowerPower);
@@ -54,6 +55,7 @@ internal static class BeforeCardPlayedMirrors
         registry.Register<SlothPower>(HandleSlothPower);
         registry.Register<SpiritOfAshPower>(HandleSpiritOfAshPower);
         registry.Register<StormPower>(HandleStormPower);
+        registry.Register<StretchPower>(HandleStretchPower);
         registry.Register<StranglePower>(HandleStranglePower);
         registry.Register<SubroutinePower>(HandleSubroutinePower);
         registry.Register<SurroundedPower>(HandleSurroundedPower);
@@ -69,6 +71,30 @@ internal static class BeforeCardPlayedMirrors
         return registry;
     }
 
+    private static void HandleEncorePower(EncorePower power, BeforeCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner.Creature == power.Owner)
+        {
+            var state = context.StateStore.Get(power, () => new EncorePredictionState(power));
+            state.CardsBeingPlayed.Add(context.Card.Original);
+        }
+    }
+
+    private static void HandleStretchPower(StretchPower power, BeforeCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner.Creature != power.Owner || !context.PreviewCard.GainsBlock)
+        {
+            return;
+        }
+
+        var state = context.StateStore.Get(power, () => new StretchPredictionState(power));
+        if (state.Play is null)
+        {
+            state.Play = context.CardPlay;
+            state.StartingAmount = context.StateStore.GetPowerAmount(power).Amount;
+        }
+    }
+
     private static void HandleStomp(Stomp stomp, BeforeCardPlayedMirrorContext context)
     {
         if (context.PreviewCard.Owner == stomp.Owner &&
@@ -81,14 +107,14 @@ internal static class BeforeCardPlayedMirrors
 
     private static void HandleAfterimagePower(AfterimagePower power, BeforeCardPlayedMirrorContext context)
     {
-        SnapshotOwnerCard(power, context, power.Amount);
+        RecordCardPlayAmountIfOwner(power, context, power.Amount);
     }
 
     private static void HandleCalamityPower(CalamityPower power, BeforeCardPlayedMirrorContext context)
     {
         if (context.PreviewCard.Type == CardType.Attack)
         {
-            SnapshotOwnerCard(power, context, power.Amount);
+            RecordCardPlayAmountIfOwner(power, context, power.Amount);
         }
     }
 
@@ -140,7 +166,7 @@ internal static class BeforeCardPlayedMirrors
 
     private static void HandleGravityPower(GravityPower power, BeforeCardPlayedMirrorContext context)
     {
-        SnapshotOwnerCard(power, context, power.Amount);
+        RecordCardPlayAmountIfOwner(power, context, power.Amount);
     }
 
     private static void HandleJugglingPower(JugglingPower power, BeforeCardPlayedMirrorContext context)
@@ -181,15 +207,12 @@ internal static class BeforeCardPlayedMirrors
 
     private static void HandleMonologuePower(MonologuePower power, BeforeCardPlayedMirrorContext context)
     {
-        SnapshotOwnerCard(power, context, power.DynamicVars.Strength.IntValue);
+        RecordCardPlayAmountIfOwner(power, context, power.DynamicVars.Strength.IntValue);
     }
 
     private static void HandleOblivionPower(OblivionPower power, BeforeCardPlayedMirrorContext context)
     {
-        if (power.Applier?.Player == context.PreviewCard.Owner)
-        {
-            GetPairState(power, context).Amounts.Add(context.CardPlay, power.Amount);
-        }
+        RecordCardPlayAmountIfApplier(power, context, power.Amount);
     }
 
     private static void HandleRupturePower(RupturePower power, BeforeCardPlayedMirrorContext context)
@@ -200,7 +223,7 @@ internal static class BeforeCardPlayedMirrors
 
     private static void HandleSerpentFormPower(SerpentFormPower power, BeforeCardPlayedMirrorContext context)
     {
-        SnapshotOwnerCard(power, context, power.Amount);
+        RecordCardPlayAmountIfOwner(power, context, power.Amount);
     }
 
     private static void HandleSlothPower(SlothPower power, BeforeCardPlayedMirrorContext context)
@@ -225,23 +248,20 @@ internal static class BeforeCardPlayedMirrors
     {
         if (context.PreviewCard.Type == CardType.Power)
         {
-            SnapshotOwnerCard(power, context, power.Amount);
+            RecordCardPlayAmountIfOwner(power, context, power.Amount);
         }
     }
 
     private static void HandleStranglePower(StranglePower power, BeforeCardPlayedMirrorContext context)
     {
-        if (power.Applier?.Player == context.PreviewCard.Owner)
-        {
-            GetPairState(power, context).Amounts.Add(context.CardPlay, power.Amount);
-        }
+        RecordCardPlayAmountIfApplier(power, context, power.Amount);
     }
 
     private static void HandleSubroutinePower(SubroutinePower power, BeforeCardPlayedMirrorContext context)
     {
         if (context.PreviewCard.Type == CardType.Power)
         {
-            SnapshotOwnerCard(power, context, power.Amount);
+            RecordCardPlayAmountIfOwner(power, context, power.Amount);
         }
     }
 
@@ -334,33 +354,32 @@ internal static class BeforeCardPlayedMirrors
         }
     }
 
-    private static void SnapshotOwnerCard(
+    private static void RecordCardPlayAmountIfOwner(
         PowerModel power,
         BeforeCardPlayedMirrorContext context,
         int amount)
     {
         if (context.PreviewCard.Owner == power.Owner.Player)
         {
-            GetPairState(power, context).Amounts.Add(context.CardPlay, amount);
+            context.StateStore.RecordCardPlayAmount(power, context.CardPlay, amount);
         }
     }
 
-    private static CardPlayPairPredictionState GetPairState(
-        AbstractModel model,
-        BeforeCardPlayedMirrorContext context)
+    private static void RecordCardPlayAmountIfApplier(
+        PowerModel power,
+        BeforeCardPlayedMirrorContext context,
+        int amount)
     {
-        return context.StateStore.Get<CardPlayPairPredictionState>(model);
+        if (context.PreviewCard.Owner == power.Applier?.Player)
+        {
+            context.StateStore.RecordCardPlayAmount(power, context.CardPlay, amount);
+        }
     }
 }
 
 internal sealed class BeforeCardPlayedMirrorContext : CombatCardMirrorContext
 {
     public required CardPlay CardPlay { get; init; }
-}
-
-internal sealed class CardPlayPairPredictionState
-{
-    public Dictionary<CardPlay, int> Amounts { get; } = new(ReferenceEqualityComparer.Instance);
 }
 
 internal sealed class JugglingPredictionState(JugglingPower power)

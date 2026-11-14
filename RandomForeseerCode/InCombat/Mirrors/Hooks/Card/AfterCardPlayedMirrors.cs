@@ -71,12 +71,15 @@ internal static class AfterCardPlayedMirrors
         registry.Register<DevourLifePower>(HandleDevourLifePower);
         registry.RegisterIgnored<EchoFormPower>();
         registry.RegisterIgnored<EnragePower>();
+        registry.Register<EncorePower>(HandleEncorePower);
+        registry.Register<EnsemblePower>(HandleEnsemblePower);
         registry.Register<GalvanicPower>(HandleGalvanicPower);
         registry.Register<GravityPower>(HandleGravityPower);
         registry.Register<HauntPower>(HandleHauntPower);
         registry.Register<ImitationLearningPower>(HandleImitationLearningPower);
         registry.Register<JugglingPower>(HandleJugglingPower);
         registry.Register<LostLutePower>(HandleLostLutePower);
+        registry.Register<LullabyPower>(HandleLullabyPower);
         registry.Register<MasterPlannerPower>(HandleMasterPlannerPower);
         registry.Register<MonologuePower>(HandleMonologuePower);
         registry.Register<MotifPower>(HandleMotifPower);
@@ -87,14 +90,17 @@ internal static class AfterCardPlayedMirrors
         registry.Register<RupturePower>(HandleRupturePower);
         registry.Register<SerpentFormPower>(HandleSerpentFormPower);
         registry.Register<SlowPower>(HandleSlowPower);
+        registry.Register<SongPathPower>(HandleSongPathPower);
         registry.Register<SmoggyPower>(HandleSmoggyPower);
         registry.Register<SneakyPower>(HandleSneakyPower);
         registry.Register<StormPower>(HandleStormPower);
+        registry.Register<StretchPower>(HandleStretchPower);
         registry.Register<StranglePower>(HandleStranglePower);
         registry.Register<SubroutinePower>(HandleSubroutinePower);
         registry.Register<TenderPower>(HandleTenderPower);
         registry.Register<VitalSparkPower>(HandleVitalSparkPower);
         registry.Register<VoidFormPower>(HandleVoidFormPower);
+        registry.Register<ViolentChordPower>(HandleViolentChordPower);
         registry.Register<WitheringPresencePower>(HandleWitheringPresencePower);
 
         registry.RegisterIgnored<ArtOfWar>();
@@ -136,6 +142,79 @@ internal static class AfterCardPlayedMirrors
         registry.Register<RightHandHand>(HandleRightHandHand);
 
         return registry;
+    }
+
+    private static void HandleEncorePower(EncorePower power, AfterCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner.Creature == power.Owner)
+        {
+            var state = context.StateStore.Get(power, () => new EncorePredictionState(power));
+            if (state.CardsBeingPlayed.Remove(context.Card.Original))
+            {
+                state.CardsPlayed++;
+            }
+        }
+    }
+
+    private static void HandleEnsemblePower(EnsemblePower power, AfterCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner.Creature != power.Owner)
+        {
+            context.StateStore.GetPowerAmount(power).Decrement();
+        }
+    }
+
+    private static void HandleLullabyPower(LullabyPower power, AfterCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner.Creature != power.Owner || !context.Simulator.IsInProgress)
+        {
+            return;
+        }
+
+        var state = context.StateStore.Get(power, () => new FlagPredictionState(power._proccdThisTurn));
+        if (state.Value || MelodyMirrors.MelodiesThisTurn(context.Simulator, context.PreviewCard.Owner) != 3)
+        {
+            return;
+        }
+
+        state.Value = true;
+        context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
+    }
+
+    private static void HandleSongPathPower(SongPathPower power, AfterCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner == power.Owner.Player &&
+            context.PreviewCard.Tags.Contains(CardTag.Cho) &&
+            MelodyMirrors.IsFirstPlayThisTurn(context.Simulator, context.CardPlay, CardTag.Cho))
+        {
+            context.Simulator.GainBlock(power.Owner, power.Amount, ValueProp.Unpowered);
+        }
+    }
+
+    private static void HandleViolentChordPower(ViolentChordPower power, AfterCardPlayedMirrorContext context)
+    {
+        if (context.PreviewCard.Owner == power.Owner.Player &&
+            context.PreviewCard.Tags.Contains(CardTag.Wah) &&
+            MelodyMirrors.IsFirstPlayThisTurn(context.Simulator, context.CardPlay, CardTag.Wah))
+        {
+            context.Simulator.Damage(context.State.HittableEnemies, power.Amount, ValueProp.Unpowered, power.Owner);
+        }
+    }
+
+    private static void HandleStretchPower(StretchPower power, AfterCardPlayedMirrorContext context)
+    {
+        var state = context.StateStore.Get(power, () => new StretchPredictionState(power));
+        if (state.Play != context.CardPlay)
+        {
+            return;
+        }
+
+        state.Play = null;
+        if (state.GaveBonus)
+        {
+            state.GaveBonus = false;
+            context.StateStore.GetPowerAmount(power).Decrease(state.StartingAmount);
+        }
     }
 
     private static void HandleMotifPower(MotifPower power, AfterCardPlayedMirrorContext context)
@@ -434,7 +513,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleAfterimagePower(AfterimagePower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is > 0 and var amount)
+        if (TryTakeCardPlayAmount(power, context, out var amount) && amount > 0)
         {
             context.Simulator.GainBlock(power.Owner, amount, ValueProp.Unpowered);
         }
@@ -452,7 +531,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleCalamityPower(CalamityPower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is null || power.Owner.Player is not { } player)
+        if (!TryTakeCardPlayAmount(power, context, out _) || power.Owner.Player is not { } player)
         {
             return;
         }
@@ -501,7 +580,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleGravityPower(GravityPower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is > 0 and var amount)
+        if (TryTakeCardPlayAmount(power, context, out var amount) && amount > 0)
         {
             context.Simulator.Damage(context.State.HittableEnemies, amount, ValueProp.Unpowered, power.Owner);
         }
@@ -575,12 +654,18 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleMonologuePower(MonologuePower power, AfterCardPlayedMirrorContext context)
     {
-        RecordRiskIfPaired(power, context);
+        if (TryTakeCardPlayAmount(power, context, out _))
+        {
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+        }
     }
 
     private static void HandleOblivionPower(OblivionPower power, AfterCardPlayedMirrorContext context)
     {
-        RecordRiskIfPaired(power, context);
+        if (TryTakeCardPlayAmount(power, context, out _))
+        {
+            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
+        }
     }
 
     private static void HandlePanachePower(PanachePower power, AfterCardPlayedMirrorContext context)
@@ -609,7 +694,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleSerpentFormPower(SerpentFormPower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is > 0 and var amount)
+        if (TryTakeCardPlayAmount(power, context, out var amount) && amount > 0)
         {
             var target = context.Rng.CombatTargets.NextItem(context.State.HittableEnemies);
             if (target is not null)
@@ -658,7 +743,8 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleStormPower(StormPower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is > 0 and var amount && power.Owner.Player is { } player)
+        if (TryTakeCardPlayAmount(power, context, out var amount) && amount > 0 &&
+            power.Owner.Player is { } player)
         {
             context.Simulator.OrbChannel<LightningOrb>(player, amount);
         }
@@ -666,7 +752,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleStranglePower(StranglePower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is { } amount)
+        if (TryTakeCardPlayAmount(power, context, out var amount))
         {
             context.Simulator.Damage(power.Owner, amount, DamageProps.nonCardHpLoss, dealer: null);
         }
@@ -674,7 +760,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleSubroutinePower(SubroutinePower power, AfterCardPlayedMirrorContext context)
     {
-        if (TakePairAmount(power, context) is > 0 and var amount && power.Owner.Player is { } player)
+        if (TryTakeCardPlayAmount(power, context, out var amount) && amount > 0 && power.Owner.Player is { } player)
         {
             context.Simulator.GainEnergy(player, amount);
         }
@@ -830,29 +916,18 @@ internal static class AfterCardPlayedMirrors
         return ++state.Value % relic.DynamicVars.Cards.IntValue == 0;
     }
 
-    private static int? TakePairAmount(AbstractModel model, AfterCardPlayedMirrorContext context)
+    private static bool TryTakeCardPlayAmount(
+        AbstractModel model,
+        AfterCardPlayedMirrorContext context,
+        out int amount)
     {
-        var state = context.StateStore.Get<CardPlayPairPredictionState>(model);
-        return state.Amounts.Remove(context.CardPlay, out var amount) ? amount : null;
-    }
-
-    private static void RecordRiskIfPaired(AbstractModel model, AfterCardPlayedMirrorContext context)
-    {
-        if (TakePairAmount(model, context) is not null)
-        {
-            context.History.RecordRisk(PredictionRiskReason.MethodMirrorIncomplete);
-        }
+        return context.StateStore.TryTakeCardPlayAmount(model, context.CardPlay, out amount);
     }
 }
 
 internal sealed class AfterCardPlayedMirrorContext : CombatCardMirrorContext
 {
     public required CardPlay CardPlay { get; init; }
-}
-
-internal sealed class FlagPredictionState(bool value)
-{
-    public bool Value { get; set; } = value;
 }
 
 internal sealed class PanachePredictionState(PanachePower power)

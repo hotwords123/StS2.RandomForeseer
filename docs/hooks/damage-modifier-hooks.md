@@ -75,6 +75,7 @@ consumers documented below.
 | `StrengthPower` | 力量 | Owner powered attacks gain flat damage; negative amounts reduce damage. | Implemented by original hook. |
 | `TaintedPower` | 污染 | Powered attacks against owner gain flat damage. | Implemented by original hook. |
 | `VigorPower` | 活力 | Owner's next powered attack gains flat damage, usually scoped by `BeforeAttack`/`AfterAttack`. | Implemented by a prediction-aware additive adapter using the selected attack and shadow amount shared with the attack hooks. |
+| `AimPower` | 瞄准 | Adds Aim to the selected powered arrow attack, including HeavyShot scaling. | Deferred with the coherent arrow domain: original fallback reads frozen live command/amount state; Aim/Quietus/Impaled and arrow-slot transitions are not partially advanced. |
 
 ### ModifyDamageMultiplicative listeners
 
@@ -83,17 +84,17 @@ consumers documented below.
 | `ColossusPower` | 巨像 | Powered attacks from Vulnerable dealers against owner are reduced. | Implemented by original hook. |
 | `ConquerorPower` | 征服者 | `SovereignBlade` powered attacks against owner are doubled. | Implemented by original hook. |
 | `CoveredPower` | 掩护 | Powered attacks against owner are reduced to zero. | Implemented by original hook. |
-| `DoubleDamagePower` | 双倍伤害 | Owner or pet powered card attacks are doubled. | Implemented by original hook. |
+| `DoubleDamagePower` | 双倍伤害 | Owner or pet powered card attacks are doubled. | Exact multiplier reads the shadow amount decremented at owner side-end; active semantics delegate to the original hook. Expired listeners return 1; collection membership and generic removal callbacks remain deferred. |
 | `FlankingPower` | 夹击 | Powered attacks against owner are multiplied unless dealt by applier. | Implemented by original hook. |
 | `FlutterPower` | 振翅 | Powered attacks against owner are reduced by configured percentage. | Implemented by a prediction-aware multiplier that reads the shadow stack amount consumed by `AfterDamageReceived`; post-hit stun scope is covered in `damage-hooks.md`. |
 | `GigantificationPower` | 超巨化 | Owner's powered attack card is tripled, usually scoped by `BeforeAttack`/`AfterAttack`. | Implemented by a prediction-aware multiplier using the selected attack and shadow amount shared with the attack hooks. |
-| `GuardedPower` | 护卫 | Powered attacks against owner are halved. | Implemented by original hook. |
+| `GuardedPower` | 护卫 | Powered attacks against owner are halved. | Exact multiplier shares the shadow amount consumed on applier death; active semantics delegate to the original hook. Expired listeners return 1; collection membership and generic removal callbacks remain deferred. |
 | `HangPower` | 吊杀 | `Hang` damage against owner is multiplied by amount. | Implemented by original hook. |
 | `InterceptPower` | 拦截 | Powered attacks against owner are increased by covered-creature count. | Implemented by original hook. |
 | `KnockdownPower` | 击倒 | Powered attacks against owner are multiplied unless dealt by applier. | Implemented by original hook. |
 | `LethalityPower` | 致死性 | Owner's first Attack card this turn deals bonus powered damage. | Exact multiplier combines live current-turn and predicted started-card history, filtered by player and Attack type. Excludes the current Play-pile card from that count only for a non-null CardPlay; replay exclusion still uses its shadow pile and preview play index. |
 | `PenNib` | 钢笔尖 | Owner's every tenth Attack card is doubled. | Prediction-aware multiplier uses the shadow counter and original card identity shared with the before/after card hooks, matching vanilla's card-identity selection. |
-| `ShrinkPower` | 缩小 | Owner's powered attacks are reduced. | Implemented by original hook. |
+| `ShrinkPower` | 缩小 | Owner's powered attacks are reduced. | Exact multiplier reads shadow expiration, including negative infinite duration, shared with death and side-end hooks. Expired listeners return 1; collection membership and generic removal callbacks remain deferred. |
 | `SlowPower` | 缓慢 | Powered attacks against owner scale up with cards played this turn. | Implemented by a prediction-aware multiplier reading the shadow card-play count. |
 | `SoarPower` | 翱翔 | Powered attacks against owner are reduced by configured percentage. | Implemented by original hook. |
 | `SurroundedPower` | 遭到包围 | Back attacks against owner are multiplied. | Implemented by a prediction-aware multiplier reading the facing updated by the simulated targeted card. |
@@ -104,6 +105,7 @@ consumers documented below.
 | `VitruvianMinion` | 维特鲁威仆从 | Owner Minion-tag card attacks are doubled. | Implemented by original hook. |
 | `VulnerablePower` | 易伤 | Powered attacks against owner are multiplied, with Paper Phrog, dealer or pet owner's Cruelty, and Debilitate adjustments. | Implemented by original hook. StS2 v0.109.0 made attacking pets inherit their owner's Cruelty adjustment. |
 | `WeakPower` | 虚弱 | Owner's powered attacks are reduced, with Paper Krane and Debilitate adjustments. | Implemented by original hook. |
+| `QuietusPower` | 寂灭 | Multiplies damage for the selected powered arrow attack. | Deferred with the coherent arrow domain: original fallback reads frozen live command/amount state; attack selection and consumption require arrow lifecycle support. |
 
 ### ModifyDamageMultiplicativeLate listeners
 
@@ -182,6 +184,7 @@ prediction-state-aware mirror retains Mod listeners so Mod damage semantics rema
 | `AdaptablePower` | 适者生存 | Rejects the owner while reviving. | Original predicate; simulated revive/transition remains unsupported and is reported by death hooks. |
 | `IllusionPower` | 幻象 | Rejects the owner while reviving. | Original predicate; simulated revive/transition remains unsupported and is reported by death hooks. |
 | `ReattachPower` | 接续 | Rejects the owner while reviving. | Original predicate; simulated revive/transition remains unsupported and is reported by death hooks. |
+| `WuppysLoyaltyPower` | 瓦皮的忠诚 | Rejects any dead queried creature for hitting/power receipt. | Exact adapter reads queried-creature shadow liveness; its separate pre-block pet redirection and overkill domain remain deferred. |
 
 ## AfterModifying listeners
 

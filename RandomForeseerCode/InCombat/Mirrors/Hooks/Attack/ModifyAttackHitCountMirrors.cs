@@ -13,11 +13,24 @@ internal static class ModifyAttackHitCountMirrors
         nameof(AbstractModel.ModifyAttackHitCount),
         [typeof(AttackCommand), typeof(int)]);
 
-    private static readonly Registry Registry = new(ModifyAttackHitCount);
+    private static readonly Registry Registry = CreateRegistry();
+
+    private static Registry CreateRegistry()
+    {
+        var registry = new Registry(ModifyAttackHitCount);
+        return registry;
+    }
 
     public static int Invoke(AbstractModel listener, ModifyAttackHitCountMirrorContext context)
     {
-        return Registry.Invoke(listener, context, context.HitCount).Value;
+        return Registry.TryInvokeRegistered(listener, context, out var result)
+            ? result.Value
+            : InvokeOriginal(listener, context);
+    }
+
+    private static int InvokeOriginal(AbstractModel listener, ModifyAttackHitCountMirrorContext context)
+    {
+        return listener.ModifyAttackHitCount(context.Command, context.HitCount);
     }
 }
 

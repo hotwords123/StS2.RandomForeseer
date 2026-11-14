@@ -41,12 +41,21 @@ internal static class ShouldPlayMirrors
         registry.Register<Normality>(HandleNormality);
 
         registry.Register<ChainsOfBindingPower>(HandleChainsOfBindingPower);
+        registry.Register<EncorePower>(HandleEncorePower);
         registry.Register<RingingPower>(HandleRingingPower);
         registry.Register<SlothPower>(HandleSlothPower);
 
         registry.Register<VelvetChoker>(HandleVelvetChoker);
 
         return registry;
+    }
+
+    private static bool HandleEncorePower(EncorePower power, ShouldPlayMirrorContext context)
+    {
+        var state = context.StateStore.Get(power, () => new EncorePredictionState(power));
+        return context.Card.Preview.Owner.Creature != power.Owner ||
+               state.Removed ||
+               state.CardsPlayed + state.CardsBeingPlayed.Count < power.Amount;
     }
 
     private static bool HandleEnthralled(Enthralled card, ShouldPlayMirrorContext context)

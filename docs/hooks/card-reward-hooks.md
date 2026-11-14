@@ -41,6 +41,7 @@ The project reproduces the pure-ish creation-option and upgrade-odds listener pa
 | `Glitter` | 亮片 | Adds Glam to valid rewards. | Implemented. |
 | `FresnelLens` | 菲涅耳透镜 | Adds Nimble to valid rewards. | Implemented. |
 | `SilkenTress` | 华美发束 | Adds Glam to card rewards while unused. | Implemented. |
+| `BlitzRunModel` | — | In act 2, selects one combat reward; in act 3, unstable-shuffles the rewards and selects two; upgrades eligible selections outside Boss rooms. | Implemented with cloned Rewards RNG and detached upgraded cards. Matches the original IsFromCombat/act/Boss gates and true return for eligible later acts; does not call RunState.CloneCard or register preview cards in the live run. |
 | `WingCharm` | 羽翼护符 | Chooses one valid reward using the owner's Rewards RNG and adds Swift. | Implemented with the prediction context's cloned Rewards stream, including earlier card-generation consumption. |
 
 ## ModifyCardRewardCreationOptions listeners

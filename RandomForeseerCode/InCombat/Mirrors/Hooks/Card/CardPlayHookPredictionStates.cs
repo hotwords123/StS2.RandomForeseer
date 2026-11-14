@@ -5,12 +5,6 @@ using MegaCrit.Sts2.Core.Models.Relics;
 
 namespace RandomForeseer.InCombat.Mirrors.Hooks.Card;
 
-// Shadow model state shared by card-play lifecycle hooks and their downstream value/predicate hook mirrors.
-internal sealed class CounterPredictionState(int value)
-{
-    public int Value { get; set; } = value;
-}
-
 internal sealed class ChainsOfBindingPredictionState(ChainsOfBindingPower power)
 {
     public bool BoundCardPlayed { get; set; } =
@@ -49,4 +43,24 @@ internal sealed class VoidFormPredictionState(VoidFormPower power)
 {
     public int CardsPlayedThisTurn { get; set; } =
         power.GetInternalData<VoidFormPower.Data>().cardsPlayedThisTurn;
+}
+
+internal sealed class EncorePredictionState(EncorePower power)
+{
+    public List<CardModel> CardsBeingPlayed { get; } =
+        [.. power.GetInternalData<EncorePower.Data>().cardsBeingPlayed];
+
+    public int CardsPlayed { get; set; } =
+        power.GetInternalData<EncorePower.Data>().numberOfCardsPlayedSinceApplied;
+
+    public bool Removed { get; set; }
+}
+
+internal sealed class StretchPredictionState(StretchPower power)
+{
+    public CardPlay? Play { get; set; } = power.GetInternalData<StretchPower.Data>().cardPlay;
+
+    public int StartingAmount { get; set; } = power.GetInternalData<StretchPower.Data>().amountWhenCardStarted;
+
+    public bool GaveBonus { get; set; } = power.GetInternalData<StretchPower.Data>().gaveBonusBlock;
 }

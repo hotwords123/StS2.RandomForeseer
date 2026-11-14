@@ -8,6 +8,17 @@ namespace RandomForeseer.InCombat.Mirrors.Shared;
 
 internal static class MelodyMirrors
 {
+    /// <summary>Mirrors <see cref="MelodyCmd.IsFirstPlayThisTurn"/>.</summary>
+    public static bool IsFirstPlayThisTurn(CombatPredictionSimulator simulator, CardPlay play, CardTag tag)
+    {
+        var first = CombatManager.Instance.History.CardPlaysStarted.FirstOrDefault(entry =>
+            entry.HappenedThisTurn(simulator.State.CombatState) &&
+            entry.CardPlay.Player == play.Player && entry.CardPlay.Card.Tags.Contains(tag))?.CardPlay;
+        first ??= simulator.History.OfType<CombatPredictionCardPlayStartedEntry>().FirstOrDefault(entry =>
+            entry.CardPlay.Player == play.Player && entry.Card.Preview.Tags.Contains(tag))?.CardPlay;
+        return first == play;
+    }
+
     /// <summary>Mirrors <see cref="MelodyCmd.PlayedThisTurn"/>.</summary>
     public static bool PlayedThisTurn(CombatPredictionSimulator simulator, Player player, CardTag tag)
     {

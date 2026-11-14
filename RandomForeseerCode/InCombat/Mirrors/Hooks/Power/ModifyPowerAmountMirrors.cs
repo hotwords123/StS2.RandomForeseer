@@ -1,4 +1,3 @@
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -35,35 +34,53 @@ internal static class ModifyPowerAmountMirrors
     {
         return AdditiveRegistry.TryInvokeRegistered(listener, context, out var result)
             ? result.Value
-            : listener.ModifyPowerAmountGivenAdditive(
-                context.Power,
-                context.Applier!,
-                context.Amount,
-                context.Target,
-                context.CardSource?.Preview);
+            : InvokeOriginalGivenAdditive(listener, context);
     }
 
     public static decimal InvokeGivenMultiplicative(AbstractModel listener, ModifyPowerAmountMirrorContext context)
     {
         return MultiplicativeRegistry.TryInvokeRegistered(listener, context, out var result)
             ? result.Value
-            : listener.ModifyPowerAmountGivenMultiplicative(
-                context.Power,
-                context.Applier!,
-                context.Amount,
-                context.Target,
-                context.CardSource?.Preview);
+            : InvokeOriginalGivenMultiplicative(listener, context);
     }
 
     public static PowerAmountModification InvokeReceived(
         AbstractModel listener,
         ModifyPowerAmountMirrorContext context)
     {
-        if (ReceivedRegistry.TryInvokeRegistered(listener, context, out var result))
-        {
-            return result.Value;
-        }
+        return ReceivedRegistry.TryInvokeRegistered(listener, context, out var result)
+            ? result.Value
+            : InvokeOriginalReceived(listener, context);
+    }
 
+    private static decimal InvokeOriginalGivenAdditive(
+        AbstractModel listener,
+        ModifyPowerAmountMirrorContext context)
+    {
+        return listener.ModifyPowerAmountGivenAdditive(
+            context.Power,
+            context.Applier!,
+            context.Amount,
+            context.Target,
+            context.CardSource?.Preview);
+    }
+
+    private static decimal InvokeOriginalGivenMultiplicative(
+        AbstractModel listener,
+        ModifyPowerAmountMirrorContext context)
+    {
+        return listener.ModifyPowerAmountGivenMultiplicative(
+            context.Power,
+            context.Applier!,
+            context.Amount,
+            context.Target,
+            context.CardSource?.Preview);
+    }
+
+    private static PowerAmountModification InvokeOriginalReceived(
+        AbstractModel listener,
+        ModifyPowerAmountMirrorContext context)
+    {
         var wasModified = listener.TryModifyPowerAmountReceived(
             context.Power,
             context.Target,
@@ -89,13 +106,7 @@ internal static class ModifyPowerAmountMirrors
             return new PowerAmountModification(false, context.Amount);
         }
 
-        var wasModified = artifact.TryModifyPowerAmountReceived(
-            context.Power,
-            context.Target,
-            context.Amount,
-            context.Applier,
-            out var modifiedAmount);
-        return new PowerAmountModification(wasModified, modifiedAmount);
+        return InvokeOriginalReceived(artifact, context);
     }
 }
 

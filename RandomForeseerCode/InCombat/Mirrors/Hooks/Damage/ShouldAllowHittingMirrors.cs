@@ -24,11 +24,12 @@ internal static class ShouldAllowHittingMirrors
     private static Registry CreateRegistry()
     {
         var registry = new Registry(Method);
-        registry.Register<DieForYouPower>(HandleDieForYouPower);
+        registry.Register<DieForYouPower>(HandleCreatureLiveness);
+        registry.Register<WuppysLoyaltyPower>(HandleCreatureLiveness);
         return registry;
     }
 
-    private static bool HandleDieForYouPower(DieForYouPower power, ShouldAllowHittingMirrorContext context)
+    private static bool HandleCreatureLiveness(PowerModel _, ShouldAllowHittingMirrorContext context)
     {
         return context.State.GetCreature(context.Creature).IsAlive;
     }

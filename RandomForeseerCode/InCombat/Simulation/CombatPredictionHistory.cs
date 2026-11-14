@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 using RandomForeseer.ObjectGraph;
 
@@ -208,6 +209,17 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
     public void OrbChanneled(OrbModel orb)
     {
         Record(new CombatPredictionOrbChanneledEntry { Orb = orb });
+    }
+
+    public void BlockGained(Creature creature, int amount, CardPlay? cardPlay, ValueProp props)
+    {
+        Record(new CombatPredictionBlockGainedEntry
+        {
+            Creature = creature,
+            Amount = amount,
+            CardPlay = cardPlay,
+            Props = props
+        });
     }
 
     /// <summary>

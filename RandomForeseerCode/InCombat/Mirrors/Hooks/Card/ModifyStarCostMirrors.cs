@@ -21,11 +21,13 @@ internal static class ModifyStarCostMirrors
 
     public static decimal Invoke(AbstractModel listener, ModifyStarCostMirrorContext context)
     {
-        if (Registry.TryInvokeRegistered(listener, context, out var result))
-        {
-            return result.Value;
-        }
+        return Registry.TryInvokeRegistered(listener, context, out var result)
+            ? result.Value
+            : InvokeOriginal(listener, context);
+    }
 
+    private static decimal InvokeOriginal(AbstractModel listener, ModifyStarCostMirrorContext context)
+    {
         listener.TryModifyStarCost(context.Card.Preview, context.Cost, out var modifiedCost);
         return modifiedCost;
     }

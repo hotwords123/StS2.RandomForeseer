@@ -18,6 +18,9 @@
 
 ### fix
 
+- 完善战斗预测，修复部分边界情况和效果联动下预测结果可能不正确的问题。<br>
+  Improved combat predictions and fixed potentially incorrect results in certain edge cases and effect interactions.
+
 - 修复熵的战斗变牌预测结果不正确的问题。<br>
   Fixed incorrect combat transform predictions for Entropy.
 
