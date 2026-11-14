@@ -51,6 +51,7 @@ When lemonSpire2 is installed, its teammate panel reuses Random Foreseer's exist
 - Combat card generation, combat card selection, draw-pile autoplay, card draw, and potion generation predictions for teammate hand cards
 - Relic pickup effect predictions for teammate Ancient relic choices
 - Immediate random result predictions for teammate merchant relics and merchant potions
+- Random result predictions for teammate Blitz merchant options, paused while a purchase is resolving
 
 ### Relic Rewards: Choose One of Three
 

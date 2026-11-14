@@ -1,6 +1,7 @@
 using System.Reflection;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Potions;
@@ -25,11 +26,11 @@ internal static class LemonSpireHandCardPredictionPatch
             "UpdateContent");
     }
 
-    private static void Postfix(Player player, Control content)
+    private static void Postfix(Control content)
     {
         foreach (var entry in LemonSpireControlTree.Descendants(content).OfType<NDeckHistoryEntry>())
         {
-            LemonSpireControlHoverTips.Register(entry, player, entry.Card, LemonSpirePredictionKind.HandCard);
+            LemonSpireControlHoverTips.Register(entry, new LemonSpirePredictionContext.HandCard(entry.Card));
         }
     }
 }
@@ -61,7 +62,9 @@ internal static class LemonSpireAncientRelicChoicePredictionPatch
         {
             if (holder is NRelicBasicHolder)
             {
-                LemonSpireControlHoverTips.Register(holder, player, relic, LemonSpirePredictionKind.AncientRelicChoice);
+                LemonSpireControlHoverTips.Register(
+                    holder,
+                    new LemonSpirePredictionContext.AncientRelicChoice(player, relic));
                 return;
             }
         }
@@ -95,7 +98,7 @@ internal static class LemonSpireShopRelicPredictionPatch
         {
             if (holder is NRelicBasicHolder { _model: { } relic })
             {
-                LemonSpireControlHoverTips.Register(holder, player, relic, LemonSpirePredictionKind.ShopRelic);
+                LemonSpireControlHoverTips.Register(holder, new LemonSpirePredictionContext.ShopRelic(player, relic));
                 return;
             }
         }
@@ -129,9 +132,32 @@ internal static class LemonSpireShopPotionPredictionPatch
         {
             if (holder is NPotionHolder { Potion.Model: { } potion })
             {
-                LemonSpireControlHoverTips.Register(holder, player, potion, LemonSpirePredictionKind.ShopPotion);
+                LemonSpireControlHoverTips.Register(holder, new LemonSpirePredictionContext.ShopPotion(player, potion));
                 return;
             }
         }
+    }
+}
+
+[HarmonyPatchCategory(LemonSpireTypes.PatchCategory)]
+[HarmonyPatch]
+internal static class LemonSpireBlitzMerchantPredictionPatch
+{
+    private static bool Prepare()
+    {
+        return TargetMethod() is not null;
+    }
+
+    private static MethodBase? TargetMethod()
+    {
+        var type = LemonSpireTypes.Get(LemonSpireTypes.BlitzShopEntryPreviewName);
+        return type != null
+            ? AccessTools.Method(type, "Create", [typeof(BlitzMerchantEntry)])
+            : null;
+    }
+
+    private static void Postfix(Control __result, BlitzMerchantEntry entry)
+    {
+        LemonSpireControlHoverTips.Register(__result, new LemonSpirePredictionContext.BlitzMerchant(entry));
     }
 }

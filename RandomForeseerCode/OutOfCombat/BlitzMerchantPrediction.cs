@@ -23,6 +23,7 @@ internal static class BlitzMerchantPrediction
     {
         var settings = ModData.Settings;
         if (!settings.IsPredictionEnabled || !settings.BlitzMerchantPredictionEnabled ||
+            BlitzMerchantPurchasePredictionState.IsPending(entry.Player) ||
             entry.Status != BlitzMerchantEntry.BlitzEntryStatus.Available ||
             entry.Player.RunState is not { GameMode: GameMode.Blitz, CurrentRoom: MerchantRoom } ||
             RunManager.Instance.MerchantSynchronizer.GetInventoryFor(entry.Player).BlitzChoicesRemaining <= 0)

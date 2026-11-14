@@ -2,9 +2,11 @@ using System.Runtime.CompilerServices;
 using System.Reflection;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.InCombat;
@@ -12,56 +14,60 @@ using RandomForeseer.OutOfCombat;
 
 namespace RandomForeseer.Integrations.LemonSpire;
 
-/// <summary>Identifies the lemonSpire surface that owns a prediction context.</summary>
-internal enum LemonSpirePredictionKind
+/// <summary>Owns the prediction inputs and validity rules for one lemonSpire surface.</summary>
+internal abstract class LemonSpirePredictionContext
 {
-    HandCard,
-    AncientRelicChoice,
-    ShopRelic,
-    ShopPotion
-}
+    public abstract IReadOnlyList<IHoverTip> GetHoverTips();
 
-internal sealed class LemonSpirePredictionContext(Player player, AbstractModel model, LemonSpirePredictionKind kind)
-{
-    public IReadOnlyList<IHoverTip> GetHoverTips()
+    internal sealed class HandCard(CardModel card) : LemonSpirePredictionContext
     {
-        return (kind, model) switch
-        {
-            (LemonSpirePredictionKind.HandCard, CardModel card)
-                => CombatCardPrediction.GetHoverTips(card),
-
-            (LemonSpirePredictionKind.AncientRelicChoice, RelicModel relic)
-                => IsAncientRelicChoiceStale(player)
-                    ? []
-                    : RelicPickupPrediction.GetHoverTips(player, relic),
-
-            (LemonSpirePredictionKind.ShopRelic, RelicModel relic)
-                => RelicPickupPrediction.GetHoverTips(player, relic),
-
-            (LemonSpirePredictionKind.ShopPotion, PotionModel potion)
-                => PotionPrediction.GetHoverTips(player, potion),
-
-            _ => []
-        };
+        public override IReadOnlyList<IHoverTip> GetHoverTips() => CombatCardPrediction.GetHoverTips(card);
     }
 
-    private static bool IsAncientRelicChoiceStale(Player player)
+    internal sealed class AncientRelicChoice(Player player, RelicModel relic) : LemonSpirePredictionContext
     {
-        try
+        public override IReadOnlyList<IHoverTip> GetHoverTips()
         {
-            var eventModel = RunManager.Instance.EventSynchronizer.GetEventForPlayer(player);
-            if (eventModel is not AncientEventModel ancient)
+            return IsStale(player)
+                ? []
+                : RelicPickupPrediction.GetHoverTips(player, relic);
+        }
+
+        private static bool IsStale(Player player)
+        {
+            try
+            {
+                var eventModel = RunManager.Instance.EventSynchronizer.GetEventForPlayer(player);
+                if (eventModel is not AncientEventModel ancient)
+                {
+                    return false;
+                }
+
+                return ancient.IsFinished ||
+                       ancient.CurrentOptions.Any(option => option is { Relic: not null, WasChosen: true });
+            }
+            catch
             {
                 return false;
             }
+        }
+    }
 
-            return ancient.IsFinished ||
-                   ancient.CurrentOptions.Any(option => option is { Relic: not null, WasChosen: true });
-        }
-        catch
-        {
-            return false;
-        }
+    internal sealed class ShopRelic(Player player, RelicModel relic) : LemonSpirePredictionContext
+    {
+        public override IReadOnlyList<IHoverTip> GetHoverTips() => RelicPickupPrediction.GetHoverTips(player, relic);
+    }
+
+    internal sealed class ShopPotion(Player player, PotionModel potion) : LemonSpirePredictionContext
+    {
+        public override IReadOnlyList<IHoverTip> GetHoverTips() => PotionPrediction.GetHoverTips(player, potion);
+    }
+
+    internal sealed class BlitzMerchant(BlitzMerchantEntry entry) : LemonSpirePredictionContext
+    {
+        public BlitzMerchantEntry Entry { get; } = entry;
+
+        public override IReadOnlyList<IHoverTip> GetHoverTips() => BlitzMerchantPrediction.GetHoverTips(Entry);
     }
 }
 
@@ -69,9 +75,14 @@ internal static class LemonSpireControlHoverTips
 {
     private static readonly ConditionalWeakTable<Control, LemonSpirePredictionContext> Contexts = [];
 
-    public static void Register(Control control, Player player, AbstractModel model, LemonSpirePredictionKind kind)
+    static LemonSpireControlHoverTips()
     {
-        Contexts.AddOrUpdate(control, new LemonSpirePredictionContext(player, model, kind));
+        BlitzMerchantPurchasePredictionState.Changed += RefreshBlitzMerchantHoverTips;
+    }
+
+    public static void Register(Control control, LemonSpirePredictionContext context)
+    {
+        Contexts.AddOrUpdate(control, context);
     }
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Control control)
@@ -79,6 +90,41 @@ internal static class LemonSpireControlHoverTips
         return Contexts.TryGetValue(control, out var context)
             ? context.GetHoverTips()
             : [];
+    }
+
+    private static void RefreshBlitzMerchantHoverTips(Player player)
+    {
+        foreach (var (control, context) in Contexts)
+        {
+            if (context is not LemonSpirePredictionContext.BlitzMerchant { Entry: var entry } ||
+                entry.Player != player)
+            {
+                continue;
+            }
+
+            try
+            {
+                if (!GodotObject.IsInstanceValid(control) || !control.IsInsideTree() ||
+                    !NHoverTipSet._activeHoverTips.ContainsKey(control))
+                {
+                    continue;
+                }
+
+                // A teammate can begin a purchase while its old prediction is still under the local cursor.
+                // Rebuild the active tip immediately; the pending gate keeps only vanilla tips during settlement.
+                NHoverTipSet.Remove(control);
+                if (entry.IsStocked && control.IsVisibleInTree())
+                {
+                    var alignment = control.GetIndex() % 3 == 2 ? HoverTipAlignment.Left : HoverTipAlignment.Right;
+                    NHoverTipSet.CreateAndShow(control, entry.HoverTips, alignment)?.SetFollowOwner();
+                }
+            }
+            catch (Exception ex)
+            {
+                // UI refresh failures must not change the original purchase Task's result or cleanup.
+                Entry.Logger.Warn($"Could not refresh lemonSpire Blitz merchant hover tips: {ex}");
+            }
+        }
     }
 }
 
@@ -122,6 +168,9 @@ internal static class LemonSpireTypes
 
     public const string ShopProviderName =
         "lemonSpire2.PlayerStateEx.PanelProvider.ShopProvider";
+
+    public const string BlitzShopEntryPreviewName =
+        "lemonSpire2.PlayerStateEx.PanelProvider.BlitzShopEntryPreview";
 
     public static Type? Get(string fullName)
     {
