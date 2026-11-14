@@ -5,36 +5,10 @@ using RandomForeseer.Common;
 namespace RandomForeseer.ObjectGraph.Metadata;
 
 /// <summary>Policy-independent metadata and conservative readonly-field immutability proof.</summary>
-/// <remarks>Never calls getters. Recursive types and polymorphic storage remain unproven.</remarks>
-internal static class GraphTypeTraits
+/// <remarks>Never calls getters. Polymorphic field storage remains unproven.</remarks>
+internal static partial class GraphTypeTraits
 {
-    private static readonly ConcurrentDictionary<Type, bool> ImmutableTypes = new()
-    {
-        [typeof(bool)] = true,
-        [typeof(char)] = true,
-        [typeof(byte)] = true,
-        [typeof(sbyte)] = true,
-        [typeof(short)] = true,
-        [typeof(ushort)] = true,
-        [typeof(int)] = true,
-        [typeof(uint)] = true,
-        [typeof(long)] = true,
-        [typeof(ulong)] = true,
-        [typeof(float)] = true,
-        [typeof(double)] = true,
-        [typeof(decimal)] = true,
-
-        [typeof(string)] = true,
-        [typeof(object)] = true,
-
-        // Intentionally register System.RuntimeType, the CLR implementation of Type.
-        // ReSharper disable once PossibleMistakenCallToGetType
-        [typeof(Type).GetType()] = true
-    };
-
     private static readonly ConcurrentDictionary<(Type Declared, Type Runtime), bool> IdentityKeyTypes = new();
-
-    public static bool IsImmutable(Type type) => AnalyzeImmutable(type);
 
     /// <summary>Whether ordinary instance fields cannot establish the type's complete state or lifecycle.</summary>
     public static bool IsOpaque(Type type)
@@ -94,59 +68,8 @@ internal static class GraphTypeTraits
         return result;
     }
 
-    private static bool AnalyzeImmutable(Type type, HashSet<Type>? visiting = null)
-    {
-        if (ImmutableTypes.TryGetValue(type, out var result))
-        {
-            return result;
-        }
-
-        visiting ??= [];
-        if (!visiting.Add(type))
-        {
-            return false;
-        }
-
-        try
-        {
-            result = ProveImmutable(type, visiting);
-            ImmutableTypes.TryAdd(type, result);
-            return result;
-        }
-        finally
-        {
-            visiting.Remove(type);
-        }
-    }
-
-    private static bool ProveImmutable(Type type, HashSet<Type> visiting)
-    {
-        if (type.IsEnum || IsRuntimeMetadata(type))
-        {
-            return true;
-        }
-
-        if (type.IsInterface || type.IsAbstract || type.IsArray || type.ContainsGenericParameters)
-        {
-            return false;
-        }
-
-        if (Nullable.GetUnderlyingType(type) is { } underlying)
-        {
-            return AnalyzeImmutable(underlying, visiting);
-        }
-
-        if (IsOpaque(type))
-        {
-            return false;
-        }
-
-        return GraphTypeLayout.For(type).Fields.All(field =>
-            field.IsInitOnly && field.FieldType.IsSealed && AnalyzeImmutable(field.FieldType, visiting));
-    }
-
     /// <summary>Shares CLR metadata identities without traversing runtime caches, handles or loader state.</summary>
-    private static bool IsRuntimeMetadata(Type type)
+    public static bool IsRuntimeMetadata(Type type)
     {
         // Restrict the exception to CoreCLR implementations. Emit builders and user-defined reflection
         // wrappers can carry mutable state; inheriting a metadata API alone does not grant sharing.

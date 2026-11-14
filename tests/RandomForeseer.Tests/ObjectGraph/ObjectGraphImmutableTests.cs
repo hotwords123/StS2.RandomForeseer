@@ -5,9 +5,54 @@ using RandomForeseer.ObjectGraph.Policies;
 namespace RandomForeseer.Tests.ObjectGraph;
 
 /// <summary>Protects immutable sharing, polymorphic storage and explicit field overrides of <see cref="PredictionGraphCopier"/>.</summary>
-/// <remarks>Pure managed fixtures; readonly fields must not hide mutable references or resource ownership.</remarks>
+/// <remarks>
+/// Pure managed fixtures; readonly cycles may share, but mutable dependencies and resource ownership must
+/// prevent sharing regardless of the analysis entry point or previously cached dependency results.
+/// </remarks>
 public sealed class ObjectGraphImmutableTests
 {
+    [Fact]
+    public void ReadonlyCyclesShareFromEitherEntryPoint()
+    {
+        var source = new ReadonlyCycleRoot();
+        using var scope = new PredictionObjectScope();
+        var copier = new PredictionGraphCopier(scope, new GraphCopyPolicy());
+
+        Assert.Same(source, copier.Copy(source));
+        Assert.Same(source.Child, copier.Copy(source.Child));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MutableCycleDependenciesRemainIsolatedRegardlessOfAnalysisOrder(bool childFirst)
+    {
+        // Distinct closed graphs give each order its own initially uncached types without resetting global state.
+        if (childFirst)
+        {
+            CheckMutableCycle<ChildFirst>(childFirst);
+        }
+        else
+        {
+            CheckMutableCycle<RootFirst>(childFirst);
+        }
+    }
+
+    private static void CheckMutableCycle<T>(bool childFirst)
+    {
+        var source = new MutableCycleRoot<T> { Amount = 3 };
+        var entryType = childFirst ? typeof(MutableCycleChild<T>) : typeof(MutableCycleRoot<T>);
+        Assert.False(GraphTypeTraits.IsImmutable(entryType));
+        using var scope = new PredictionObjectScope();
+        var policy = new GraphCopyPolicy(referenceFallback: GraphReferenceStrategy.Clone);
+
+        var clone = new PredictionGraphCopier(scope, policy).Copy(source);
+        clone.Child.Parent.Amount = 9;
+
+        Assert.Same(clone, clone.Child.Parent);
+        Assert.Equal(3, source.Amount);
+    }
+
     [Fact]
     public void ReadonlyDataNullableValuesAndImmutableBoxesAreShared()
     {
@@ -88,4 +133,33 @@ public sealed class ObjectGraphImmutableTests
     private sealed class Derived(int number) : Base(number) { public readonly List<int> Items = []; }
     private sealed class PolymorphicHolder(Base item) { public readonly Base Item = item; }
     private sealed class ResourceHolder { public readonly Task Completion = Task.CompletedTask; }
+
+    private sealed class ReadonlyCycleRoot
+    {
+        public readonly ReadonlyCycleChild Child;
+
+        public ReadonlyCycleRoot() => Child = new ReadonlyCycleChild(this);
+    }
+
+    private sealed class ReadonlyCycleChild(ReadonlyCycleRoot parent)
+    {
+        public readonly ReadonlyCycleRoot Parent = parent;
+    }
+
+    private sealed class MutableCycleRoot<T>
+    {
+        // Visit the back-reference dependency before encountering the mutable field.
+        public readonly MutableCycleChild<T> Child;
+        public int Amount;
+
+        public MutableCycleRoot() => Child = new MutableCycleChild<T>(this);
+    }
+
+    private sealed class MutableCycleChild<T>(MutableCycleRoot<T> parent)
+    {
+        public readonly MutableCycleRoot<T> Parent = parent;
+    }
+
+    private sealed class RootFirst;
+    private sealed class ChildFirst;
 }
