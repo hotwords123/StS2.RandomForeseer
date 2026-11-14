@@ -4,6 +4,9 @@
 
 ### feat
 
+- 新增明显有秘密的瀑布的事件结果预测。<br>
+  Added event prediction for Waterfall of Obvious Secrets.
+
 - 补充愚者的条件攻击、抽牌、选牌与自动打出预测，并支持魔术师和恶魔。<br>
   Expanded predictions for the Fool's conditional attacks, draws, selections, and autoplay, plus The Magician and The Devil.
 

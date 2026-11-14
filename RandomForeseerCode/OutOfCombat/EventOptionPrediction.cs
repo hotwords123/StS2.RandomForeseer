@@ -89,6 +89,7 @@ internal static class EventOptionPrediction
         registry.Register<Trial>(TrialPrediction.GetHoverTips);
         registry.Register<UnrestSite>(UnrestSitePrediction.GetHoverTips);
         registry.Register<WarHistorianRepy>(WarHistorianRepyPrediction.GetHoverTips);
+        registry.Register<WaterfallOfObviousSecrets>(WaterfallOfObviousSecretsPrediction.GetHoverTips);
         registry.Register<WelcomeToWongos>(WelcomeToWongosPrediction.GetHoverTips);
         registry.Register<Wellspring>(WellspringPrediction.GetHoverTips);
         registry.Register<WhisperingHollow>(WhisperingHollowPrediction.GetHoverTips);
