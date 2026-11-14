@@ -13,6 +13,11 @@
 - 战斗预测现在支持曲中意和失落鲁特琴的抽牌和自动打出效果。<br>
   Combat prediction now supports draws and autoplay from Motif and Lost Lute.
 
+### fix
+
+- 修复熵的战斗变牌预测结果不正确的问题。<br>
+  Fixed incorrect combat transform predictions for Entropy.
+
 ## v0.14.0
 
 ### feat
