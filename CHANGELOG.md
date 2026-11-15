@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 补充疯狂科学“智慧”变种的抽牌预测，以及“暴力”变种的多段攻击预测。<br>
+  Added draw predictions for Mad Science's Wisdom variant and multi-hit attack predictions for its Violence variant.
+
 ### fix
 
 - 适配游戏测试版 v0.113.1，完善药水与预测卡牌提示的布局和屏幕边缘避让。<br>

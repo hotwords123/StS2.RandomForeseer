@@ -10,6 +10,11 @@ namespace RandomForeseer.InCombat.Mirrors.Cards.OnPlay;
 
 internal static class MultiHitAttackCardMirrors
 {
+    public static void MadScienceViolenceOnPlay(MadScience card, CardOnPlayMirrorContext context)
+    {
+        context.AttackSingle(card.DynamicVars[MadScience.violenceHitsKey].IntValue);
+    }
+
     public static void BarrageOnPlay(Barrage card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle(context.OwnerState.OrbQueue.Orbs.Count);

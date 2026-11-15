@@ -98,6 +98,12 @@ internal static class CardDrawCardMirrors
         }
     }
 
+    public static void MadScienceWisdomOnPlay(MadScience card, CardOnPlayMirrorContext context)
+    {
+        context.GainBlock(card.Owner.Creature);
+        context.Simulator.Draw(card.Owner, card.DynamicVars[MadScience.wisdomCardsKey].IntValue);
+    }
+
     public static void PillageOnPlay(Pillage card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle();

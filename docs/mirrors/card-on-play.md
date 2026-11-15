@@ -89,7 +89,7 @@ These v0.111.0 cards need command ordering, conditions or dependent amounts beyo
 | `Dominate` / 主宰 | Apply Vulnerable, then grant Strength using the resulting shadow amount, including a newly returned instance. |
 | `HighFive` / 击掌 | Skip the entire effect without living Osty; otherwise attack from Osty and apply Vulnerable to all enemies. |
 | `MoltenFist` / 熔融之拳 | Attack, then double existing shadow Vulnerable only if the target survives and has positive stacks. |
-| `MadScience` / 疯狂科学 | Attack + Sapping variant uses its custom Weak/Vulnerable variables after attacking. The existing Skill + Chaos variant remains supported; other variants retain incomplete risk. |
+| `MadScience` / 疯狂科学 | Attack + Sapping variant uses its custom Weak/Vulnerable variables after attacking. Skill + Wisdom and Skill + Chaos are covered separately below; other variants retain incomplete risk. |
 | `Nail` / 钉住 | Attacks, then applies Weak and Vulnerable only when the selected target is currently impaled. Reads live arrow/power state without changing it. |
 | `Uproot` / 连根拔起 | Applies Vulnerable only when the selected target currently holds the owner's arrow. Dislodging arrows and its hooks are intentionally omitted with incomplete risk. |
 
@@ -150,8 +150,28 @@ changes and nested effects from the preceding play.
 ## Miscellaneous exact mirrors
 
 `MiscCardMirrors` groups the `Alchemize`, `MadScience` and `SecondWind` entry points. Mad Science dispatches its
-supported variants by rider: Attack + Sapping to `VulnerableCardMirrors`, and Skill + Chaos to
-`CardGenerationCardMirrors`. Other variants retain incomplete risk.
+supported variants by type and rider: Attack + Sapping to `VulnerableCardMirrors`, Attack + Violence to
+`MultiHitAttackCardMirrors`, Skill + Wisdom to `CardDrawCardMirrors`, and Skill + Chaos to `CardGenerationCardMirrors`.
+
+Vanilla `TinkerTime.ChooseRiderEffect` offers three riders for each type. All nine reachable variants were reviewed
+against `MadScience.OnPlay`, `ExecuteAttack`, `ExecuteSkill`, `ExecutePower` and `ExecuteRider`:
+
+| Type | Rider / 中文名 | Coverage and required adaptation |
+| --- | --- | --- |
+| Attack | Sapping / 削弱 | Covered: attack, then custom Weak and Vulnerable amounts through the shared power boundary. |
+| Attack | Violence / 暴力 | Covered: attacks the selected enemy with `ViolenceHits.IntValue` hits through the shared attack pipeline, including hit-count hooks. |
+| Attack | Choking / 扼杀 | Not mirrored. Needs attack then `StranglePower` application using `ChokingDamage`. Existing Strangle hook mirrors do not make a newly applied power visible to subsequent listener enumeration. |
+| Skill | Energized / 充能 | Not mirrored. Needs block then `EnergizedEnergy.IntValue` energy gain; existing block and energy helpers can execute it. |
+| Skill | Wisdom / 智慧 | Covered: block first, then `WisdomCards.IntValue` draws through shadow piles, shuffle and draw hooks. Does not use the standard `Cards` var. |
+| Skill | Chaos / 混沌 | Covered: block, then generate one random character card, free this turn, into the shadow hand. |
+| Power | Expertise / 专长 | Not mirrored. Needs Strength then Dexterity from custom vars; full follow-up correctness requires shadow power collection/value-hook support. |
+| Power | Curious / 好奇 | Not mirrored. Needs `CuriousPower` application and prediction-aware cost reduction for subsequent Power cards. |
+| Power | Improvement / 精进 | Not mirrored. Its random deck upgrade runs in `ImprovementPower.AfterCombatEnd`, outside the current card-play simulation boundary. |
+
+Uncovered variants still skip their entire `OnPlay` body and record `MethodMirrorIncomplete`; the exact Mad Science
+registration prevents general inference from providing partial attack or block behavior. Vanilla calls type-specific
+helpers, so direct-call inference would not reconstruct those bodies even without that registration. `None` is an event
+preview state, not one of the nine chosen-rider cards.
 
 `SecondWind` snapshots every non-Attack card in the shadow hand, then exhausts and grants Block for each card in
 vanilla order. Each exhaust dispatches the existing `AfterCardExhausted` mirror family, so `DarkEmbracePower` draws

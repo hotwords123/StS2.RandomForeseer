@@ -28,8 +28,16 @@ internal static class MiscCardMirrors
                 VulnerableCardMirrors.MadScienceSappingOnPlay(card, context);
                 break;
 
+            case { TinkerTimeType: CardType.Attack, TinkerTimeRider: TinkerTime.RiderEffect.Violence }:
+                MultiHitAttackCardMirrors.MadScienceViolenceOnPlay(card, context);
+                break;
+
             case { TinkerTimeType: CardType.Skill, TinkerTimeRider: TinkerTime.RiderEffect.Chaos }:
                 CardGenerationCardMirrors.MadScienceChaosOnPlay(card, context);
+                break;
+
+            case { TinkerTimeType: CardType.Skill, TinkerTimeRider: TinkerTime.RiderEffect.Wisdom }:
+                CardDrawCardMirrors.MadScienceWisdomOnPlay(card, context);
                 break;
 
             default:
