@@ -1,4 +1,3 @@
-using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -150,10 +149,7 @@ internal static class CombatPotionPredictionController
         NHoverTipSet.shouldBlockHoverTips = false;
         try
         {
-            NHoverTipSet.CreateAndShow(holder, hoverTips, HoverTipAlignment.Center)
-                ?.SetGlobalPosition(
-                    holder.GlobalPosition +
-                    Vector2.Down * holder.Size.Y * Mathf.Max(1.5f, holder.Scale.Y));
+            NHoverTipSet.CreateAndShow(holder, hoverTips)?.SetAlignmentBelow(holder.HoverTipPosition);
         }
         finally
         {

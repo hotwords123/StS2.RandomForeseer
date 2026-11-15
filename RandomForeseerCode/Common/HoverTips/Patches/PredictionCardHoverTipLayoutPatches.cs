@@ -156,44 +156,28 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
     }
 
     /// <summary>
-    /// Supplies centered layout for unaligned prediction cards and records the centered control's bounds.
+    /// Records the source bounds before vanilla lays out text and cards below its requested anchor.
     /// </summary>
-    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment), typeof(Control), typeof(HoverTipAlignment))]
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignmentBelow))]
     [HarmonyPrefix]
-    private static void RecordControlSourceRect(
-        NHoverTipSet __instance,
-        Control node,
-        ref HoverTipAlignment alignment)
+    private static void RecordBelowSourceRect(NHoverTipSet __instance)
     {
         var container = __instance._cardHoverTipContainer;
         if (ShouldRecordSourceRect(container))
         {
-            // Callers such as Multiplayer Potion View position the whole set without requesting internal layout.
-            // Vanilla skips card layout for None, leaving the cards stacked over each other and the text tips.
-            if (alignment is HoverTipAlignment.None)
-            {
-                alignment = HoverTipAlignment.Center;
-            }
-
-            // Left/right alignment delegates to the Rect2 overload, which records its actual source geometry.
-            if (alignment is HoverTipAlignment.Center)
-            {
-                PredictionCardHoverTipLayoutState.RecordSourceRect(container, node.GetGlobalRect(), alignment);
-            }
+            // Right inside SetAlignmentBelow controls card growth, not text placement relative to the source.
+            PredictionCardHoverTipLayoutState.RecordSourceRect(container, __instance._owner.GetGlobalRect());
         }
     }
 
     /// <summary>
-    /// Checks centered control alignment for overflow; delegated left/right alignment handles its own fallback.
+    /// Checks below-source layout for overflow after vanilla has corrected both containers and their overlap.
     /// </summary>
-    [HarmonyPatch(nameof(NHoverTipSet.SetAlignment), typeof(Control), typeof(HoverTipAlignment))]
+    [HarmonyPatch(nameof(NHoverTipSet.SetAlignmentBelow))]
     [HarmonyPostfix]
-    private static void ApplyControlFallbackLayout(NHoverTipSet __instance, HoverTipAlignment alignment)
+    private static void ApplyBelowFallbackLayout(NHoverTipSet __instance)
     {
-        if (alignment is HoverTipAlignment.Center)
-        {
-            PredictionCardHoverTipLayout.ApplyFallbackLayoutIfStillOverflowing(__instance);
-        }
+        PredictionCardHoverTipLayout.ApplyFallbackLayoutIfStillOverflowing(__instance);
     }
 
     /// <summary>

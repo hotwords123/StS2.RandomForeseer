@@ -69,7 +69,7 @@ internal sealed partial class NNextActPredictionIcon : NClickableControl
             return;
         }
 
-        NHoverTipSet.CreateAndShow(this, _hoverTip)?.SetGlobalPosition(_icon.GlobalPosition + new Vector2(0f, Size.Y + 20f));
+        NHoverTipSet.CreateAndShow(this, _hoverTip)?.SetAlignmentBelow(_icon.GlobalPosition + new Vector2(0f, Size.Y + 20f));
     }
 
     protected override void OnUnfocus()

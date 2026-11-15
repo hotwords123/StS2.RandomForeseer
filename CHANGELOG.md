@@ -4,6 +4,9 @@
 
 ### fix
 
+- 适配游戏测试版 v0.113.1，完善药水与预测卡牌提示的布局和屏幕边缘避让。<br>
+  Updated tooltip layouts for game beta v0.113.1, including potion predictions and screen-edge positioning for predicted cards.
+
 - 修复拉伸对伶俐附魔提供的格挡加成及层数消耗预测。<br>
   Fixed predictions for Stretch's bonus block and stack consumption with Adroit enchantments.
 

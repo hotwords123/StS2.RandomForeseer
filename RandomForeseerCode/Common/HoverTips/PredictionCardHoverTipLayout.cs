@@ -119,7 +119,7 @@ internal static class PredictionCardHoverTipLayout
 
         var viewportSize = game.GetViewportRect().Size;
         var availableWidth = viewportSize.X - ViewportMargin * 2f;
-        var naturalSize = ApplyWrappedLayout(tips, scale: 1f, rows: 1);
+        var naturalSize = ComputeWrappedLayout(tips, scale: 1f, rows: 1, applyLayout: true);
         var sidePosition = GetSidePosition(globalStartLocation, alignment, naturalSize);
 
         // Preserve the vanilla side placement when it fits; small prediction sets should behave exactly like before.
@@ -134,7 +134,7 @@ internal static class PredictionCardHoverTipLayout
         // whether card and text tips should stay on opposite sides or move to the same side. Keep this prefix
         // limited to prediction-card sizing/wrapping so the vanilla horizontal fallback still gets the first try.
         var layout = GetBestWrappedLayout(tips, availableWidth);
-        var scaledSize = ApplyWrappedLayout(tips, layout.Scale, layout.Rows);
+        var scaledSize = ComputeWrappedLayout(tips, layout.Scale, layout.Rows, applyLayout: true);
         container.Size = scaledSize;
         if (!PredictionCardHoverTipLayoutState.TryGetSourceRect(container, out _))
         {
@@ -163,25 +163,20 @@ internal static class PredictionCardHoverTipLayout
     /// </remarks>
     private static WrappedLayout GetBestWrappedLayout(IReadOnlyList<Control> tips, float availableWidth)
     {
-        var naturalWidth = GetWrappedLayoutSize(tips, scale: 1f, rows: 1).X;
+        var naturalWidth = ComputeWrappedLayout(tips, scale: 1f, rows: 1, applyLayout: false).X;
         if (naturalWidth <= availableWidth)
         {
             return new WrappedLayout(1, 1f);
         }
 
-        if (tips.Count == 1)
-        {
-            return new WrappedLayout(1, availableWidth / naturalWidth);
-        }
-
-        if (naturalWidth * MinScale <= availableWidth)
+        if (tips.Count == 1 || naturalWidth * MinScale <= availableWidth)
         {
             return new WrappedLayout(1, availableWidth / naturalWidth);
         }
 
         for (var rows = 2; rows <= tips.Count; rows++)
         {
-            var rowNaturalWidth = GetWrappedLayoutSize(tips, scale: 1f, rows).X;
+            var rowNaturalWidth = ComputeWrappedLayout(tips, scale: 1f, rows, applyLayout: false).X;
             if (rowNaturalWidth * MinScale <= availableWidth)
             {
                 return new WrappedLayout(rows, Mathf.Min(1f, availableWidth / rowNaturalWidth));
@@ -192,89 +187,52 @@ internal static class PredictionCardHoverTipLayout
     }
 
     /// <summary>
-    /// Applies scale and row-major positions to the controls and returns their resulting bounding size.
+    /// Computes row-major bounds and optionally applies scale and positions to the controls.
     /// </summary>
     /// <remarks>
     /// Controls in each row are bottom-aligned so ordinary cards and differently sized bundle stacks can be mixed.
-    /// Unlike <see cref="GetWrappedLayoutSize"/>, this method mutates every supplied control.
     /// </remarks>
-    private static Vector2 ApplyWrappedLayout(IReadOnlyList<Control> tips, float scale, int rows)
+    private static Vector2 ComputeWrappedLayout(IReadOnlyList<Control> tips, float scale, int rows, bool applyLayout)
     {
         var rowCount = Mathf.Max(1, rows);
         var perRow = Mathf.CeilToInt(tips.Count / (float)rowCount);
-        var size = Vector2.Zero;
-        var scaledPadding = Padding * scale;
+        var actualRows = Mathf.CeilToInt(tips.Count / (float)perRow);
 
-        for (var i = 0; i < tips.Count; i++)
-        {
-            var tip = tips[i];
-            var row = i / perRow;
-            var col = i % perRow;
-            var rowStart = row * perRow;
-            var rowHeight = tips
-                .Skip(rowStart)
-                .Take(perRow)
-                .Select(item => item.Size.Y * scale)
-                .DefaultIfEmpty(0f)
-                .Max();
-            var x = tips
-                .Skip(rowStart)
-                .Take(col)
-                .Sum(item => item.Size.X * scale + scaledPadding);
-            var y = 0f;
-            for (var previousRow = 0; previousRow < row; previousRow++)
-            {
-                var previousRowStart = previousRow * perRow;
-                y += tips
-                    .Skip(previousRowStart)
-                    .Take(perRow)
-                    .Select(item => item.Size.Y * scale)
-                    .DefaultIfEmpty(0f)
-                    .Max() + scaledPadding;
-            }
-
-            var scaledSize = tip.Size * scale;
-            tip.Scale = Vector2.One * scale;
-            tip.Position = new Vector2(x, y + rowHeight - scaledSize.Y);
-
-            size = new Vector2(
-                Mathf.Max(x + scaledSize.X, size.X),
-                Mathf.Max(y + Mathf.Max(scaledSize.Y, rowHeight), size.Y));
-        }
-
-        return size;
-    }
-
-    /// <summary>
-    /// Measures the same row-major layout produced by <see cref="ApplyWrappedLayout"/> without mutating controls.
-    /// </summary>
-    private static Vector2 GetWrappedLayoutSize(IReadOnlyList<Control> tips, float scale, int rows)
-    {
-        var rowCount = Mathf.Max(1, rows);
-        var perRow = Mathf.CeilToInt(tips.Count / (float)rowCount);
         var scaledPadding = Padding * scale;
         var width = 0f;
         var height = 0f;
 
-        for (var row = 0; row < rowCount; row++)
+        for (var row = 0; row < actualRows; row++)
         {
-            var rowTips = tips
-                .Skip(row * perRow)
-                .Take(perRow)
-                .ToList();
-            if (rowTips.Count == 0)
+            height += row > 0 ? scaledPadding : 0f;
+
+            var rowStart = row * perRow;
+            var rowEnd = Math.Min(rowStart + perRow, tips.Count);
+            var rowWidth = 0f;
+            var rowHeight = 0f;
+
+            for (var i = rowStart; i < rowEnd; i++)
             {
-                continue;
+                rowHeight = Mathf.Max(rowHeight, tips[i].Size.Y * scale);
             }
 
-            width = Mathf.Max(
-                width,
-                rowTips.Sum(tip => tip.Size.X * scale) + scaledPadding * (rowTips.Count - 1));
-            height += rowTips.Max(tip => tip.Size.Y * scale);
-            if (row < rowCount - 1)
+            for (var i = rowStart; i < rowEnd; i++)
             {
-                height += scaledPadding;
+                rowWidth += i > rowStart ? scaledPadding : 0f;
+
+                var tip = tips[i];
+                var scaledSize = tip.Size * scale;
+                if (applyLayout)
+                {
+                    tip.Scale = Vector2.One * scale;
+                    tip.Position = new Vector2(rowWidth, height + rowHeight - scaledSize.Y);
+                }
+
+                rowWidth += scaledSize.X;
             }
+
+            width = Mathf.Max(width, rowWidth);
+            height += rowHeight;
         }
 
         return new Vector2(width, height);
@@ -457,7 +415,7 @@ internal static class PredictionCardHoverTipLayout
     }
 
     /// <summary>
-    /// Reconstructs the requested left/right text position from the original source rect and clamps it on-screen.
+    /// Preserves corrected below-source text placement or reconstructs its requested side, then clamps it on-screen.
     /// </summary>
     private static Vector2 GetFallbackTextPosition(
         Control textContainer,
@@ -465,14 +423,15 @@ internal static class PredictionCardHoverTipLayout
         Vector2 viewportSize)
     {
         var textSize = textContainer.Size;
-        var x = sourceRect.Alignment switch
+        var (rect, alignment, textGap) = sourceRect;
+
+        var position = alignment switch
         {
-            HoverTipAlignment.Left => sourceRect.Rect.Position.X - textSize.X - sourceRect.TextGap,
-            HoverTipAlignment.Right => sourceRect.Rect.End.X + sourceRect.TextGap,
-            _ => textContainer.GlobalPosition.X
+            HoverTipAlignment.Left => new Vector2(rect.Position.X - textSize.X - textGap, rect.Position.Y),
+            HoverTipAlignment.Right => new Vector2(rect.End.X + textGap, rect.Position.Y),
+            _ => textContainer.GlobalPosition
         };
-        var y = sourceRect.Rect.Position.Y;
-        return ClampToViewport(new Vector2(x, y), textSize, viewportSize);
+        return ClampToViewport(position, textSize, viewportSize);
     }
 
     /// <summary>
