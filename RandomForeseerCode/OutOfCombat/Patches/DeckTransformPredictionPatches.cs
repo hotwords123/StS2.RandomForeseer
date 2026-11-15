@@ -34,10 +34,13 @@ internal static class DeckTransformSelectionScreenPatches
 
     [HarmonyPatch(nameof(NDeckTransformSelectScreen.OpenPreviewScreen))]
     [HarmonyPrefix]
-    private static void ResetPredictor(NDeckTransformSelectScreen __instance)
+    private static void PreparePreview(NDeckTransformSelectScreen __instance)
     {
-        // A canceled preview can reopen with the same delegate. Realign its private RNG before replaying selections.
-        (__instance._cardToTransformation.Target as DeckTransformPreviewPredictor)?.Reset();
+        // Patches from other mods may enumerate the preview before vanilla. Freeze results before either reads it.
+        if (__instance._cardToTransformation.Target is DeckTransformPreviewPredictor predictor)
+        {
+            predictor.PreparePreview(__instance._selectedCards);
+        }
     }
 }
 
@@ -69,7 +72,7 @@ internal static class DeckTransformPredictionInjectionPatch
         {
             if (DeckTransformPrediction.TryCreatePredictor(prefs, source, out var predictor))
             {
-                cardToTransformation = predictor.PredictNext;
+                cardToTransformation = predictor.GetTransformation;
             }
         }
         catch (Exception ex)

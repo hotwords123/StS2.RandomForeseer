@@ -97,14 +97,21 @@ internal sealed class DeckTransformPreviewPredictor(int maxSelect, Rng realRng, 
         isInCombat: false,
         mapReplacement: upgradePreview ? PredictionUtils.CreateUpgradedCard : null);
 
-    private Rng _previewRng = realRng.Clone();
+    private readonly Dictionary<CardModel, CardTransformation> _transformations = [];
 
     /// <summary>
-    /// Realigns sequential preview generation when the same selection screen opens its preview again.
+    /// Snapshots results in selection order each time the confirmation preview opens.
     /// </summary>
-    public void Reset()
+    public void PreparePreview(IEnumerable<CardModel> selectedCards)
     {
-        _previewRng = realRng.Clone();
+        var previewRng = realRng.Clone();
+        _transformations.Clear();
+
+        foreach (var original in selectedCards)
+        {
+            var predicted = _prediction.PredictNext(original, previewRng);
+            _transformations.Add(original, new CardTransformation(original, predicted));
+        }
     }
 
     public IReadOnlyList<IHoverTip> GetHoverTips(CardModel card, IEnumerable<CardModel> selectedCards)
@@ -113,11 +120,7 @@ internal sealed class DeckTransformPreviewPredictor(int maxSelect, Rng realRng, 
     }
 
     /// <summary>
-    /// Predicts the next replacement while advancing only this screen's cloned RNG.
+    /// Returns a prepared result without consuming RNG when observers re-enumerate the preview.
     /// </summary>
-    public CardTransformation PredictNext(CardModel original)
-    {
-        var predicted = _prediction.PredictNext(original, _previewRng);
-        return new CardTransformation(original, predicted);
-    }
+    public CardTransformation GetTransformation(CardModel original) => _transformations[original];
 }
