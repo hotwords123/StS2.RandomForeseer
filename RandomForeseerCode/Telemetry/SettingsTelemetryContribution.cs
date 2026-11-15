@@ -20,7 +20,7 @@ internal sealed class SettingsTelemetryContribution : ITelemetryContributionProv
 
     public string ContributionId => Id;
 
-    public TelemetryDataCategory Category => TelemetryDataCategory.BasicUsage;
+    public TelemetryDataCategory Category => TelemetryDataCategory.ModInventory;
 
     public TelemetryContributionVisibility Visibility => TelemetryContributionVisibility.PrivateToApplicant;
 

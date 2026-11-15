@@ -40,13 +40,12 @@ internal static class ModTelemetry
             [
                 new TelemetryRequest
                 {
-                    RequestId = "basic_usage",
-                    Category = TelemetryDataCategory.BasicUsage,
-                    Description = "telemetry.basic_usage.description",
-                    DescriptionText = T("telemetry.basic_usage.description"),
+                    RequestId = "mod_inventory",
+                    Category = TelemetryDataCategory.ModInventory,
+                    Description = "telemetry.mod_inventory.description",
+                    DescriptionText = T("telemetry.mod_inventory.description"),
                     ContributionSubscriptions = [SettingsTelemetryContribution.Id]
                 },
-                TelemetryRequest.ModInventory(T("telemetry.mod_inventory.description")),
                 TelemetryRequest.Diagnostics(T("telemetry.diagnostics.description"))
                     .WithCaptureFilter(ModTelemetryFilter.ShouldCapture)
             ]
