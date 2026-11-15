@@ -2,8 +2,7 @@
   "mod.name": "随机数预测",
 
   "telemetry.applicant.display_name": "随机数预测",
-  "telemetry.basic_usage.description": "游戏版本、运行环境、匿名安装 ID 及 Mod 设置值，用于使用情况分析。",
-  "telemetry.mod_inventory.description": "已注册模组清单、加载状态、版本和玩法影响标记，用于兼容性分析。",
+  "telemetry.mod_inventory.description": "游戏版本、运行环境、匿名安装 ID、Mod 设置值，以及已注册模组清单、加载状态、版本和玩法影响标记，用于使用情况和兼容性分析。",
   "telemetry.diagnostics.description": "与本 Mod 有关的异常消息、堆栈和运行时诊断，用于问题定位与修复。",
 
   "page.title": "随机数预测",

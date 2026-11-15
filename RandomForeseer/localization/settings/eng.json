@@ -2,8 +2,7 @@
   "mod.name": "Random Foreseer",
 
   "telemetry.applicant.display_name": "Random Foreseer",
-  "telemetry.basic_usage.description": "Game version, runtime environment, anonymous install ID, and mod settings values for usage analysis.",
-  "telemetry.mod_inventory.description": "Registered mod inventory, load states, versions, and gameplay impact flags for compatibility analysis.",
+  "telemetry.mod_inventory.description": "Game version, runtime environment, anonymous install ID, mod settings values, and registered mod inventory with load states, versions, and gameplay impact flags for usage and compatibility analysis.",
   "telemetry.diagnostics.description": "Exception messages, stack traces, and runtime diagnostics related to this mod for issue diagnosis and fixes.",
 
   "page.title": "Random Foreseer",
