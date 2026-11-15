@@ -1,7 +1,7 @@
 # Card play hooks
 
 Research baseline: StS2 v0.110.1 (`a421e19`).
-`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`); API contracts follow v0.113.0.
+`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`); API contracts follow v0.113.1.
 
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Card/BeforeCardPlayedMirrors.cs`,
@@ -133,7 +133,7 @@ The labels remain useful for architecture, while each row now records its implem
 | `PaelsEye` | 佩尔之眼 | Changes relic display status when owner manually plays a card before the relic has triggered. | **Ignorable.** Gameplay uses combat history/extra-turn hooks, not this status mutation. |
 | `PenNib` | 钢笔尖 | Advances the Attack counter and marks every tenth owner Attack as the card whose damage is doubled. | **Implemented cross-hook.** Shadow counter and exact play occurrence feed a prediction-aware multiplier. |
 | `EncorePower` | 安可 | Adds the owner card to its pending-play list. | **Implemented cross-hook.** Copies the live pending list and records original card identity; pending and finished plays share the ShouldPlay limit. |
-| `StretchPower` | 拉伸 | Selects the first owner block-gaining CardPlay and snapshots its starting amount. | **Implemented cross-hook.** Stores the exact CardPlay occurrence for block additive and after-play consumption; nested plays cannot borrow the selected occurrence. |
+| `StretchPower` | 拉伸 | Selects the first owner CardPlay whose card or enchantment gains block and snapshots its starting amount. | **Implemented cross-hook.** Uses vanilla's read-only GainsBlock helper on the preview, including Adroit enchantments as of v0.113.1. Stores the exact CardPlay occurrence for block additive and after-play consumption; nested plays cannot borrow the selected occurrence. |
 
 ## AfterCardPlayed listeners: relics
 

@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复拉伸对伶俐附魔提供的格挡加成及层数消耗预测。<br>
+  Fixed predictions for Stretch's bonus block and stack consumption with Adroit enchantments.
+
 - 修复与特定 Mod 一起使用时，变牌预测可能失效的问题。<br>
   Fixed transform predictions potentially failing when used with certain mods.
 

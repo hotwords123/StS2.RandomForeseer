@@ -82,7 +82,8 @@ internal static class BeforeCardPlayedMirrors
 
     private static void HandleStretchPower(StretchPower power, BeforeCardPlayedMirrorContext context)
     {
-        if (context.PreviewCard.Owner.Creature != power.Owner || !context.PreviewCard.GainsBlock)
+        if (context.PreviewCard.Owner.Creature != power.Owner ||
+            !StretchPower.GainsBlock(context.PreviewCard))
         {
             return;
         }

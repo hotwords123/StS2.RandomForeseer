@@ -31,7 +31,7 @@ Mirror files:
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `StretchPower` | 拉伸 | Adds block throughout the selected owner CardPlay, then consumes its starting amount after that play. | Exact adapter checks powered block and ownership, marks a local bonus flag and shares the selected occurrence with before/after card hooks. Null-play previews read remaining amount; nested different plays receive no bonus. The original live gaveBonusBlock write is isolated. |
+| `StretchPower` | 拉伸 | Adds block throughout the selected owner CardPlay, including block from Adroit, then consumes its starting amount after that play. | Exact adapter checks powered block and ownership, marks a local bonus flag and shares the selected occurrence with before/after card hooks. Null-play previews read remaining amount only if vanilla's read-only GainsBlock helper accepts the preview card or its enchantment, matching v0.113.1; nested different plays receive no bonus. The original live gaveBonusBlock write is isolated. |
 
 ## ModifyBlockMultiplicative listeners
 

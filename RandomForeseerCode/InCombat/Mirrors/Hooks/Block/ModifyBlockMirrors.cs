@@ -101,7 +101,7 @@ internal static class ModifyBlockMirrors
         var amount = context.StateStore.GetPowerAmount(power).Amount;
         if (context.CardPlay is null)
         {
-            return amount;
+            return StretchPower.GainsBlock(source.Preview) ? amount : 0;
         }
 
         if (state.Play is null || state.Play.Player != source.Preview.Owner)
