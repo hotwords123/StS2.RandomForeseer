@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复与皮肤切换器一起使用时，变牌确认预览可能与实际结果不一致的问题。<br>
+  Fixed transform confirmation previews potentially showing incorrect results when used with Skin Changer.
+
 ## v0.15.1
 
 ### feat
