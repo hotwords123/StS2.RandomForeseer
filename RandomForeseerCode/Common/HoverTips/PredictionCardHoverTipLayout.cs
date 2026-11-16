@@ -88,6 +88,7 @@ internal static class PredictionCardHoverTipLayout
     private const float ViewportMargin = 12f;
     private const float TopGap = 12f;
     private const float MinScale = 0.55f;
+    private const float MinTextHeightRatio = 0.3f;
     internal const float CardHolderTextGap = 10f;
 
     /// <summary>
@@ -424,7 +425,33 @@ internal static class PredictionCardHoverTipLayout
             return;
         }
 
+        if (hasTextTips)
+        {
+            LimitFallbackTextHeight(textContainer, sourceRect.Rect, viewportSize);
+        }
+
         ApplyFallbackLayout(tipSet, sourceRect, viewportSize);
+    }
+
+    /// <summary>
+    /// Wraps text within the smaller region below the source's top or above its bottom, with a soft height floor.
+    /// </summary>
+    private static void LimitFallbackTextHeight(VFlowContainer textContainer, Rect2 sourceRect, Vector2 viewportSize)
+    {
+        var availableBelow = viewportSize.Y - ViewportMargin - sourceRect.Position.Y;
+        var availableAbove = sourceRect.End.Y - ViewportMargin;
+        var heightLimit = Mathf.Max(viewportSize.Y * MinTextHeightRatio, Mathf.Min(availableBelow, availableAbove));
+        var height = Mathf.Max(heightLimit, textContainer.GetCombinedMinimumSize().Y);
+        if (textContainer.Size.Y <= height)
+        {
+            return;
+        }
+
+        textContainer.Size = textContainer.Size with { Y = height };
+
+        // Sort now to measure the wrapped width before fallback placement; subsequent layout is automatic.
+        textContainer.Notification((int)Container.NotificationSortChildren);
+        textContainer.Size = new Vector2(textContainer.GetCombinedMinimumSize().X, height);
     }
 
     /// <summary>
