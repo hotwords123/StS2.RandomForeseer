@@ -4,6 +4,9 @@
 
 ### fix
 
+- 优化预测卡牌与文本无法横向排下时的提示布局，让预览更贴近悬停对象。<br>
+  Improved tooltip layouts when predicted cards and text cannot fit side by side, keeping previews closer to the hovered object.
+
 - 修复读档或切换游戏状态时，商店预测提示可能报错的问题。<br>
   Fixed merchant prediction tooltips potentially failing when reloading or switching game state.
 
