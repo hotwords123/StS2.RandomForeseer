@@ -67,7 +67,7 @@ internal sealed class PredictionGraphCopier
     /// Non-null references stay non-null on success; field nullability declarations are not validated.
     /// Handlers must recurse through CopyChild and propagate failures. Copy failure invalidates the scope.
     /// </remarks>
-    public T Copy<T>(in T source, string path = "$root")
+    public T Copy<T>(T source, string path = "$root")
     {
         Scope.ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(path);
@@ -79,7 +79,7 @@ internal sealed class PredictionGraphCopier
         _rootPath = path;
         try
         {
-            return CopyChild(in source);
+            return CopyChild(source);
         }
         catch
         {
@@ -99,7 +99,7 @@ internal sealed class PredictionGraphCopier
     /// Nullable storage is transparent: empty values pass through, present values recurse by their underlying declared type.
     /// If cycles are present, the result may be an object that is still being populated.
     /// </remarks>
-    public T CopyChild<T>(in T source)
+    public T CopyChild<T>(T source)
     {
         if (!typeof(T).IsValueType)
         {
@@ -108,31 +108,31 @@ internal sealed class PredictionGraphCopier
 
         if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
         {
-            return NullableCopier<T>.Copy!(this, in source);
+            return NullableCopier<T>.Copy!(this, source);
         }
 
-        return Policy.GetPlan<T>().CopyValue(in source, this);
+        return Policy.GetPlan<T>().CopyValue(source, this);
     }
 
     /// <summary>
-    /// See <see cref="CopyChild{T}(in T)"/>. This overload enters a named child path for diagnostics.
+    /// See <see cref="CopyChild{T}(T)"/>. This overload enters a named child path for diagnostics.
     /// </summary>
-    public T CopyChild<T>(in T source, string edge)
+    public T CopyChild<T>(T source, string edge)
     {
         using (EnterEdge(edge))
         {
-            return CopyChild(in source);
+            return CopyChild(source);
         }
     }
 
     /// <summary>
-    /// See <see cref="CopyChild{T}(in T)"/>. This overload enters an element path for diagnostics.
+    /// See <see cref="CopyChild{T}(T)"/>. This overload enters an element path for diagnostics.
     /// </summary>
-    public T CopyChild<T>(in T source, int index)
+    public T CopyChild<T>(T source, int index)
     {
         using (EnterIndex(index))
         {
-            return CopyChild(in source);
+            return CopyChild(source);
         }
     }
 

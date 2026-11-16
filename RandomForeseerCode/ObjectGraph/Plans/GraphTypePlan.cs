@@ -94,7 +94,7 @@ internal sealed class GraphTypePlan<T>(GraphCopyPolicy policy)
     /// Active root operation only. Copies through a typed local without boxing; the copier unwraps nullable storage first.
     /// Uses the supplied copier for DFS recursion and captures rejection diagnostics at the current path before unwinding.
     /// </remarks>
-    internal T CopyValue(in T source, PredictionGraphCopier copier)
+    internal T CopyValue(T source, PredictionGraphCopier copier)
     {
         var rule = ValueRule;
         var action = rule.Strategy;
@@ -105,7 +105,7 @@ internal sealed class GraphTypePlan<T>(GraphCopyPolicy policy)
                 return source;
 
             case GraphValueAction.Fields:
-                return UseShallowCopy ? source : ValueCopier(in source, copier);
+                return UseShallowCopy ? source : ValueCopier(source, copier);
 
             case GraphValueAction.Reject:
                 throw copier.Unsupported($"Value {typeof(T)} is rejected by {rule.Id}.");

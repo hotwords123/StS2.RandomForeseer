@@ -8,17 +8,17 @@ namespace RandomForeseer.ObjectGraph.Plans;
 /// <remarks>Field accesses, names and recursive call targets are embedded in the generated IL.</remarks>
 internal static class GraphExecutionCompiler
 {
-    // Match CopyChild<T>(in T, string), whose first parameter has the signature T&.
+    // Match CopyChild<T>(T, string).
     private static readonly MethodInfo CopyChildMethod = typeof(PredictionGraphCopier).GetMethod(
         nameof(PredictionGraphCopier.CopyChild),
         genericParameterCount: 1,
-        types: [Type.MakeGenericMethodParameter(0).MakeByRefType(), typeof(string)])!;
+        types: [Type.MakeGenericMethodParameter(0), typeof(string)])!;
 
     /// <summary>Fills a registered shallow copy, including an existing boxed value.</summary>
     internal delegate void ObjectPopulator(object source, object clone, PredictionGraphCopier copier);
 
     /// <summary>Copies inline value storage through a typed local and returns the populated value.</summary>
-    internal delegate T ValueCopier<T>(in T source, PredictionGraphCopier copier);
+    internal delegate T ValueCopier<T>(T source, PredictionGraphCopier copier);
 
     /// <summary>Compiles field writes to an object or box whose runtime type matches the plan.</summary>
     internal static ObjectPopulator CompileObject(GraphTypePlan plan)
@@ -61,7 +61,7 @@ internal static class GraphExecutionCompiler
         var method = new DynamicMethod(
             $"GraphCopyValue_{typeof(T).Name}",
             typeof(T),
-            [typeof(T).MakeByRefType(), typeof(PredictionGraphCopier)],
+            [typeof(T), typeof(PredictionGraphCopier)],
             typeof(GraphExecutionCompiler).Module,
             skipVisibility: true);
         var il = method.GetILGenerator();
@@ -69,13 +69,12 @@ internal static class GraphExecutionCompiler
         // Start with the whole value; field writes target the local through ldloca.
         var clone = il.DeclareLocal(typeof(T));
         il.Emit(OpCodes.Ldarg_0);
-        il.Emit(OpCodes.Ldobj, typeof(T));
         il.Emit(OpCodes.Stloc, clone);
 
         EmitFields(
             il,
             plan.Fields,
-            () => il.Emit(OpCodes.Ldarg_0),
+            () => il.Emit(OpCodes.Ldarga_S, (byte)0),
             () => il.Emit(OpCodes.Ldloca, clone),
             copierArgument: 1);
 
@@ -132,9 +131,9 @@ internal static class GraphExecutionCompiler
             }
             else
             {
-                // copier.CopyChild<TField>(in value, fieldName) leaves the copied value above the destination.
+                // copier.CopyChild<TField>(value, fieldName) leaves the copied value above the destination.
                 il.Emit(OpCodes.Ldarg, copierArgument);
-                il.Emit(OpCodes.Ldloca, value);
+                il.Emit(OpCodes.Ldloc, value);
                 il.Emit(OpCodes.Ldstr, field.Name);
                 il.Emit(OpCodes.Call, CopyChildMethod.MakeGenericMethod(field.FieldType));
             }

@@ -9,10 +9,10 @@ internal static class NullableCopier
         typeof(NullableCopier).GetMethod(nameof(Copy), ReflectionFlags.NonPublicStatic)!;
 
     /// <summary>Preserves nullable presence and copies a present underlying value without creating a graph identity.</summary>
-    private static TValue? Copy<TValue>(PredictionGraphCopier copier, in TValue? source)
+    private static TValue? Copy<TValue>(PredictionGraphCopier copier, TValue? source)
         where TValue : struct
     {
-        return source is { } value ? copier.CopyChild(in value, "Value") : null;
+        return source is { } value ? copier.CopyChild(value, "Value") : null;
     }
 }
 
@@ -21,7 +21,7 @@ internal static class NullableCopier
 internal static class NullableCopier<T>
 {
     /// <summary>Copies exact nullable storage through the explicitly supplied active copier.</summary>
-    internal delegate T CopyDelegate(PredictionGraphCopier copier, in T source);
+    internal delegate T CopyDelegate(PredictionGraphCopier copier, T source);
 
     /// <summary>A cached bridge for nullable storage, otherwise null; binding never reads a policy.</summary>
     internal static readonly CopyDelegate? Copy = Nullable.GetUnderlyingType(typeof(T)) is { } underlyingType

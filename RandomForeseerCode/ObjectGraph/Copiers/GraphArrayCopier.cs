@@ -31,7 +31,7 @@ internal sealed class GraphArrayCopier<T> : IGraphReferenceCopier
 
         for (var i = 0; i < input.Length; i++)
         {
-            output[i] = copier.CopyChild(in input[i], i);
+            output[i] = copier.CopyChild(input[i], i);
         }
     }
 

@@ -245,7 +245,7 @@ public sealed class ObjectGraphValueCopyTests
         using var scope = new PredictionObjectScope();
         var copier = new PredictionGraphCopier(scope, policy);
 
-        var copiedValue = copier.Copy(in value);
+        var copiedValue = copier.Copy(value);
         var copiedBoxes = copier.Copy(source);
 
         Assert.Equal(reset ? 0 : 7, copiedValue.Number);
@@ -269,7 +269,7 @@ public sealed class ObjectGraphValueCopyTests
         using var scope = new PredictionObjectScope();
         var copier = new PredictionGraphCopier(scope, policy);
 
-        var copiedValue = copier.Copy(in value);
+        var copiedValue = copier.Copy(value);
         var copiedBoxes = copier.Copy(new object[] { box, box });
         var copiedNode = scope.GetClone(node);
 
