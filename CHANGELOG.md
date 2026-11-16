@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复读档或切换游戏状态时，商店预测提示可能报错的问题。<br>
+  Fixed merchant prediction tooltips potentially failing when reloading or switching game state.
+
 ## v0.15.2
 
 ### fix

@@ -6,7 +6,6 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Blitz;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Enchantments;
-using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.Common.HoverTips;
@@ -25,8 +24,9 @@ internal static class BlitzMerchantPrediction
         if (!settings.IsPredictionEnabled || !settings.BlitzMerchantPredictionEnabled ||
             BlitzMerchantPurchasePredictionState.IsPending(entry.Player) ||
             entry.Status != BlitzMerchantEntry.BlitzEntryStatus.Available ||
-            entry.Player.RunState is not { GameMode: GameMode.Blitz, CurrentRoom: MerchantRoom } ||
-            RunManager.Instance.MerchantSynchronizer.GetInventoryFor(entry.Player).BlitzChoicesRemaining <= 0)
+            entry.Player.RunState.GameMode != GameMode.Blitz ||
+            !MerchantPredictionUtils.TryGetCurrentInventory(entry, out var inventory) ||
+            inventory.BlitzChoicesRemaining <= 0)
         {
             return [];
         }
