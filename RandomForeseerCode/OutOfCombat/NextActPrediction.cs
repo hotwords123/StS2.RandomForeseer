@@ -91,11 +91,11 @@ internal static class NextActPrediction
         {
             TopBar = topBar;
 
-            _ancientIcon = NNextActPredictionIcon.Create(NextActPredictionIconKind.Ancient);
+            _ancientIcon = new NNextActPredictionIcon(NextActPredictionIconKind.Ancient);
             _ancientIcon.Name = $"{Entry.ModId}_NextActPrediction_AncientIcon";
             _ancientIcon.Visible = false;
 
-            _bossIcon = NNextActPredictionIcon.Create(NextActPredictionIconKind.Boss);
+            _bossIcon = new NNextActPredictionIcon(NextActPredictionIconKind.Boss);
             _bossIcon.Name = $"{Entry.ModId}_NextActPrediction_BossIcon";
             _bossIcon.Visible = false;
 

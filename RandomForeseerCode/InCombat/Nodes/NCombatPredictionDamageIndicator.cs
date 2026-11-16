@@ -8,22 +8,20 @@ using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using RandomForeseer.Data;
+using MegaCrit.Sts2.Core.Assets;
 
 namespace RandomForeseer.InCombat.Nodes;
 
-[ScriptPath("res://RandomForeseerCode/InCombat/Nodes/NCombatPredictionDamageIndicator.cs")]
 internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 {
-    private const string ScenePath = $"{Entry.ResPath}/scenes/combat_prediction_damage_indicator.tscn";
-
     private static readonly Color DefaultOutlineColor = StsColors.halfTransparentBlack;
     private static readonly Color BlockedOutlineColor = new("2B5A85");
     private static readonly Color LethalOutlineColor = new("900000");
 
-    private Creature _target = null!;
-    private HBoxContainer _sourceIcons = null!;
-    private Label _damageLabel = null!;
-    private bool _initialized;
+    private readonly Creature _target;
+
+    private HBoxContainer _sourceIcons;
+    private Label _damageLabel;
 
     private DamagePredictionTarget? _prediction;
     private bool _hasRisk;
@@ -31,31 +29,64 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
     private IEnumerable<IHoverTip> _hoverTips = [];
     private bool _isHovering;
 
-    public static NCombatPredictionDamageIndicator Create(Creature target)
+    public NCombatPredictionDamageIndicator(Creature target)
     {
-        var indicator = GD.Load<PackedScene>(ScenePath).Instantiate<NCombatPredictionDamageIndicator>();
-        indicator._target = target;
-        return indicator;
-    }
+        _target = target;
 
-    public override void _Ready()
-    {
-        _sourceIcons = GetNode<HBoxContainer>("Content/SourceIcons");
-        // DamageLabel styling in the scene mirrors res://scenes/combat/health_bar.tscn's HpLabel.
-        _damageLabel = GetNode<Label>("Content/DamageLabel");
+        ZIndex = 9;
+        MouseFilter = MouseFilterEnum.Stop;
+        AddThemeConstantOverride("margin_left", 10);
+        AddThemeConstantOverride("margin_top", 4);
+        AddThemeConstantOverride("margin_right", 10);
+        AddThemeConstantOverride("margin_bottom", 4);
 
-        if (_sourceIcons is null || _damageLabel is null)
+        var content = new HBoxContainer
         {
-            Entry.Logger.Error("Failed to initialize NCombatPredictionDamageIndicator: missing child nodes.");
-            Visible = false;
-            return;
-        }
+            Name = "Content",
+            MouseFilter = MouseFilterEnum.Ignore,
+            Alignment = BoxContainer.AlignmentMode.Center
+        };
+        content.AddThemeConstantOverride("separation", 0);
+        _sourceIcons = new HBoxContainer
+        {
+            Name = "SourceIcons",
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _sourceIcons.AddThemeConstantOverride("separation", 0);
+        content.AddChild(_sourceIcons);
+        content.AddChild(new Control
+        {
+            Name = "NumberSpacer",
+            CustomMinimumSize = new Vector2(10f, 40f),
+            MouseFilter = MouseFilterEnum.Ignore
+        });
+
+        // Mirrors res://scenes/combat/health_bar.tscn's HpLabel styling.
+        _damageLabel = new MegaLabel
+        {
+            Name = "DamageLabel",
+            CustomMinimumSize = new Vector2(20f, 40f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AutoSizeEnabled = false,
+            MaxFontSize = 24
+        };
+        _damageLabel.AddThemeFontOverride(
+            ThemeConstants.Label.Font,
+            PreloadManager.Cache.GetAsset<Font>("res://themes/kreon_bold_glyph_space_one.tres"));
+        _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontColor, StsColors.cream);
+        _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontShadowColor, StsColors.quarterTransparentBlack);
+        _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontOutlineColor, DefaultOutlineColor);
+        _damageLabel.AddThemeConstantOverride("shadow_offset_x", 6);
+        _damageLabel.AddThemeConstantOverride("shadow_offset_y", 4);
+        _damageLabel.AddThemeConstantOverride("outline_size", 16);
+        _damageLabel.AddThemeConstantOverride("shadow_outline_size", 0);
+        _damageLabel.AddThemeFontSizeOverride(ThemeConstants.Label.FontSize, 24);
+        content.AddChild(_damageLabel);
+        AddChild(content);
 
         Connect(Control.SignalName.MouseEntered, Callable.From(OnMouseEntered));
         Connect(Control.SignalName.MouseExited, Callable.From(OnMouseExited));
-
-        _initialized = true;
-        ShowPrediction();
     }
 
     public void SetPrediction(DamagePredictionTarget prediction, bool hasRisk)
@@ -63,11 +94,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         _prediction = prediction;
         _hasRisk = hasRisk;
 
-        // Godot can report Ready even when our _Ready callback failed partway through.
-        if (_initialized)
-        {
-            ShowPrediction();
-        }
+        ShowPrediction();
     }
 
     public void SetHoverTips(IEnumerable<IHoverTip> hoverTips)
@@ -98,7 +125,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
         foreach (var (source, hitCount) in sourceGroups)
         {
-            var sourceIcon = NCombatPredictionSourceIcon.Create(GetIcon(source), hitCount);
+            var sourceIcon = new NCombatPredictionSourceIcon(GetIcon(source), hitCount);
             _sourceIcons.AddChildSafely(sourceIcon);
         }
 
