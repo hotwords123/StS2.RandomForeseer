@@ -4,7 +4,6 @@ using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Common;
 using RandomForeseer.Common.HoverTips;
@@ -20,14 +19,13 @@ internal static class MerchantRestockPrediction
         var settings = ModData.Settings;
         if (!settings.IsPredictionEnabled || !settings.MerchantRestockPredictionEnabled ||
             entry is not { IsStocked: true, EnoughGold: true } ||
-            entry._player is not { RunState.CurrentRoom: MerchantRoom room } player ||
-            room.Inventories.Find(inventory => inventory.Player == player) is not { } inventory ||
-            !HookMirrors.ShouldRefillMerchantEntry(player.RunState, entry, player))
+            !MerchantPredictionUtils.TryGetCurrentInventory(entry, out var inventory) ||
+            !HookMirrors.ShouldRefillMerchantEntry(entry._player.RunState, entry, entry._player))
         {
             return [];
         }
 
-        var context = new RunPredictionContext(player);
+        var context = new RunPredictionContext(entry._player);
         return entry switch
         {
             MerchantCardEntry cardEntry => PredictCard(context, cardEntry, inventory),

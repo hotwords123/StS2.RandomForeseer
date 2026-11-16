@@ -4,6 +4,9 @@
 
 ### fix
 
+- 修复读档或切换游戏状态时，商店预测提示可能报错的问题。<br>
+  Fixed merchant prediction tooltips potentially failing when reloading or switching game state.
+
 - 修复与皮肤切换器一起使用时，变牌确认预览可能与实际结果不一致的问题。<br>
   Fixed transform confirmation previews potentially showing incorrect results when used with Skin Changer.
 
