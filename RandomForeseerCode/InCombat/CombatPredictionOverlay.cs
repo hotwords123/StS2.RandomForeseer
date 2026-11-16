@@ -94,7 +94,7 @@ internal static class CombatPredictionOverlay
             return null;
         }
 
-        var indicator = NCombatPredictionDamageIndicator.Create(target);
+        var indicator = new NCombatPredictionDamageIndicator(target);
         indicator.Connect(Node.SignalName.TreeExited, Callable.From(() => RemoveIndicator(target, indicator)));
         parent.AddChildSafely(indicator);
 

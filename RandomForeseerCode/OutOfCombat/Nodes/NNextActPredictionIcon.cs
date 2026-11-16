@@ -17,33 +17,68 @@ internal enum NextActPredictionIconKind
     Boss
 }
 
-[ScriptPath("res://RandomForeseerCode/OutOfCombat/Nodes/NNextActPredictionIcon.cs")]
 internal sealed partial class NNextActPredictionIcon : NClickableControl
 {
-    private const string ScenePath = $"{Entry.ResPath}/scenes/next_act_prediction_icon.tscn";
     private const string SecondBossIconScenePath = "res://scenes/ui/top_bar/second_boss_icon.tscn";
     private static readonly StringName TintColor = new("tint_color");
 
-    private NextActPredictionIconKind _kind;
+    private readonly NextActPredictionIconKind _kind;
+
     private IHoverTip? _hoverTip;
 
-    private TextureRect _icon = null!;
-    private TextureRect _outline = null!;
+    private TextureRect _icon;
+    private TextureRect _outline;
     private TextureRect? _secondBossIcon;
     private TextureRect? _secondBossIconOutline;
 
-    public static NNextActPredictionIcon Create(NextActPredictionIconKind kind)
+    public NNextActPredictionIcon(NextActPredictionIconKind kind)
     {
-        var icon = GD.Load<PackedScene>(ScenePath).Instantiate<NNextActPredictionIcon>();
-        icon._kind = kind;
-        return icon;
-    }
+        _kind = kind;
 
-    public override void _Ready()
-    {
         // Mirrors res://scenes/ui/top_bar.tscn's BossIcon node structure.
-        _icon = GetNode<TextureRect>("Icon");
-        _outline = GetNode<TextureRect>("Icon/Outline");
+        MouseFilter = MouseFilterEnum.Stop;
+        CustomMinimumSize = new Vector2(44f, 40f);
+
+        // NClickableControl derives from Control, so an inner container supplies the scene's margins.
+        var margin = new MarginContainer
+        {
+            Name = "Margin",
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        margin.AddThemeConstantOverride("margin_left", 0);
+        margin.AddThemeConstantOverride("margin_top", -4);
+        margin.AddThemeConstantOverride("margin_right", 0);
+        margin.AddThemeConstantOverride("margin_bottom", 0);
+
+        _icon = new TextureRect
+        {
+            Name = "Icon",
+            CustomMinimumSize = new Vector2(44f, 44f),
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+            MouseFilter = MouseFilterEnum.Ignore,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered
+        };
+        _outline = new TextureRect
+        {
+            Name = "Outline",
+            Modulate = new Color("0000002D"),
+            ShowBehindParent = true,
+            GrowHorizontal = GrowDirection.Both,
+            GrowVertical = GrowDirection.Both,
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+            MouseFilter = MouseFilterEnum.Ignore,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered
+        };
+
+        _icon.AddChild(_outline);
+        _outline.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+
+        margin.AddChild(_icon);
+        AddChild(margin);
+        margin.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+
         ConnectSignals();
     }
 
