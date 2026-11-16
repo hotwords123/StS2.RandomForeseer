@@ -40,10 +40,14 @@ internal static partial class GraphTypeTraits
         "System.Reflection"
     ];
 
+    /// <summary>Whether this storage requires access outside the copier's ordinary generic type parameters.</summary>
+    public static bool RequiresNonGenericAccess(Type type) =>
+        type.IsPointer || type.IsFunctionPointer || type.IsByRef || type.IsByRefLike;
+
     /// <summary>Whether ordinary instance fields cannot establish the type's complete state or lifecycle.</summary>
     public static bool IsOpaque(Type type)
     {
-        if (type.IsByRefLike || type.IsByRef || type.IsPointer || type.IsFunctionPointer)
+        if (RequiresNonGenericAccess(type))
         {
             return true;
         }

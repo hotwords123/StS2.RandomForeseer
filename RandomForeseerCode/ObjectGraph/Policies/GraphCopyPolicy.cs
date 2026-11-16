@@ -1,4 +1,5 @@
 using System.Reflection;
+using RandomForeseer.ObjectGraph.Metadata;
 using RandomForeseer.ObjectGraph.Plans;
 
 namespace RandomForeseer.ObjectGraph.Policies;
@@ -61,6 +62,11 @@ internal sealed class GraphCopyPolicy
         if (_plans.TryGetValue(type, out var existing))
         {
             return existing;
+        }
+
+        if (GraphTypeTraits.RequiresNonGenericAccess(type))
+        {
+            throw new NotSupportedException($"Type {type} cannot be used with the generic copier.");
         }
 
         var plan = (GraphTypePlan)Activator.CreateInstance(typeof(GraphTypePlan<>).MakeGenericType(type), this)!;
