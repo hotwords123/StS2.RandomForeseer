@@ -14,8 +14,7 @@ namespace RandomForeseer.ObjectGraph;
 /// </remarks>
 internal sealed class PredictionGraphCopier
 {
-    private readonly List<(string? Edge, int Index)> _segments = [];
-    private string? _rootPath;
+    private readonly List<PathSegment> _segments = [];
 
     internal PredictionObjectScope Scope { get; }
     internal GraphCopyPolicy Policy { get; }
@@ -36,25 +35,20 @@ internal sealed class PredictionGraphCopier
     }
 
     /// <summary>Formats the current DFS path only when requested, normally when constructing an exception.</summary>
-    public string Path
+    public string GetPath()
     {
-        get
+        if (_segments.Count == 0)
         {
-            var path = new StringBuilder(_rootPath ?? throw new InvalidOperationException("No active copy operation."));
-            foreach (var (edge, index) in _segments)
-            {
-                if (edge != null)
-                {
-                    path.Append('.').Append(edge);
-                }
-                else
-                {
-                    path.Append('[').Append(index).Append(']');
-                }
-            }
-
-            return path.ToString();
+            throw new InvalidOperationException("No active copy operation.");
         }
+
+        var path = new StringBuilder();
+        for (var i = 0; i < _segments.Count; i++)
+        {
+            _segments[i].AppendTo(path, i == 0);
+        }
+
+        return path.ToString();
     }
 
     /// <summary>Copies and populates a reachable root graph before returning; reuses prior copies in this scope.</summary>
@@ -71,17 +65,17 @@ internal sealed class PredictionGraphCopier
     {
         Scope.ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(path);
-        if (_rootPath != null)
+        if (_segments.Count != 0)
         {
             throw new InvalidOperationException("Handlers must recurse through CopyChild, not the root Copy entry.");
         }
 
-        _rootPath = path;
+        _segments.Add(new PathSegment(Edge: path));
         try
         {
             return CopyChild(source);
         }
-        catch
+        catch (Exception exception) when (CaptureFailureBeforeUnwind(exception))
         {
             Scope.Dispose();
             throw;
@@ -89,7 +83,6 @@ internal sealed class PredictionGraphCopier
         finally
         {
             _segments.Clear();
-            _rootPath = null;
         }
     }
 
@@ -101,14 +94,16 @@ internal sealed class PredictionGraphCopier
     /// </remarks>
     public T CopyChild<T>(T source)
     {
+        DescribeCurrent(source);
+
         if (!typeof(T).IsValueType)
         {
             return (T)CopyReference(source)!;
         }
 
-        if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
+        if (NullableCopier<T>.Copy is { } copier)
         {
-            return NullableCopier<T>.Copy!(this, source);
+            return copier(this, source);
         }
 
         return Policy.GetPlan<T>().CopyValue(source, this);
@@ -150,14 +145,14 @@ internal sealed class PredictionGraphCopier
     /// <summary>Enters a named child path for a synchronous block of validation or copying.</summary>
     internal PathScope EnterEdge(string edge)
     {
-        _segments.Add((edge, 0));
+        _segments.Add(new PathSegment(Edge: edge));
         return new PathScope(this);
     }
 
     /// <summary>Enters an element path covering validation, recursive copying and insertion diagnostics.</summary>
     internal PathScope EnterIndex(int index)
     {
-        _segments.Add((null, index));
+        _segments.Add(new PathSegment(Index: index));
         return new PathScope(this);
     }
 
@@ -169,8 +164,68 @@ internal sealed class PredictionGraphCopier
         public void Dispose() => copier._segments.RemoveAt(copier._segments.Count - 1);
     }
 
-    /// <summary>Captures the current path in an unsupported-copy exception before DFS unwinding restores it.</summary>
-    internal NotSupportedException Unsupported(string message) => new($"{Path}: {message}");
+    /// <summary>Creates a rejection exception identifying the current copy path.</summary>
+    internal NotSupportedException Unsupported(string message) => new($"{GetPath()}: {message}");
+
+    /// <summary>Records an inspected value without copying it, for validation failures.</summary>
+    internal void DescribeCurrent<T>(T source)
+    {
+        var type = typeof(T).IsValueType ? typeof(T) : source?.GetType();
+        _segments[^1] = _segments[^1] with { RuntimeType = type };
+    }
+
+    private bool CaptureFailureBeforeUnwind(Exception exception)
+    {
+        // The root filter runs before nested finally blocks pop the path. Always handle the
+        // original failure, even if diagnostics cannot be attached, so the scope is invalidated.
+        try
+        {
+            if (GraphCopyFailure.Find(exception) != null)
+            {
+                return true;
+            }
+
+            var path = new StringBuilder();
+            var nodes = new GraphCopyFailure.Node[_segments.Count];
+            for (var i = 0; i < _segments.Count; i++)
+            {
+                var segment = _segments[i];
+                segment.AppendTo(path, i == 0);
+                var type = segment.RuntimeType;
+                nodes[i] = new GraphCopyFailure.Node(
+                    path.ToString(),
+                    type?.FullName ?? type?.Name,
+                    type?.Assembly.FullName ?? type?.Assembly.GetName().Name);
+            }
+
+            new GraphCopyFailure(path.ToString(), nodes).AttachTo(exception);
+        }
+        catch (Exception)
+        {
+            // Diagnostics must never replace the original copy failure or prevent scope invalidation.
+        }
+
+        return true;
+    }
+
+    private readonly record struct PathSegment(string? Edge = null, int? Index = null, Type? RuntimeType = null)
+    {
+        public void AppendTo(StringBuilder path, bool root)
+        {
+            if (root)
+            {
+                path.Append(Edge);
+            }
+            else if (Edge != null)
+            {
+                path.Append('.').Append(Edge);
+            }
+            else
+            {
+                path.Append('[').Append(Index).Append(']');
+            }
+        }
+    }
 
     /// <summary>Shares or clones an identity-bearing reference, including a real box; null passes through.</summary>
     /// <remarks>Called during population only. Inline-value reflection boxes must use the typed value path instead.</remarks>
@@ -205,7 +260,7 @@ internal sealed class PredictionGraphCopier
                 throw Unsupported($"Reference {source.GetType()} is rejected by {ruleId}.");
 
             default:
-                throw new InvalidOperationException($"{Path}: invalid reference action {action}.");
+                throw new InvalidOperationException($"{GetPath()}: invalid reference action {action}.");
         }
     }
 

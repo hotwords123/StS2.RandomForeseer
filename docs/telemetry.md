@@ -27,3 +27,10 @@ v0.15.1 及以前通过 `session_start` 单独发送基础使用信息和设置�
 命名空间标记只能证明调用链涉及本模组，不证明错误由本模组引起。缺少堆栈或堆栈被截断时，相关错误也可能被过滤。RitsuLib 自身的诊断授权、去重与限流仍生效。
 
 纯逻辑回归位于 `tests/RandomForeseer.Tests/Telemetry/TelemetryFilterTests.cs`，覆盖原生请求筛选器挂接、异常链、主动来源、两种引擎堆栈、缺失字段和来源数据不可变性。运行方式见 [本地回归测试](testing.md)。
+
+## 对象图复制失败诊断
+
+对象图复制异常通过 `ModTelemetry.CaptureException` 主动上报时，附加结构化属性 `properties.object_graph_failure`，包装异常的 `InnerException` 链中包含复制失败时也保留该诊断。
+
+- `path`：人类可读的失败路径。
+- `nodes`：从根到失败位置的路径节点，每个节点的 `path` 是该位置的完整路径，`type` 和 `assembly` 是该节点实际类型及程序集完整身份。

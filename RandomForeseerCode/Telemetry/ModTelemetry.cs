@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using RandomForeseer.Localization;
+using RandomForeseer.ObjectGraph;
 using STS2RitsuLib;
 using STS2RitsuLib.Settings;
 using STS2RitsuLib.Telemetry;
@@ -86,6 +87,11 @@ internal static class ModTelemetry
             if (context is not null)
             {
                 properties["exception_context"] = SerializeContext(context);
+            }
+
+            if (GraphCopyFailure.Find(exception) is { } failure)
+            {
+                properties["object_graph_failure"] = SerializeContext(failure);
             }
 
             client.CaptureException(exception, properties);

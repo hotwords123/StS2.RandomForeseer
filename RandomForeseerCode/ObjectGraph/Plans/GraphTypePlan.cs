@@ -96,8 +96,7 @@ internal sealed class GraphTypePlan<T>(GraphCopyPolicy policy)
     /// </remarks>
     internal T CopyValue(T source, PredictionGraphCopier copier)
     {
-        var rule = ValueRule;
-        var action = rule.Strategy;
+        var (ruleId, action) = ValueRule;
 
         switch (action)
         {
@@ -108,10 +107,10 @@ internal sealed class GraphTypePlan<T>(GraphCopyPolicy policy)
                 return UseShallowCopy ? source : ValueCopier(source, copier);
 
             case GraphValueAction.Reject:
-                throw copier.Unsupported($"Value {typeof(T)} is rejected by {rule.Id}.");
+                throw copier.Unsupported($"Value {typeof(T)} is rejected by {ruleId}.");
 
             default:
-                throw new InvalidOperationException($"{copier.Path}: invalid value action {action}.");
+                throw new InvalidOperationException($"Invalid value action {action}.");
         }
     }
 
@@ -133,7 +132,7 @@ internal sealed class GraphTypePlan<T>(GraphCopyPolicy policy)
                     throw copier.Unsupported($"Boxed value {typeof(T)} is rejected by {ValueRule.Id}.");
 
                 default:
-                    throw new InvalidOperationException($"{copier.Path}: invalid value action {action}.");
+                    throw new InvalidOperationException($"Invalid value action {action}.");
             }
         }
 
