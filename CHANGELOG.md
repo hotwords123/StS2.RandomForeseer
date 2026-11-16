@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 新增预测文本和卡牌悬浮提示的顺序设置，默认显示在原版提示之前。<br>
+  Added ordering settings for prediction text and card tooltips, shown before base-game tooltips by default.
+
 ### fix
 
 - 优化预测卡牌与文本无法横向排下时的提示布局，让预览更贴近悬停对象。<br>

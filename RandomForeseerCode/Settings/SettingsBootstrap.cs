@@ -33,6 +33,11 @@ internal static class SettingsBootstrap
                 .WithDescription(T("section.prediction_page_navigation.description"))
                 .AddSubPage("out_of_combat_prediction")
                 .AddSubPage("in_combat_prediction"))
+            .AddSection("hover_tip_presentation", section => section
+                .WithTitle(T("section.hover_tip_presentation.title"))
+                .WithDescription(T("section.hover_tip_presentation.description"))
+                .AddEnumChoice("prediction_text_hover_tip_order", SettingsUiBindings.PredictionTextHoverTipOrder)
+                .AddEnumChoice("prediction_card_hover_tip_order", SettingsUiBindings.PredictionCardHoverTipOrder))
             .AddSection("compatibility", section => section
                 .WithTitle(T("section.compatibility.title"))
                 .WithDescription(T("section.compatibility.description"))
