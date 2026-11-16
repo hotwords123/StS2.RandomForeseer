@@ -18,7 +18,7 @@ internal static class CombatPredictionOverlay
     private static readonly Dictionary<Creature, NCombatPredictionDamageIndicator> Indicators = [];
 
     public static IReadOnlyList<Control> ActiveIndicators =>
-        Indicators.Values.Where(static indicator => indicator.IsVisibleInTree()).ToList();
+        [.. Indicators.Values.Where(static indicator => indicator.IsVisibleInTree())];
 
     /// <summary>
     /// Shows a damage projection, including its corresponding risk flag.
@@ -28,14 +28,13 @@ internal static class CombatPredictionOverlay
         PredictionRisk risk,
         Func<Creature, IEnumerable<IHoverTip>>? getHoverTips = null)
     {
-        var activeTargets = prediction.Targets.Select(static target => target.Target).ToHashSet();
-        foreach (var (target, indicator) in Indicators.ToList())
+        var staleTargets = Indicators.Keys
+            .Except(prediction.Targets.Select(static target => target.Target))
+            .ToList();
+        foreach (var target in staleTargets)
         {
-            if (!activeTargets.Contains(target))
-            {
-                indicator.QueueFreeSafely();
-                Indicators.Remove(target);
-            }
+            Indicators.Remove(target, out var indicator);
+            indicator?.QueueFreeSafely();
         }
 
         foreach (var target in prediction.Targets)
@@ -46,13 +45,6 @@ internal static class CombatPredictionOverlay
                 if (indicator == null)
                 {
                     continue;
-                }
-
-                if (!indicator.IsNodeReady())
-                {
-                    indicator.Connect(
-                        Node.SignalName.Ready,
-                        Callable.From(() => PositionIndicator(target.Target, indicator)));
                 }
             }
 
@@ -74,7 +66,7 @@ internal static class CombatPredictionOverlay
 
     public static void RefreshPositions()
     {
-        if (NCombatRoom.Instance == null)
+        if (NCombatRoom.Instance is not { } combatRoom)
         {
             Clear();
             return;
@@ -82,7 +74,17 @@ internal static class CombatPredictionOverlay
 
         foreach (var (target, indicator) in Indicators.ToList())
         {
-            PositionIndicator(target, indicator);
+            var creatureNode = combatRoom.GetCreatureNode(target);
+            if (creatureNode == null)
+            {
+                indicator.QueueFreeSafely();
+                RemoveIndicator(target, indicator);
+                continue;
+            }
+
+            var indicatorSize = indicator.GetGlobalRect().Size;
+            indicator.GlobalPosition = GetIndicatorPosition(creatureNode, indicatorSize);
+            indicator.Modulate = creatureNode.Visuals.Modulate with { A = indicator.Modulate.A };
         }
     }
 
@@ -95,7 +97,6 @@ internal static class CombatPredictionOverlay
         }
 
         var indicator = new NCombatPredictionDamageIndicator(target);
-        indicator.Connect(Node.SignalName.TreeExited, Callable.From(() => RemoveIndicator(target, indicator)));
         parent.AddChildSafely(indicator);
 
         Indicators[target] = indicator;
@@ -108,26 +109,6 @@ internal static class CombatPredictionOverlay
         {
             Indicators.Remove(target);
         }
-    }
-
-    private static void PositionIndicator(Creature target, NCombatPredictionDamageIndicator indicator)
-    {
-        var creatureNode = NCombatRoom.Instance?.GetCreatureNode(target);
-        if (creatureNode == null)
-        {
-            indicator.QueueFreeSafely();
-            RemoveIndicator(target, indicator);
-            return;
-        }
-
-        if (!indicator.IsNodeReady())
-        {
-            return;
-        }
-
-        var indicatorSize = indicator.GetGlobalRect().Size;
-        indicator.GlobalPosition = GetIndicatorPosition(creatureNode, indicatorSize);
-        indicator.Modulate = creatureNode.Visuals.Modulate with { A = indicator.Modulate.A };
     }
 
     private static Vector2 GetIndicatorPosition(NCreature creatureNode, Vector2 indicatorSize)
