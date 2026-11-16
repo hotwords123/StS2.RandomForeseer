@@ -23,6 +23,17 @@
   "section.prediction_page_navigation.description": "打开对应页面，配置具体的局外和局内预测功能。",
   "button.open_page.text": "打开",
 
+  "section.hover_tip_presentation.title": "悬浮提示",
+  "section.hover_tip_presentation.description": "配置预测悬浮提示的显示方式。",
+  "choice.prediction_text_hover_tip_order.label": "预测文本提示顺序",
+  "choice.prediction_text_hover_tip_order.description": "控制预测文本提示显示在原版文本提示之前还是之后，也适用于药水、遗物等预测提示。",
+  "choice.prediction_text_hover_tip_order.option.BeforeVanilla": "原版之前",
+  "choice.prediction_text_hover_tip_order.option.AfterVanilla": "原版之后",
+  "choice.prediction_card_hover_tip_order.label": "预测卡牌提示顺序",
+  "choice.prediction_card_hover_tip_order.description": "控制预测卡牌预览显示在原版卡牌预览之前还是之后。",
+  "choice.prediction_card_hover_tip_order.option.BeforeVanilla": "原版之前",
+  "choice.prediction_card_hover_tip_order.option.AfterVanilla": "原版之后",
+
   "section.compatibility.title": "兼容性",
   "section.compatibility.description": "如果预测功能与其它 Mod 冲突，在问题得到修复前，可以尝试启用下方的选项作为临时解决方案。\n[blue]注意：[/blue]开启后，部分预测功能将不可用，预测结果也可能不完整或不准确。如果未遇到冲突，则无需开启。",
   "toggle.predict_base_game_cards_only.label": "仅预测原版卡牌",

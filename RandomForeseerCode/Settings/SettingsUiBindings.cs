@@ -18,6 +18,13 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> ShowDriftWarnings { get; } =
         Binding(s => s.ShowDriftWarnings, (s, v) => s.ShowDriftWarnings = v);
 
+    // HoverTip presentation settings
+    public static IModSettingsValueBinding<PredictionHoverTipOrder> PredictionTextHoverTipOrder { get; } =
+        Binding(s => s.PredictionTextHoverTipOrder, (s, v) => s.PredictionTextHoverTipOrder = v);
+
+    public static IModSettingsValueBinding<PredictionHoverTipOrder> PredictionCardHoverTipOrder { get; } =
+        Binding(s => s.PredictionCardHoverTipOrder, (s, v) => s.PredictionCardHoverTipOrder = v);
+
     // Compatibility settings
     public static IModSettingsValueBinding<bool> PredictBaseGameCardsOnly { get; } =
         Binding(s => s.PredictBaseGameCardsOnly, (s, v) => s.PredictBaseGameCardsOnly = v);

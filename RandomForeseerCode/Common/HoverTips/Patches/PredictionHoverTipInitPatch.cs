@@ -3,6 +3,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using RandomForeseer.Data;
 
 namespace RandomForeseer.Common.HoverTips.Patches;
 
@@ -15,7 +16,7 @@ internal static class PredictionHoverTipInitPatch
 
     private static void Prefix(NHoverTipSet __instance, ref IEnumerable<IHoverTip> hoverTips)
     {
-        var preparedHoverTips = PrepareForPresentation(hoverTips);
+        var preparedHoverTips = ApplyPredictionOrder(PrepareForPresentation(hoverTips), ModData.Settings);
         hoverTips = preparedHoverTips;
 
         var predictionTextTipMask = IHoverTip.RemoveDupes(preparedHoverTips)
@@ -65,6 +66,27 @@ internal static class PredictionHoverTipInitPatch
         material.SetShaderParameter("s", 1.75f);
         material.SetShaderParameter("v", 1.15f);
         return material;
+    }
+
+    /// <summary>
+    /// Stably orders prediction text and card tips around other tips according to their independent settings.
+    /// </summary>
+    private static List<IHoverTip> ApplyPredictionOrder(List<IHoverTip> tips, ModSettings settings)
+    {
+        return [.. tips.OrderBy(tip =>
+        {
+            if (tip.IsPredictionTextHoverTip())
+            {
+                return settings.PredictionTextHoverTipOrder == PredictionHoverTipOrder.BeforeVanilla ? 0 : 2;
+            }
+
+            if (tip.IsPredictionCardHoverTip())
+            {
+                return settings.PredictionCardHoverTipOrder == PredictionHoverTipOrder.BeforeVanilla ? 0 : 2;
+            }
+
+            return 1;
+        })];
     }
 
     /// <summary>

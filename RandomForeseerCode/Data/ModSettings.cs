@@ -18,6 +18,12 @@ internal sealed class ModSettings
     public bool FairModeEnabled { get; set; } = true;
     public bool ShowDriftWarnings { get; set; }
 
+    // HoverTip presentation settings
+    public PredictionHoverTipOrder PredictionTextHoverTipOrder { get; set; } =
+        PredictionHoverTipOrder.BeforeVanilla;
+    public PredictionHoverTipOrder PredictionCardHoverTipOrder { get; set; } =
+        PredictionHoverTipOrder.BeforeVanilla;
+
     // Compatibility settings
     public bool PredictBaseGameCardsOnly { get; set; }
     public bool InvokeBaseGameHookListenersOnly { get; set; }
@@ -101,4 +107,10 @@ internal enum EndTurnPredictionDisplayMode
 {
     EndTurnButtonHover,
     AlwaysDuringPlayerTurn
+}
+
+internal enum PredictionHoverTipOrder
+{
+    BeforeVanilla,
+    AfterVanilla
 }
