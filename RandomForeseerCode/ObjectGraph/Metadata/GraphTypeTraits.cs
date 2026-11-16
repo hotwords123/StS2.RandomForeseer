@@ -10,42 +10,59 @@ internal static partial class GraphTypeTraits
 {
     private static readonly ConcurrentDictionary<(Type Declared, Type Runtime), bool> IdentityKeyTypes = new();
 
+    private static readonly HashSet<Type> OpaqueTypes =
+    [
+        typeof(nint), typeof(nuint),
+
+        typeof(WeakReference<>),
+        typeof(Lazy<>),
+
+        typeof(Godot.Variant),
+        typeof(Godot.Callable),
+        typeof(Godot.Rid),
+        typeof(Godot.Signal),
+        typeof(Godot.SignalAwaiter),
+        typeof(Godot.Collections.Array<>),
+        typeof(Godot.Collections.Dictionary<,>)
+    ];
+
+    private static readonly Type[] OpaqueBaseTypes =
+    [
+        typeof(IDisposable), typeof(IAsyncDisposable),
+        typeof(WeakReference),
+        typeof(Godot.GodotObject)
+    ];
+
+    private static readonly string[] OpaqueNamespaces =
+    [
+        "System.Threading",
+        "System.Runtime.InteropServices",
+        "System.Reflection"
+    ];
+
     /// <summary>Whether ordinary instance fields cannot establish the type's complete state or lifecycle.</summary>
     public static bool IsOpaque(Type type)
     {
-        if (type.IsByRefLike || type.IsByRef || type.IsPointer || type.IsFunctionPointer ||
-            type == typeof(nint) || type == typeof(nuint))
+        if (type.IsByRefLike || type.IsByRef || type.IsPointer || type.IsFunctionPointer)
         {
             return true;
         }
 
-        if (typeof(IDisposable).IsAssignableFrom(type) || typeof(IAsyncDisposable).IsAssignableFrom(type))
+        var definition = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+        if (OpaqueTypes.Contains(definition) ||
+            OpaqueBaseTypes.Any(baseType => baseType.IsAssignableFrom(type)))
+        {
+            return true;
+        }
+
+        if (type.Namespace is { } ns &&
+            OpaqueNamespaces.Any(prefix => ns.StartsWith(prefix, StringComparison.Ordinal)))
         {
             return true;
         }
 
         if (type.IsClass &&
             type.GetMethod("Finalize", ReflectionFlags.NonPublicInstance)?.DeclaringType != typeof(object))
-        {
-            return true;
-        }
-
-        if (type.Namespace is { } ns &&
-            (ns.StartsWith("System.Threading", StringComparison.Ordinal) ||
-             ns.StartsWith("System.Runtime.InteropServices", StringComparison.Ordinal) ||
-             ns.StartsWith("System.Reflection", StringComparison.Ordinal)))
-        {
-            return true;
-        }
-
-        if (typeof(WeakReference).IsAssignableFrom(type) ||
-            type.IsGenericType && type.GetGenericTypeDefinition() is { } definition &&
-            (definition == typeof(WeakReference<>) || definition == typeof(Lazy<>)))
-        {
-            return true;
-        }
-
-        if (type == typeof(Godot.Variant) || typeof(Godot.GodotObject).IsAssignableFrom(type))
         {
             return true;
         }

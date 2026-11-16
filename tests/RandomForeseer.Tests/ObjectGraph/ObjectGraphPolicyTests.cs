@@ -40,6 +40,12 @@ public sealed class ObjectGraphPolicyTests
 
     [Theory]
     [InlineData(typeof(Resource))]
+    [InlineData(typeof(Callable))]
+    [InlineData(typeof(Rid))]
+    [InlineData(typeof(Signal))]
+    [InlineData(typeof(SignalAwaiter))]
+    [InlineData(typeof(Godot.Collections.Array<int>))]
+    [InlineData(typeof(Godot.Collections.Dictionary<string, int>))]
     [InlineData(typeof(Task<int>))]
     [InlineData(typeof(ValueTask<int>))]
     [InlineData(typeof(CancellationToken))]
