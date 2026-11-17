@@ -4,7 +4,7 @@
     <Sts2Dir>PATH_TO_STEAM/steamapps/common/Slay the Spire 2</Sts2Dir>
     <Sts2DataDir>$(Sts2Dir)/data_sts2_windows_x86_64</Sts2DataDir>
 
-    <!-- 创意工坊 loader 固定使用最老支持版本的 API assembly 编译。 -->
+    <!-- 游戏程序集存档根目录：Mod 本体 按分支选择版本，创意工坊 loader 固定使用最老支持版本。 -->
     <Sts2ApiSignatureRoot>PATH_TO_STS2_GAME_VERSIONS</Sts2ApiSignatureRoot>
 
     <!-- dotnet build 仅编译；dotnet publish 导出并部署，此时才需要 GodotExe。 -->

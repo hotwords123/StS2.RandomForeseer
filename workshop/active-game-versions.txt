@@ -1,3 +1,0 @@
-# One active public/public-beta game version per line.
-0.111.1
-0.113.1

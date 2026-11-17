@@ -1,274 +1,159 @@
 #!/usr/bin/env python3
-"""Prepare a release from the manifest's version metadata.
-
-Examples::
-
-    uv run scripts/prepare-release.py --patch --commit
-    uv run scripts/prepare-release.py --version 0.14.0 --commit
-    uv run scripts/prepare-release.py --sync
-
-``RandomForeseer.json`` is the source of truth for the Mod version, minimum
-game version, and STS2-RitsuLib dependency. The script only changes the Mod
-version when ``--version`` or a bump flag is supplied; ``--sync`` propagates
-the existing manifest values without changing them. It never creates tags,
-packages, releases, or pushes.
-"""
-
-from __future__ import annotations
+"""Prepare source-branch versions and synchronize Workshop descriptions on main."""
 
 import argparse
-import json
 import re
-import subprocess
-import sys
 from pathlib import Path
 
-
-SEMVER = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$")
-CONVENTIONAL_COMMIT = re.compile(
-    r"^(?:build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)"
-    r"(?:\([^)]+\))?!?: .+"
+from release_tools.common import (
+    MOD_ID,
+    Branch,
+    Version,
+    branches,
+    choose_branch,
+    command_main,
+    editable_tree,
+    ensure_clean,
+    git,
+    main_root,
+    read_text,
+    source_manifest,
+    source_sha,
+    source_text,
+    worktrees,
+    write_text,
 )
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Prepare and stage a Random Foreseer release.")
-
-    version_group = parser.add_mutually_exclusive_group(required=True)
-    version_group.add_argument("--version", help="Set the Mod version explicitly.")
-    version_group.add_argument("--major", action="store_true", help="Bump the major component.")
-    version_group.add_argument("--minor", action="store_true", help="Bump the minor component.")
-    version_group.add_argument("--patch", action="store_true", help="Bump the patch component.")
-    version_group.add_argument("--sync", action="store_true", help="Only sync files from RandomForeseer.json.")
-
-    parser.add_argument("--branch", default="beta", choices=["public", "beta", "both"], help="Which branch to update in the workshop description files (default: beta).")
-    parser.add_argument("--message", help="Conventional Commit message (default: chore(release): prepare vX.Y.Z).")
-    parser.add_argument("--commit", action="store_true", help="Commit changes after staging them.")
-    parser.add_argument("--allow-dirty", action="store_true", help="Allow unrelated existing changes.")
-    parser.add_argument("--dry-run", action="store_true", help="Show changes without writing or staging.")
-
-    args = parser.parse_args()
-    if args.version and not SEMVER.fullmatch(args.version):
-        parser.error(f"--version must be a SemVer value: {args.version}")
-    if args.message and not CONVENTIONAL_COMMIT.fullmatch(args.message):
-        parser.error("--message must use Conventional Commits format, e.g. 'chore(release): prepare vX.Y.Z'")
-
-    return args
-
-
-def run_git(root: Path, *arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(
-        ["git", *arguments], cwd=root, text=True, encoding="utf-8", capture_output=True
-    )
-    if check and result.returncode:
-        details = (result.stderr or result.stdout).strip()
-        raise RuntimeError(f"git {' '.join(arguments)} failed: {details}")
-    return result
-
-
-def read_text(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
-
-
-def write_text(path: Path, content: str) -> None:
-    path.write_text(content.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
-
-
-def replace_once(content: str, pattern: str, replacement: str, label: str) -> str:
-    updated, count = re.subn(pattern, replacement, content, count=1, flags=re.MULTILINE | re.DOTALL)
+def replace_once(content: str, pattern: str, replacement: str, description: str) -> str:
+    updated, count = re.subn(pattern, replacement, content, count=1, flags=re.M)
     if count != 1:
-        raise RuntimeError(f"Expected exactly one {label} to update, found {count}.")
+        raise ValueError(f"Expected one {description} in release metadata.")
     return updated
 
 
-def update_file(root: Path, relative_path: str, transformations: list[tuple[str, str, str]], *, write: bool) -> bool:
-    path = root / relative_path
-    original = read_text(path)
-    updated = original
-    for pattern, replacement, label in transformations:
-        updated = replace_once(updated, pattern, replacement, label)
-    if updated != original and write:
-        write_text(path, updated)
-    return updated != original
+def prepare(root: Path, args: argparse.Namespace, branch: Branch, config: dict[str, Branch]) -> None:
+    trees = worktrees(root)
+    target_sha = source_sha(root, branch)
 
+    def source_file(name: str) -> str:
+        if branch.git_branch in trees:
+            return read_text(trees[branch.git_branch] / name)
+        else:
+            return source_text(root, target_sha, name)
 
-def bump_version(version: str, component: str) -> str:
-    match = SEMVER.fullmatch(version)
-    if not match:
-        raise RuntimeError(f"Manifest version is not a supported SemVer value: {version}")
-
-    major, minor, patch = (int(value) for value in match.groups())
-
-    if component == "major":
-        major, minor, patch = major + 1, 0, 0
-    elif component == "minor":
-        minor, patch = minor + 1, 0
+    manifest = source_manifest(root, branch)
+    current = manifest["version"]
+    if args.sync:
+        version = current
     else:
-        patch += 1
+        components = [int(part) for part in current.split("-")[0].split(".")]
+        component = 0 if args.major else 1 if args.minor else 2
+        components[component] += 1
+        components[component + 1 :] = [0] * (2 - component)
+        version = ".".join(map(str, components))
 
-    return f"{major}.{minor}.{patch}"
+    Version(version)
+    manifest["version"] = version
+    ritsu = next(item["min_version"] for item in manifest["dependencies"] if item["id"] == "STS2-RitsuLib")
 
-
-def read_manifest(root: Path) -> tuple[dict, str]:
-    manifest = json.loads(read_text(root / "RandomForeseer.json"))
-    version = manifest.get("version")
-    game_version = manifest.get("min_game_version")
-    dependencies = manifest.get("dependencies") or []
-    ritsu_lib_version = next(
-        (item.get("min_version") for item in dependencies if item.get("id") == "STS2-RitsuLib"), None
+    # Compute every edit before writing or creating a worktree.
+    edits: dict[str, str] = {}
+    edits[f"{MOD_ID}.json"] = replace_once(
+        source_file(f"{MOD_ID}.json"),
+        r'("version"\s*:\s*")[^"]+("\s*,)',
+        rf"\g<1>{version}\g<2>",
+        "manifest version",
+    )
+    edits[f"{MOD_ID}.csproj"] = replace_once(
+        source_file(f"{MOD_ID}.csproj"),
+        r'(<PackageReference\s+Include="STS2\.RitsuLib"\s+Version=")[^"]+("\s+GeneratePathProperty=)',
+        rf"\g<1>{ritsu}\g<2>",
+        "declared RitsuLib dependency",
     )
 
-    if not isinstance(version, str) or not SEMVER.fullmatch(version):
-        raise RuntimeError("RandomForeseer.json must contain a valid SemVer 'version'.")
+    for filename, labels in {
+        "README.md": ("当前版本", "最低游戏版本", "RitsuLib 依赖"),
+        "README.en.md": ("Current version", "Minimum game version", "RitsuLib dependency"),
+    }.items():
+        content = source_file(filename)
+        for label, value in zip(labels, (version, manifest["min_game_version"], ritsu)):
+            content = replace_once(content, rf"(\|\s*{label}\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{value}\g<2>", label)
+        edits[filename] = content
 
-    if not isinstance(game_version, str) or not SEMVER.fullmatch(game_version):
-        raise RuntimeError("RandomForeseer.json must contain a valid SemVer 'min_game_version'.")
+    if not args.sync:
+        content = source_file("CHANGELOG.md")
+        if not re.search(rf"^## v{re.escape(version)}\s*$", content, re.M):
+            content = replace_once(content, r"^##[ \t]+Unreleased[ \t]*$", f"## v{version}", "Unreleased heading")
+        edits["CHANGELOG.md"] = content
 
-    if not isinstance(ritsu_lib_version, str) or not SEMVER.fullmatch(ritsu_lib_version):
-        raise RuntimeError("RandomForeseer.json must declare a valid STS2-RitsuLib min_version.")
-
-    return manifest, ritsu_lib_version
-
-
-def ensure_clean(root: Path) -> None:
-    if run_git(root, "diff", "--quiet", check=False).returncode:
-        raise RuntimeError("Working tree must be clean; use --allow-dirty to override.")
-
-    if run_git(root, "diff", "--cached", "--quiet", check=False).returncode:
-        raise RuntimeError("Git index must be clean; use --allow-dirty to override.")
-
-
-def update_changelog(root: Path, mod_version: str, *, write: bool) -> bool:
-    path = root / "CHANGELOG.md"
-    original = read_text(path)
-    release_heading = f"## v{mod_version}"
-
-    if re.search(rf"^##\s+{re.escape(release_heading[3:])}\s*$", original, re.MULTILINE):
-        return False
-
-    updated = replace_once(original, r"^##\s+Unreleased\s*?$", release_heading, "Unreleased changelog heading")
-    if write:
-        write_text(path, updated)
-
-    return True
-
-
-def main() -> int:
-    args = parse_args()
-    root = Path(__file__).resolve().parent.parent
-
-    if not args.allow_dirty:
-        ensure_clean(root)
-
-    manifest, ritsu_lib_version = read_manifest(root)
-    game_version = manifest["min_game_version"]
-    current_version = manifest["version"]
-
-    if args.version:
-        target_version = args.version
-    elif args.sync:
-        target_version = current_version
-    else:
-        component = "major" if args.major else "minor" if args.minor else "patch"
-        target_version = bump_version(current_version, component)
-
-    changed: list[str] = []
-    write = not args.dry_run
-    if target_version != current_version and update_file(
-        root,
-        "RandomForeseer.json",
-        [(r'("version"\s*:\s*")[^"]+("\s*,)', rf"\g<1>{target_version}\g<2>", "manifest version")],
-        write=write,
-    ):
-        changed.append("RandomForeseer.json")
-
-    transformations = {
-        "RandomForeseer.csproj": [
-            (
-                r'(<PackageReference\s+Include="STS2\.RitsuLib"\s+Version=")[^"]+("\s+GeneratePathProperty=)',
-                rf"\g<1>{ritsu_lib_version}\g<2>",
-                "csproj RitsuLib dependency",
+    versions = {name: source_manifest(root, value)["version"] for name, value in config.items()}
+    versions[branch.name] = version
+    workshop_edits: dict[str, str] = {}
+    for filename, labels in {
+        "workshop/description.txt": {"public": "正式版", "public-beta": "测试版"},
+        "workshop/description.en.txt": {"public": "public", "public-beta": "public-beta"},
+    }.items():
+        content = read_text(root / filename)
+        for name, label in labels.items():
+            pattern = rf"(\[\*\]{label}[^\n]*?\[b\]v)[^\[]+(\[/b\][^\n]*?\[b\]v)[^\[]+(\[/b\])"
+            content = replace_once(
+                content, pattern, rf"\g<1>{config[name].game_version}\g<2>{versions[name]}\g<3>", label
             )
-        ],
-        "README.md": [
-            (r"(\|\s*当前版本\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{target_version}\g<2>", "Chinese Mod version"),
-            (r"(\|\s*最低游戏版本\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{game_version}\g<2>", "Chinese game version"),
-            (r"(\|\s*RitsuLib 依赖\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{ritsu_lib_version}\g<2>", "Chinese RitsuLib version"),
-        ],
-        "README.en.md": [
-            (r"(\|\s*Current version\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{target_version}\g<2>", "English Mod version"),
-            (r"(\|\s*Minimum game version\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{game_version}\g<2>", "English game version"),
-            (r"(\|\s*RitsuLib dependency\s*\|\s*`)[^`]+(`\s*\|)", rf"\g<1>{ritsu_lib_version}\g<2>", "English RitsuLib version"),
-        ],
-        "workshop/description.txt": [],
-        "workshop/description.en.txt": [],
-    }
+        workshop_edits[filename] = content
 
-    if args.branch in ("public", "both"):
-        transformations["workshop/description.txt"].append(
-            (
-                r"(\[\*]正式版：\[b]v)[^\[]+(\[/b].*?Mod 版本 \[b]v)[^\[]+(\[/b])",
-                rf"\g<1>{game_version}\g<2>{target_version}\g<3>",
-                "Chinese public versions",
-            )
-        )
-        transformations["workshop/description.en.txt"].append(
-            (
-                r"(\[\*]public: \[b]v)[^\[]+(\[/b] \(mod version \[b]v)[^\[]+(\[/b])",
-                rf"\g<1>{game_version}\g<2>{target_version}\g<3>",
-                "English public versions",
-            )
-        )
-
-    if args.branch in ("beta", "both"):
-        transformations["workshop/description.txt"].append(
-            (
-                r"(\[\*]测试版：\[b]v)[^\[]+(\[/b].*?Mod 版本 \[b]v)[^\[]+(\[/b])",
-                rf"\g<1>{game_version}\g<2>{target_version}\g<3>",
-                "Chinese beta versions",
-            )
-        )
-        transformations["workshop/description.en.txt"].append(
-            (
-                r"(\[\*]public-beta: \[b]v)[^\[]+(\[/b] \(mod version \[b]v)[^\[]+(\[/b])",
-                rf"\g<1>{game_version}\g<2>{target_version}\g<3>",
-                "English beta versions",
-            )
-        )
-
-    for path, rules in transformations.items():
-        if update_file(root, path, rules, write=write):
-            changed.append(path)
-
-    if not args.sync and update_changelog(root, target_version, write=write):
-        changed.append("CHANGELOG.md")
-
+    edits = {name: value for name, value in edits.items() if value != source_file(name)}
+    workshop_edits = {name: value for name, value in workshop_edits.items() if value != read_text(root / name)}
+    print(f"Prepare {branch.name}: {branch.git_branch} {current} -> {version}")
+    print(f"Source edits: {', '.join(edits) or 'none'}")
+    print(f"Main edits: {', '.join(workshop_edits) or 'none'}")
     if args.dry_run:
-        print("Would update: " + (", ".join(changed) if changed else "no files"))
-        return 0
+        return
 
-    if changed:
-        run_git(root, "add", "--", *changed)
-    else:
-        print("No release metadata changes were needed.")
+    existing_target = trees.get(branch.git_branch)
+    ensure_clean(root)
+    if existing_target and existing_target != root:
+        ensure_clean(existing_target)
+    if source_sha(root, branch) != target_sha:
+        raise RuntimeError("Source branch changed during release preparation; retry.")
 
-    if args.commit:
-        if not changed:
-            raise RuntimeError("Cannot create a release commit because no files changed.")
+    groups: dict[Path, dict[str, str]] = {}
+    if edits:
+        target = editable_tree(root, branch.git_branch)
+        groups[target] = dict(edits)
+    if workshop_edits:
+        groups.setdefault(root, {}).update(workshop_edits)
 
-        message = args.message or f"chore(release): prepare v{target_version}"
-        run_git(root, "commit", "--only", "-m", message, "--", *changed)
-        print(f"Created commit: {message}")
+    for tree, changes in groups.items():
+        for name, content in changes.items():
+            write_text(tree / name, content)
+        git(tree, "add", "--", *changes)
+        if args.commit:
+            message = f"chore(release): prepare v{version}"
+            git(tree, "commit", "--only", "-m", message, "--", *changes)
+        print(f"{'Committed' if args.commit else 'Staged'} in {tree}: {', '.join(changes)}")
+    if not groups:
+        print("No release metadata changes needed.")
 
-    else:
-        print("Staged release metadata changes (pass --commit to commit them).")
 
-    return 0
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--branch",
+        choices=["public", "public-beta"],
+        help="Default: inferred from current Git branch.",
+    )
+    version = parser.add_mutually_exclusive_group(required=True)
+    for flag in ("major", "minor", "patch", "sync"):
+        version.add_argument(f"--{flag}", action="store_true")
+    parser.add_argument("--commit", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    root = main_root()
+    config = branches(root)
+    prepare(root, args, choose_branch(parser, args.branch, config), config)
 
 
 if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except (OSError, RuntimeError, json.JSONDecodeError) as error:
-        print(f"error: {error}", file=sys.stderr)
-        raise SystemExit(1)
+    command_main(main)

@@ -1,63 +1,101 @@
-# Steam Workshop Release Workflow
+# Local release and Steam Workshop workflow
 
-This directory contains the tracked inputs for the Steam Workshop variant package. Generated packages and upload workspaces remain under the ignored `artifacts/` directory.
+Release tooling and Workshop metadata are maintained on `main`. Each source branch owns its
+manifest, CHANGELOG, and README version information. GitHub distributes individual version packages;
+Workshop distributes the packages needed by both active game branches.
 
-## Tracked files
+## Configuration
 
-- `active-game-versions.txt`: one currently active public/public-beta game version per line. Empty lines and lines beginning with `#` are ignored.
-- `image.png`: Workshop preview image; it must remain smaller than 1 MB.
-- `description.txt` and `description.en.txt`: tracked Simplified Chinese and English descriptions.
-- `workshop.json`: Workshop metadata. Branch limits are intentionally omitted because runtime version dispatch replaces Steam branch filtering.
-- `config.json`: tracked uploader example configuration; `config.local.json` contains ignored machine-local overrides.
-- `loader/`: Workshop-only dispatcher source and its third-party notices.
+`workshop/branches.json` defines `public` and `public-beta`:
 
-The long-term design and selection rules are documented in [`docs/workshop-variant-distribution.md`](../docs/workshop-variant-distribution.md).
+- `git_branch`: the local source branch for that game branch.
+- `game_version`: the active game version and the API version used for its build.
 
-## Versioned package cache
+The corresponding `RandomForeseer.json` supplies the Mod version, minimum supported game version,
+and dependency requirements. The minimum supported game version may differ from the build API version.
+Update this configuration when the active game branches change.
 
-`scripts/release.ps1 -Version X.Y.Z` retains the standard package at:
+Configure local game paths and Godot in `local.props`. Archived game assemblies belong under
+`Sts2ApiSignatureRoot/vX.Y.Z/data_sts2_windows_x86_64`. Builds require assemblies matching the configured
+game version. GitHub publishing requires an authenticated `gh`; Workshop publishing requires Steam
+to be online and the official uploader to be available.
 
-```text
-artifacts/packages/X.Y.Z/RandomForeseer/
-├─ RandomForeseer.json
-├─ RandomForeseer.dll
-├─ RandomForeseer.pck
-└─ build-info.txt
+Workshop titles, descriptions, and image are under `workshop/`. Local settings belong in the ignored
+`workshop/config.local.json`, overriding the example `config.json`:
+
+- `uploaderPath`: uploader executable.
+- `itemId`: existing Workshop item ID.
+- `workspaceDir`: prepared upload directory below `artifacts/`.
+- `packagesRoot`: retained version packages.
+
+Relative paths are resolved from main.
+
+## Prepare a release
+
+Keep main checked out and use its tools. Preparation and release infer `--branch` from the current
+Git branch when it matches the configuration; otherwise specify `public` or `public-beta` explicitly.
+Workshop always requires an explicit branch.
+
+```powershell
+uv run scripts/prepare-release.py --branch public --patch --dry-run
+uv run scripts/prepare-release.py --branch public --patch --commit
 ```
 
-The GitHub Release ZIP still contains only that version. A published SemVer package is treated as immutable: rerun release with `-SkipBuild` to reuse it. Build every compatible branch version that the active game versions require before preparing the Workshop upload.
+Use `--major` or `--minor` for the corresponding version increment. `--sync` updates metadata for the
+existing version. Preparation updates the source branch's manifest, dependency reference, README
+version tables, and CHANGELOG heading. Dependency versions follow that branch's manifest.
+The Chinese and English Workshop descriptions on main are synchronized with both branches.
 
-For a compatibility branch, pass `-GameVersion X.Y.Z` to `scripts/release.ps1`. The build uses `Sts2ApiSignatureRoot/vX.Y.Z/data_sts2_windows_x86_64` from the evaluated project configuration and records `build-game-version` in `build-info.txt`. Without this option, the build uses the configured local game installation. With `-SkipBuild`, the cached package is reused and `-GameVersion` has no effect.
+Without `--commit`, review and commit the staged edits in each reported worktree. With `--commit`,
+source metadata is committed on its source branch and Workshop descriptions on main. Main releases
+combine those changes in one commit. Start with clean worktrees and finish one preparation before another.
 
-## Preparing the Workshop package
+## Publish a GitHub Release
 
-`scripts/prepare-workshop.ps1` performs these steps:
+```powershell
+uv run scripts/release.py --branch public --dry-run
+uv run scripts/release.py --branch public
+```
 
-1. Reads all packages at or below the requested Mod version from `artifacts/packages/`.
-2. For each version in `active-game-versions.txt`, selects the highest Mod SemVer whose `min_game_version` does not exceed that game version.
-3. Deduplicates packages selected by more than one active game version.
-4. Builds the root `RandomForeseer.Loader` dispatcher.
-5. Stages the selected DLL/PCK pairs under `artifacts/workshop/content/lib/<mod-version>/` and writes their version and dependency metadata to a `.manifest` file.
-6. Creates a Workshop-only root Mod manifest with `has_pck: false` and the dependencies of the lowest bundled Mod version; the dispatcher mounts the selected PCK and enforces its own dependency minimums.
+The version comes from the source manifest. Release builds use the configured source branch and game API.
+The tag identifies the source commit used for the package.
 
-At runtime, the dispatcher uses the same compatibility test against the packages present in the upload and loads the highest compatible Mod SemVer. Unknown or older host versions fall back to the newest bundled Mod version with a warning, matching the best-effort delivery policy.
+Standard packages are retained at `artifacts/packages/X.Y.Z/RandomForeseer/`, containing the manifest,
+DLL, PDB, PCK, and `build-info.txt`. The release also produces these files under `artifacts/`:
 
-Variant directories must not contain their original `RandomForeseer.json`: the game recursively treats every `.json` below a Workshop item as a Mod manifest.
+- `RandomForeseer-vX.Y.Z.zip` and its `.sha256` checksum.
+- `RandomForeseer-vX.Y.Z-notes.md`: release changes for Workshop.
+- `RandomForeseer-vX.Y.Z-github-notes.md`: GitHub Release text.
 
-All historical package manifests must use `min_version` for dependency minimums. The legacy `version` field is rejected. Bundled variants are expected to keep the same dependency ID set and vary only their minimum versions.
+Lower-version public releases include a bilingual notice identifying the public and public-beta game
+versions and are not marked as GitHub's latest release. A version with a prerelease suffix is published
+as a prerelease.
 
-The dispatcher is always compiled against the oldest supported game API configured by `Sts2ApiSignatureRoot`, rather than whichever game branch is currently installed.
+Use `--package-only` to build and retain local release artifacts. Use `--skip-build` to publish an
+existing package. Version packages are immutable; an existing published version is reused rather than rebuilt.
 
-Change notes are read as UTF-8 from `artifacts/RandomForeseer-vX.Y.Z-notes.md`, generated by `scripts/release.ps1`, with a version heading added for Workshop. By default, the notes version is the Workshop package version. For a compatibility release uploaded from `main`, pass `-ChangelogTag vX.Y.Z` to `prepare-workshop.ps1` or `upload-workshop.ps1` to select that version's notes instead; the Workshop package version and variant selection still follow `main`. Missing or empty notes stop preparation. Do not combine `-ChangelogTag` with `-SkipPrepare`, which uploads the existing workspace without regenerating notes.
+## Publish a Workshop update
 
-## Release order
+```powershell
+uv run scripts/workshop.py --branch public --prepare-only
+# Review artifacts/workshop/workshop.json and content/.
+uv run scripts/workshop.py --branch public --skip-prepare
+```
 
-1. Run `uv run scripts/prepare-release.py --patch --commit` (or `--major`, `--minor`, or `--version X.Y.Z`) to update and commit the normal release files. Use `--sync` when only the manifest's existing Mod, game, and RitsuLib versions need to be propagated.
-2. On every compatibility source branch needed by an active game version, run `scripts/release.ps1 -Version X.Y.Z -PackageOnly` once to retain its package without creating a tag or GitHub Release. Run the normal command without `-PackageOnly` for the current GitHub release.
-3. Update `active-game-versions.txt` to the game versions currently live on public/public-beta.
-4. Run `scripts/prepare-workshop.ps1 -Version X.Y.Z`.
-5. Inspect `artifacts/workshop/workshop.json` and `artifacts/workshop/content/`.
-6. Run `scripts/upload-workshop.ps1 -Version X.Y.Z`.
-7. Confirm localized descriptions and that Steam no longer reports a stale branch restriction.
+Omit `--prepare-only` to prepare and upload together. `--dry-run` previews the package selections and notes.
+`--skip-prepare` uploads the reviewed workspace; its notes must match the explicit branch.
 
-The uploader path and Workshop item ID can be stored in `config.local.json` or passed directly to the upload script.
+Workshop includes the highest compatible retained package for each active game version.
+`--branch` selects the update notes, while both game branches participate in package selection.
+Notes come from the corresponding release artifacts and contain the release changes without the
+GitHub-only branch notice. Keep the relevant packages and notes available before preparing an upload.
+
+For a feature released on both branches:
+
+1. Commit the implementation on main and backport it to the compatibility source branch.
+2. Prepare and publish each branch's release.
+3. Prepare Workshop with `--branch both --prepare-only` and review both versions' notes.
+4. Upload once with `--branch both --skip-prepare`.
+
+See [Workshop variant distribution](../docs/workshop-variant-distribution.md) for package structure
+and runtime version selection.

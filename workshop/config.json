@@ -1,5 +1,6 @@
 {
   "itemId": "3747531952",
   "uploaderPath": "ModUploader-win-x64/ModUploader.exe",
-  "workspaceDir": "artifacts/workshop"
+  "workspaceDir": "artifacts/workshop",
+  "packagesRoot": "artifacts/packages"
 }

@@ -1,0 +1,10 @@
+{
+  "public": {
+    "git_branch": "compat/sts2-0.111",
+    "game_version": "0.111.1"
+  },
+  "public-beta": {
+    "git_branch": "main",
+    "game_version": "0.113.1"
+  }
+}
