@@ -9,6 +9,12 @@
 
 ### fix
 
+- 修复与部分特效或角色 Mod 一起使用时，战斗预测可能失效的问题。<br>
+  Fixed combat predictions potentially failing when used with certain visual effects or character mods.
+
+- 修复部分 Mod 卡牌带有自定义卡图或卡框材质时，战斗预测可能失效的问题。<br>
+  Fixed combat predictions potentially failing for modded cards with custom artwork or frame materials.
+
 - 修复 Android 上部分卡牌的战斗预测可能失效的问题。<br>
   Fixed combat predictions sometimes failing for certain cards on Android.
 

@@ -1,4 +1,7 @@
 using System.Reflection;
+using MegaCrit.Sts2.Core.Commands.Builders;
+using MegaCrit.Sts2.Core.GameActions;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.ObjectGraph.Copiers;
 using RandomForeseer.ObjectGraph.Metadata;
@@ -90,4 +93,45 @@ internal static class CommonGraphRules
     [
         AllowImmutableKey, AllowIdentityKey
     ];
+
+    /// <summary>Opt-in sharing of external visual resources.</summary>
+    public static GraphReferenceRule ShareVisualResource { get; } =
+        new("reference.visual_resource", IsVisualResource, GraphReferenceStrategy.Share);
+
+    /// <summary>Opt-in retention of visual resource fields; place before Godot object reset rules.</summary>
+    public static GraphFieldRule KeepVisualResource { get; } =
+        new("field.visual_resource", field => IsVisualResource(field.FieldType), GraphFieldAction.Keep);
+
+    /// <summary>Opt-in omission of Godot object fields without traversing or disposing the source objects.</summary>
+    public static GraphFieldRule ResetGodotObject { get; } = new(
+        "field.godot_object",
+        field => typeof(Godot.GodotObject).IsAssignableFrom(field.FieldType),
+        GraphFieldAction.Reset);
+
+    /// <summary>Opt-in omission of transient game commands, actions and choice contexts.</summary>
+    public static GraphFieldRule ResetGameExecutionContext { get; } = new(
+        "field.game_execution_context",
+        field =>
+            typeof(AttackCommand).IsAssignableFrom(field.FieldType) ||
+            typeof(AttackContext).IsAssignableFrom(field.FieldType) ||
+            typeof(PlayerChoiceContext).IsAssignableFrom(field.FieldType) ||
+            typeof(GameAction).IsAssignableFrom(field.FieldType),
+        GraphFieldAction.Reset);
+
+    /// <summary>Opt-in omission of asynchronous work, cancellation sources and running animations.</summary>
+    public static GraphFieldRule ResetRuntimeExecutionState { get; } = new(
+        "field.runtime_execution_state",
+        field =>
+            typeof(Task).IsAssignableFrom(field.FieldType) ||
+            typeof(TaskCompletionSource).IsAssignableFrom(field.FieldType) ||
+            GraphTypeTraits.IsOrDerivesFromGeneric(field.FieldType, typeof(TaskCompletionSource<>)) ||
+            typeof(CancellationTokenSource).IsAssignableFrom(field.FieldType) ||
+            typeof(Godot.Tween).IsAssignableFrom(field.FieldType),
+        GraphFieldAction.Reset);
+
+    private static bool IsVisualResource(Type type) =>
+        typeof(Godot.Texture).IsAssignableFrom(type) ||
+        typeof(Godot.Material).IsAssignableFrom(type) ||
+        typeof(Godot.Shader).IsAssignableFrom(type) ||
+        typeof(Godot.Font).IsAssignableFrom(type);
 }

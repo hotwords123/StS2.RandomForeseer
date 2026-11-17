@@ -44,6 +44,20 @@ internal static partial class GraphTypeTraits
     public static bool RequiresNonGenericAccess(Type type) =>
         type.IsPointer || type.IsFunctionPointer || type.IsByRef || type.IsByRefLike;
 
+    /// <summary>Whether a type or one of its base types matches the given generic type definition.</summary>
+    public static bool IsOrDerivesFromGeneric(Type type, Type genericDefinition)
+    {
+        for (var current = type; current != null; current = current.BaseType)
+        {
+            if (current.IsGenericType && current.GetGenericTypeDefinition() == genericDefinition)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>Whether ordinary instance fields cannot establish the type's complete state or lifecycle.</summary>
     public static bool IsOpaque(Type type)
     {

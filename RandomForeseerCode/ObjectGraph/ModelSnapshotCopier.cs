@@ -33,7 +33,15 @@ internal static class ModelSnapshotCopier
                     typeof(IRunState).IsAssignableFrom(type) ||
                     typeof(ICombatState).IsAssignableFrom(type) ||
                     typeof(CardPile).IsAssignableFrom(type),
-                GraphReferenceStrategy.Share)
+                GraphReferenceStrategy.Share),
+            CommonGraphRules.ShareVisualResource
+        ],
+        fieldRules:
+        [
+            CommonGraphRules.KeepVisualResource,
+            CommonGraphRules.ResetGodotObject,
+            CommonGraphRules.ResetGameExecutionContext,
+            CommonGraphRules.ResetRuntimeExecutionState
         ],
         referenceFallback: GraphReferenceStrategy.Clone,
         valueFallback: GraphValueAction.Fields);
