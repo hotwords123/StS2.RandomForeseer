@@ -1,22 +1,42 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common.Mirrors;
 
 namespace RandomForeseer.InCombat.Mirrors.Hooks.Damage;
 
-// The new pre-block pet domain is deferred. Detect overrides through the ordinary registry so
-// predictions surface a risk instead of calling a live-state redirection method or silently omitting it.
+using Registry = MethodMirrorRegistry<AbstractModel, ModifyPreBlockDamageTargetMirrorContext>;
+
 internal static class ModifyPreBlockDamageTargetMirrors
 {
-    private static readonly MethodMirrorRegistry<AbstractModel, ModifyPreBlockDamageTargetMirrorContext> Registry = new(
-        MirrorMethodSpec.Hook(
-            nameof(AbstractModel.ModifyPreBlockDamageTarget),
-            [typeof(Creature), typeof(Creature), typeof(decimal), typeof(ValueProp), typeof(Creature)]));
+    private static readonly MirrorMethodSpec Method = MirrorMethodSpec.Hook(
+        nameof(AbstractModel.ModifyPreBlockDamageTarget),
+        [typeof(Creature), typeof(Creature), typeof(decimal), typeof(ValueProp), typeof(Creature)]);
+
+    private static readonly Registry Registry = CreateRegistry();
 
     public static void Invoke(AbstractModel listener, ModifyPreBlockDamageTargetMirrorContext context)
     {
         Registry.Invoke(listener, context);
+    }
+
+    private static Registry CreateRegistry()
+    {
+        var registry = new Registry(Method);
+        registry.Register<WuppysLoyaltyPower>(HandleWuppysLoyaltyPower);
+        return registry;
+    }
+
+    private static void HandleWuppysLoyaltyPower(
+        WuppysLoyaltyPower power,
+        ModifyPreBlockDamageTargetMirrorContext context)
+    {
+        if (context.OriginalTarget == power.Owner.PetOwner?.Creature &&
+            context.State.GetCreature(power.Owner).IsAlive && context.Props.IsPoweredAttack())
+        {
+            context.Target = power.Owner;
+        }
     }
 }
 

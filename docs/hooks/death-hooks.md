@@ -24,6 +24,10 @@ Death dispatch carries the nullable source card. Damage-induced kills forward th
 batch kills and secondary-enemy cleanup into `AfterDeathMirrorContext.Source`; explicit non-card kills keep a null
 source. Existing handled listeners do not depend on this argument.
 
+Wuppy's pre-block damage result uses this same death dispatch. The original `WuppysLoyaltyPower` removal predicate
+retains the dead pet in combat, and its loyalty power remains present. Shadow HP disables subsequent redirection
+and hittability; no additional pet removal or power-collection mutation is needed for this case.
+
 ## BeforeDeath listeners
 
 | Model | 中文名 | Original effect | Current mirror status |

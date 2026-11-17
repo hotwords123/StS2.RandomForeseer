@@ -119,15 +119,35 @@ internal sealed partial class CombatPredictionSimulator
             cardSource);
 
         var blockTarget = originalTarget.PetOwner?.Creature ?? originalTarget;
-        // TODO: support block redirection hooks for pets
-        _ = HookMirrors.ModifyPreBlockDamageTarget(this, originalTarget, amount, props, dealer);
+        var preBlockTarget = HookMirrors.ModifyPreBlockDamageTarget(this, originalTarget, amount, props, dealer);
+        var damageRemaining = modifiedAmount;
+        List<DamageResult> damageResults = [];
+        if (preBlockTarget != null)
+        {
+            var preBlockDamage = HookMirrors.ModifyHpLost(
+                this,
+                originalTarget,
+                damageRemaining,
+                props,
+                dealer,
+                cardSource,
+                HpLossHookPhase.BeforeWuppy,
+                out _);
+            var preBlockResult = State.GetCreature(preBlockTarget).LoseHp(preBlockDamage, props);
+            preBlockResult.IntendedHpLoss = (int)damageRemaining;
+            preBlockResult.OriginalTarget = originalTarget;
+            damageResults.Add(preBlockResult);
+            damageRemaining = preBlockResult.OverkillDamage;
+        }
+
         var blockTargetState = State.GetCreature(blockTarget);
-        var blockedDamage = blockTargetState.DamageBlock(modifiedAmount, props);
+        var blockedDamage = blockTargetState.DamageBlock(damageRemaining, props);
+        damageRemaining = Math.Max(damageRemaining - blockedDamage, 0m);
 
         var unblockedDamage = HookMirrors.ModifyHpLost(
             this,
             originalTarget,
-            Math.Max(modifiedAmount - blockedDamage, 0m),
+            damageRemaining,
             props,
             dealer,
             cardSource,
@@ -155,8 +175,8 @@ internal sealed partial class CombatPredictionSimulator
         var unblockedDamageTargetState = State.GetCreature(unblockedDamageTarget);
         var unblockedDamageResult = unblockedDamageTargetState.LoseHp(unblockedDamage, props);
         unblockedDamageResult.OriginalTarget = originalTarget;
-        unblockedDamageResult.IntendedHpLoss = (int)Math.Max(modifiedAmount - blockedDamage, 0m);
-        List<DamageResult> damageResults = [unblockedDamageResult];
+        unblockedDamageResult.IntendedHpLoss = (int)damageRemaining;
+        damageResults.Add(unblockedDamageResult);
 
         var wasBlockBroken = originalTargetState.Block <= 0 && blockedDamage > 0m;
         var wasFullyBlocked = !props.HasFlag(ValueProp.Unblockable) &&

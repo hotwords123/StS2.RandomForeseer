@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 using RandomForeseer.Common.Mirrors;
+using Models = MegaCrit.Sts2.Core.Models;
 
 namespace RandomForeseer.InCombat.Mirrors.Hooks.Damage;
 
@@ -33,6 +34,7 @@ internal static class AfterCurrentHpChangedMirrors
         registry.Register<RedSkull>(HandleRedSkull);
         registry.Register<NecroMasteryPower>(HandleNecroMasteryPower);
         registry.RegisterIgnored<MeatOnTheBone>();
+        registry.RegisterIgnored<Models.Relics.Wuppy>();
 
         return registry;
     }

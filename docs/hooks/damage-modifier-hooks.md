@@ -30,7 +30,7 @@ This document covers the read-only damage modifier path used by `CombatPredictio
 12. If damage was redirected, `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for original-target overkill damage
 13. `Hook.AfterModifyingHpLostAfterOsty(..., modifiers)`
 
-The simulator mirrors the supported value-producing passes, detects unsupported pre-block redirection, and
+The simulator mirrors the supported value-producing passes, including Wuppy's pre-block damage redirection, and
 dispatches `AfterModifyingHpLostAfterOsty` to the exact
 modifiers returned by the corresponding value pass. The other `AfterModifying*` hooks are currently omitted because
 their reviewed vanilla listeners are visual only.
@@ -157,10 +157,20 @@ The original hook directly enumerates combat listeners without an ending guard, 
 target from an initial null value. The facade accepts the original target, unmodified damage amount, props and
 dealer, and returns the context's nullable pre-block target.
 
-The pet redirection domain is deferred. Every override is detected by an empty action registry and records
-unsupported risk; no live redirection method is invoked. The current result remains null and is discarded by the
-damage caller until pre-block pet HP loss, overkill and lifecycle handling are implemented. It does not replace the
-existing block target. A forecast with such a listener is explicitly incomplete.
+`WuppysLoyaltyPower` / 瓦皮的忠诚 has an exact adapter: powered attacks against its owner's player creature
+redirect to Wuppy while its shadow HP is positive. A listener that does not redirect preserves the previous
+nullable target; unregistered overrides retain unsupported risk.
+
+The simulator applies the BeforeWuppy HP-loss phase to the original target, then deducts HP from the returned
+pre-block target. Only that result's overkill reaches the existing block target, BeforeOsty, Osty redirection and
+AfterOsty passes. Damage modifiers and BeforeDamageReceived still run once for the original target. The pet result
+preserves OriginalTarget and IntendedHpLoss, joins damage history before the later results, and enters the shared
+post-damage/death dispatch. For example, 20 damage against a player with 8-HP Wuppy and 5 Block consumes Wuppy's
+8 HP, then the player's 5 Block, leaving 7 damage for Osty or the player.
+
+Wuppy's death retains its creature and loyalty power under the original removal predicates. Subsequent hits
+observe zero shadow HP and stop redirecting. Combat-start summoning, relic counter persistence and rest-site
+recovery remain outside this current-combat damage path; prediction starts from the existing pet's HP.
 
 ## ModifyUnblockedDamageTarget listeners
 
@@ -184,7 +194,7 @@ prediction-state-aware mirror retains Mod listeners so Mod damage semantics rema
 | `AdaptablePower` | 适者生存 | Rejects the owner while reviving. | Original predicate; simulated revive/transition remains unsupported and is reported by death hooks. |
 | `IllusionPower` | 幻象 | Rejects the owner while reviving. | Original predicate; simulated revive/transition remains unsupported and is reported by death hooks. |
 | `ReattachPower` | 接续 | Rejects the owner while reviving. | Original predicate; simulated revive/transition remains unsupported and is reported by death hooks. |
-| `WuppysLoyaltyPower` | 瓦皮的忠诚 | Rejects any dead queried creature for hitting/power receipt. | Exact adapter reads queried-creature shadow liveness; its separate pre-block pet redirection and overkill domain remain deferred. |
+| `WuppysLoyaltyPower` | 瓦皮的忠诚 | Rejects any dead queried creature for hitting/power receipt. | Exact adapter reads queried-creature shadow liveness; pre-block redirection also stops after shadow death. |
 
 ## AfterModifying listeners
 

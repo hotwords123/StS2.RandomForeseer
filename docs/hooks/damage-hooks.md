@@ -15,7 +15,7 @@ Damage hooks use the current player-turn prediction scope from `overview.md`: on
 
 `Damage` checks the dealer's shadow liveness once at entry, matching `CreatureCmd.Damage`'s entry guard. A dealer
 killed by an earlier simulated action cannot deal damage in a later call; the current call still finishes its original
-target loop if a nested response kills the dealer. Osty redirection also reads shadow liveness; see
+target loop if a nested response kills the dealer. Wuppy and Osty redirection also read shadow liveness; see
 `damage-modifier-hooks.md`.
 
 ## Hook specs
@@ -46,6 +46,7 @@ target loop if a nested response kills the dealer. Osty redirection also reads s
 | --- | --- | --- | --- |
 | `Crusher` | 碾碎爪 | Plays hurt animation on own HP loss. | Ignorable. VFX only. |
 | `Rocket` | 火箭 | Plays hurt animation on own HP loss. | Ignorable. VFX only. |
+| `Wuppy` | 瓦皮 | Copies pet HP into the relic counter and saved HP. | Ignored in current-combat prediction; pet HP is already maintained by SimCreatureState and used for subsequent redirection. |
 | `RedSkull` | 红头骨 | Applies/removes Strength when owner's HP crosses threshold. | Marked risky when the shadow HP threshold would require applying/removing Strength. Apply/remove Power unsupported. |
 | `NecroMasteryPower` | 亡灵精通 | When owner's Osty loses HP, damages enemies based on HP lost. | Implemented with simulator `Damage` against current shadow hittable enemies. |
 | `MeatOnTheBone` | 带骨肉 | Updates active status based on owner's HP threshold. | Ignorable for current predictions; heal is room-end/start behavior, not damage-chain effect. |

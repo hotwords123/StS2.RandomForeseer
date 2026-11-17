@@ -10,7 +10,7 @@ using RandomForeseer.Tests.Infrastructure;
 namespace RandomForeseer.Tests.Combat;
 
 /// <summary>
-/// Verifies <see cref="DieForYouPower"/> damage redirection and simulated liveness checks,
+/// Verifies <see cref="DieForYouPower"/> and <see cref="WuppysLoyaltyPower"/> damage redirection and simulated liveness checks,
 /// plus <see cref="IntangiblePower"/> and <see cref="BeatingRemnant"/> HP-loss caps through
 /// <see cref="ModifyHpLostMirrors"/> across the simulated combat boundary.
 /// </summary>
@@ -18,16 +18,21 @@ namespace RandomForeseer.Tests.Combat;
 [Collection(GameTestCollection.Name)]
 public sealed class HpLossTests : GameTestBase
 {
-    [Fact]
-    public void OstyRedirectsOnlyPoweredOwnerDamageWhileAliveInPrediction()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PetsRedirectOnlyPoweredOwnerDamageWhileAliveInPrediction(bool beforeBlock)
     {
         using var combat = new TestCombat();
         var pet = new Creature(null!, 10, 10) { CombatState = combat.Player.Creature.CombatState };
         pet._petOwner = combat.Player;
-        combat.Proxy.Listeners = [combat.ArrangePower<DieForYouPower>(pet, 1)];
+        combat.Proxy.Listeners = [beforeBlock
+            ? combat.ArrangePower<WuppysLoyaltyPower>(pet, 1)
+            : combat.ArrangePower<DieForYouPower>(pet, 1)];
         combat.BeginPrediction();
-        Creature Target(Creature target, ValueProp props) => HookMirrors.ModifyUnblockedDamageTarget(
-            combat.Simulator, target, 8, props, combat.Enemy);
+        Creature Target(Creature target, ValueProp props) => beforeBlock
+            ? HookMirrors.ModifyPreBlockDamageTarget(combat.Simulator, target, 8, props, combat.Enemy) ?? target
+            : HookMirrors.ModifyUnblockedDamageTarget(combat.Simulator, target, 8, props, combat.Enemy);
         Assert.Same(pet, Target(combat.Player.Creature, ValueProp.Move));
         Assert.Same(combat.Player.Creature, Target(combat.Player.Creature, ValueProp.Unpowered));
         Assert.Same(combat.OtherPlayer.Creature, Target(combat.OtherPlayer.Creature, ValueProp.Move));
