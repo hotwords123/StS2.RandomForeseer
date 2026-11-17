@@ -62,10 +62,10 @@ This covers `Comet`, `FallingStar`, `GammaBlast`, `Uppercut`, `KnowThyPlace`, `P
 registrations. Meteor Shower's two group applications retain Weak on all enemies before Vulnerable on all enemies.
 Inference does not reconstruct per-target loops; Shockwave requires an exact mirror to preserve that different order.
 
-Inferred execution also has a runtime exception boundary for Mod-defined or otherwise unexpected dynamic-var shapes.
-It logs and captures the exception, stops the remaining inferred `OnPlay` actions, and allows the surrounding shadow
-card-play lifecycle to continue. The registry records `MethodMirrorIncomplete` before entering the inferred handler,
-so a contained failure remains visible as prediction risk.
+Exceptions during inferred execution propagate to the calling prediction boundary, which logs and captures the
+original failure and clears the prediction. This stops the surrounding shadow card-play lifecycle and prevents
+partially simulated history, such as a draw whose result snapshot failed, from reaching projection. Original IL
+inspection failures are caught before execution and leave the card without an inferred handler.
 
 The owner-draw matcher accepts the two-argument one-card overload and the four-argument overload when the count is a
 decimal constant of one, direct `DynamicVars.Cards.BaseValue`/`IntValue`, or the compiler-generated async state field

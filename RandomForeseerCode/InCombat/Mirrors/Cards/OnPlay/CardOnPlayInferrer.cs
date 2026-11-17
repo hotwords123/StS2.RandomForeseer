@@ -99,21 +99,9 @@ internal static class CardOnPlayInferrer
 
         return (card, context) =>
         {
-            try
+            foreach (var action in actions)
             {
-                foreach (var action in actions)
-                {
-                    action(card, context);
-                }
-            }
-            catch (Exception ex)
-            {
-                Entry.Logger.Warn($"Inferred card mirror failed for {card.Id}: {ex}");
-                ModTelemetry.CaptureException(
-                    ex,
-                    "card_on_play_inferrer",
-                    "execute_inferred_mirror",
-                    TelemetryContext.ForModel(card));
+                action(card, context);
             }
         };
     }
