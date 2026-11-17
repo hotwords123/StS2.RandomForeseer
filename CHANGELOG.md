@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- 预测偏移提示新增关闭、精简和全部三档，默认使用精简模式，减少未完整模拟效果的警告。<br>
+  Added Off, Reduced, and All levels for prediction drift warnings, with Reduced as the default to hide warnings about incompletely simulated effects.
+
 ## v0.15.3
 
 ### feat

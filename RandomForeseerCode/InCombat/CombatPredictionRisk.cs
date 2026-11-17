@@ -19,6 +19,8 @@ internal sealed class CombatPredictionRisk(IReadOnlyList<CombatPredictionRiskEnt
 
     public override bool HasRisk => Entries.Count > 0;
 
+    public override bool HasVisibleRisk => Entries.Any(static entry => ShouldShow(entry.Reason));
+
     protected override IReadOnlyList<IHoverTip> GetHoverTips()
     {
         List<AbstractModel?> incompleteModels = [];
@@ -28,6 +30,11 @@ internal sealed class CombatPredictionRisk(IReadOnlyList<CombatPredictionRiskEnt
 
         foreach (var entry in Entries)
         {
+            if (!ShouldShow(entry.Reason))
+            {
+                continue;
+            }
+
             switch (entry.Reason)
             {
                 case PredictionRiskReason.MethodNotMirrored:

@@ -5,7 +5,7 @@ namespace RandomForeseer.Data;
 
 internal sealed class ModSettings
 {
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     public static ModSettings Default { get; } = new();
 
@@ -16,9 +16,10 @@ internal sealed class ModSettings
     public bool SingleplayerPredictionEnabled { get; set; } = true;
     public bool MultiplayerPredictionEnabled { get; set; } = true;
     public bool FairModeEnabled { get; set; } = true;
-    public bool ShowDriftWarnings { get; set; }
 
     // HoverTip presentation settings
+    public PredictionDriftWarningLevel PredictionDriftWarningLevel { get; set; } =
+        PredictionDriftWarningLevel.Reduced;
     public PredictionHoverTipOrder PredictionTextHoverTipOrder { get; set; } =
         PredictionHoverTipOrder.BeforeVanilla;
     public PredictionHoverTipOrder PredictionCardHoverTipOrder { get; set; } =
@@ -107,6 +108,13 @@ internal enum EndTurnPredictionDisplayMode
 {
     EndTurnButtonHover,
     AlwaysDuringPlayerTurn
+}
+
+internal enum PredictionDriftWarningLevel
+{
+    Off,
+    Reduced,
+    All
 }
 
 internal enum PredictionHoverTipOrder

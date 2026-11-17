@@ -16,8 +16,6 @@
   "toggle.multiplayer_prediction_enabled.description": "When disabled, prediction results are hidden in multiplayer even if individual prediction settings are enabled.",
   "toggle.fair_mode_enabled.label": "Enable fair mode",
   "toggle.fair_mode_enabled.description": "When enabled, predictions are limited to information you could obtain by saving and reloading. In singleplayer, Ancient relics such as [gold]New Leaf[/gold] and [gold]Astrolabe[/gold] do not show predictions because their choices cannot be revisited by reloading. Card-generating potions likewise cannot be previewed outside combat.",
-  "toggle.show_drift_warnings.label": "Show prediction drift warnings",
-  "toggle.show_drift_warnings.description": "When enabled, predictions that may be shifted by side effects show a warning tooltip.",
 
   "section.prediction_page_navigation.title": "Detailed prediction settings",
   "section.prediction_page_navigation.description": "Open a page to configure individual prediction features in or out of combat.",
@@ -25,6 +23,11 @@
 
   "section.hover_tip_presentation.title": "Tooltips",
   "section.hover_tip_presentation.description": "Configure how prediction tooltips are displayed.",
+  "choice.prediction_drift_warning_level.label": "Prediction drift warnings",
+  "choice.prediction_drift_warning_level.description": "Controls which prediction drift warnings are shown. Reduced mode only shows factors known to potentially affect prediction results.",
+  "choice.prediction_drift_warning_level.option.Off": "Off",
+  "choice.prediction_drift_warning_level.option.Reduced": "Reduced",
+  "choice.prediction_drift_warning_level.option.All": "All",
   "choice.prediction_text_hover_tip_order.label": "Prediction text tooltip order",
   "choice.prediction_text_hover_tip_order.description": "Controls whether prediction text tooltips appear before or after base-game text tooltips, including prediction tooltips for potions, relics, and more.",
   "choice.prediction_text_hover_tip_order.option.BeforeVanilla": "Before base-game tooltips",

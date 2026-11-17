@@ -48,7 +48,7 @@ internal static class CombatPredictionOverlay
                 }
             }
 
-            indicator.SetPrediction(target, risk.HasRisk);
+            indicator.SetPrediction(target, risk.HasVisibleRisk);
             indicator.SetHoverTips(getHoverTips?.Invoke(target.Target) ?? []);
         }
 

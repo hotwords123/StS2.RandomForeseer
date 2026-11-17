@@ -16,8 +16,6 @@
   "toggle.multiplayer_prediction_enabled.description": "关闭后，即使各分项开启，多人模式中也不会显示预测结果。",
   "toggle.fair_mode_enabled.label": "启用公平模式",
   "toggle.fair_mode_enabled.description": "启用后，只预测可以通过保存和读档（SL）获取的信息：[gold]新叶[/gold]、[gold]星盘[/gold]等单人模式下选择后无法 SL 的先古遗物不会显示预测结果，战斗外也无法预览印牌药水的内容等。",
-  "toggle.show_drift_warnings.label": "显示预测偏移警告",
-  "toggle.show_drift_warnings.description": "启用后，可能因副作用而偏移的预测会显示提示信息。",
 
   "section.prediction_page_navigation.title": "详细预测设置",
   "section.prediction_page_navigation.description": "打开对应页面，配置具体的局外和局内预测功能。",
@@ -25,6 +23,11 @@
 
   "section.hover_tip_presentation.title": "悬浮提示",
   "section.hover_tip_presentation.description": "配置预测悬浮提示的显示方式。",
+  "choice.prediction_drift_warning_level.label": "预测偏移提示",
+  "choice.prediction_drift_warning_level.description": "控制预测偏移提示的显示范围。设为精简时，只显示已知可能影响预测结果的因素。",
+  "choice.prediction_drift_warning_level.option.Off": "关闭",
+  "choice.prediction_drift_warning_level.option.Reduced": "精简",
+  "choice.prediction_drift_warning_level.option.All": "全部",
   "choice.prediction_text_hover_tip_order.label": "预测文本提示顺序",
   "choice.prediction_text_hover_tip_order.description": "控制预测文本提示显示在原版文本提示之前还是之后，也适用于药水、遗物等预测提示。",
   "choice.prediction_text_hover_tip_order.option.BeforeVanilla": "原版之前",

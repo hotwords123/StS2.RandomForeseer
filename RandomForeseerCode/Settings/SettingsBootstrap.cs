@@ -26,8 +26,7 @@ internal static class SettingsBootstrap
                 .WithDescription(T("section.general_prediction.description"))
                 .AddToggle("singleplayer_prediction_enabled", SettingsUiBindings.SingleplayerPredictionEnabled)
                 .AddToggle("multiplayer_prediction_enabled", SettingsUiBindings.MultiplayerPredictionEnabled)
-                .AddToggle("fair_mode_enabled", SettingsUiBindings.FairModeEnabled)
-                .AddToggle("show_drift_warnings", SettingsUiBindings.ShowDriftWarnings))
+                .AddToggle("fair_mode_enabled", SettingsUiBindings.FairModeEnabled))
             .AddSection("prediction_page_navigation", section => section
                 .WithTitle(T("section.prediction_page_navigation.title"))
                 .WithDescription(T("section.prediction_page_navigation.description"))
@@ -36,6 +35,7 @@ internal static class SettingsBootstrap
             .AddSection("hover_tip_presentation", section => section
                 .WithTitle(T("section.hover_tip_presentation.title"))
                 .WithDescription(T("section.hover_tip_presentation.description"))
+                .AddEnumChoice("prediction_drift_warning_level", SettingsUiBindings.PredictionDriftWarningLevel)
                 .AddEnumChoice("prediction_text_hover_tip_order", SettingsUiBindings.PredictionTextHoverTipOrder)
                 .AddEnumChoice("prediction_card_hover_tip_order", SettingsUiBindings.PredictionCardHoverTipOrder))
             .AddSection("compatibility", section => section

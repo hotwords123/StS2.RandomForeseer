@@ -7,7 +7,6 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Cards;
-using RandomForeseer.Data;
 using MegaCrit.Sts2.Core.Assets;
 
 namespace RandomForeseer.InCombat.Nodes;
@@ -185,7 +184,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
             ? $"{totalDamage}({totalUnblockedDamage})"
             : totalDamage.ToString();
 
-        return hasRisk && ModData.Settings.ShowDriftWarnings ? $"{amountText}*" : amountText;
+        return hasRisk ? $"{amountText}*" : amountText;
     }
 
     private static Texture2D GetIcon(AbstractModel source)

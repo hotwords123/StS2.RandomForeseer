@@ -32,7 +32,7 @@ internal sealed class ModSettingsV0ToV1Migration : IMigration
         ("EnableSingleplayerPrediction", nameof(ModSettings.SingleplayerPredictionEnabled)),
         ("EnableMultiplayerPrediction", nameof(ModSettings.MultiplayerPredictionEnabled)),
         ("EnableFairMode", nameof(ModSettings.FairModeEnabled)),
-        ("EnableDriftWarnings", nameof(ModSettings.ShowDriftWarnings)),
+        ("EnableDriftWarnings", "ShowDriftWarnings"),
         ("EnableTransformPrediction", nameof(ModSettings.DeckTransformPredictionEnabled)),
         ("EnableRelicPickupPrediction", nameof(ModSettings.RelicPickupPredictionEnabled)),
         ("EnableEventOptionPrediction", nameof(ModSettings.EventOptionPredictionEnabled)),

@@ -11,7 +11,7 @@ internal sealed class ModSettingsV2ToV3Migration : IMigration
 
     public bool Migrate(JsonObject data)
     {
-        data[nameof(ModSettings.ShowDriftWarnings)] = false;
+        data["ShowDriftWarnings"] = false;
         return true;
     }
 }

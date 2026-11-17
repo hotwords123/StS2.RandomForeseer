@@ -18,20 +18,31 @@ internal abstract class PredictionRisk
 
     public abstract bool HasRisk { get; }
 
+    public abstract bool HasVisibleRisk { get; }
+
     /// <summary>Creates the presentation tips for this risk snapshot.</summary>
-    public IEnumerable<IHoverTip> ToHoverTips()
+    public IEnumerable<IHoverTip> ToHoverTips() => HasVisibleRisk ? GetHoverTips() : [];
+
+    protected static bool ShouldShow(PredictionRiskReason reason)
     {
-        return HasRisk && ModData.Settings.ShowDriftWarnings
-            ? GetHoverTips()
-            : [];
+        return ModData.Settings.PredictionDriftWarningLevel switch
+        {
+            PredictionDriftWarningLevel.Off => false,
+            PredictionDriftWarningLevel.Reduced => reason is not
+                (PredictionRiskReason.MethodNotMirrored or PredictionRiskReason.MethodMirrorIncomplete),
+            PredictionDriftWarningLevel.All => true,
+            _ => false
+        };
     }
 
-    protected abstract IEnumerable<IHoverTip> GetHoverTips();
+    protected abstract IReadOnlyList<IHoverTip> GetHoverTips();
 
     private sealed class EmptyPredictionRisk : PredictionRisk
     {
         public override bool HasRisk => false;
 
-        protected override IEnumerable<IHoverTip> GetHoverTips() => [];
+        public override bool HasVisibleRisk => false;
+
+        protected override IReadOnlyList<IHoverTip> GetHoverTips() => [];
     }
 }

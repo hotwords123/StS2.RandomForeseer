@@ -15,10 +15,10 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> FairModeEnabled { get; } =
         Binding(s => s.FairModeEnabled, (s, v) => s.FairModeEnabled = v);
 
-    public static IModSettingsValueBinding<bool> ShowDriftWarnings { get; } =
-        Binding(s => s.ShowDriftWarnings, (s, v) => s.ShowDriftWarnings = v);
-
     // HoverTip presentation settings
+    public static IModSettingsValueBinding<PredictionDriftWarningLevel> PredictionDriftWarningLevel { get; } =
+        Binding(s => s.PredictionDriftWarningLevel, (s, v) => s.PredictionDriftWarningLevel = v);
+
     public static IModSettingsValueBinding<PredictionHoverTipOrder> PredictionTextHoverTipOrder { get; } =
         Binding(s => s.PredictionTextHoverTipOrder, (s, v) => s.PredictionTextHoverTipOrder = v);
 
