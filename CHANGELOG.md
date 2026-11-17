@@ -9,6 +9,9 @@
 
 ### fix
 
+- 修复魔术师的随机充能球预测结果未显示的问题。<br>
+  Fixed missing predictions for the random orbs channeled by The Magician.
+
 - 修复与部分特效或角色 Mod 一起使用时，战斗预测可能失效的问题。<br>
   Fixed combat predictions potentially failing when used with certain visual effects or character mods.
 

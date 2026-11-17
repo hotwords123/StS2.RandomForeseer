@@ -288,7 +288,7 @@ internal sealed class CombatPredictionProjector
     private CombatPredictionHistoryEntry? HandleOrbChanneled(CombatPredictionOrbChanneledEntry entry)
     {
         // Deterministic channels are already described by their source; only random orb identities need a tip.
-        if (entry.Trace!.Source is not (Chaos or TrashToTreasurePower))
+        if (entry.Trace!.Source is not (Chaos or TrashToTreasurePower or TheMagician))
         {
             return null;
         }
