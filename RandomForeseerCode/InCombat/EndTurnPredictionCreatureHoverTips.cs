@@ -14,7 +14,7 @@ internal static class EndTurnPredictionCreatureHoverTips
 
     private static readonly Dictionary<Creature, IReadOnlyList<IHoverTip>> TipsByTarget = [];
 
-    public static void Set(DamagePrediction prediction, PredictionRisk risk)
+    public static void Set(DamagePrediction prediction, IPredictionRisk risk)
     {
         TipsByTarget.Clear();
 

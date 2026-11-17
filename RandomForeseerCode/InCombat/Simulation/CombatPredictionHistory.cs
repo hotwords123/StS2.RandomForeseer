@@ -39,7 +39,7 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
     /// Aggregates risk through the latest supplied relevant entry.
     /// </summary>
     /// <remarks>Every supplied entry is expected to belong to this history; an empty sequence yields no risk.</remarks>
-    public PredictionRisk GetRisk(IEnumerable<CombatPredictionHistoryEntry> entries)
+    public IPredictionRisk GetRisk(IEnumerable<CombatPredictionHistoryEntry> entries)
     {
         CombatPredictionHistoryEntry? lastEntry = null;
         foreach (var entry in entries)
@@ -52,16 +52,16 @@ internal sealed class CombatPredictionHistory(PredictionTrace trace)
         }
 
         return lastEntry is null
-            ? PredictionRisk.None
+            ? EmptyPredictionRisk.Instance
             : GetRiskThrough(lastEntry.Index);
     }
 
     /// <summary>
     /// Aggregates risk through the current end of the timeline.
     /// </summary>
-    public PredictionRisk GetCurrentRisk()
+    public IPredictionRisk GetCurrentRisk()
     {
-        return _entries.Count == 0 ? PredictionRisk.None : GetRiskThrough(_entries.Count - 1);
+        return _entries.Count == 0 ? EmptyPredictionRisk.Instance : GetRiskThrough(_entries.Count - 1);
     }
 
     public void RecordRisk(PredictionRiskReason reason)

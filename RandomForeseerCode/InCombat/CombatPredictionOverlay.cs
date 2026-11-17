@@ -25,7 +25,7 @@ internal static class CombatPredictionOverlay
     /// </summary>
     public static void Show(
         DamagePrediction prediction,
-        PredictionRisk risk,
+        IPredictionRisk risk,
         Func<Creature, IEnumerable<IHoverTip>>? getHoverTips = null)
     {
         var staleTargets = Indicators.Keys

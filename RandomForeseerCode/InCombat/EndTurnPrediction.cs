@@ -37,7 +37,7 @@ internal static class EndTurnPrediction
 /// </summary>
 internal sealed record EndTurnPredictionResult(
     DamagePrediction DamagePrediction,
-    PredictionRisk Risk)
+    IPredictionRisk Risk)
 {
     /// <summary>
     /// Projects all damage entries from a completed end-turn simulation and derives their shared risk boundary.

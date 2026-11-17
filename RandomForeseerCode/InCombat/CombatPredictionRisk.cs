@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.Common;
 using RandomForeseer.Common.HoverTips;
+using RandomForeseer.Data;
 using RandomForeseer.InCombat.Extensions;
 using RandomForeseer.InCombat.Simulation;
 using RandomForeseer.Localization;
@@ -11,17 +12,17 @@ namespace RandomForeseer.InCombat;
 /// <summary>
 /// Preserves combat risk entries through a projection boundary and creates their compact player warning.
 /// </summary>
-internal sealed class CombatPredictionRisk(IReadOnlyList<CombatPredictionRiskEntry> entries) : PredictionRisk
+internal sealed class CombatPredictionRisk(IReadOnlyList<CombatPredictionRiskEntry> entries) : IPredictionRisk
 {
     private const int MaxModelNamesPerLine = 2;
 
     public IReadOnlyList<CombatPredictionRiskEntry> Entries { get; } = entries;
 
-    public override bool HasRisk => Entries.Count > 0;
+    public bool HasRisk => Entries.Count > 0;
 
-    public override bool HasVisibleRisk => Entries.Any(static entry => ShouldShow(entry.Reason));
+    public bool HasVisibleRisk => Entries.Any(static entry => entry.Reason.ShouldShow(ModData.Settings));
 
-    protected override IReadOnlyList<IHoverTip> GetHoverTips()
+    public IReadOnlyList<IHoverTip> ToHoverTips()
     {
         List<AbstractModel?> incompleteModels = [];
         List<AbstractModel?> playerChoiceModels = [];
@@ -30,7 +31,7 @@ internal sealed class CombatPredictionRisk(IReadOnlyList<CombatPredictionRiskEnt
 
         foreach (var entry in Entries)
         {
-            if (!ShouldShow(entry.Reason))
+            if (!entry.Reason.ShouldShow(ModData.Settings))
             {
                 continue;
             }
@@ -77,6 +78,11 @@ internal sealed class CombatPredictionRisk(IReadOnlyList<CombatPredictionRiskEnt
         if (orbChannelLimitExceeded)
         {
             lines.Add(ModLocalization.Text("drift_warning.orb_channel_limit").GetFormattedText());
+        }
+
+        if (lines.Count == 0)
+        {
+            return [];
         }
 
         var tip = PredictionHoverTipFactory.Text("drift_warning", description =>

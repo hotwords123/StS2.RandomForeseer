@@ -47,7 +47,7 @@ internal sealed partial class CombatPredictionSimulator
         History = new CombatPredictionHistory(_trace);
     }
 
-    public PredictionRisk Snapshot()
+    public IPredictionRisk Snapshot()
     {
         return History.GetCurrentRisk();
     }

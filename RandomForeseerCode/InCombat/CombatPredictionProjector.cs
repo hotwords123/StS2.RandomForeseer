@@ -22,7 +22,7 @@ internal sealed record CombatPredictionProjection(
     IReadOnlyList<IHoverTip> HoverTips,
     DamagePrediction DamagePrediction,
     IReadOnlySet<CardModel> HighlightedCards,
-    PredictionRisk Risk);
+    IPredictionRisk Risk);
 
 /// <summary>
 /// Streams a completed combat prediction history into the enabled HoverTip, damage, highlight, causal, and risk views.

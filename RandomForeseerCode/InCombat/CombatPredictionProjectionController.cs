@@ -48,7 +48,7 @@ internal static class CombatPredictionProjectionController
         EndTurnPredictionController.SetActionDamageOverride(false);
     }
 
-    private static void ShowDamagePrediction(DamagePrediction damagePrediction, PredictionRisk risk)
+    private static void ShowDamagePrediction(DamagePrediction damagePrediction, IPredictionRisk risk)
     {
         if (!damagePrediction.HasTargets)
         {
