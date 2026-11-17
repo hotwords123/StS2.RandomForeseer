@@ -1,36 +1,43 @@
 # 遥测
 
-## 启动快照与设置
+本文面向维护遥测采集和查询线上事件的开发者，说明客户端事件结构、查询约定与过滤规则。线上查询及服务端操作前，先阅读 [网关文档](../services/docs/telemetry-gateway.md) 的当前部署状态和“多个 PostHog CLI 身份”，选择对应项目的查询入口；部署、项目切换和验收也以该文档为准。
 
-当前注册 `mod_inventory` 和 `diagnostics` 两个申请项，用户通过 RitsuLib 按申请方整体同意或拒绝。
+## 事件结构与查询约定
 
-- `mod_inventory`：获授权后发送一次启动快照，包含游戏与 Mod 版本、运行环境、匿名安装 ID、会话 ID、启动快照时间、Mod 数量统计、完整 Mod 清单及本 Mod 设置；设置位于 `payload.private_contributions.RandomForeseer.settings_snapshot`。
-- `exception`：发送与本 Mod 相关的异常消息、堆栈及诊断上下文。
-- `godot_engine_error`：发送与本 Mod 相关的 Godot 引擎错误及堆栈。
+Random Foreseer 作为 RitsuLib 的遥测申请方，通过 PostHog batch adapter 的 `/batch/` 上报普通事件。查询使用 `events` 表及其 `event` 字段，并优先过滤 `properties['applicant_id'] = 'RandomForeseer'`；异常也按普通事件查询，无需使用 PostHog Error Tracking issue 接口。
+
+所有事件都带有 RitsuLib 信封通用属性，包括匿名安装 ID、telemetry session ID、RitsuLib/Mod 版本、游戏版本、平台、操作系统、架构、.NET runtime 和游戏语言，以及 `schema`、`applicant_id`、`owner_mod_id`、`request_id`、`category` 和 `random_foreseer_version`。结构化数据统一位于 `properties['payload']`；下文中的 `payload` 均指该属性。
+
+| 事件 | 授权请求 | 主要结构化数据 |
+| --- | --- | --- |
+| `mod_inventory` | `mod_inventory` | `payload.applicant_payload.captured_at_utc`、`payload.base_payload.mods` / `loaded_mods`、`payload.private_contributions.RandomForeseer.settings_snapshot` |
+| `exception` | `diagnostics` | `payload.applicant_payload.exception`，包含 `type`、`message`、`stack_trace` 和可递归的 `inner`，并附带 `framework_runtime` 快照 |
+| `godot_engine_error` | `diagnostics` | `payload.applicant_payload.engine_error`，其中 `script_backtrace` 和 `code` 用于调用链相关性判断 |
+
+`mod_inventory` 在首次主菜单建立启动快照后向已授权申请方回放一次，包含公共运行信息、完整 Mod 清单及本 Mod 设置，字段路径见上表。每个 Mod 条目包含 `id`、`name`、`version`、`state`、`source`、`affects_gameplay`、程序集信息、错误数量、安全化错误列表及可选的 `workshop_id`。
+
+启动快照的扁平属性包括 `capture_source = 'startup_snapshot'`、`startup_snapshot_at_utc`、`registered_mod_count`、`loaded_mod_count` 和 `gameplay_mod_count`；清单还提供 `disabled_mod_count`、`failed_mod_count` 和 `added_at_runtime_mod_count`。
 
 v0.15.1 及以前通过 `session_start` 单独发送基础使用信息和设置快照；v0.15.2 起合并至 `mod_inventory`，不再发送 `session_start`。
 
-## 诊断遥测过滤
+### 诊断事件属性
 
-`ModTelemetry.Register` 为 `diagnostics` 申请项注册 `ModTelemetryFilter.ShouldCapture`，使用 RitsuLib 0.5.14 新增的 `TelemetryRequest.WithCaptureFilter`。筛选发生在诊断 payload 构建和事件入队前；`ModTelemetryAdapter` 仅补充 `random_foreseer_version` 并转发，不再筛选发送队列。
+本项目通过 `ModTelemetry.CaptureException` 主动上报的异常带有 `capture_mode = 'manual'`、`capture_source = 'random_foreseer/<subsystem>'`、`subsystem`、`operation`，以及可选的序列化安全 `exception_context`。RitsuLib 也会把 vanilla Sentry、未处理异常等自动诊断镜像为同名 `exception` 事件，这类事件没有 `capture_mode = 'manual'`，可能带有 `payload_kind = 'exception'`、`capture_source` 和 `exception_type`。
 
-## 过滤规则
+`godot_engine_error` 由运行时 RitsuLib 0.6.0+ 采集，带有 `capture_source = 'godot_logger'` 和 `payload_kind = 'engine_error'`。
 
-- `exception`：本项目 `ModTelemetry.CaptureException` 设置 `capture_source = random_foreseer/<subsystem>`，该来源直接放行。原生上下文没有 `capture_mode`，因此使用与上报方法共享的来源前缀识别主动上报；原有 `capture_mode = manual` 属性仍保留。自动诊断通过 `TelemetryCaptureContext.Exception` 检查异常及其 `InnerException` 链，任一 `StackTrace` 包含大小写敏感的 `RandomForeseer.` 即保留。异常消息、序列化后的同名字段不用于判断。
-- `godot_engine_error`：由运行时 RitsuLib 0.6.0+ 采集；其 `SourceData` 是已脱敏的 `engine_error` `JsonObject`，不是完整信封。`script_backtrace` 或 `code` 字符串中任一包含 `RandomForeseer.` 即保留。Godot 可能把 C# 异常栈写入 `code`；两个字段都需检查，与网关规则一致。缺失、空或非字符串字段不匹配；不扫描消息、文件、方法、其他元数据，不对主动来源额外放行。
-- 按 RitsuLib 固定的小写事件名分发；其他诊断事件继续放行。筛选器只同步读取传入数据，不修改或保留来源对象，不进行网络或磁盘操作。
-
-## 发送队列
-
-诊断筛选只作用于新采集，不会重新筛选已持久化的队列，也不删除已入库事件。启动事件合并则移除了 `basic_usage` 请求，RitsuLib 发送前会丢弃该请求的旧队列事件；已排队的旧 `mod_inventory` 不会补入设置快照。
-
-命名空间标记只能证明调用链涉及本模组，不证明错误由本模组引起。缺少堆栈或堆栈被截断时，相关错误也可能被过滤。RitsuLib 自身的诊断授权、去重与限流仍生效。
-
-纯逻辑回归位于 `tests/RandomForeseer.Tests/Telemetry/TelemetryFilterTests.cs`，覆盖原生请求筛选器挂接、异常链、主动来源、两种引擎堆栈、缺失字段和来源数据不可变性。运行方式见 [本地回归测试](testing.md)。
-
-## 对象图复制失败诊断
+### 对象图复制失败诊断
 
 对象图复制异常通过 `ModTelemetry.CaptureException` 主动上报时，附加结构化属性 `properties.object_graph_failure`，包装异常的 `InnerException` 链中包含复制失败时也保留该诊断。
 
 - `path`：人类可读的失败路径。
 - `nodes`：从根到失败位置的路径节点，每个节点的 `path` 是该位置的完整路径，`type` 和 `assembly` 是该节点实际类型及程序集完整身份。
+
+## 诊断遥测过滤
+
+`ModTelemetry.Register` 为 `diagnostics` 申请项注册 `ModTelemetryFilter.ShouldCapture`，使用 RitsuLib 0.5.14 新增的 `TelemetryRequest.WithCaptureFilter`。筛选发生在诊断 payload 构建和事件入队前；`ModTelemetryAdapter` 仅补充 `random_foreseer_version` 并转发，不再筛选发送队列。
+
+### 过滤规则
+
+- `exception`：本项目 `ModTelemetry.CaptureException` 设置 `capture_source = random_foreseer/<subsystem>`，该来源直接放行。原生上下文没有 `capture_mode`，因此使用与上报方法共享的来源前缀识别主动上报；原有 `capture_mode = manual` 属性仍保留。自动诊断通过 `TelemetryCaptureContext.Exception` 检查异常及其 `InnerException` 链，任一 `StackTrace` 包含大小写敏感的 `RandomForeseer.` 即保留。
+- `godot_engine_error`：原生筛选上下文的 `SourceData` 是已脱敏的 `engine_error` `JsonObject`，不是完整信封。`script_backtrace` 或 `code` 字符串中任一包含 `RandomForeseer.` 即保留。
