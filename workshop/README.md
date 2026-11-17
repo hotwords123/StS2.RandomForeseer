@@ -27,6 +27,8 @@ artifacts/packages/X.Y.Z/RandomForeseer/
 
 The GitHub Release ZIP still contains only that version. A published SemVer package is treated as immutable: rerun release with `-SkipBuild` to reuse it. Build every compatible branch version that the active game versions require before preparing the Workshop upload.
 
+For a compatibility branch, pass `-GameVersion X.Y.Z` to `scripts/release.ps1`. The build uses `Sts2ApiSignatureRoot/vX.Y.Z/data_sts2_windows_x86_64` from the evaluated project configuration and records `build-game-version` in `build-info.txt`. Without this option, the build uses the configured local game installation. With `-SkipBuild`, the cached package is reused and `-GameVersion` has no effect.
+
 ## Preparing the Workshop package
 
 `scripts/prepare-workshop.ps1` performs these steps:

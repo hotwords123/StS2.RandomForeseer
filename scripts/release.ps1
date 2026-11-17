@@ -5,6 +5,9 @@ param(
 
     [string]$Configuration = "Release",
 
+    [ValidatePattern('^v?\d+\.\d+\.\d+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$')]
+    [string]$GameVersion,
+
     [string]$NotesPath = "CHANGELOG.md",
 
     [switch]$Draft,
@@ -108,6 +111,30 @@ if ($manifestVersion -ne $Version) {
     throw "Manifest version is $manifestVersion, but release version is $Version. Update RandomForeseer.json and commit it before releasing."
 }
 
+$gameDataDir = $null
+if ($GameVersion -and !$SkipBuild) {
+    $GameVersion = $GameVersion.TrimStart('v')
+    $signatureRoot = Invoke-Checked dotnet @(
+        "msbuild",
+        $projectPath,
+        "-nologo",
+        "-getProperty:Sts2ApiSignatureRoot"
+    )
+    if ([string]::IsNullOrWhiteSpace($signatureRoot)) {
+        throw "Sts2ApiSignatureRoot is required with -GameVersion. Configure it in local.props."
+    }
+
+    if (![System.IO.Path]::IsPathRooted($signatureRoot)) {
+        $signatureRoot = Join-Path $root $signatureRoot
+    }
+    $gameDataDir = Join-Path $signatureRoot "v$GameVersion/data_sts2_windows_x86_64"
+    foreach ($fileName in @("sts2.dll", "0Harmony.dll", "Steamworks.NET.dll")) {
+        if (!(Test-Path -LiteralPath (Join-Path $gameDataDir $fileName) -PathType Leaf)) {
+            throw "Game assembly $fileName was not found for -GameVersion ${GameVersion}: $gameDataDir"
+        }
+    }
+}
+
 Push-Location $root
 try {
     $status = Invoke-Checked git @("status", "--porcelain")
@@ -147,7 +174,7 @@ try {
         }
         New-Item -ItemType Directory -Path $stagingPackageDir -Force | Out-Null
 
-        Invoke-Checked dotnet @(
+        $publishArguments = @(
             "publish",
             $projectPath,
             "-c",
@@ -155,6 +182,10 @@ try {
             "--output",
             $stagingPackageDir
         )
+        if ($gameDataDir) {
+            $publishArguments += "-p:Sts2DataDir=$gameDataDir"
+        }
+        Invoke-Checked dotnet $publishArguments
 
         $sourceRef = Invoke-Checked git @("branch", "--show-current")
         if ([string]::IsNullOrWhiteSpace($sourceRef)) {
@@ -163,6 +194,9 @@ try {
         $buildInfo = @(
             "mod-version: $Version"
             "min-game-version: $([string]$manifest.min_game_version)"
+            if ($gameDataDir) {
+                "build-game-version: $GameVersion"
+            }
             "git-commit: $headCommit"
             "git-ref: $sourceRef"
             "built-at: $([DateTimeOffset]::Now.ToString('o'))"
