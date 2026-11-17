@@ -11,7 +11,8 @@ param(
 
     [string]$LoaderProjectPath = "workshop/loader/RandomForeseer.WorkshopLoader.csproj",
 
-    [string]$NotesPath = "CHANGELOG.md"
+    [ValidatePattern('^v\d+\.\d+\.\d+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$')]
+    [string]$ChangelogTag
 )
 
 Set-StrictMode -Version Latest
@@ -54,28 +55,6 @@ function ConvertTo-SemanticVersion {
     catch {
         throw "Invalid semantic version for ${Description}: $Value"
     }
-}
-
-function Get-ChangelogSection {
-    param(
-        [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][string]$Tag
-    )
-
-    $content = Get-Content $Path -Raw
-    $escapedTag = [regex]::Escape($Tag)
-    $match = [regex]::Match($content, "(?ms)^##\s+$escapedTag\s*\r?\n(?<body>.*?)(?=^##\s+|\z)")
-    if (!$match.Success) {
-        throw "Release notes for $Tag were not found in $Path. Add a '## $Tag' section."
-    }
-
-    $body = $match.Groups["body"].Value.Trim()
-    if ([string]::IsNullOrWhiteSpace($body)) {
-        throw "Release notes for $Tag in $Path are empty."
-    }
-
-    $body = $body -replace '(?i)<br\s*/?>\r?\n([ \t]+)', "`n`$1"
-    return "## $Tag`n`n$body"
 }
 
 function Copy-RequiredFile {
@@ -288,7 +267,6 @@ $packagesRootPath = Resolve-RepoPath $PackagesRoot
 $activeGameVersionsFile = Resolve-RepoPath $ActiveGameVersionsPath
 $loaderProject = Resolve-RepoPath $LoaderProjectPath
 $loaderNoticesPath = Join-Path (Split-Path $loaderProject -Parent) "THIRD_PARTY_NOTICES.md"
-$notesFile = Resolve-RepoPath $NotesPath
 $contentDir = Join-Path $workspacePath "content"
 $artifactsDir = Join-Path $root "artifacts"
 $loaderBuildDir = Join-Path $artifactsDir "workshop-loader-build"
@@ -328,6 +306,17 @@ if ($manifestVersion -ne $Version) {
     throw "Manifest version is $manifestVersion, but requested Workshop version is $Version."
 }
 $workshopSemanticVersion = ConvertTo-SemanticVersion $Version "Workshop version"
+
+$notesTag = if ($ChangelogTag) { $ChangelogTag } else { "v$Version" }
+$notesFile = Join-Path $artifactsDir "$modId-$notesTag-notes.md"
+if (!(Test-Path -LiteralPath $notesFile -PathType Leaf)) {
+    throw "Release notes not found: $notesFile. Generate them with scripts/release.ps1 before preparing the Workshop package."
+}
+$notesContent = Get-Content -LiteralPath $notesFile -Raw -Encoding utf8
+if ([string]::IsNullOrWhiteSpace($notesContent)) {
+    throw "Release notes are empty: $notesFile"
+}
+$changeNote = "## $notesTag`n`n$($notesContent.Trim())"
 
 $activeGameVersions = @(Get-ActiveGameVersions $activeGameVersionsFile)
 $packages = @(Get-VersionedPackages $packagesRootPath $modId $workshopSemanticVersion)
@@ -447,7 +436,7 @@ $variantManifest | ConvertTo-Json -Depth 10 |
     Set-Content -Path (Join-Path $contentDir "mod-variants.manifest") -Encoding utf8
 
 $workshop = Get-Content $workshopJsonSource -Raw | ConvertFrom-Json
-$workshop.changeNote = Get-ChangelogSection $notesFile "v$Version"
+$workshop.changeNote = $changeNote
 $localized = Get-OrCreateJsonPropertyObject $workshop "localized"
 $localizedDescriptions = @{
     english = Join-Path $sourceDir "description.en.txt"

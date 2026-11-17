@@ -13,11 +13,18 @@ param(
 
     [string]$ActiveGameVersionsPath,
 
+    [ValidatePattern('^v\d+\.\d+\.\d+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$')]
+    [string]$ChangelogTag,
+
     [switch]$SkipPrepare
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if ($SkipPrepare -and $ChangelogTag) {
+    throw "-ChangelogTag requires preparation; do not combine it with -SkipPrepare."
+}
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
@@ -145,6 +152,10 @@ if (!$SkipPrepare) {
 
     if (![string]::IsNullOrWhiteSpace($ActiveGameVersionsPath)) {
         $prepareParams.ActiveGameVersionsPath = $ActiveGameVersionsPath
+    }
+
+    if (![string]::IsNullOrWhiteSpace($ChangelogTag)) {
+        $prepareParams.ChangelogTag = $ChangelogTag
     }
 
     & $prepareScript @prepareParams
