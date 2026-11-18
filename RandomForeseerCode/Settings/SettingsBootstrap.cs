@@ -113,7 +113,9 @@ internal static class SettingsBootstrap
             .AddSection("card_effect_prediction", section => section
                 .WithTitle(T("section.card_effect_prediction.title"))
                 .WithDescription(T("section.card_effect_prediction.description"))
-                .WithEnabledWhen(() => SettingsUiBindings.CardPlayPredictionEnabled.Read())
+                .WithEnabledWhen(() =>
+                    SettingsUiBindings.CardPlayPredictionEnabled.Read() ||
+                    SettingsUiBindings.EndTurnPredictionEnabled.Read())
                 .AddToggle("combat_card_generation_prediction_enabled", SettingsUiBindings.CombatCardGenerationPredictionEnabled)
                 .AddToggle("card_draw_prediction_enabled", SettingsUiBindings.CardDrawPredictionEnabled)
                 .AddToggle("combat_card_selection_prediction_enabled", SettingsUiBindings.CombatCardSelectionPredictionEnabled)
@@ -129,7 +131,8 @@ internal static class SettingsBootstrap
                 .WithDescription(T("section.shared_prediction.description"))
                 .WithEnabledWhen(() =>
                     SettingsUiBindings.CardPlayPredictionEnabled.Read() ||
-                    SettingsUiBindings.PotionPredictionEnabled.Read())
+                    SettingsUiBindings.PotionPredictionEnabled.Read() ||
+                    SettingsUiBindings.EndTurnPredictionEnabled.Read())
                 .AddToggle("potion_generation_prediction_enabled", SettingsUiBindings.PotionGenerationPredictionEnabled)
                 .AddToggle("auto_play_from_draw_pile_prediction_enabled", SettingsUiBindings.AutoPlayFromDrawPilePredictionEnabled))
             .AddSection("card_resolution_scope", section => section
@@ -183,12 +186,19 @@ internal static class SettingsBootstrap
                     "end_turn_health_bar_forecast_display_mode",
                     SettingsUiBindings.EndTurnHealthBarForecastDisplayMode,
                     optionKey: "end_turn_prediction_display_mode")
+                .AddEnumChoice(
+                    "end_turn_card_highlight_display_mode",
+                    SettingsUiBindings.EndTurnCardHighlightDisplayMode,
+                    optionKey: "end_turn_prediction_display_mode")
                 .WithEntryEnabledWhen(
                     "end_turn_damage_indicator_display_mode",
                     () => SettingsUiBindings.CombatDamagePredictionEnabled.Read())
                 .WithEntryEnabledWhen(
                     "end_turn_health_bar_forecast_display_mode",
-                    () => SettingsUiBindings.CombatDamagePredictionEnabled.Read()))
+                    () => SettingsUiBindings.CombatDamagePredictionEnabled.Read())
+                .WithEntryEnabledWhen(
+                    "end_turn_card_highlight_display_mode",
+                    () => SettingsUiBindings.CombatCardSelectionPredictionEnabled.Read()))
             .AddSection("experimental_features", section => section
                 .WithTitle(T("section.experimental_features.title"))
                 .WithDescription(T("section.experimental_features.description"))

@@ -98,7 +98,7 @@
 
   "header.end_turn_predictions.label": "End-turn prediction",
   "toggle.end_turn_prediction_enabled.label": "Predict end-turn effects",
-  "toggle.end_turn_prediction_enabled.description": "When enabled, damage from Orbs and other sources at the end of the turn is predicted during the player's turn.",
+  "toggle.end_turn_prediction_enabled.description": "When enabled, predicts damage, card selections, and other end-of-turn effects during the player's turn. Predictions can be set to only show while hovering the End Turn button.",
 
   "header.frozen_eye_predictions.label": "Frozen Eye",
   "toggle.frozen_eye_enabled.label": "Enable Frozen Eye",
@@ -125,7 +125,7 @@
   "toggle.potion_draw_prediction_enabled.description": "Shows which cards you will draw when using potions such as [gold]Swift Potion[/gold] and [gold]Bottled Potential[/gold]. [gold]Snecko Oil[/gold] also shows the randomized Energy costs of cards in your Hand.",
 
   "section.shared_prediction.title": "Shared effect prediction",
-  "section.shared_prediction.description": "Configure predictions for effects shared by cards and potions.",
+  "section.shared_prediction.description": "Configure effects shared by multiple combat prediction sources.",
   "toggle.potion_generation_prediction_enabled.label": "Predict random potions",
   "toggle.potion_generation_prediction_enabled.description": "Shows which random potions [gold]Entropic Brew[/gold] and [gold]Alchemize[/gold] will generate.",
   "toggle.auto_play_from_draw_pile_prediction_enabled.label": "Predict cards played from the Draw Pile",
@@ -154,6 +154,8 @@
   "choice.end_turn_damage_indicator_display_mode.description": "Controls when end-turn damage source icons and total damage are shown above affected creatures.",
   "choice.end_turn_health_bar_forecast_display_mode.label": "End-turn health bar forecast",
   "choice.end_turn_health_bar_forecast_display_mode.description": "Controls when end-turn damage predictions are shown on affected creatures' health bars.",
+  "choice.end_turn_card_highlight_display_mode.label": "End-turn card highlights",
+  "choice.end_turn_card_highlight_display_mode.description": "Controls when cards selected by end-turn effects such as [gold]Stampede[/gold] and [gold]Bookmark[/gold] are highlighted in your Hand.",
   "choice.end_turn_prediction_display_mode.option.Off": "Off",
   "choice.end_turn_prediction_display_mode.option.ButtonHover": "While hovering the End Turn button",
   "choice.end_turn_prediction_display_mode.option.Always": "Always",

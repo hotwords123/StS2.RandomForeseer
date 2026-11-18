@@ -4,6 +4,9 @@
 
 ### feat
 
+- 回合结束预测现在支持惊逃、书签和傻瓜的随机选牌效果，会在手牌中高亮选中的牌，同时支持设置显示时机。<br>
+  End-turn predictions now show which cards Stampede, Bookmark, and Simpleton will randomly select. Selected cards are highlighted in your hand, and you can configure when the highlights appear.
+
 - 预测偏移提示新增关闭、精简和全部三档，默认使用精简模式，减少未完整模拟效果的警告。<br>
   Added Off, Reduced, and All levels for prediction drift warnings, with Reduced as the default to hide warnings about incompletely simulated effects.
 

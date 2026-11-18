@@ -93,6 +93,8 @@ internal sealed class ModSettings
         EndTurnPredictionDisplayMode.Always;
     public EndTurnPredictionDisplayMode EndTurnHealthBarForecastDisplayMode { get; set; } =
         EndTurnPredictionDisplayMode.Always;
+    public EndTurnPredictionDisplayMode EndTurnCardHighlightDisplayMode { get; set; } =
+        EndTurnPredictionDisplayMode.Always;
 
     // Debug settings
     public bool DebugSettingsEnabled { get; set; }

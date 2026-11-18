@@ -3,14 +3,10 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Combat;
-using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
-using RandomForeseer.Common.HoverTips;
-using RandomForeseer.Data;
 using RandomForeseer.Settings;
 using RandomForeseer.Telemetry;
 using STS2RitsuLib.Settings;
@@ -20,10 +16,8 @@ namespace RandomForeseer.InCombat;
 internal static class EndTurnPredictionController
 {
     private static bool _isSubscribed;
-    private static bool _isActionDamageOverrideActive;
     private static bool _isDeferredRefreshScheduled;
     private static bool _refreshPending;
-    private static NEndTurnButton? _focusedEndTurnButton;
 
     public static void Subscribe()
     {
@@ -63,23 +57,17 @@ internal static class EndTurnPredictionController
         Cleanup();
     }
 
-    public static void OnEndTurnButtonFocused(NEndTurnButton endTurnButton)
-    {
-        _focusedEndTurnButton = endTurnButton;
-        RefreshSafely();
-    }
+    public static void OnEndTurnButtonFocused(NEndTurnButton endTurnButton) =>
+        RunSafely(() => CombatPredictionProjectionController.SetEndTurnButton(endTurnButton));
 
-    public static void OnEndTurnButtonUnfocused()
-    {
-        _focusedEndTurnButton = null;
-        RefreshSafely();
-    }
+    public static void OnEndTurnButtonUnfocused() =>
+        RunSafely(() => CombatPredictionProjectionController.SetEndTurnButton(null));
 
-    public static void RefreshSafely()
+    private static void RunSafely(Action refresh)
     {
         try
         {
-            Refresh();
+            refresh();
         }
         catch (Exception ex)
         {
@@ -88,22 +76,18 @@ internal static class EndTurnPredictionController
         }
     }
 
-    public static void Refresh()
-    {
-        if (_isActionDamageOverrideActive)
-        {
-            EndTurnPredictionCreatureHoverTips.Clear();
-            EndTurnButtonHoverTipHelper.HideHoverTips();
-            return;
-        }
+    private static void RefreshSafely() => RunSafely(Refresh);
 
+    private static void Refresh()
+    {
         if (NCombatRoom.Instance == null || !EndTurnPrediction.ShouldPredict())
         {
-            Cleanup();
+            _refreshPending = false;
+            CombatPredictionProjectionController.SetEndTurn(null);
             return;
         }
 
-        if (IsRefreshDeferred())
+        if (ShouldDeferRefresh())
         {
             _refreshPending = true;
             return;
@@ -111,101 +95,33 @@ internal static class EndTurnPredictionController
 
         _refreshPending = false;
 
-        EndTurnPredictionResult? prediction;
+        CombatPredictionProjection? projection = null;
         try
         {
-            prediction = EndTurnPrediction.Predict();
+            projection = EndTurnPrediction.Predict();
         }
         catch (Exception ex)
         {
             Entry.Logger.Warn($"End-turn prediction refresh failed: {ex}");
             ModTelemetry.CaptureException(ex, "end_turn_prediction", "refresh");
-            prediction = null;
         }
 
-        if (prediction is not { DamagePrediction.HasTargets: true })
-        {
-            Clear();
-            return;
-        }
-
-        EndTurnPredictionCreatureHoverTips.Set(prediction.DamagePrediction, prediction.Risk);
-
-        var settings = ModData.Settings;
-        if (ShouldShow(settings.EndTurnDamageIndicatorDisplayMode))
-        {
-            CombatPredictionOverlay.Show(
-                prediction.DamagePrediction,
-                prediction.Risk,
-                EndTurnPredictionCreatureHoverTips.GetHoverTips);
-        }
-        else
-        {
-            CombatPredictionOverlay.Clear();
-        }
-
-        if (ShouldShow(settings.EndTurnHealthBarForecastDisplayMode))
-        {
-            DamagePredictionHealthBarForecast.Set(prediction.DamagePrediction);
-        }
-        else
-        {
-            DamagePredictionHealthBarForecast.Clear();
-        }
-
-        if (settings.EndTurnDamageIndicatorDisplayMode is EndTurnPredictionDisplayMode.ButtonHover &&
-            _focusedEndTurnButton != null)
-        {
-            EndTurnButtonHoverTipHelper.ShowHoverTips(_focusedEndTurnButton,
-            [
-                PredictionHoverTipFactory.Text("end_turn_prediction_indicator"),
-                .. prediction.Risk.ToHoverTips()
-            ]);
-        }
-        else
-        {
-            EndTurnButtonHoverTipHelper.HideHoverTips();
-        }
+        CombatPredictionProjectionController.SetEndTurn(projection);
     }
 
-    public static void Clear()
+    private static void Clear()
     {
         _refreshPending = false;
-        EndTurnPredictionCreatureHoverTips.Clear();
-        CombatPredictionOverlay.Clear();
-        DamagePredictionHealthBarForecast.Clear();
-        EndTurnButtonHoverTipHelper.HideHoverTips();
+        CombatPredictionProjectionController.ClearAll();
     }
 
-    public static void Cleanup()
+    private static void Cleanup()
     {
-        _focusedEndTurnButton = null;
         Clear();
+        CombatPredictionProjectionController.SetEndTurnButton(null);
     }
 
-    /// <summary>Controls whether an active card or potion action owns the shared damage presentation surfaces.</summary>
-    public static void SetActionDamageOverride(bool active)
-    {
-        var wasActive = _isActionDamageOverrideActive;
-        _isActionDamageOverrideActive = active;
-
-        if (wasActive && !active)
-        {
-            RefreshSafely();
-        }
-    }
-
-    private static bool ShouldShow(EndTurnPredictionDisplayMode displayMode)
-    {
-        return displayMode switch
-        {
-            EndTurnPredictionDisplayMode.ButtonHover => _focusedEndTurnButton != null,
-            EndTurnPredictionDisplayMode.Always => true,
-            _ => false
-        };
-    }
-
-    private static bool IsRefreshDeferred()
+    private static bool ShouldDeferRefresh()
     {
         var action = RunManager.Instance.ActionExecutor.CurrentlyRunningAction;
         return action != null && ActionQueueSet.IsGameActionPlayerDriven(action);
@@ -233,30 +149,15 @@ internal static class EndTurnPredictionController
         }
     }
 
-    private static void OnAboutToSwitchToEnemyTurn(CombatState _)
-    {
-        Clear();
-    }
+    private static void OnAboutToSwitchToEnemyTurn(CombatState _) => Clear();
 
-    private static void OnPlayerEndedTurn(Player _, bool __)
-    {
-        RefreshSafely();
-    }
+    private static void OnPlayerEndedTurn(Player _, bool __) => RefreshSafely();
 
-    private static void OnPlayerUnendedTurn(Player _)
-    {
-        RefreshSafely();
-    }
+    private static void OnPlayerUnendedTurn(Player _) => RefreshSafely();
 
-    private static void OnCombatEnded(CombatRoom _)
-    {
-        Cleanup();
-    }
+    private static void OnCombatEnded(CombatRoom _) => Cleanup();
 
-    private static void OnCombatStateChanged(CombatState _)
-    {
-        RefreshSafely();
-    }
+    private static void OnCombatStateChanged(CombatState _) => RefreshSafely();
 
     private static void OnSettingsValueWritten(IModSettingsBinding binding)
     {
@@ -264,96 +165,27 @@ internal static class EndTurnPredictionController
         {
             DamagePredictionHealthBarForecast.RefreshActiveForecasts();
         }
-        else if (IsEndTurnPredictionRefreshBinding(binding))
+        else if (IsDisplayModeBinding(binding))
+        {
+            RunSafely(CombatPredictionProjectionController.RefreshEndTurnDisplay);
+        }
+        else if (IsPredictionRelatedBinding(binding))
         {
             RefreshSafely();
         }
     }
 
-    private static bool IsEndTurnPredictionRefreshBinding(IModSettingsBinding binding)
-    {
-        return ReferenceEquals(binding, SettingsUiBindings.SingleplayerPredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.MultiplayerPredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.CombatDamagePredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.RandomTargetAttackPredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.OrbDamagePredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.EndTurnPredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.EndTurnDamageIndicatorDisplayMode) ||
-            ReferenceEquals(binding, SettingsUiBindings.EndTurnHealthBarForecastDisplayMode);
-    }
-}
+    private static bool IsDisplayModeBinding(IModSettingsBinding binding) =>
+        ReferenceEquals(binding, SettingsUiBindings.EndTurnDamageIndicatorDisplayMode) ||
+        ReferenceEquals(binding, SettingsUiBindings.EndTurnHealthBarForecastDisplayMode) ||
+        ReferenceEquals(binding, SettingsUiBindings.EndTurnCardHighlightDisplayMode);
 
-internal static class EndTurnButtonHoverTipHelper
-{
-    private static Control? _hoverTipOwner;
-
-    public static void ShowHoverTips(NEndTurnButton endTurnButton, IEnumerable<IHoverTip> hoverTips)
-    {
-        HideHoverTips();
-
-        var owner = CombatPredictionOverlay.ActiveIndicators
-            .MinBy(static indicator => indicator.GetGlobalRect().Position.X);
-        if (owner == null)
-        {
-            return;
-        }
-
-        var tipSet = NHoverTipSet.CreateAndShow(owner, hoverTips, HoverTip.GetHoverTipAlignment(owner, 0.5f));
-        if (tipSet != null)
-        {
-            _hoverTipOwner = owner;
-            AvoidHoverTipOverlap(tipSet, endTurnButton);
-        }
-    }
-
-    public static void HideHoverTips()
-    {
-        if (_hoverTipOwner != null)
-        {
-            NHoverTipSet.Remove(_hoverTipOwner);
-            _hoverTipOwner = null;
-        }
-    }
-
-    private static void AvoidHoverTipOverlap(NHoverTipSet tipSet, Control avoidOwner)
-    {
-        if (!NHoverTipSet._activeHoverTips.TryGetValue(avoidOwner, out var avoidTipSet))
-        {
-            return;
-        }
-
-        var ourRect = GetHoverTipSetRect(tipSet);
-        var avoidRect = GetHoverTipSetRect(avoidTipSet);
-        if (!ourRect.HasArea() || !avoidRect.HasArea() || !ourRect.Intersects(avoidRect))
-        {
-            return;
-        }
-
-        var offset = ourRect.End.X - avoidRect.Position.X + 8f;
-        if (offset <= 0f)
-        {
-            return;
-        }
-
-        MoveHoverTipSet(tipSet, Vector2.Left * offset);
-    }
-
-    private static Rect2 GetHoverTipSetRect(NHoverTipSet tipSet)
-    {
-        var textRect = tipSet._textHoverTipContainer.GetGlobalRect();
-        var cardRect = tipSet._cardHoverTipContainer.GetGlobalRect();
-
-        return textRect.HasArea() switch
-        {
-            true when cardRect.HasArea() => textRect.Merge(cardRect),
-            true => textRect,
-            _ => cardRect
-        };
-    }
-
-    private static void MoveHoverTipSet(NHoverTipSet tipSet, Vector2 offset)
-    {
-        tipSet._textHoverTipContainer.GlobalPosition += offset;
-        tipSet._cardHoverTipContainer.GlobalPosition += offset;
-    }
+    private static bool IsPredictionRelatedBinding(IModSettingsBinding binding) =>
+        ReferenceEquals(binding, SettingsUiBindings.SingleplayerPredictionEnabled) ||
+        ReferenceEquals(binding, SettingsUiBindings.MultiplayerPredictionEnabled) ||
+        ReferenceEquals(binding, SettingsUiBindings.EndTurnPredictionEnabled) ||
+        ReferenceEquals(binding, SettingsUiBindings.CombatCardSelectionPredictionEnabled) ||
+        ReferenceEquals(binding, SettingsUiBindings.CombatDamagePredictionEnabled) ||
+        ReferenceEquals(binding, SettingsUiBindings.OrbDamagePredictionEnabled) ||
+        ReferenceEquals(binding, SettingsUiBindings.RandomTargetAttackPredictionEnabled);
 }

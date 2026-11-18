@@ -28,7 +28,7 @@ The Workshop package automatically loads the newest compatible Mod version for t
 ### In-combat prediction
 
 - **Combat transform prediction**: shows the cards that Entropy will transform selected hand cards into during combat.
-- **End-turn effect prediction**: shows aggregated supported end-turn damage for all players ending their turn; overlay indicators and health bar forecasts can be configured separately for End Turn button hover or always during the player turn; hovering a target creature or prediction indicator shows per-hit damage source details.
+- **End-turn effect prediction**: shows end-turn damage effects and card selection results during the player turn. Hover over a target creature or damage icon to see per-hit damage sources.
 - **Frozen Eye**: shows the combat draw pile in actual draw order when opened, and previews the discard pile order after shuffle during the player's turn.
 - **Combat card generation prediction**: shows predicted generated cards when hovering supported random-card generators in hand during combat.
 - **Card draw prediction**: shows cards drawn by supported card-play effects, including cards after shuffle.

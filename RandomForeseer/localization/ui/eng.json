@@ -9,8 +9,6 @@
   "drift_warning.player_choice_unknown": "Some player choices are not included in the prediction.",
   "drift_warning.card_draw_limit": "The card-draw simulation limit was reached.",
   "drift_warning.orb_channel_limit": "The orb-channel simulation limit was reached.",
-  "end_turn_prediction_indicator.title": "Prediction",
-  "end_turn_prediction_indicator.description": "This shows a prediction of effects all players will trigger after ending the turn.\nYou can change when this prediction is shown in settings.",
   "end_turn_damage_details.title": "Prediction",
   "end_turn_damage_details.description": "At the end of the player turn, [gold]{Creature}[/gold] will take [blue]{TotalDamage}[/blue] damage{BlockStatus:choose(blocked|partial): (blocked)| ([blue]{TotalUnblockedDamage}[/blue] unblocked)|}{WasTargetKilled:cond: and be [red]killed[/red]|}.\n{Lines:list: ·{}|\n}",
   "end_turn_damage_details.line": "[gold]{Source}[/gold]: [blue]{Damage}[/blue] damage{BlockStatus:choose(blocked|partial): (blocked)| ([blue]{UnblockedDamage}[/blue] unblocked)|}",

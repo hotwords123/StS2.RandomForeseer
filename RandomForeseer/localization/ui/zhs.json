@@ -9,8 +9,6 @@
   "drift_warning.player_choice_unknown": "部分玩家选择未纳入预测。",
   "drift_warning.card_draw_limit": "抽牌数量达到模拟上限。",
   "drift_warning.orb_channel_limit": "充能球生成次数达到模拟上限。",
-  "end_turn_prediction_indicator.title": "预测",
-  "end_turn_prediction_indicator.description": "这里展示了结束回合后，所有玩家将触发的效果预测。\n你可以在设置中切换这项预测的展示时机。",
   "end_turn_damage_details.title": "预测",
   "end_turn_damage_details.description": "在玩家回合结束时，[gold]{Creature}[/gold]会受到[blue]{TotalDamage}[/blue]点伤害{BlockStatus:choose(blocked|partial):（被格挡）|（格挡后[blue]{TotalUnblockedDamage}[/blue]点）|}{WasTargetKilled:cond:并被[red]击杀[/red]|}。\n{Lines:list: ·{}|\n}",
   "end_turn_damage_details.line": "[gold]{Source}[/gold]：[blue]{Damage}[/blue]点伤害{BlockStatus:choose(blocked|partial):，被格挡|，格挡后[blue]{UnblockedDamage}[/blue]点|}",

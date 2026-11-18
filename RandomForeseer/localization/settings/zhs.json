@@ -98,7 +98,7 @@
 
   "header.end_turn_predictions.label": "回合结束预测",
   "toggle.end_turn_prediction_enabled.label": "预测回合结束效果",
-  "toggle.end_turn_prediction_enabled.description": "启用后，战斗中会在玩家回合内预测回合结束时由充能球等来源造成的伤害。",
+  "toggle.end_turn_prediction_enabled.description": "启用后，在玩家回合内显示回合结束时的伤害、选牌等效果预测，可以设为仅在悬浮结束回合按钮时显示。",
 
   "header.frozen_eye_predictions.label": "冻结之眼",
   "toggle.frozen_eye_enabled.label": "启用冻结之眼",
@@ -125,7 +125,7 @@
   "toggle.potion_draw_prediction_enabled.description": "预测[gold]迅捷药水[/gold]、[gold]瓶装潜能[/gold]等抽牌药将抽到的牌。[gold]异蛇之油[/gold]也会显示手牌耗能的随机结果。",
 
   "section.shared_prediction.title": "通用预测",
-  "section.shared_prediction.description": "配置战斗预测中显示哪些卡牌和药水的通用效果。",
+  "section.shared_prediction.description": "配置多个战斗预测入口共用的效果。",
   "toggle.potion_generation_prediction_enabled.label": "预测随机药水",
   "toggle.potion_generation_prediction_enabled.description": "预测[gold]混沌药水[/gold]和[gold]炼制药水[/gold]将生成的随机药水。",
   "toggle.auto_play_from_draw_pile_prediction_enabled.label": "预测抽牌堆自动出牌",
@@ -154,6 +154,8 @@
   "choice.end_turn_damage_indicator_display_mode.description": "控制何时在目标生物上方显示回合结束时的伤害来源图标和总伤害数值。",
   "choice.end_turn_health_bar_forecast_display_mode.label": "回合结束血条预测",
   "choice.end_turn_health_bar_forecast_display_mode.description": "控制何时在目标生物的血条上显示回合结束时的伤害预测。",
+  "choice.end_turn_card_highlight_display_mode.label": "回合结束选牌高亮",
+  "choice.end_turn_card_highlight_display_mode.description": "控制何时高亮[gold]惊逃[/gold]、[gold]书签[/gold]等回合结束效果会选中的手牌。",
   "choice.end_turn_prediction_display_mode.option.Off": "关闭",
   "choice.end_turn_prediction_display_mode.option.ButtonHover": "悬停结束回合按钮时",
   "choice.end_turn_prediction_display_mode.option.Always": "总是显示",

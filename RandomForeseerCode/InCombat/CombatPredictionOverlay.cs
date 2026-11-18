@@ -17,9 +17,6 @@ internal static class CombatPredictionOverlay
 
     private static readonly Dictionary<Creature, NCombatPredictionDamageIndicator> Indicators = [];
 
-    public static IReadOnlyList<Control> ActiveIndicators =>
-        [.. Indicators.Values.Where(static indicator => indicator.IsVisibleInTree())];
-
     /// <summary>
     /// Shows a damage projection, including its corresponding risk flag.
     /// </summary>

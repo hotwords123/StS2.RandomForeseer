@@ -6,7 +6,7 @@ using RandomForeseer.Telemetry;
 
 namespace RandomForeseer.InCombat;
 
-/// <summary>Applies the card highlights requested by the active combat-action projection.</summary>
+/// <summary>Displays prediction highlights on the supplied hand cards.</summary>
 internal static class CombatPredictionCardHighlight
 {
     private static readonly Color PredictionHighlightColor = new(1f, 0.36f, 0f, 0.98f);
@@ -15,9 +15,13 @@ internal static class CombatPredictionCardHighlight
     private static readonly HashSet<CardModel> QueuedCards = [];
     private static bool _refreshQueued;
 
-    /// <summary>Replaces the projected card set and refreshes holders affected by either the old or new set.</summary>
-    public static void Show(IEnumerable<CardModel> cards)
+    public static void Show(IReadOnlyCollection<CardModel> cards)
     {
+        if (HighlightedCards.SetEquals(cards))
+        {
+            return;
+        }
+
         QueuedCards.UnionWith(HighlightedCards);
         HighlightedCards.Clear();
         HighlightedCards.UnionWith(cards);
@@ -30,12 +34,6 @@ internal static class CombatPredictionCardHighlight
 
         _refreshQueued = true;
         Callable.From(FlushQueuedCards).CallDeferred();
-    }
-
-    /// <summary>Removes every projected card highlight while preserving vanilla highlight state.</summary>
-    public static void Clear()
-    {
-        Show([]);
     }
 
     /// <summary>Reapplies the prediction color after vanilla refreshes a highlighted hand-card holder.</summary>

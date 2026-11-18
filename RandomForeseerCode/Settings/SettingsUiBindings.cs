@@ -145,6 +145,9 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnHealthBarForecastDisplayMode { get; } =
         Binding(s => s.EndTurnHealthBarForecastDisplayMode, (s, v) => s.EndTurnHealthBarForecastDisplayMode = v);
 
+    public static IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnCardHighlightDisplayMode { get; } =
+        Binding(s => s.EndTurnCardHighlightDisplayMode, (s, v) => s.EndTurnCardHighlightDisplayMode = v);
+
     // Debug settings
     public static IModSettingsValueBinding<bool> DebugSettingsEnabled { get; } =
         Binding(s => s.DebugSettingsEnabled, (s, v) => s.DebugSettingsEnabled = v);
