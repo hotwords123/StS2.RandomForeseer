@@ -11,13 +11,12 @@ internal static class MiscCardMirrors
 {
     public static void AlchemizeOnPlay(Alchemize card, CardOnPlayMirrorContext context)
     {
-        var potion = PotionFactory.CreateRandomPotionInCombat(
-            card.Owner,
-            context.Rng.CombatPotionGeneration);
+        var owner = card.Owner;
+        var potion = PotionFactory.CreateRandomPotionInCombat(owner, context.Rng.CombatPotionGeneration);
 
         // Vanilla calls PotionCmd.TryToProcure. The generated potion is already determined, but
         // potion-slot mutation and its hooks are outside the simulator's current state domains.
-        context.Simulator.History.PotionGenerated(potion);
+        context.History.PotionGenerated(PredictionUtils.CreatePotion(potion, owner));
     }
 
     public static void MadScienceOnPlay(MadScience card, CardOnPlayMirrorContext context)

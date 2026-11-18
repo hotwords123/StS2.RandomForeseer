@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Runs;
 using RandomForeseer.Data;
@@ -10,7 +11,8 @@ internal static class EndTurnPrediction
 {
     public static CombatPredictionProjection? Predict()
     {
-        if (CombatManager.Instance.LiveCombatState is not { } combatState)
+        if (CombatManager.Instance.LiveCombatState is not { } combatState ||
+            LocalContext.GetMe(combatState) is not { } player)
         {
             return null;
         }
@@ -18,7 +20,7 @@ internal static class EndTurnPrediction
         using var session = new CombatPredictionSession(combatState);
         var simulator = session.Simulator;
         simulator.SimulateEndPlayerTurn();
-        return CombatPredictionProjector.Project(simulator.History, rootFrame: null);
+        return CombatPredictionProjector.Project(simulator.History, rootFrame: null, playerFilter: player);
     }
 
     public static bool ShouldPredict()

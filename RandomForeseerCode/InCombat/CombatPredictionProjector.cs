@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -28,7 +29,7 @@ internal sealed record CombatPredictionProjection(
 /// </summary>
 /// <remarks>
 /// Card and potion projections use the root action to scope effects and apply the chained prediction setting.
-/// End-turn projections consider damage and selections throughout the full timeline.
+/// End-turn projections read the full timeline and can scope non-damage effects to one player.
 /// </remarks>
 internal sealed class CombatPredictionProjector
 {
@@ -36,6 +37,7 @@ internal sealed class CombatPredictionProjector
 
     private readonly CombatPredictionHistory _history;
     private readonly PredictionTraceFrame? _rootFrame;
+    private readonly Player? _playerFilter;
 
     private readonly Dictionary<Type, EntryProjectionRule> _rules = [];
 
@@ -57,17 +59,24 @@ internal sealed class CombatPredictionProjector
     /// The root <see cref="PredictionActionKind.CardPlay"/> or <see cref="PredictionActionKind.PotionUse"/> frame,
     /// or <see langword="null"/> for a complete end-turn simulation.
     /// </param>
+    /// <param name="playerFilter">The owner of projected non-damage effects, or <see langword="null"/> for all players.</param>
     /// <returns>A presentation projection containing only results accepted by enabled feature policies.</returns>
     /// <remarks>
     /// An action frame must come from the same simulation as the history. Entries are dispatched in timeline order.
     /// Deferred entries use their resolved snapshot and completion boundary.
     /// </remarks>
-    public static CombatPredictionProjection Project(CombatPredictionHistory history, PredictionTraceFrame? rootFrame)
+    public static CombatPredictionProjection Project(
+        CombatPredictionHistory history,
+        PredictionTraceFrame? rootFrame,
+        Player? playerFilter = null)
     {
-        return new CombatPredictionProjector(history, rootFrame).Project();
+        return new CombatPredictionProjector(history, rootFrame, playerFilter).Project();
     }
 
-    private CombatPredictionProjector(CombatPredictionHistory history, PredictionTraceFrame? rootFrame)
+    private CombatPredictionProjector(
+        CombatPredictionHistory history,
+        PredictionTraceFrame? rootFrame,
+        Player? playerFilter)
     {
         if (rootFrame is not null &&
             rootFrame.Invocation.Action is not (PredictionActionKind.CardPlay or PredictionActionKind.PotionUse))
@@ -79,6 +88,7 @@ internal sealed class CombatPredictionProjector
 
         _history = history;
         _rootFrame = rootFrame;
+        _playerFilter = playerFilter;
 
         _causalTips = new(rootFrame);
 
@@ -203,9 +213,11 @@ internal sealed class CombatPredictionProjector
         }
     }
 
+    private bool MatchesPlayer(Player? owner) => _playerFilter is null || _playerFilter == owner;
+
     private CombatPredictionHistoryEntry? HandleCardGenerated(CombatPredictionCardGeneratedEntry entry)
     {
-        if (entry.ResultKind is CardGenerationResultKind.Fixed)
+        if (entry.ResultKind is CardGenerationResultKind.Fixed || !MatchesPlayer(entry.Card.Preview.Owner))
         {
             return null;
         }
@@ -223,7 +235,7 @@ internal sealed class CombatPredictionProjector
 
     private CombatPredictionHistoryEntry? HandleCardGenerationOptions(CombatPredictionCardGenerationOptionsEntry entry)
     {
-        if (entry.PreviewCards.Count == 0)
+        if (entry.PreviewCards is not [var card, ..] || !MatchesPlayer(card.Owner))
         {
             return null;
         }
@@ -233,8 +245,13 @@ internal sealed class CombatPredictionProjector
         return entry;
     }
 
-    private CombatPredictionHistoryEntry HandlePotionGenerated(CombatPredictionPotionGeneratedEntry entry)
+    private CombatPredictionHistoryEntry? HandlePotionGenerated(CombatPredictionPotionGeneratedEntry entry)
     {
+        if (!MatchesPlayer(entry.PreviewPotion.Owner))
+        {
+            return null;
+        }
+
         AddHoverTip(PredictionHoverTipFactory.Potion(entry.PreviewPotion));
         AddCausalEffect(entry, CausalEffectKind.GeneratePotion, [entry.PreviewPotion]);
         return entry;
@@ -242,7 +259,7 @@ internal sealed class CombatPredictionProjector
 
     private CombatPredictionHistoryEntry? HandleCardsSelected(CombatPredictionCardsSelectedEntry entry)
     {
-        if (entry.PreviewCards.Count == 0)
+        if (entry.PreviewCards is not [var card, ..] || !MatchesPlayer(card.Owner))
         {
             return null;
         }
@@ -253,15 +270,25 @@ internal sealed class CombatPredictionProjector
         return entry;
     }
 
-    private CombatPredictionHistoryEntry HandleDrawPileAutoPlay(CombatPredictionAutoPlayFromDrawPileEntry entry)
+    private CombatPredictionHistoryEntry? HandleDrawPileAutoPlay(CombatPredictionAutoPlayFromDrawPileEntry entry)
     {
+        if (!MatchesPlayer(entry.Card.Preview.Owner))
+        {
+            return null;
+        }
+
         AddHoverTip(PredictionHoverTipFactory.Card(entry.Card.Preview));
         AddCausalEffect(entry, CausalEffectKind.PlayCard, [entry.Card.Preview]);
         return entry;
     }
 
-    private CombatPredictionHistoryEntry HandleCardDrawn(CombatPredictionCardDrawnEntry entry)
+    private CombatPredictionHistoryEntry? HandleCardDrawn(CombatPredictionCardDrawnEntry entry)
     {
+        if (!MatchesPlayer(entry.Card.Preview.Owner))
+        {
+            return null;
+        }
+
         var resolved = _history.GetResolvedEntry<CombatPredictionCardDrawResolvedEntry>(entry);
         AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard));
         AddCausalEffect(entry, CausalEffectKind.DrawCards, [resolved.PreviewCard]);
@@ -270,7 +297,7 @@ internal sealed class CombatPredictionProjector
 
     private CombatPredictionHistoryEntry? HandleCardCostsRandomized(CombatPredictionCardCostsRandomizedEntry entry)
     {
-        if (entry.PreviewCards.Count == 0)
+        if (entry.PreviewCards is not [var card, ..] || !MatchesPlayer(card.Owner))
         {
             return null;
         }
@@ -284,7 +311,8 @@ internal sealed class CombatPredictionProjector
     private CombatPredictionHistoryEntry? HandleOrbChanneled(CombatPredictionOrbChanneledEntry entry)
     {
         // Deterministic channels are already described by their source; only random orb identities need a tip.
-        if (entry.Trace!.Source is not (Chaos or TrashToTreasurePower or TheMagician))
+        if (!MatchesPlayer(entry.Orb.Owner) ||
+            entry.Trace!.Source is not (Chaos or TrashToTreasurePower or TheMagician))
         {
             return null;
         }

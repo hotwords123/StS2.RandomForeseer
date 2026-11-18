@@ -16,7 +16,7 @@ internal static class EntropicBrewMirrors
         foreach (var generatedPotion in potions)
         {
             // Potion-slot mutation and procurement hooks are outside the current simulator state domains.
-            context.History.PotionGenerated(generatedPotion);
+            context.History.PotionGenerated(PredictionUtils.CreatePotion(generatedPotion, target));
         }
     }
 
