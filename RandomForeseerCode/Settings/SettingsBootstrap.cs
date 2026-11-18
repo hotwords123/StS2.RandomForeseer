@@ -104,14 +104,6 @@ internal static class SettingsBootstrap
                 .AddToggle("combat_transform_prediction_enabled", SettingsUiBindings.CombatTransformPredictionEnabled)
                 .AddHeader("end_turn_predictions")
                 .AddToggle("end_turn_prediction_enabled", SettingsUiBindings.EndTurnPredictionEnabled)
-                .AddEnumChoice("end_turn_prediction_display_mode", SettingsUiBindings.EndTurnPredictionDisplayMode)
-                .AddEnumChoice("end_turn_health_bar_forecast_display_mode", SettingsUiBindings.EndTurnHealthBarForecastDisplayMode)
-                .WithEntryEnabledWhen(
-                    "end_turn_prediction_display_mode",
-                    () => SettingsUiBindings.EndTurnPredictionEnabled.Read())
-                .WithEntryEnabledWhen(
-                    "end_turn_health_bar_forecast_display_mode",
-                    () => SettingsUiBindings.EndTurnPredictionEnabled.Read())
                 .AddHeader("frozen_eye_predictions")
                 .AddToggle("frozen_eye_enabled", SettingsUiBindings.FrozenEyeEnabled)
                 .AddToggle("shuffle_prediction_enabled", SettingsUiBindings.ShufflePredictionEnabled)
@@ -179,6 +171,23 @@ internal static class SettingsBootstrap
                     () => SettingsUiBindings.CombatDamagePredictionEnabled.Read())
                 .WithEntryEnabledWhen(
                     "damage_prediction_health_bar_color",
+                    () => SettingsUiBindings.CombatDamagePredictionEnabled.Read()))
+            .AddSection("end_turn_prediction", section => section
+                .WithTitle(T("section.end_turn_prediction.title"))
+                .WithEnabledWhen(() => SettingsUiBindings.EndTurnPredictionEnabled.Read())
+                .AddEnumChoice(
+                    "end_turn_damage_indicator_display_mode",
+                    SettingsUiBindings.EndTurnDamageIndicatorDisplayMode,
+                    optionKey: "end_turn_prediction_display_mode")
+                .AddEnumChoice(
+                    "end_turn_health_bar_forecast_display_mode",
+                    SettingsUiBindings.EndTurnHealthBarForecastDisplayMode,
+                    optionKey: "end_turn_prediction_display_mode")
+                .WithEntryEnabledWhen(
+                    "end_turn_damage_indicator_display_mode",
+                    () => SettingsUiBindings.CombatDamagePredictionEnabled.Read())
+                .WithEntryEnabledWhen(
+                    "end_turn_health_bar_forecast_display_mode",
                     () => SettingsUiBindings.CombatDamagePredictionEnabled.Read()))
             .AddSection("experimental_features", section => section
                 .WithTitle(T("section.experimental_features.title"))
@@ -274,6 +283,7 @@ internal static class SettingsBootstrap
         private ModSettingsSectionBuilder AddEnumChoice<TValue>(
             string id,
             IModSettingsValueBinding<TValue> binding,
+            string? optionKey = null,
             ModSettingsChoicePresentation presentation = ModSettingsChoicePresentation.Dropdown)
             where TValue : struct, Enum
         {
@@ -281,7 +291,7 @@ internal static class SettingsBootstrap
                 id,
                 T($"choice.{id}.label"),
                 binding,
-                value => T($"choice.{id}.option.{value}"),
+                value => T($"choice.{optionKey ?? id}.option.{value}"),
                 T($"choice.{id}.description"),
                 presentation);
         }

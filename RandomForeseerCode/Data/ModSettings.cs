@@ -60,10 +60,6 @@ internal sealed class ModSettings
     public bool CombatTransformPredictionEnabled { get; set; } = true;
 
     public bool EndTurnPredictionEnabled { get; set; } = true;
-    public EndTurnPredictionDisplayMode EndTurnPredictionDisplayMode { get; set; } =
-        EndTurnPredictionDisplayMode.EndTurnButtonHover;
-    public EndTurnPredictionDisplayMode EndTurnHealthBarForecastDisplayMode { get; set; } =
-        EndTurnPredictionDisplayMode.AlwaysDuringPlayerTurn;
 
     public bool FrozenEyeEnabled { get; set; } = true;
     public bool ShufflePredictionEnabled { get; set; } = true;
@@ -92,6 +88,12 @@ internal sealed class ModSettings
     public bool RandomTargetAttackPredictionEnabled { get; set; } = true;
     public string DamagePredictionHealthBarColor { get; set; } = "#E8C91A";
 
+    // End-turn prediction presentation
+    public EndTurnPredictionDisplayMode EndTurnDamageIndicatorDisplayMode { get; set; } =
+        EndTurnPredictionDisplayMode.Always;
+    public EndTurnPredictionDisplayMode EndTurnHealthBarForecastDisplayMode { get; set; } =
+        EndTurnPredictionDisplayMode.Always;
+
     // Debug settings
     public bool DebugSettingsEnabled { get; set; }
     public bool EventDebugRerollEnabled { get; set; }
@@ -107,8 +109,9 @@ internal enum PredictionFairness
 [JsonConverter(typeof(JsonStringEnumConverter<EndTurnPredictionDisplayMode>))]
 internal enum EndTurnPredictionDisplayMode
 {
-    EndTurnButtonHover,
-    AlwaysDuringPlayerTurn
+    Off,
+    ButtonHover,
+    Always
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<PredictionDriftWarningLevel>))]

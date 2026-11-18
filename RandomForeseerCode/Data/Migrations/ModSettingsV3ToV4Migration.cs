@@ -14,8 +14,8 @@ internal sealed class ModSettingsV3ToV4Migration : IMigration
 
     private static readonly string[] EndTurnDisplayModeNames =
     [
-        nameof(EndTurnPredictionDisplayMode.EndTurnButtonHover),
-        nameof(EndTurnPredictionDisplayMode.AlwaysDuringPlayerTurn)
+        nameof(EndTurnPredictionDisplayMode.ButtonHover),
+        nameof(EndTurnPredictionDisplayMode.Always)
     ];
 
     public int FromVersion => 3;
@@ -32,7 +32,8 @@ internal sealed class ModSettingsV3ToV4Migration : IMigration
 
         ConvertOrdinal(data, nameof(ModSettings.PredictionTextHoverTipOrder), HoverTipOrderNames);
         ConvertOrdinal(data, nameof(ModSettings.PredictionCardHoverTipOrder), HoverTipOrderNames);
-        ConvertOrdinal(data, nameof(ModSettings.EndTurnPredictionDisplayMode), EndTurnDisplayModeNames);
+        data.MoveProperty("EndTurnPredictionDisplayMode", nameof(ModSettings.EndTurnDamageIndicatorDisplayMode));
+        ConvertOrdinal(data, nameof(ModSettings.EndTurnDamageIndicatorDisplayMode), EndTurnDisplayModeNames);
         ConvertOrdinal(data, nameof(ModSettings.EndTurnHealthBarForecastDisplayMode), EndTurnDisplayModeNames);
         return true;
     }

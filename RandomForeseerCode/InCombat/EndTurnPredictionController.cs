@@ -132,7 +132,7 @@ internal static class EndTurnPredictionController
         EndTurnPredictionCreatureHoverTips.Set(prediction.DamagePrediction, prediction.Risk);
 
         var settings = ModData.Settings;
-        if (ShouldShow(settings.EndTurnPredictionDisplayMode))
+        if (ShouldShow(settings.EndTurnDamageIndicatorDisplayMode))
         {
             CombatPredictionOverlay.Show(
                 prediction.DamagePrediction,
@@ -153,7 +153,7 @@ internal static class EndTurnPredictionController
             DamagePredictionHealthBarForecast.Clear();
         }
 
-        if (settings.EndTurnPredictionDisplayMode is EndTurnPredictionDisplayMode.EndTurnButtonHover &&
+        if (settings.EndTurnDamageIndicatorDisplayMode is EndTurnPredictionDisplayMode.ButtonHover &&
             _focusedEndTurnButton != null)
         {
             EndTurnButtonHoverTipHelper.ShowHoverTips(_focusedEndTurnButton,
@@ -199,8 +199,9 @@ internal static class EndTurnPredictionController
     {
         return displayMode switch
         {
-            EndTurnPredictionDisplayMode.EndTurnButtonHover => _focusedEndTurnButton != null,
-            _ => true
+            EndTurnPredictionDisplayMode.ButtonHover => _focusedEndTurnButton != null,
+            EndTurnPredictionDisplayMode.Always => true,
+            _ => false
         };
     }
 
@@ -277,7 +278,7 @@ internal static class EndTurnPredictionController
             ReferenceEquals(binding, SettingsUiBindings.RandomTargetAttackPredictionEnabled) ||
             ReferenceEquals(binding, SettingsUiBindings.OrbDamagePredictionEnabled) ||
             ReferenceEquals(binding, SettingsUiBindings.EndTurnPredictionEnabled) ||
-            ReferenceEquals(binding, SettingsUiBindings.EndTurnPredictionDisplayMode) ||
+            ReferenceEquals(binding, SettingsUiBindings.EndTurnDamageIndicatorDisplayMode) ||
             ReferenceEquals(binding, SettingsUiBindings.EndTurnHealthBarForecastDisplayMode);
     }
 }

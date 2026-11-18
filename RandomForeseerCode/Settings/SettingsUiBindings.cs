@@ -85,12 +85,6 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> EndTurnPredictionEnabled { get; } =
         Binding(s => s.EndTurnPredictionEnabled, (s, v) => s.EndTurnPredictionEnabled = v);
 
-    public static IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnPredictionDisplayMode { get; } =
-        Binding(s => s.EndTurnPredictionDisplayMode, (s, v) => s.EndTurnPredictionDisplayMode = v);
-
-    public static IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnHealthBarForecastDisplayMode { get; } =
-        Binding(s => s.EndTurnHealthBarForecastDisplayMode, (s, v) => s.EndTurnHealthBarForecastDisplayMode = v);
-
     public static IModSettingsValueBinding<bool> FrozenEyeEnabled { get; } =
         Binding(s => s.FrozenEyeEnabled, (s, v) => s.FrozenEyeEnabled = v);
 
@@ -143,6 +137,13 @@ internal static class SettingsUiBindings
 
     public static IModSettingsValueBinding<string> DamagePredictionHealthBarColor { get; } =
         Binding(s => s.DamagePredictionHealthBarColor, (s, v) => s.DamagePredictionHealthBarColor = v);
+
+    // End-turn prediction presentation
+    public static IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnDamageIndicatorDisplayMode { get; } =
+        Binding(s => s.EndTurnDamageIndicatorDisplayMode, (s, v) => s.EndTurnDamageIndicatorDisplayMode = v);
+
+    public static IModSettingsValueBinding<EndTurnPredictionDisplayMode> EndTurnHealthBarForecastDisplayMode { get; } =
+        Binding(s => s.EndTurnHealthBarForecastDisplayMode, (s, v) => s.EndTurnHealthBarForecastDisplayMode = v);
 
     // Debug settings
     public static IModSettingsValueBinding<bool> DebugSettingsEnabled { get; } =
