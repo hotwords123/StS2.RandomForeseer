@@ -104,12 +104,14 @@ internal enum PredictionFairness
     UnfairInAllModes
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<EndTurnPredictionDisplayMode>))]
 internal enum EndTurnPredictionDisplayMode
 {
     EndTurnButtonHover,
     AlwaysDuringPlayerTurn
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<PredictionDriftWarningLevel>))]
 internal enum PredictionDriftWarningLevel
 {
     Off,
@@ -117,6 +119,7 @@ internal enum PredictionDriftWarningLevel
     All
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter<PredictionHoverTipOrder>))]
 internal enum PredictionHoverTipOrder
 {
     BeforeVanilla,
