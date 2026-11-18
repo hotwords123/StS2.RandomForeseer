@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Cards;
@@ -25,18 +24,18 @@ internal sealed record CombatPredictionProjection(
     IPredictionRisk Risk);
 
 /// <summary>
-/// Streams a completed combat prediction history into the enabled HoverTip, damage, highlight, causal, and risk views.
+/// Streams completed combat prediction history into hover tips, damage, and card highlights.
 /// </summary>
 /// <remarks>
-/// Feature gates are selected from the root action kind and applied independently to each entry. When chained
-/// prediction is disabled, the first history entry owned by a nested action truncates the remaining visible timeline.
+/// Card and potion projections use the root action to scope effects and apply the chained prediction setting.
+/// End-turn projections consider damage and selections throughout the full timeline.
 /// </remarks>
 internal sealed class CombatPredictionProjector
 {
     private const int MaxHoverTips = 10;
 
     private readonly CombatPredictionHistory _history;
-    private readonly PredictionTraceFrame _rootFrame;
+    private readonly PredictionTraceFrame? _rootFrame;
 
     private readonly Dictionary<Type, EntryProjectionRule> _rules = [];
 
@@ -51,31 +50,30 @@ internal sealed class CombatPredictionProjector
     private readonly CombatPredictionCausalTipBuilder _causalTips;
 
     /// <summary>
-    /// Projects one completed combat-action history relative to its exact root action frame.
+    /// Projects a card or potion action, or the full end-turn history.
     /// </summary>
-    /// <param name="history">The completed history produced by the same simulation as <paramref name="rootFrame"/>.</param>
+    /// <param name="history">The completed history of the action or end-turn simulation.</param>
     /// <param name="rootFrame">
-    /// The root <see cref="PredictionActionKind.CardPlay"/> or <see cref="PredictionActionKind.PotionUse"/> frame.
-    /// Its source is the original card or potion identity used by scope and causal classification.
+    /// The root <see cref="PredictionActionKind.CardPlay"/> or <see cref="PredictionActionKind.PotionUse"/> frame,
+    /// or <see langword="null"/> for a complete end-turn simulation.
     /// </param>
     /// <returns>A presentation projection containing only results accepted by enabled feature policies.</returns>
     /// <remarks>
-    /// Callers must pass an action frame returned by the simulation entry point and must not combine a frame and
-    /// history from different simulations. Entries are dispatched in timeline order; deferred entries use their
-    /// resolved snapshot and completion boundary.
+    /// An action frame must come from the same simulation as the history. Entries are dispatched in timeline order.
+    /// Deferred entries use their resolved snapshot and completion boundary.
     /// </remarks>
-    public static CombatPredictionProjection Project(CombatPredictionHistory history, PredictionTraceFrame rootFrame)
+    public static CombatPredictionProjection Project(CombatPredictionHistory history, PredictionTraceFrame? rootFrame)
     {
         return new CombatPredictionProjector(history, rootFrame).Project();
     }
 
-    private CombatPredictionProjector(CombatPredictionHistory history, PredictionTraceFrame rootFrame)
+    private CombatPredictionProjector(CombatPredictionHistory history, PredictionTraceFrame? rootFrame)
     {
-        var action = rootFrame.Invocation.Action;
-        if (action is not (PredictionActionKind.CardPlay or PredictionActionKind.PotionUse))
+        if (rootFrame is not null &&
+            rootFrame.Invocation.Action is not (PredictionActionKind.CardPlay or PredictionActionKind.PotionUse))
         {
             throw new ArgumentException(
-                $"Root frame must be a card-play or potion-use action, but was {action}.",
+                $"Root frame must be a card-play or potion-use action, but was {rootFrame.Invocation.Action}.",
                 nameof(rootFrame));
         }
 
@@ -111,25 +109,20 @@ internal sealed class CombatPredictionProjector
     /// </remarks>
     private void RegisterRules()
     {
-        var isCardPlay = _rootFrame.Invocation.Action switch
-        {
-            PredictionActionKind.CardPlay => true,
-            PredictionActionKind.PotionUse => false,
-            var action => throw new UnreachableException($"Unexpected action kind {action}.")
-        };
+        var rootAction = _rootFrame?.Invocation.Action;
         var settings = ModData.Settings;
 
         Register<CombatPredictionCardGeneratedEntry>(
             HandleCardGenerated,
-            isCardPlay
-                ? settings.CombatCardGenerationPredictionEnabled
-                : settings.PotionCardGenerationPredictionEnabled);
+            rootAction is PredictionActionKind.PotionUse
+                ? settings.PotionCardGenerationPredictionEnabled
+                : settings.CombatCardGenerationPredictionEnabled);
 
         Register<CombatPredictionCardGenerationOptionsEntry>(
             HandleCardGenerationOptions,
-            isCardPlay
-                ? settings.CombatCardGenerationPredictionEnabled
-                : settings.PotionCardGenerationPredictionEnabled);
+            rootAction is PredictionActionKind.PotionUse
+                ? settings.PotionCardGenerationPredictionEnabled
+                : settings.CombatCardGenerationPredictionEnabled);
 
         Register<CombatPredictionPotionGeneratedEntry>(
             HandlePotionGenerated,
@@ -145,15 +138,15 @@ internal sealed class CombatPredictionProjector
 
         Register<CombatPredictionCardDrawnEntry>(
             HandleCardDrawn,
-            isCardPlay
-                ? settings.CardDrawPredictionEnabled
-                : settings.PotionDrawPredictionEnabled);
+            rootAction is PredictionActionKind.PotionUse
+                ? settings.PotionDrawPredictionEnabled
+                : settings.CardDrawPredictionEnabled);
 
         Register<CombatPredictionCardCostsRandomizedEntry>(
             HandleCardCostsRandomized,
-            isCardPlay
-                ? settings.CardDrawPredictionEnabled
-                : settings.PotionDrawPredictionEnabled);
+            rootAction is PredictionActionKind.PotionUse
+                ? settings.PotionDrawPredictionEnabled
+                : settings.CardDrawPredictionEnabled);
 
         Register<CombatPredictionOrbChanneledEntry>(
             HandleOrbChanneled,
@@ -174,21 +167,24 @@ internal sealed class CombatPredictionProjector
     /// Applies the root-action projection rule for the entry's exact semantic type.
     /// </summary>
     /// <remarks>
-    /// Entries outside the supplied root trace are ignored. When chained prediction is disabled, the first entry owned
-    /// by a nested action truncates the remaining timeline even if that entry type has no projection rule.
+    /// With a root frame, only entries in its trace are eligible. When chained prediction is disabled, the first
+    /// entry owned by a nested action truncates the remaining timeline even if that entry type has no projection rule.
     /// </remarks>
     private void Dispatch(CombatPredictionHistoryEntry entry)
     {
-        if (entry.Trace?.FindOriginatingAction() is not { } actionFrame ||
-            !actionFrame.Ancestors().Contains(_rootFrame))
+        if (_rootFrame != null)
         {
-            return;
-        }
+            if (entry.Trace?.FindOriginatingAction() is not { } actionFrame ||
+                !actionFrame.Ancestors().Contains(_rootFrame))
+            {
+                return;
+            }
 
-        if (!ModData.Settings.ChainedCardEffectPredictionEnabled && actionFrame != _rootFrame)
-        {
-            _projectionTruncated = true;
-            return;
+            if (!ModData.Settings.ChainedCardEffectPredictionEnabled && actionFrame != _rootFrame)
+            {
+                _projectionTruncated = true;
+                return;
+            }
         }
 
         if (!_rules.TryGetValue(entry.GetType(), out var rule))
@@ -328,6 +324,11 @@ internal sealed class CombatPredictionProjector
 
     private void AddHoverTip(IHoverTip hoverTip)
     {
+        if (_rootFrame is null && hoverTip.IsPredictionCardHoverTip())
+        {
+            return;
+        }
+
         if (_hoverTips.Count < MaxHoverTips)
         {
             _hoverTips.Add(hoverTip);

@@ -14,11 +14,10 @@ namespace RandomForeseer.InCombat;
 /// <remarks>
 /// Consecutive results are grouped by immutable trace frames and effect kind, so separate card replays remain
 /// distinct and non-consecutive timeline effects are not reordered. The builder receives prediction model snapshots
-/// and creates one localized text tip during projection finalization. <paramref name="rootFrame"/> must be the same
-/// root action frame used to scope the projector entries supplied to <see cref="AddEffect"/>.
+/// and creates one localized text tip during projection finalization.
 /// </remarks>
-/// <param name="rootFrame">The exact root card-play or potion-use action frame used by the projector.</param>
-internal sealed class CombatPredictionCausalTipBuilder(PredictionTraceFrame rootFrame)
+/// <param name="rootFrame">The projector's root action frame, or <see langword="null"/> for end-turn effects.</param>
+internal sealed class CombatPredictionCausalTipBuilder(PredictionTraceFrame? rootFrame)
 {
     private const int MaxLines = 10;
 
@@ -36,23 +35,28 @@ internal sealed class CombatPredictionCausalTipBuilder(PredictionTraceFrame root
         CausalEffectKind effect,
         IEnumerable<AbstractModel> models)
     {
-        if (entry.Trace is { } trace && TryGetCause(trace) is { } cause)
+        if (entry.Trace is { } trace)
         {
-            AddGroup(cause, effect, models);
+            AddGroup(GetCausalCause(trace), effect, models);
         }
     }
 
     /// <summary>
-    /// Finalizes the accumulated groups into one localized causal HoverTip.
+    /// Finalizes the accumulated groups into one localized HoverTip.
     /// </summary>
     /// <returns>
-    /// A causal tip when accepted results require listener, nested-action, or distinct effect-invocation attribution;
-    /// otherwise <see langword="null"/> for one ordinary root effect.
+    /// A tip for end-turn results or for card and potion results that need causal attribution.
     /// </returns>
     /// <remarks>This method must be called only after all relevant history entries have been added in timeline order.</remarks>
     public IHoverTip? Build()
     {
-        if (_groups.All(IsRootDirectEffect) &&
+        if (_groups.Count == 0)
+        {
+            return null;
+        }
+
+        if (rootFrame is not null &&
+            _groups.All(IsRootDirectEffect) &&
             !_groups.Select(static group => group.SourceFrame).Distinct().Skip(1).Any())
         {
             return null;
@@ -73,13 +77,10 @@ internal sealed class CombatPredictionCausalTipBuilder(PredictionTraceFrame root
         });
     }
 
-    private static CausalCause? TryGetCause(PredictionTraceFrame trace)
+    private static CausalCause GetCausalCause(PredictionTraceFrame trace)
     {
-        var sourceFrame = trace.FindOriginatingEffect();
-
-        return sourceFrame is not null
-            ? new CausalCause(sourceFrame, trace.Source == sourceFrame.Source ? null : trace)
-            : null;
+        var sourceFrame = trace.FindOriginatingEffect() ?? trace;
+        return new CausalCause(sourceFrame, trace.Source == sourceFrame.Source ? null : trace);
     }
 
     private void AddGroup(CausalCause cause, CausalEffectKind effect, IEnumerable<AbstractModel> models)
@@ -114,8 +115,9 @@ internal sealed class CombatPredictionCausalTipBuilder(PredictionTraceFrame root
 
     private string GetRootTipKey()
     {
-        return rootFrame.Invocation.Action switch
+        return rootFrame?.Invocation.Action switch
         {
+            null => "causal_prediction.end_turn",
             PredictionActionKind.CardPlay => "causal_prediction.card",
             PredictionActionKind.PotionUse => "causal_prediction.potion",
             var action => throw new InvalidOperationException($"Unexpected root action kind {action}.")

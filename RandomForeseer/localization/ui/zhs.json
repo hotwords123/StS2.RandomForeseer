@@ -18,6 +18,8 @@
   "causal_prediction.card.description": "这张牌触发的连锁效果：\n{Lines:list: ·{}|\n}",
   "causal_prediction.potion.title": "预测",
   "causal_prediction.potion.description": "这瓶药水触发的连锁效果：\n{Lines:list: ·{}|\n}",
+  "causal_prediction.end_turn.title": "预测",
+  "causal_prediction.end_turn.description": "玩家回合结束时：\n{Lines:list: ·{}|\n}",
   "causal_prediction.channel_orbs": "[gold]{Source}[/gold]会{Listener:cond:使[gold]{Listener}[/gold]|}生成{Models:[gold]{}[/gold]|、|和|和}充能球。",
   "causal_prediction.draw_cards": "[gold]{Source}[/gold]会{Listener:cond:使[gold]{Listener}[/gold]|}抽到{Models:[gold]{}[/gold]|、|和|和}。",
   "causal_prediction.generate_cards": "[gold]{Source}[/gold]会{Listener:cond:使[gold]{Listener}[/gold]|}生成{Models:[gold]{}[/gold]|、|和|和}。",

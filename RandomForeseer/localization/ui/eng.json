@@ -18,6 +18,8 @@
   "causal_prediction.card.description": "Supported chained effects caused by this card:\n{Lines:list: ·{}|\n}",
   "causal_prediction.potion.title": "Prediction",
   "causal_prediction.potion.description": "Supported chained effects caused by this potion:\n{Lines:list: ·{}|\n}",
+  "causal_prediction.end_turn.title": "Prediction",
+  "causal_prediction.end_turn.description": "At the end of the player turn:\n{Lines:list: ·{}|\n}",
   "causal_prediction.channel_orbs": "[gold]{Source}[/gold] will {Listener:cond:cause [gold]{Listener}[/gold] to |}channel {Models:[gold]{}[/gold]|, |, and | and }.",
   "causal_prediction.draw_cards": "[gold]{Source}[/gold] will {Listener:cond:cause [gold]{Listener}[/gold] to |}draw {Models:[gold]{}[/gold]|, |, and | and }.",
   "causal_prediction.generate_cards": "[gold]{Source}[/gold] will {Listener:cond:cause [gold]{Listener}[/gold] to |}generate {Models:[gold]{}[/gold]|, |, and | and }.",
