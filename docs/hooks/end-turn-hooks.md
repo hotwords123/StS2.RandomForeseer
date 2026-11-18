@@ -35,8 +35,8 @@ Mirror files:
 | --- | --- | --- | --- |
 | `HowlFromBeyond` | 彼岸咆哮 | If in exhaust pile, auto-plays for owner. | Implemented for immediate auto-play damage through simulator `AutoPlay` and the shared `CardOnPlayMirrors` handler. |
 | `IAmInvincible` | 所向无敌 | If top of owner draw pile, auto-plays from draw pile. | Implemented for draw-pile selection, play-pile movement, and immediate block gain through simulator `AutoPlayFromDrawPile` and the shared `CardOnPlayMirrors` handler. |
-| `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `CombatCardSelection` RNG and calls generic simulator `AutoPlay`; unsupported generic `OnPlay` bodies retain risk. |
-| `SimpletonPower` | 傻瓜 | Repeatedly chooses a lowest-energy-cost playable hand card at random and auto-plays it. | Recomputes shadow hand candidates and prediction-aware costs before each selection; energy X uses vanilla's high sentinel. Uses cloned CombatCardSelection and normal AutoPlay, with no resource-affordability prefilter. Existing listener only; prediction-created power membership remains unsupported. |
+| `StampedePower` | 惊逃 | Auto-plays playable Attacks in hand. | Selects candidates with cloned `CombatCardSelection` RNG, records each selection, and calls simulator `AutoPlay`; unsupported generic `OnPlay` bodies retain risk. |
+| `SimpletonPower` | 傻瓜 | Repeatedly chooses a lowest-energy-cost playable hand card at random and auto-plays it. | Recomputes shadow hand candidates and prediction-aware costs before each selection; energy X uses vanilla's high sentinel. Uses cloned CombatCardSelection, records each selection, and calls AutoPlay without prefiltering candidates for resource affordability. Existing listener only; prediction-created power membership remains unsupported. |
 
 ## BeforeSideTurnEndVeryEarly listeners
 
@@ -82,7 +82,7 @@ preserves those as separate listener passes. `BeforeFlushLate` currently has a p
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
 | `SlumberingEssence` | 沉眠精华 | Reduces the enchanted card's cost by 1 if it remains in its owner's hand. | Implemented on the mutable preview with an until-played cost modifier. |
-| `Bookmark` | 书签 | AfterFlush selects a retained non-X card with positive local cost and reduces its until-played cost by 1. | Implemented on MutablePreview using cloned CombatCardSelection; no eligible card means no RNG consumption. |
+| `Bookmark` | 书签 | AfterFlush selects a retained non-X card with positive local cost and reduces its until-played cost by 1. | Uses cloned CombatCardSelection, applies the discount to MutablePreview, and records the selected card with its reduced cost. The RNG is drawn only when a card is eligible. |
 
 The simulator then moves non-retained shadow hand cards to the discard pile and invokes `AfterFlush`.
 Vanilla also runs `EndOfTurnCleanup`; prediction intentionally skips it to avoid cloning every combat card on each
@@ -170,7 +170,7 @@ When extending phase two, preserve listener order and carry state that later cal
 - StS2 v0.108.0 renamed the side-wide turn-end hooks from `BeforeTurnEnd` / `AfterTurnEnd` to `BeforeSideTurnEnd` / `AfterSideTurnEnd`. The simulator mirrors the player phase-one `BeforeSideTurnEnd` path and dispatches phase-two `AfterFlush`, `AfterSideTurnEnd`, and `AfterSideTurnEndLate` through registries.
 - StS2 v0.109.0 removed `DiamondDiadem` from `BeforeSideTurnEnd` and deleted
   `DiamondDiademPower`. The relic now grants block and Blur at the first side-turn start, outside
-  the current end-turn prediction surface, so it is no longer registered here.
+  the current end-turn damage and card-selection displays, so it is no longer registered here.
 - `Regret` records the shadow hand size on its mutable preview before ethereal cards are exhausted and before
   turn-end card resolution moves cards to the play pile, matching vanilla timing without mutating the real card's
   private counter.

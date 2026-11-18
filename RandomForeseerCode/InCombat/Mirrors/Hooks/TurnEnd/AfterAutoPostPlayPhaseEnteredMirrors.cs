@@ -81,6 +81,7 @@ internal static class AfterAutoPostPlayPhaseEnteredMirrors
 
             if (card != null)
             {
+                context.History.CardsSelected([card]);
                 context.Simulator.AutoPlay(card);
             }
         }

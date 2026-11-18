@@ -44,7 +44,11 @@ internal static class AfterFlushMirrors
         if (cards.Count > 0)
         {
             var selected = context.Rng.CombatCardSelection.NextItem(cards);
-            selected?.MutablePreview.EnergyCost.AddUntilPlayed(-1);
+            if (selected is not null)
+            {
+                selected.MutablePreview.EnergyCost.AddUntilPlayed(-1);
+                context.History.CardsSelected([selected]);
+            }
         }
     }
 
