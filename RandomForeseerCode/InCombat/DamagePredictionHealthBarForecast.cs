@@ -83,7 +83,7 @@ internal static class DamagePredictionHealthBarForecast
             }
         }
 
-        foreach (var childNode in NRun.Instance?.GlobalUi?.MultiplayerPlayerContainer?.GetChildren() ?? [])
+        foreach (var childNode in NRun.Instance?.GlobalUi.MultiplayerPlayerContainer.GetChildren() ?? [])
         {
             if (childNode is NMultiplayerPlayerState playerStateNode &&
                 targetsSet.Contains(playerStateNode.Player.Creature))
