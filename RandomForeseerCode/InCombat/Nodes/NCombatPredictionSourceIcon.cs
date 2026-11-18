@@ -1,4 +1,6 @@
 using Godot;
+using MegaCrit.Sts2.Core.Models;
+using RandomForeseer.Common;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Assets;
@@ -8,24 +10,13 @@ namespace RandomForeseer.InCombat.Nodes;
 // Mirrors the source icon/count layout from res://scenes/combat/power.tscn.
 internal sealed partial class NCombatPredictionSourceIcon : Control
 {
-    public NCombatPredictionSourceIcon(Texture2D icon, int hitCount)
+    public NCombatPredictionSourceIcon(AbstractModel source, int hitCount)
     {
         MouseFilter = MouseFilterEnum.Ignore;
         CustomMinimumSize = new Vector2(48f, 40f);
         Size = CustomMinimumSize;
 
-        AddChild(new TextureRect
-        {
-            Name = "Icon",
-            // Ignore the texture's minimum size before assigning the fixed icon size.
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-            Texture = icon,
-            TextureFilter = TextureFilterEnum.LinearWithMipmaps,
-            Size = new Vector2(40f, 40f),
-            PivotOffset = new Vector2(20f, 20f),
-            MouseFilter = MouseFilterEnum.Ignore
-        });
+        AddChild(PredictionSourceIcon.Create(source, 40f));
 
         var amountLabel = new MegaLabel
         {

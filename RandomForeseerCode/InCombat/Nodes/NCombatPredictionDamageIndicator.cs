@@ -2,11 +2,8 @@ using Godot;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.addons.mega_text;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Assets;
 
 namespace RandomForeseer.InCombat.Nodes;
@@ -76,9 +73,9 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontColor, StsColors.cream);
         _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontShadowColor, StsColors.quarterTransparentBlack);
         _damageLabel.AddThemeColorOverride(ThemeConstants.Label.FontOutlineColor, DefaultOutlineColor);
-        _damageLabel.AddThemeConstantOverride("shadow_offset_x", 6);
-        _damageLabel.AddThemeConstantOverride("shadow_offset_y", 4);
-        _damageLabel.AddThemeConstantOverride("outline_size", 16);
+        _damageLabel.AddThemeConstantOverride("shadow_offset_x", 3);
+        _damageLabel.AddThemeConstantOverride("shadow_offset_y", 3);
+        _damageLabel.AddThemeConstantOverride("outline_size", 8);
         _damageLabel.AddThemeConstantOverride("shadow_outline_size", 0);
         _damageLabel.AddThemeFontSizeOverride(ThemeConstants.Label.FontSize, 24);
         content.AddChild(_damageLabel);
@@ -124,7 +121,7 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
 
         foreach (var (source, hitCount) in sourceGroups)
         {
-            var sourceIcon = new NCombatPredictionSourceIcon(GetIcon(source), hitCount);
+            var sourceIcon = new NCombatPredictionSourceIcon(source, hitCount);
             _sourceIcons.AddChildSafely(sourceIcon);
         }
 
@@ -187,47 +184,4 @@ internal sealed partial class NCombatPredictionDamageIndicator : MarginContainer
         return hasRisk ? $"{amountText}*" : amountText;
     }
 
-    private static Texture2D GetIcon(AbstractModel source)
-    {
-        var icon = source switch
-        {
-            CardModel card => GetCardIcon(card),
-            PotionModel potion => potion.Image,
-            EnchantmentModel enchantment => enchantment.Icon,
-            OrbModel orb => orb.Icon,
-            PowerModel power => power.Icon,
-            RelicModel relic => relic.Icon,
-            _ => null
-        };
-        return icon ?? ModelDb.Power<StrengthPower>().Icon;
-    }
-
-    private static Texture2D? GetCardIcon(CardModel card)
-    {
-        if (!ResourceLoader.Exists(card.PortraitPath) || card.Portrait is not { } portrait)
-        {
-            return null;
-        }
-
-        var portraitSize = portrait.GetSize();
-        if (card.Rarity is not CardRarity.Ancient || portraitSize.Y <= portraitSize.X)
-        {
-            return portrait;
-        }
-
-        var (atlas, region) = portrait switch
-        {
-            AtlasTexture atlasPortrait => (atlasPortrait.Atlas, atlasPortrait.Region),
-            _ => (portrait, new Rect2(Vector2.Zero, portraitSize))
-        };
-
-        var cropOffset = new Vector2(region.Size.X * 28f / 299f, region.Size.Y * 47f / 421f);
-        var cropSize = new Vector2(region.Size.X * 250f / 299f, region.Size.Y * 190f / 421f);
-        return new AtlasTexture
-        {
-            Atlas = atlas,
-            Region = new Rect2(region.Position + cropOffset, cropSize),
-            FilterClip = true
-        };
-    }
 }
