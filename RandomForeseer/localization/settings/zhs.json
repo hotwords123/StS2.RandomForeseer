@@ -114,6 +114,8 @@
   "toggle.card_draw_prediction_enabled.description": "预测[gold]重启[/gold]、[gold]计算下注[/gold]等抽牌卡将抽到的牌，包括洗牌后抽到的牌。",
   "toggle.combat_card_selection_prediction_enabled.label": "预测随机选牌",
   "toggle.combat_card_selection_prediction_enabled.description": "预测[gold]痛殴[/gold]、[gold]未掘宝石[/gold]等随机选牌卡将选中的牌，并高亮对应手牌。",
+  "toggle.card_highlight_source_icons_enabled.label": "显示随机选牌来源图标",
+  "toggle.card_highlight_source_icons_enabled.description": "启用后，预测选中的手牌右上角会显示效果来源图标。",
   "toggle.combat_orb_generation_prediction_enabled.label": "预测随机充能球",
   "toggle.combat_orb_generation_prediction_enabled.description": "预测[gold]混沌[/gold]等将生成的随机充能球类型。",
 

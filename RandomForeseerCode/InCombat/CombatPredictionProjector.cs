@@ -16,12 +16,12 @@ namespace RandomForeseer.InCombat;
 /// </summary>
 /// <param name="HoverTips">Ordered prediction tips before the game separates text and card containers.</param>
 /// <param name="DamagePrediction">Damage overlay and health-bar payload accepted by damage-specific gates.</param>
-/// <param name="HighlightedCards">Original live cards selected by accepted card-selection entries.</param>
+/// <param name="CardHighlights">Selected original cards mapped to their direct effect sources, deduplicated by model ID.</param>
 /// <param name="Risk">Shared risk accumulated through the completion boundaries of accepted results.</param>
 internal sealed record CombatPredictionProjection(
     IReadOnlyList<IHoverTip> HoverTips,
     DamagePrediction DamagePrediction,
-    IReadOnlySet<CardModel> HighlightedCards,
+    IReadOnlyDictionary<CardModel, CardHighlight> CardHighlights,
     IPredictionRisk Risk);
 
 /// <summary>
@@ -42,7 +42,7 @@ internal sealed class CombatPredictionProjector
     private readonly Dictionary<Type, EntryProjectionRule> _rules = [];
 
     private readonly List<IHoverTip> _hoverTips = [];
-    private readonly HashSet<CardModel> _highlightedCards = [];
+    private readonly Dictionary<CardModel, List<AbstractModel>> _cardHighlightSources = [];
     private readonly List<CombatPredictionDamageReceivedEntry> _damageEntries = [];
     private readonly List<CombatPredictionHistoryEntry> _relevantEntries = [];
 
@@ -266,7 +266,22 @@ internal sealed class CombatPredictionProjector
 
         AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards));
         AddCausalEffect(entry, CausalEffectKind.SelectCards, entry.PreviewCards);
-        _highlightedCards.UnionWith(entry.SourceCards);
+
+        var source = entry.Trace?.Source;
+        foreach (var selected in entry.SourceCards)
+        {
+            if (!_cardHighlightSources.TryGetValue(selected, out var sources))
+            {
+                sources = [];
+                _cardHighlightSources[selected] = sources;
+            }
+
+            if (source is not null && sources.All(existing => existing.Id != source.Id))
+            {
+                sources.Add(source);
+            }
+        }
+
         return entry;
     }
 
@@ -336,17 +351,20 @@ internal sealed class CombatPredictionProjector
     private CombatPredictionProjection FinalizeProjection()
     {
         var damagePrediction = DamagePredictionProjector.Project(_damageEntries);
+        var cardHighlights = _cardHighlightSources
+            .ToDictionary(pair => pair.Key, pair => new CardHighlight(pair.Value));
         var risk = _history.GetRisk(_relevantEntries);
         if (_causalTips.Build() is { } causalTip)
         {
             _hoverTips.Insert(0, causalTip);
         }
+
         _hoverTips.AddRange(risk.ToHoverTips());
 
         return new CombatPredictionProjection(
             _hoverTips,
             damagePrediction,
-            _highlightedCards,
+            cardHighlights,
             risk);
     }
 

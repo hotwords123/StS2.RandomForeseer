@@ -178,7 +178,8 @@ internal static class EndTurnPredictionController
     private static bool IsDisplayModeBinding(IModSettingsBinding binding) =>
         ReferenceEquals(binding, SettingsUiBindings.EndTurnDamageIndicatorDisplayMode) ||
         ReferenceEquals(binding, SettingsUiBindings.EndTurnHealthBarForecastDisplayMode) ||
-        ReferenceEquals(binding, SettingsUiBindings.EndTurnCardHighlightDisplayMode);
+        ReferenceEquals(binding, SettingsUiBindings.EndTurnCardHighlightDisplayMode) ||
+        ReferenceEquals(binding, SettingsUiBindings.CardHighlightSourceIconsEnabled);
 
     private static bool IsPredictionRelatedBinding(IModSettingsBinding binding) =>
         ReferenceEquals(binding, SettingsUiBindings.SingleplayerPredictionEnabled) ||

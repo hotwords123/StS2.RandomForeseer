@@ -101,6 +101,9 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> CombatCardSelectionPredictionEnabled { get; } =
         Binding(s => s.CombatCardSelectionPredictionEnabled, (s, v) => s.CombatCardSelectionPredictionEnabled = v);
 
+    public static IModSettingsValueBinding<bool> CardHighlightSourceIconsEnabled { get; } =
+        Binding(s => s.CardHighlightSourceIconsEnabled, (s, v) => s.CardHighlightSourceIconsEnabled = v);
+
     public static IModSettingsValueBinding<bool> CombatOrbGenerationPredictionEnabled { get; } =
         Binding(s => s.CombatOrbGenerationPredictionEnabled, (s, v) => s.CombatOrbGenerationPredictionEnabled = v);
 

@@ -68,6 +68,7 @@ internal sealed class ModSettings
     public bool CombatCardGenerationPredictionEnabled { get; set; } = true;
     public bool CardDrawPredictionEnabled { get; set; } = true;
     public bool CombatCardSelectionPredictionEnabled { get; set; } = true;
+    public bool CardHighlightSourceIconsEnabled { get; set; } = true;
     public bool CombatOrbGenerationPredictionEnabled { get; set; } = true;
 
     // Potion effect prediction

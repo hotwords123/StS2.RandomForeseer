@@ -119,6 +119,7 @@ internal static class SettingsBootstrap
                 .AddToggle("combat_card_generation_prediction_enabled", SettingsUiBindings.CombatCardGenerationPredictionEnabled)
                 .AddToggle("card_draw_prediction_enabled", SettingsUiBindings.CardDrawPredictionEnabled)
                 .AddToggle("combat_card_selection_prediction_enabled", SettingsUiBindings.CombatCardSelectionPredictionEnabled)
+                .AddToggle("card_highlight_source_icons_enabled", SettingsUiBindings.CardHighlightSourceIconsEnabled)
                 .AddToggle("combat_orb_generation_prediction_enabled", SettingsUiBindings.CombatOrbGenerationPredictionEnabled))
             .AddSection("potion_effect_prediction", section => section
                 .WithTitle(T("section.potion_effect_prediction.title"))

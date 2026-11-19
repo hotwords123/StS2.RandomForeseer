@@ -102,31 +102,38 @@ internal static class CombatPredictionProjectionController
 
     private static void RefreshCardHighlights()
     {
-        var actionCards = _actionProjection?.HighlightedCards;
+        var actionCards = _actionProjection?.CardHighlights;
         var endTurnCards = ShouldShow(ModData.Settings.EndTurnCardHighlightDisplayMode)
-            ? _endTurnProjection?.HighlightedCards
+            ? _endTurnProjection?.CardHighlights
             : null;
 
         if (actionCards is not { Count: > 0 } && endTurnCards is not { Count: > 0 })
         {
-            CombatPredictionCardHighlight.Show([]);
+            CombatPredictionCardHighlight.Clear();
             return;
         }
 
         var handCards = LocalContext.GetMe(CombatManager.Instance.LiveCombatState)?.PlayerCombatState?.Hand.Cards;
         if (handCards is not { Count: > 0 })
         {
-            CombatPredictionCardHighlight.Show([]);
+            CombatPredictionCardHighlight.Clear();
             return;
         }
 
-        var highlights = actionCards?.Where(handCards.Contains).ToArray();
-        if (highlights is not { Length: > 0 })
+        var highlights = actionCards?.Where(pair => handCards.Contains(pair.Key)).ToDictionary();
+        if (highlights is not { Count: > 0 })
         {
-            highlights = endTurnCards?.Where(handCards.Contains).ToArray();
+            highlights = endTurnCards?.Where(pair => handCards.Contains(pair.Key)).ToDictionary();
         }
 
-        CombatPredictionCardHighlight.Show(highlights ?? []);
+        if (highlights is { Count: > 0 })
+        {
+            CombatPredictionCardHighlight.Show(highlights);
+        }
+        else
+        {
+            CombatPredictionCardHighlight.Clear();
+        }
     }
 
     private static void RefreshDamage()

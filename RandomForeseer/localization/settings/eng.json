@@ -114,6 +114,8 @@
   "toggle.card_draw_prediction_enabled.description": "Shows which cards you will draw from cards such as [gold]Reboot[/gold] and [gold]Calculated Gamble[/gold], including draws after a shuffle.",
   "toggle.combat_card_selection_prediction_enabled.label": "Predict random card selection",
   "toggle.combat_card_selection_prediction_enabled.description": "Shows which cards [gold]Thrash[/gold], [gold]Hidden Gem[/gold], and similar cards will select, and highlights them in your Hand.",
+  "toggle.card_highlight_source_icons_enabled.label": "Card highlight source icons",
+  "toggle.card_highlight_source_icons_enabled.description": "When enabled, shows effect source icons above the top-right corner of predicted hand selections.",
   "toggle.combat_orb_generation_prediction_enabled.label": "Predict random Orbs",
   "toggle.combat_orb_generation_prediction_enabled.description": "Shows which random Orb types [gold]Chaos[/gold] and similar cards will Channel.",
 
