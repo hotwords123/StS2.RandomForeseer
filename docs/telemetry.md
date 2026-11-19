@@ -6,7 +6,7 @@
 
 Random Foreseer 作为 RitsuLib 的遥测申请方，通过 PostHog batch adapter 的 `/batch/` 上报普通事件。查询使用 `events` 表及其 `event` 字段，并优先过滤 `properties['applicant_id'] = 'RandomForeseer'`；异常也按普通事件查询，无需使用 PostHog Error Tracking issue 接口。
 
-所有事件都带有 RitsuLib 信封通用属性，包括匿名安装 ID、telemetry session ID、RitsuLib/Mod 版本、游戏版本、平台、操作系统、架构、.NET runtime 和游戏语言，以及 `schema`、`applicant_id`、`owner_mod_id`、`request_id`、`category` 和 `random_foreseer_version`。结构化数据统一位于 `properties['payload']`；下文中的 `payload` 均指该属性。
+RitsuLib 信封通用属性包括匿名安装 ID、telemetry session ID、RitsuLib 版本、游戏版本、平台、操作系统、架构、.NET runtime 和游戏语言，以及 `schema`、`applicant_id`、`owner_mod_id`、`request_id` 和 `category`。结构化数据位于 `properties['payload']`，下文简称 `payload`。
 
 | 事件 | 授权请求 | 主要结构化数据 |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ v0.15.1 及以前通过 `session_start` 单独发送基础使用信息和设置�
 
 ## 诊断遥测过滤
 
-`ModTelemetry.Register` 为 `diagnostics` 申请项注册 `ModTelemetryFilter.ShouldCapture`，使用 RitsuLib 0.5.14 新增的 `TelemetryRequest.WithCaptureFilter`。筛选发生在诊断 payload 构建和事件入队前；`ModTelemetryAdapter` 仅补充 `random_foreseer_version` 并转发，不再筛选发送队列。
+`ModTelemetry.Register` 为 `diagnostics` 申请项注册 `ModTelemetryFilter.ShouldCapture`。RitsuLib 在构建诊断 payload 和写入队列之前执行该筛选。
 
 ### 过滤规则
 

@@ -1,13 +1,11 @@
+using System.Text.Json.Nodes;
 using STS2RitsuLib.Telemetry;
 
 namespace RandomForeseer.Telemetry;
 
 internal sealed class ModTelemetryAdapter(ITelemetryAdapter inner) : ITelemetryAdapter
 {
-    private const string ModVersionMetadataName = "RandomForeseerModVersion";
-    private const string UnknownModVersion = "<unknown>";
-
-    private readonly string _modVersion = ResolveModVersion();
+    private const string VersionProperty = "random_foreseer_version";
 
     public string AdapterId => inner.AdapterId;
 
@@ -20,22 +18,38 @@ internal sealed class ModTelemetryAdapter(ITelemetryAdapter inner) : ITelemetryA
     {
         foreach (var telemetryEvent in events)
         {
-            telemetryEvent.Properties["random_foreseer_version"] = _modVersion;
+            if (ReadCapturedVersion(telemetryEvent.Payload) is { } version)
+            {
+                telemetryEvent.Properties[VersionProperty] = version;
+            }
+            else
+            {
+                telemetryEvent.Properties.Remove(VersionProperty);
+            }
         }
 
         return inner.SendAsync(applicant, events, cancellationToken);
     }
 
-    private static string ResolveModVersion()
+    private static string? ReadCapturedVersion(JsonNode? payload)
     {
-        Entry.AssemblyMetadata.TryGetValue(ModVersionMetadataName, out var version);
-        version = version?.Trim();
-        if (!string.IsNullOrWhiteSpace(version))
+        if (payload is not JsonObject root ||
+            root["private_contributions"] is not JsonObject privateContributions ||
+            privateContributions[Entry.ModId] is not JsonObject contributions)
         {
-            return version;
+            return null;
         }
 
-        Entry.Logger.Warn("Could not resolve the Random Foreseer version for telemetry events.");
-        return UnknownModVersion;
+        foreach (var (id, value) in contributions)
+        {
+            if (id.StartsWith(ModVersionTelemetryContribution.IdPrefix, StringComparison.Ordinal) &&
+                value is JsonValue node && node.TryGetValue<string>(out var version) &&
+                !string.IsNullOrWhiteSpace(version))
+            {
+                return version;
+            }
+        }
+
+        return null;
     }
 }

@@ -30,6 +30,11 @@ internal static class ModTelemetry
     public static void Register()
     {
         RitsuLibFramework.RegisterTelemetryContributionProvider(new SettingsTelemetryContribution());
+        RitsuLibFramework.RegisterTelemetryContributionProvider(
+            new ModVersionTelemetryContribution(TelemetryDataCategory.ModInventory));
+        RitsuLibFramework.RegisterTelemetryContributionProvider(
+            new ModVersionTelemetryContribution(TelemetryDataCategory.Diagnostics));
+
         RitsuLibFramework.RegisterTelemetryApplicant(new TelemetryApplicant
         {
             ApplicantId = Entry.ModId,
@@ -45,10 +50,16 @@ internal static class ModTelemetry
                     Category = TelemetryDataCategory.ModInventory,
                     Description = "telemetry.mod_inventory.description",
                     DescriptionText = T("telemetry.mod_inventory.description"),
-                    ContributionSubscriptions = [SettingsTelemetryContribution.Id]
+                    ContributionSubscriptions =
+                    [
+                        SettingsTelemetryContribution.Id,
+                        ModVersionTelemetryContribution.GetIdForCategory(TelemetryDataCategory.ModInventory)
+                    ]
                 },
-                TelemetryRequest.Diagnostics(T("telemetry.diagnostics.description"))
-                    .WithCaptureFilter(ModTelemetryFilter.ShouldCapture)
+                TelemetryRequest.Diagnostics(
+                    T("telemetry.diagnostics.description"),
+                    [ModVersionTelemetryContribution.GetIdForCategory(TelemetryDataCategory.Diagnostics)],
+                    ModTelemetryFilter.ShouldCapture)
             ]
         });
 
