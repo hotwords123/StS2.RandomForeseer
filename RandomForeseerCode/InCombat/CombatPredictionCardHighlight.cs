@@ -110,8 +110,8 @@ internal static class CombatPredictionCardHighlight
         for (var i = 0; i < highlight.Sources.Count; i++)
         {
             var icon = PredictionSourceIcon.Create(highlight.Sources[i], 64f);
-            // Card bounds are (-150, -211) to (150, 211). Leave 21px of the badge inside the top edge.
-            icon.Position = new Vector2(86f - i * 54f, -254f);
+            // Card bounds are (-150, -211) to (150, 211). Leave 12px of the badge inside the top edge.
+            icon.Position = new Vector2(86f - i * 54f, -263f);
             container.AddChild(icon);
         }
 
