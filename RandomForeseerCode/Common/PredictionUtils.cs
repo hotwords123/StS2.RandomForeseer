@@ -8,9 +8,9 @@ namespace RandomForeseer.Common;
 
 internal static class PredictionUtils
 {
-    public static CardModel CreateCard(CardModel card, Player player)
+    public static CardModel CreateCard(CardModel canonicalCard, Player player)
     {
-        card = (CardModel)card.MutableClone();
+        var card = canonicalCard.ToMutable();
         card.Owner = player;
         return card;
     }
@@ -86,20 +86,6 @@ internal static class PredictionUtils
         var previewCard = (CardModel)card.MutableClone();
         EnchantCard(enchantment, previewCard, amount);
         return previewCard;
-    }
-
-    public static RelicModel CreateRelic(RelicModel relic, Player player)
-    {
-        relic = (RelicModel)relic.MutableClone();
-        relic.Owner = player;
-        return relic;
-    }
-
-    public static PotionModel CreatePotion(PotionModel potion, Player player)
-    {
-        potion = (PotionModel)potion.MutableClone();
-        potion.Owner = player;
-        return potion;
     }
 
     public static CardModel PredictTransformResult(CardModel original, Rng rng, bool isInCombat)

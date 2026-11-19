@@ -431,7 +431,8 @@ internal static class RelicPickupPrediction
 
     private static IReadOnlyList<IHoverTip> PredictSilkenTressRewardTips(RunPredictionContext context, SilkenTress relic)
     {
-        var previewRelic = PredictionUtils.CreateRelic(relic.CanonicalInstance, context.Player);
+        var previewRelic = relic.CanonicalInstance.ToMutable();
+        previewRelic.Owner = context.Player;
 
         var options = OutOfCombatPredictionUtils.CreateMonsterCombatCardRewardOptions(context.Player);
 

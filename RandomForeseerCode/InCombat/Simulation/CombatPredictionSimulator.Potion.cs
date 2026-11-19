@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
 using RandomForeseer.Common;
 using RandomForeseer.InCombat.Mirrors.Potions.OnUse;
@@ -9,6 +11,15 @@ namespace RandomForeseer.InCombat.Simulation;
 
 internal sealed partial class CombatPredictionSimulator
 {
+    /// <summary>Mirrors the ownership step of <see cref="PotionCmd.TryToProcure(PotionModel, Player, int)"/>.</summary>
+    /// <param name="potion">A mutable potion created for this prediction.</param>
+    /// <param name="player">The player receiving the predicted potion.</param>
+    public void ProcurePotion(PotionModel potion, Player player)
+    {
+        potion.Owner = player;
+        History.PotionGenerated(potion);
+    }
+
     /// <summary>Starts the prediction-relevant portion of one manual potion use.</summary>
     /// <param name="potion">The exact live mutable potion that anchors the prediction trace.</param>
     /// <param name="target">The explicit target, or <see langword="null"/> when vanilla may resolve the owner.</param>

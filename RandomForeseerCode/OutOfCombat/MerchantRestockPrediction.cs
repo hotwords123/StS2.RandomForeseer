@@ -127,7 +127,8 @@ internal static class MerchantRestockPrediction
         MerchantInventory inventory)
     {
         var player = context.Player;
-        var obtainedRelic = PredictionUtils.CreateRelic(entry.Model!, player);
+        var obtainedRelic = (RelicModel)entry.Model!.MutableClone();
+        obtainedRelic.Owner = player;
         RelicPickupPrediction.FastForwardRelicPickup(context, obtainedRelic);
 
         var rarity = RelicFactory.RollRarity(context.Rng.Shops);

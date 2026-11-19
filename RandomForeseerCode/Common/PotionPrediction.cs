@@ -44,7 +44,9 @@ internal static class PotionPrediction
 
     public static IReadOnlyList<IHoverTip> GetHoverTips(Player player, PotionModel potion)
     {
-        return GetHoverTips(PredictionUtils.CreatePotion(potion, player));
+        var preview = potion.IsMutable ? (PotionModel)potion.MutableClone() : potion.ToMutable();
+        preview.Owner = player;
+        return GetHoverTips(preview);
     }
 
     /// <summary>Builds only the pure RNG previews supported outside combat.</summary>
