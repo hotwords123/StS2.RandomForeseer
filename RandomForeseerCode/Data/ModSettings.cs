@@ -24,6 +24,7 @@ internal sealed class ModSettings
         PredictionHoverTipOrder.BeforeVanilla;
     public PredictionHoverTipOrder PredictionCardHoverTipOrder { get; set; } =
         PredictionHoverTipOrder.BeforeVanilla;
+    public bool PredictionCardHoverTipSourceIconsEnabled { get; set; } = true;
 
     // Compatibility settings
     public bool PredictBaseGameCardsOnly { get; set; }

@@ -60,10 +60,16 @@ internal static class PredictionCardHoverTipContainerPatches
         }
 
         var control = __instance.GetChildren().OfType<Control>().LastOrDefault();
+        if (control is null)
+        {
+            return;
+        }
+
         PredictionCardHoverTipLayoutState.MarkPredictionCard(control);
+        PredictionHoverTipControlFactory.AddSourceIcon(control.GetNode<NCard>("%Card"), predictionTip.Source);
         if (predictionTip.IsDimmed)
         {
-            control?.GetNode<NCard>("%Card").Modulate = DimmedCardModulate;
+            control.GetNode<NCard>("%Card").Modulate = DimmedCardModulate;
         }
     }
 

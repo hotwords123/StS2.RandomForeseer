@@ -6,13 +6,14 @@ namespace RandomForeseer.Common.HoverTips;
 /// <summary>
 /// Displays one predicted card without exposing its canonical model to vanilla discovery tracking.
 /// </summary>
-internal class PredictionCardHoverTip(CardModel card, bool isDimmed)
-    : CardHoverTip(card), IHoverTip
+internal class PredictionCardHoverTip(CardModel card) : CardHoverTip(card), IHoverTip
 {
     /// <summary>
     /// Whether the card should be visually de-emphasized.
     /// </summary>
-    public bool IsDimmed { get; } = isDimmed;
+    public bool IsDimmed { get; init; }
+
+    public AbstractModel? Source { get; init; }
 
     bool IHoverTip.IsInstanced => true;
 
@@ -29,10 +30,7 @@ internal class PredictionCardHoverTip(CardModel card, bool isDimmed)
 /// one bundle and no independent card tip may expand it into ordinary card tips; otherwise the bundle remains an
 /// independently laid-out stack.
 /// </remarks>
-internal class PredictionCardBundleHoverTip(
-    IReadOnlyList<CardModel> cards,
-    PredictionCardBundleKind kind,
-    bool isDimmed)
+internal class PredictionCardBundleHoverTip(IReadOnlyList<CardModel> cards, PredictionCardBundleKind kind)
     : CardHoverTip(cards[0]), IHoverTip
 {
     /// <summary>
@@ -48,7 +46,9 @@ internal class PredictionCardBundleHoverTip(
     /// <summary>
     /// Whether the entire card bundle should be visually de-emphasized.
     /// </summary>
-    public bool IsDimmed { get; } = isDimmed;
+    public bool IsDimmed { get; init; }
+
+    public AbstractModel? Source { get; init; }
 
     string IHoverTip.Id => string.Empty;
 

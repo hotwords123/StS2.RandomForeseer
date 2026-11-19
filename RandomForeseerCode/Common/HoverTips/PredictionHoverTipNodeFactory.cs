@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
+using RandomForeseer.Data;
 
 namespace RandomForeseer.Common.HoverTips;
 
@@ -45,6 +46,10 @@ internal static class PredictionHoverTipControlFactory
             var offset = new Vector2(-1f, 1f) * BundleCardSeparation * (i - centerIndex) * BundleCardScale;
             cardNode.Scale = Vector2.One * BundleCardScale;
             cardNode.Position = offset;
+            if (i == cards.Count - 1)
+            {
+                AddSourceIcon(cardNode.GetNode<NCard>("%Card"), bundleTip.Source);
+            }
 
             var brightness = cards.Count <= 1
                 ? 1f
@@ -80,6 +85,19 @@ internal static class PredictionHoverTipControlFactory
 
         stack.Size = size;
         return stack;
+    }
+
+    /// <summary>Adds an optional combat source badge inside the card frame.</summary>
+    public static void AddSourceIcon(NCard card, AbstractModel? source)
+    {
+        if (source is null || !ModData.Settings.PredictionCardHoverTipSourceIconsEnabled)
+        {
+            return;
+        }
+
+        var icon = PredictionSourceIcon.Create(source, 54f);
+        icon.Position = new Vector2(86f, 147f);
+        card.AddChild(icon);
     }
 
     /// <summary>

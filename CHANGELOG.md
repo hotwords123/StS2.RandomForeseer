@@ -4,8 +4,8 @@
 
 ### feat
 
-- 战斗随机选牌预测新增可独立开关的来源图标，在选中的手牌上方标记效果来源。<br>
-  Combat card-selection predictions now offer independently toggleable source icons above selected hand cards.
+- 战斗预测新增可独立开关的来源图标，在选中的手牌上方和预测卡牌预览右下角标记效果来源。<br>
+  Combat predictions now offer independently toggleable source icons above selected hand cards and inside the bottom-right corner of card previews.
 
 - 回合结束预测现在支持惊逃、书签和傻瓜的随机选牌效果，会在手牌中高亮选中的牌并显示效果来源图标，同时支持设置显示时机。<br>
   End-turn predictions now show which cards Stampede, Bookmark, and Simpleton will randomly select. Selected cards are highlighted in your hand with effect source icons, and you can configure when they appear.

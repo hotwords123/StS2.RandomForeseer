@@ -109,7 +109,7 @@ internal static class PredictionHoverTipInitPatch
             var index = tips.IndexOf(bundleTip);
             tips.RemoveAt(index);
             tips.InsertRange(index, bundleTip.Cards.Select(card =>
-                PredictionHoverTipFactory.Card(card, isDimmed: bundleTip.IsDimmed)));
+                PredictionHoverTipFactory.Card(card, bundleTip.IsDimmed, bundleTip.Source)));
             bundleTips.Clear();
         }
 

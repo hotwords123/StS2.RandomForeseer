@@ -37,7 +37,8 @@ internal static class SettingsBootstrap
                 .WithDescription(T("section.hover_tip_presentation.description"))
                 .AddEnumChoice("prediction_drift_warning_level", SettingsUiBindings.PredictionDriftWarningLevel)
                 .AddEnumChoice("prediction_text_hover_tip_order", SettingsUiBindings.PredictionTextHoverTipOrder)
-                .AddEnumChoice("prediction_card_hover_tip_order", SettingsUiBindings.PredictionCardHoverTipOrder))
+                .AddEnumChoice("prediction_card_hover_tip_order", SettingsUiBindings.PredictionCardHoverTipOrder)
+                .AddToggle("prediction_card_hover_tip_source_icons_enabled", SettingsUiBindings.PredictionCardHoverTipSourceIconsEnabled))
             .AddSection("compatibility", section => section
                 .WithTitle(T("section.compatibility.title"))
                 .WithDescription(T("section.compatibility.description"))

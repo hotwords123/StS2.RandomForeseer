@@ -36,6 +36,8 @@
   "choice.prediction_card_hover_tip_order.description": "Controls whether predicted card previews appear before or after base-game card previews.",
   "choice.prediction_card_hover_tip_order.option.BeforeVanilla": "Before base-game previews",
   "choice.prediction_card_hover_tip_order.option.AfterVanilla": "After base-game previews",
+  "toggle.prediction_card_hover_tip_source_icons_enabled.label": "Predicted card source icons",
+  "toggle.prediction_card_hover_tip_source_icons_enabled.description": "Show effect source icons inside the bottom-right corner of card previews.",
 
   "section.compatibility.title": "Compatibility",
   "section.compatibility.description": "If prediction features conflict with other mods, you can try enabling the following options as a temporary workaround until the issue is properly fixed. [blue]Note:[/blue] enabling them will make some prediction features unavailable, and prediction results may be incomplete or inaccurate. If you are not experiencing any conflicts, there is no need to enable them.",

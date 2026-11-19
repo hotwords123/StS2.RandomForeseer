@@ -22,19 +22,11 @@ internal static class PredictionHoverTipFactory
     public const string HoverTipIdPrefix = $"{Entry.ModId}:Prediction";
 
     /// <summary>
-    /// Creates a non-dimmed prediction tip for one card.
+    /// Creates a prediction tip for one card.
     /// </summary>
-    public static IHoverTip Card(CardModel card)
+    public static IHoverTip Card(CardModel card, bool isDimmed = false, AbstractModel? source = null)
     {
-        return Card(card, isDimmed: false);
-    }
-
-    /// <summary>
-    /// Creates a prediction tip for one card, optionally dimmed for transform-result presentation.
-    /// </summary>
-    public static IHoverTip Card(CardModel card, bool isDimmed)
-    {
-        return new PredictionCardHoverTip(card, isDimmed);
+        return new PredictionCardHoverTip(card) { IsDimmed = isDimmed, Source = source };
     }
 
     /// <summary>
@@ -48,10 +40,11 @@ internal static class PredictionHoverTipFactory
     public static IHoverTip CardBundle(
         IReadOnlyList<CardModel> cards,
         PredictionCardBundleKind kind = PredictionCardBundleKind.Regular,
-        bool isDimmed = false)
+        bool isDimmed = false,
+        AbstractModel? source = null)
     {
         ArgumentOutOfRangeException.ThrowIfZero(cards.Count);
-        return new PredictionCardBundleHoverTip(cards, kind, isDimmed);
+        return new PredictionCardBundleHoverTip(cards, kind) { IsDimmed = isDimmed, Source = source };
     }
 
     /// <summary>

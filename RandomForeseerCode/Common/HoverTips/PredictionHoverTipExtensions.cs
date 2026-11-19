@@ -17,7 +17,7 @@ internal static class PredictionHoverTipExtensions
     /// </summary>
     public static IEnumerable<IHoverTip> ToPredictionHoverTips(this IEnumerable<CardModel> cards)
     {
-        return cards.Select(PredictionHoverTipFactory.Card);
+        return cards.Select(card => PredictionHoverTipFactory.Card(card));
     }
 
     /// <summary>

@@ -228,7 +228,7 @@ internal sealed class CombatPredictionProjector
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard));
+        AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard, source: entry.Trace?.Source));
         AddCausalEffect(entry, CausalEffectKind.GenerateCards, [resolved.PreviewCard]);
         return resolved;
     }
@@ -240,7 +240,7 @@ internal sealed class CombatPredictionProjector
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards));
+        AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards, source: entry.Trace?.Source));
         AddCausalEffect(entry, CausalEffectKind.GenerateCards, entry.PreviewCards);
         return entry;
     }
@@ -264,7 +264,7 @@ internal sealed class CombatPredictionProjector
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards));
+        AddHoverTip(PredictionHoverTipFactory.CardBundle(entry.PreviewCards, source: entry.Trace?.Source));
         AddCausalEffect(entry, CausalEffectKind.SelectCards, entry.PreviewCards);
 
         var source = entry.Trace?.Source;
@@ -292,7 +292,7 @@ internal sealed class CombatPredictionProjector
             return null;
         }
 
-        AddHoverTip(PredictionHoverTipFactory.Card(entry.Card.Preview));
+        AddHoverTip(PredictionHoverTipFactory.Card(entry.Card.Preview, source: entry.Trace?.Source));
         AddCausalEffect(entry, CausalEffectKind.PlayCard, [entry.Card.Preview]);
         return entry;
     }
@@ -305,7 +305,7 @@ internal sealed class CombatPredictionProjector
         }
 
         var resolved = _history.GetResolvedEntry<CombatPredictionCardDrawResolvedEntry>(entry);
-        AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard));
+        AddHoverTip(PredictionHoverTipFactory.Card(resolved.PreviewCard, source: entry.Trace?.Source));
         AddCausalEffect(entry, CausalEffectKind.DrawCards, [resolved.PreviewCard]);
         return resolved;
     }
@@ -319,7 +319,8 @@ internal sealed class CombatPredictionProjector
 
         // Snecko Oil's final full-hand snapshot supersedes the draw tips recorded before cost randomization.
         _hoverTips.Clear();
-        _hoverTips.AddRange(entry.PreviewCards.ToPredictionHoverTips());
+        _hoverTips.AddRange(entry.PreviewCards.Select(preview =>
+            PredictionHoverTipFactory.Card(preview, source: entry.Trace?.Source)));
         return entry;
     }
 

@@ -18,9 +18,9 @@ internal static class PredictionCardHoverTipLayoutState
     /// <summary>
     /// Marks a card or bundle root so the container layout patch knows that custom prediction layout is required.
     /// </summary>
-    public static void MarkPredictionCard(Control? control)
+    public static void MarkPredictionCard(Control control)
     {
-        control?.SetMeta(PredictionCardMetaKey, Variant.From(true));
+        control.SetMeta(PredictionCardMetaKey, Variant.From(true));
     }
 
     /// <summary>
