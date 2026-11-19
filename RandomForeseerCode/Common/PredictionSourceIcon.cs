@@ -45,8 +45,9 @@ internal static class PredictionSourceIcon
     private static void AddCardPortrait(Control parent, CardModel card, Texture2D portrait, float size)
     {
         // Mirrors NCard's PortraitBorder, Portrait and TitleBanner rectangles as one uniformly scaled group.
-        var scale = size / 327f;
-        var groupSize = new Vector2(size, 253f * scale);
+        // Size refers to the portrait frame's outer width; the title ribbon may extend beyond it.
+        var scale = size / 275f;
+        var groupSize = new Vector2(327f, 253f) * scale;
         var groupPosition = (parent.Size - groupSize) / 2f;
         var frameSize = new Vector2(275f, 210f) * scale;
         var position = groupPosition + new Vector2(25.5f, 43f) * scale;
