@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### fix
+
+- 修复与 PengoTarot 一起使用时，预测提示可能无法正常显示的问题。<br>
+  Fixed prediction tooltips potentially failing to display correctly when used with PengoTarot.
+
 ## v0.16.1
 
 ### fix

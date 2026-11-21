@@ -14,6 +14,8 @@ internal static class PredictionHoverTipInitPatch
 
     private static readonly Lazy<ShaderMaterial> PredictionBackgroundMaterial = new(CreatePredictionBackgroundMaterial);
 
+    // PengoTarot records text-tip positions before the controls are created.
+    [HarmonyBefore("PengoTarot.Pengo")]
     private static void Prefix(NHoverTipSet __instance, ref IEnumerable<IHoverTip> hoverTips)
     {
         var preparedHoverTips = ApplyPredictionOrder(PrepareForPresentation(hoverTips), ModData.Settings);
@@ -50,7 +52,12 @@ internal static class PredictionHoverTipInitPatch
 
         foreach (var textTip in textTips)
         {
-            var background = textTip.GetNode<CanvasItem>("%Bg");
+            var background = textTip.GetNodeOrNull<CanvasItem>("%Bg");
+            if (background is null)
+            {
+                continue;
+            }
+
             background.Material = PredictionBackgroundMaterial.Value;
             background.SelfModulate = Colors.White;
         }
