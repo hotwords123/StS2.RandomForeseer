@@ -186,16 +186,21 @@ internal sealed class PredictionGraphCopier
             }
 
             var path = new StringBuilder();
-            var nodes = new GraphCopyFailure.Node[_segments.Count];
+            var nodes = new List<GraphCopyFailure.Node>(_segments.Count);
             for (var i = 0; i < _segments.Count; i++)
             {
                 var segment = _segments[i];
                 segment.AppendTo(path, i == 0);
                 var type = segment.RuntimeType;
-                nodes[i] = new GraphCopyFailure.Node(
+                if (type == null)
+                {
+                    continue;
+                }
+
+                nodes.Add(new GraphCopyFailure.Node(
                     path.ToString(),
-                    type?.FullName ?? type?.Name,
-                    type?.Assembly.FullName ?? type?.Assembly.GetName().Name);
+                    type.FullName ?? type.Name,
+                    type.Assembly.FullName ?? type.Assembly.GetName().Name));
             }
 
             new GraphCopyFailure(path.ToString(), nodes).AttachTo(exception);
