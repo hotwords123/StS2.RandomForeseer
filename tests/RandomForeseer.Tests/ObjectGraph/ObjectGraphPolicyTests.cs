@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Godot;
 using Xunit.Sdk;
 using RandomForeseer.ObjectGraph;
@@ -52,15 +53,21 @@ public sealed class ObjectGraphPolicyTests
     [InlineData(typeof(CancellationTokenSource))]
     [InlineData(typeof(MemoryStream))]
     [InlineData(typeof(IntPtr))]
-    [InlineData(typeof(WeakReference<Node>))]
     public void OpaqueBoundariesNeverFallThroughToOrdinaryFields(Type type)
     {
         var policy = new GraphCopyPolicy(referenceFallback: GraphReferenceStrategy.Clone, valueFallback: GraphValueAction.Fields);
-        Assert.Equal(GraphReferenceAction.Reject, policy.BindReferenceRule(type).Strategy.StaticAction);
-        if (type.IsValueType)
+        if (!type.IsValueType)
         {
-            Assert.Equal(GraphValueAction.Reject, policy.BindValueRule(type).Strategy);
+            Assert.Equal(GraphReferenceAction.Reject, policy.BindReferenceRule(type).Strategy.StaticAction);
+            return;
         }
+
+        Assert.Equal(GraphValueAction.Reject, policy.BindValueRule(type).Strategy);
+
+        var boxedValue = RuntimeHelpers.GetUninitializedObject(type);
+        using var scope = new PredictionObjectScope();
+        var copier = new PredictionGraphCopier(scope, policy);
+        Assert.Throws<NotSupportedException>(() => copier.Copy(boxedValue));
     }
 
     [Fact]

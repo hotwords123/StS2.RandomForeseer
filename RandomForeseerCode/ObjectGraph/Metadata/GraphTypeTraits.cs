@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using RandomForeseer.Common;
 
 namespace RandomForeseer.ObjectGraph.Metadata;
@@ -14,6 +15,7 @@ internal static partial class GraphTypeTraits
     [
         typeof(nint), typeof(nuint),
 
+        typeof(ConditionalWeakTable<,>),
         typeof(WeakReference<>),
         typeof(Lazy<>),
 

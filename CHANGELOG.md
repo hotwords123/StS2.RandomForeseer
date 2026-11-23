@@ -7,6 +7,9 @@
 - 修复与 PengoTarot 一起使用时，预测提示可能无法正常显示的问题。<br>
   Fixed prediction tooltips potentially failing to display correctly when used with PengoTarot.
 
+- 修复部分角色 Mod 的卡牌可能导致战斗预测中断的问题。<br>
+  Fixed combat predictions potentially failing with cards from certain character mods.
+
 ## v0.16.1
 
 ### fix

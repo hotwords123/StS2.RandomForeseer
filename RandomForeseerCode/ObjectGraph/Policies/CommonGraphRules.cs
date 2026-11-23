@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using MegaCrit.Sts2.Core.Commands.Builders;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
@@ -65,6 +66,19 @@ internal static class CommonGraphRules
         "collection.hashset",
         type => GenericGraphCopier.Match(type, typeof(HashSet<>), typeof(GraphHashSetCopier<>)));
 
+    public static GraphReferenceRule ConditionalWeakTable { get; } = new(
+        "collection.conditional_weak_table",
+        type => GenericGraphCopier.Match(
+            type,
+            typeof(ConditionalWeakTable<,>),
+            typeof(GraphConditionalWeakTableCopier<,>)));
+
+    public static GraphReferenceRule WeakReferences { get; } = new(
+        "reference.weak",
+        type => type == typeof(WeakReference)
+            ? GraphReferenceStrategy.CloneWith(GraphWeakReferenceCopier.Instance)
+            : GenericGraphCopier.Match(type, typeof(WeakReference<>), typeof(GraphWeakReferenceCopier<>)));
+
     public static GraphKeyRule AllowImmutableKey { get; } = new(
         "key.immutable",
         (_, runtime) => GraphTypeTraits.IsImmutable(runtime) ? true : null);
@@ -75,8 +89,11 @@ internal static class CommonGraphRules
 
     public static IReadOnlyList<GraphReferenceRule> References { get; } =
     [
-        ShareImmutableReference, RejectOpaqueReference,
-        Box, Delegate, Array, List, Dictionary, HashSet
+        ShareImmutableReference,
+        Box,
+        Delegate, ConditionalWeakTable, WeakReferences,
+        Array, List, Dictionary, HashSet,
+        RejectOpaqueReference
     ];
 
     public static IReadOnlyList<GraphValueRule> Values { get; } =
