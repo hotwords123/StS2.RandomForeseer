@@ -15,6 +15,9 @@
 - 修复部分角色 Mod 的卡牌可能导致战斗预测中断的问题。<br>
   Fixed combat predictions potentially failing with cards from certain character mods.
 
+- 修复与部分角色 Mod 一起使用时，卡牌预览可能无法正常显示的问题。<br>
+  Fixed card previews potentially failing to display correctly when used with certain character mods.
+
 ## v0.16.1
 
 ### fix

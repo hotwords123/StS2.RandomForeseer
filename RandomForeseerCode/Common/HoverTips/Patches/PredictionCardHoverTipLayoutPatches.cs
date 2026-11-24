@@ -1,6 +1,7 @@
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
@@ -43,34 +44,72 @@ internal static class PredictionCardHoverTipContainerPatches
     }
 
     /// <summary>
-    /// Marks the control vanilla just created for an individual prediction card and applies optional dimming.
+    /// Captures the existing children before vanilla adds an individual prediction card.
     /// </summary>
-    /// <remarks>
-    /// Vanilla appends exactly one top-level control during <see cref="NHoverTipCardContainer.Add"/>, so the
-    /// container's last child corresponds to
-    /// <paramref name="cardTip"/> at this postfix.
-    /// </remarks>
+    [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
+    [HarmonyPrefix]
+    [HarmonyPriority(Priority.First)]
+    private static void CaptureExistingTipRoots(
+        NHoverTipCardContainer __instance,
+        CardHoverTip cardTip,
+        out HashSet<ulong>? __state)
+    {
+        __state = cardTip is PredictionCardHoverTip
+            ? __instance.GetChildren().Select(child => child.GetInstanceId()).ToHashSet()
+            : null;
+    }
+
+    /// <summary>
+    /// Marks the new preview root and decorates the card after other patches can wrap or replace its nodes.
+    /// </summary>
     [HarmonyPatch(nameof(NHoverTipCardContainer.Add))]
     [HarmonyPostfix]
-    private static void MarkPredictionCardTip(NHoverTipCardContainer __instance, CardHoverTip cardTip)
+    [HarmonyPriority(Priority.Last)]
+    private static void MarkPredictionCardTip(
+        NHoverTipCardContainer __instance,
+        CardHoverTip cardTip,
+        HashSet<ulong>? __state)
     {
-        if (cardTip is not PredictionCardHoverTip predictionTip)
+        if (cardTip is not PredictionCardHoverTip predictionTip || __state is null)
         {
             return;
         }
 
-        var control = __instance.GetChildren().OfType<Control>().LastOrDefault();
-        if (control is null)
+        foreach (var root in __instance.GetChildren().OfType<Control>())
         {
+            if (__state.Contains(root.GetInstanceId()) ||
+                FindPreviewCard(root, predictionTip.Card) is not { } card)
+            {
+                continue;
+            }
+
+            PredictionCardHoverTipLayoutState.MarkPredictionCard(root);
+            PredictionHoverTipControlFactory.AddSourceIcon(card, predictionTip.Source);
+            if (predictionTip.IsDimmed)
+            {
+                card.Modulate = DimmedCardModulate;
+            }
+
             return;
         }
+    }
 
-        PredictionCardHoverTipLayoutState.MarkPredictionCard(control);
-        PredictionHoverTipControlFactory.AddSourceIcon(control.GetNode<NCard>("%Card"), predictionTip.Source);
-        if (predictionTip.IsDimmed)
+    private static NCard? FindPreviewCard(Node node, CardModel model)
+    {
+        if (node is NCard card)
         {
-            control.GetNode<NCard>("%Card").Modulate = DimmedCardModulate;
+            return card.Model == model ? card : null;
         }
+
+        foreach (var child in node.GetChildren())
+        {
+            if (FindPreviewCard(child, model) is { } preview)
+            {
+                return preview;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
