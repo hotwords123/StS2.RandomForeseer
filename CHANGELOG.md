@@ -9,6 +9,9 @@
 
 ### fix
 
+- 修复 RolltheSpire2 先加载时，先古之民、其他事件选项和商店商品的预测提示可能不显示的问题。<br>
+  Fixed missing predictions for event options (including Ancients) and shop items when RolltheSpire2 loads first.
+
 - 修复与 PengoTarot 一起使用时，预测提示可能无法正常显示的问题。<br>
   Fixed prediction tooltips potentially failing to display correctly when used with PengoTarot.
 
