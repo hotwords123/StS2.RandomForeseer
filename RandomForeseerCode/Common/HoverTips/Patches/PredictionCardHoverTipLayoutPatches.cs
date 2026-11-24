@@ -39,7 +39,7 @@ internal static class PredictionCardHoverTipContainerPatches
             control.Modulate = DimmedCardModulate;
         }
 
-        PredictionCardHoverTipLayoutState.MarkPredictionCard(control);
+        PredictionHoverTipMeta.MarkPredictionCard(control);
         return false;
     }
 
@@ -83,7 +83,7 @@ internal static class PredictionCardHoverTipContainerPatches
                 continue;
             }
 
-            PredictionCardHoverTipLayoutState.MarkPredictionCard(root);
+            PredictionHoverTipMeta.MarkPredictionCard(root);
             PredictionHoverTipControlFactory.AddSourceIcon(card, predictionTip.Source);
             if (predictionTip.IsDimmed)
             {
@@ -155,7 +155,7 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
         {
             // LayoutResizeAndReposition only receives a side anchor. Record the hovered card rect so fallback
             // placement can center above the card instead of guessing from the left/right edge.
-            PredictionCardHoverTipLayoutState.RecordSourceRect(
+            PredictionCardHoverTipLayoutState.RecordContext(
                 container,
                 holder.Hitbox.GetGlobalRect(),
                 HoverTip.GetHoverTipAlignment(holder),
@@ -183,7 +183,7 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
         var container = __instance._cardHoverTipContainer;
         if (ShouldRecordSourceRect(container))
         {
-            PredictionCardHoverTipLayoutState.RecordSourceRect(
+            PredictionCardHoverTipLayoutState.RecordContext(
                 container,
                 relic.Icon.GetGlobalRect(),
                 HoverTip.GetHoverTipAlignment(relic));
@@ -211,7 +211,7 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
         if (ShouldRecordSourceRect(container))
         {
             // Right inside SetAlignmentBelow controls card growth, not text placement relative to the source.
-            PredictionCardHoverTipLayoutState.RecordSourceRect(container, __instance._owner.GetGlobalRect());
+            PredictionCardHoverTipLayoutState.RecordContext(container, __instance._owner.GetGlobalRect());
         }
     }
 
@@ -238,7 +238,7 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
         var container = __instance._cardHoverTipContainer;
         if (ShouldRecordSourceRect(container))
         {
-            PredictionCardHoverTipLayoutState.RecordSourceRect(container, globalRect, alignment);
+            PredictionCardHoverTipLayoutState.RecordContext(container, globalRect, alignment);
         }
     }
 
@@ -257,6 +257,6 @@ internal static class PredictionCardHoverTipSetAlignmentPatches
     /// </summary>
     private static bool ShouldRecordSourceRect(NHoverTipCardContainer? container)
     {
-        return container != null && PredictionCardHoverTipLayoutState.HasPredictionCard(container);
+        return container?.GetChildren().OfType<Control>().Any(PredictionHoverTipMeta.IsPredictionCard) is true;
     }
 }

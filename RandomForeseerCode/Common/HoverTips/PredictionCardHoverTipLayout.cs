@@ -8,39 +8,11 @@ using MegaCrit.Sts2.Core.Nodes.HoverTips;
 namespace RandomForeseer.Common.HoverTips;
 
 /// <summary>
-/// Stores the UI metadata needed to recognize prediction card controls and position their fallback layout.
+/// Stores the source geometry and alignment of a hovered object for prediction card layout.
 /// </summary>
 internal static class PredictionCardHoverTipLayoutState
 {
-    internal static readonly StringName PredictionCardMetaKey = $"{Entry.ModId}_PredictionCard";
-    private static readonly ConditionalWeakTable<NHoverTipCardContainer, PredictionCardHoverTipSourceRect> SourceRects = [];
-
-    /// <summary>
-    /// Marks a card or bundle root so the container layout patch knows that custom prediction layout is required.
-    /// </summary>
-    public static void MarkPredictionCard(Control control)
-    {
-        control.SetMeta(PredictionCardMetaKey, Variant.From(true));
-    }
-
-    /// <summary>
-    /// Returns whether a top-level card-container child participates in prediction layout.
-    /// </summary>
-    public static bool IsPredictionCard(Control control)
-    {
-        return control.HasMeta(PredictionCardMetaKey);
-    }
-
-    /// <summary>
-    /// Returns whether the container has at least one top-level prediction card or bundle control.
-    /// </summary>
-    public static bool HasPredictionCard(NHoverTipCardContainer container)
-    {
-        return container
-            .GetChildren()
-            .OfType<Control>()
-            .Any(IsPredictionCard);
-    }
+    private static readonly ConditionalWeakTable<NHoverTipCardContainer, PredictionCardHoverTipContext> Contexts = [];
 
     /// <summary>
     /// Records the hovered object's bounds and alignment before vanilla positioning runs.
@@ -50,30 +22,30 @@ internal static class PredictionCardHoverTipLayoutState
     /// insufficient for a centered top/bottom fallback. Alignment prefixes must call this only after prediction card
     /// controls have been created. The weak-table entry follows the container lifetime.
     /// </remarks>
-    public static void RecordSourceRect(
+    public static void RecordContext(
         NHoverTipCardContainer container,
         Rect2 sourceRect,
         HoverTipAlignment alignment = HoverTipAlignment.None,
         float textGap = 0f)
     {
-        SourceRects.AddOrUpdate(container, new(sourceRect, alignment, textGap));
+        Contexts.AddOrUpdate(container, new PredictionCardHoverTipContext(sourceRect, alignment, textGap));
     }
 
     /// <summary>
     /// Retrieves source geometry previously recorded for this card container.
     /// </summary>
-    public static bool TryGetSourceRect(
+    public static bool TryGetContext(
         NHoverTipCardContainer container,
-        [NotNullWhen(true)] out PredictionCardHoverTipSourceRect? sourceRect)
+        [NotNullWhen(true)] out PredictionCardHoverTipContext? context)
     {
-        return SourceRects.TryGetValue(container, out sourceRect);
+        return Contexts.TryGetValue(container, out context);
     }
 }
 
 /// <summary>
 /// Captures source geometry and spacing needed to reconstruct layout after vanilla alignment.
 /// </summary>
-internal sealed record PredictionCardHoverTipSourceRect(
+internal sealed record PredictionCardHoverTipContext(
     Rect2 Rect,
     HoverTipAlignment Alignment,
     float TextGap);
@@ -107,7 +79,7 @@ internal static class PredictionCardHoverTipLayout
         HoverTipAlignment alignment)
     {
         var tips = container.GetChildren().OfType<Control>().ToList();
-        if (!tips.Any(PredictionCardHoverTipLayoutState.IsPredictionCard))
+        if (!tips.Any(PredictionHoverTipMeta.IsPredictionCard))
         {
             return false;
         }
@@ -137,7 +109,7 @@ internal static class PredictionCardHoverTipLayout
         var layout = GetBestWrappedLayout(tips, availableWidth);
         var scaledSize = ComputeWrappedLayout(tips, layout.Scale, layout.Rows, applyLayout: true);
         container.Size = scaledSize;
-        if (!PredictionCardHoverTipLayoutState.TryGetSourceRect(container, out _))
+        if (!PredictionCardHoverTipLayoutState.TryGetContext(container, out _))
         {
             // Without a source rect we cannot place a vertical fallback around the hovered object reliably, so keep
             // the old conservative behavior: fit the prediction cards to the side and clamp them into the viewport.
@@ -350,12 +322,7 @@ internal static class PredictionCardHoverTipLayout
     public static void ApplyFallbackLayoutIfStillOverflowing(NHoverTipSet tipSet)
     {
         var cardContainer = tipSet._cardHoverTipContainer;
-        if (!PredictionCardHoverTipLayoutState.TryGetSourceRect(cardContainer, out var sourceRect))
-        {
-            return;
-        }
-
-        if (!PredictionCardHoverTipLayoutState.HasPredictionCard(cardContainer))
+        if (!PredictionCardHoverTipLayoutState.TryGetContext(cardContainer, out var context))
         {
             return;
         }
@@ -385,10 +352,10 @@ internal static class PredictionCardHoverTipLayout
 
         if (hasTextTips)
         {
-            LimitFallbackTextHeight(textContainer, sourceRect.Rect, viewportSize);
+            LimitFallbackTextHeight(textContainer, context.Rect, viewportSize);
         }
 
-        ApplyFallbackLayout(tipSet, sourceRect, viewportSize);
+        ApplyFallbackLayout(tipSet, context, viewportSize);
     }
 
     /// <summary>
@@ -417,7 +384,7 @@ internal static class PredictionCardHoverTipLayout
     /// </summary>
     private static void ApplyFallbackLayout(
         NHoverTipSet tipSet,
-        PredictionCardHoverTipSourceRect sourceRect,
+        PredictionCardHoverTipContext context,
         Vector2 viewportSize)
     {
         var cardContainer = tipSet._cardHoverTipContainer;
@@ -426,16 +393,16 @@ internal static class PredictionCardHoverTipLayout
 
         if (hasTextTips)
         {
-            textContainer.GlobalPosition = GetFallbackTextPosition(textContainer, sourceRect, viewportSize);
+            textContainer.GlobalPosition = GetFallbackTextPosition(textContainer, context, viewportSize);
         }
 
-        cardContainer.GlobalPosition = GetFallbackCardPosition(cardContainer.Size, sourceRect.Rect, viewportSize);
+        cardContainer.GlobalPosition = GetFallbackCardPosition(cardContainer.Size, context.Rect, viewportSize);
 
         if (hasTextTips && cardContainer.GetGlobalRect().Intersects(textContainer.GetGlobalRect()))
         {
             cardContainer.GlobalPosition = GetFallbackCardPositionAvoidingText(
                 cardContainer.Size,
-                sourceRect.Rect,
+                context.Rect,
                 textContainer.GetGlobalRect(),
                 viewportSize);
         }
@@ -446,11 +413,11 @@ internal static class PredictionCardHoverTipLayout
     /// </summary>
     private static Vector2 GetFallbackTextPosition(
         Control textContainer,
-        PredictionCardHoverTipSourceRect sourceRect,
+        PredictionCardHoverTipContext context,
         Vector2 viewportSize)
     {
         var textSize = textContainer.Size;
-        var (rect, alignment, textGap) = sourceRect;
+        var (rect, alignment, textGap) = context;
 
         var position = alignment switch
         {

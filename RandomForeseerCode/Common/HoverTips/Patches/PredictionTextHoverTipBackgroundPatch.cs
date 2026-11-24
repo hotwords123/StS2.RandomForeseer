@@ -39,6 +39,7 @@ internal static class PredictionTextHoverTipBackgroundPatch
                 continue;
             }
 
+            PredictionHoverTipMeta.MarkPredictionText(textTip);
             var background = textTip.GetNodeOrNull<CanvasItem>("%Bg");
             if (background is null)
             {
