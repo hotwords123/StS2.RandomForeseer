@@ -79,6 +79,9 @@ internal static class SettingsUiBindings
     public static IModSettingsValueBinding<bool> CardPlayPredictionEnabled { get; } =
         Binding(s => s.CardPlayPredictionEnabled, (s, v) => s.CardPlayPredictionEnabled = v);
 
+    public static IModSettingsValueBinding<bool> PredictAllCombatCards { get; } =
+        Binding(s => s.PredictAllCombatCards, (s, v) => s.PredictAllCombatCards = v);
+
     public static IModSettingsValueBinding<bool> PotionPredictionEnabled { get; } =
         Binding(s => s.PotionPredictionEnabled, (s, v) => s.PotionPredictionEnabled = v);
 

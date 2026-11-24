@@ -54,7 +54,7 @@ internal static class CombatCardPrediction
 
         List<IHoverTip> predictionTips = [];
 
-        if (ShouldShowCombatPlayPrediction(card))
+        if (ShouldShowCardPlayHoverTips(card))
         {
             try
             {
@@ -120,11 +120,7 @@ internal static class CombatCardPrediction
             FastForwardChoiceResult(simulator, predictedCard, choiceSimulation);
         }
 
-        var shouldPredict = ModData.Settings.FairModeEnabled
-            ? predictedCard.GetPile(simulator.State) is { Type: PileType.Hand } &&
-              simulator.CanPlay(predictedCard)
-            : !predictedCard.GetKeywords(simulator).Contains(CardKeyword.Unplayable);
-        if (!shouldPredict)
+        if (!ShouldSimulateCardPlay(simulator, predictedCard))
         {
             return null;
         }
@@ -133,12 +129,17 @@ internal static class CombatCardPrediction
         return CombatPredictionProjector.Project(simulator.History, frame);
     }
 
-    private static bool ShouldShowCombatPlayPrediction(CardModel card)
+    private static bool ShouldShowCardPlayHoverTips(CardModel card)
     {
         var settings = ModData.Settings;
         if (!settings.IsPredictionEnabled || !settings.CardPlayPredictionEnabled)
         {
             return false;
+        }
+
+        if (settings.PredictAllCombatCards)
+        {
+            return true;
         }
 
         if (TryGetChoiceSimulationPlan(card, out _))
@@ -164,6 +165,17 @@ internal static class CombatCardPrediction
         // If no local holder exists, fall back to allowing prediction. This preserves existing
         // behavior for non-local or integration-provided hand card views.
         return true;
+    }
+
+    private static bool ShouldSimulateCardPlay(CombatPredictionSimulator simulator, PredictedCard card)
+    {
+        var settings = ModData.Settings;
+        if (settings.PredictAllCombatCards || !settings.FairModeEnabled)
+        {
+            return !card.GetKeywords(simulator).Contains(CardKeyword.Unplayable);
+        }
+
+        return card.GetPile(simulator.State) is { Type: PileType.Hand } && simulator.CanPlay(card);
     }
 
     /// <summary>

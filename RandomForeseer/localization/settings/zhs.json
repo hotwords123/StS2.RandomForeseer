@@ -92,7 +92,9 @@
 
   "header.card_and_potion_predictions.label": "卡牌和药水效果",
   "toggle.card_play_prediction_enabled.label": "预测出牌效果",
-  "toggle.card_play_prediction_enabled.description": "启用后，战斗中悬浮手牌时会预测其打出效果。",
+  "toggle.card_play_prediction_enabled.description": "启用后，战斗中悬浮卡牌时会预测其打出效果。默认仅预测手牌和选中后将加入手牌的卡牌。",
+  "toggle.predict_all_combat_cards.label": "预测所有卡牌的出牌效果",
+  "toggle.predict_all_combat_cards.description": "启用后，战斗中悬浮任意卡牌可查看其出牌预测，包括抽牌堆和弃牌堆中的卡牌，且出牌预测不受公平模式限制。",
   "toggle.potion_prediction_enabled.label": "预测药水效果",
   "toggle.potion_prediction_enabled.description": "启用后，战斗中悬浮药水时会预测其使用效果。[gold]混沌药水[/gold]在战斗外也会显示预测。公平模式关闭时，印牌药水在战斗外也会显示预测。",
   "toggle.combat_transform_prediction_enabled.label": "预测战斗变牌结果",

@@ -92,7 +92,9 @@
 
   "header.card_and_potion_predictions.label": "Card and potion effects",
   "toggle.card_play_prediction_enabled.label": "Predict card-play effects",
-  "toggle.card_play_prediction_enabled.description": "When enabled, hovering cards in your Hand during combat shows predictions for their effects when played.",
+  "toggle.card_play_prediction_enabled.description": "When enabled, hovering cards during combat shows predictions for their effects when played. By default, predictions cover cards in your Hand and cards that will enter your Hand when selected.",
+  "toggle.predict_all_combat_cards.label": "Predict card-play effects for all cards",
+  "toggle.predict_all_combat_cards.description": "When enabled, card-play predictions bypass fair mode restrictions and appear when you hover over any card during combat, including cards in the Draw Pile and Discard Pile.",
   "toggle.potion_prediction_enabled.label": "Predict potion effects",
   "toggle.potion_prediction_enabled.description": "When enabled, hovering potions during combat shows predictions for their effects when used. [gold]Entropic Brew[/gold] also shows predictions outside combat. When fair mode is disabled, card-generating potions also show predictions outside combat.",
   "toggle.combat_transform_prediction_enabled.label": "Predict combat transform results",

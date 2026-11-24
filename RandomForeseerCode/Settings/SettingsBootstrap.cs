@@ -101,6 +101,10 @@ internal static class SettingsBootstrap
                 .WithDescription(T("section.in_combat_prediction_sources.description"))
                 .AddHeader("card_and_potion_predictions")
                 .AddToggle("card_play_prediction_enabled", SettingsUiBindings.CardPlayPredictionEnabled)
+                .AddToggle("predict_all_combat_cards", SettingsUiBindings.PredictAllCombatCards)
+                .WithEntryEnabledWhen(
+                    "predict_all_combat_cards",
+                    () => SettingsUiBindings.CardPlayPredictionEnabled.Read())
                 .AddToggle("potion_prediction_enabled", SettingsUiBindings.PotionPredictionEnabled)
                 .AddToggle("combat_transform_prediction_enabled", SettingsUiBindings.CombatTransformPredictionEnabled)
                 .AddHeader("end_turn_predictions")

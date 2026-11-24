@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### feat
+
+- 新增“预测所有卡牌的出牌效果”开关，可在战斗中查看手牌以外卡牌的出牌预测。<br>
+  Added an option to preview card-play effects for cards outside your hand during combat.
+
 ### fix
 
 - 修复与 PengoTarot 一起使用时，预测提示可能无法正常显示的问题。<br>

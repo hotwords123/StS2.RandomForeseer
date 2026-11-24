@@ -57,6 +57,7 @@ internal sealed class ModSettings
 
     // In-combat prediction triggers
     public bool CardPlayPredictionEnabled { get; set; } = true;
+    public bool PredictAllCombatCards { get; set; }
     public bool PotionPredictionEnabled { get; set; } = true;
     public bool CombatTransformPredictionEnabled { get; set; } = true;
 
