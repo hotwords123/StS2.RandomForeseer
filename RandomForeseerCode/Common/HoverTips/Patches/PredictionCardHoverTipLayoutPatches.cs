@@ -141,6 +141,16 @@ internal static class PredictionCardHoverTipContainerPatches
 internal static class PredictionCardHoverTipSetAlignmentPatches
 {
     /// <summary>
+    /// Keeps the prediction layout intact when vanilla would correct the card and text positions each frame.
+    /// </summary>
+    [HarmonyPatch(nameof(NHoverTipSet._Process))]
+    [HarmonyPrefix]
+    private static bool FollowOwnerWithPredictionLayout(NHoverTipSet __instance)
+    {
+        return !PredictionCardHoverTipLayout.TryFollowOwner(__instance);
+    }
+
+    /// <summary>
     /// Records the hovered card's exact hitbox before vanilla reduces it to a side anchor for alignment.
     /// </summary>
     /// <remarks>

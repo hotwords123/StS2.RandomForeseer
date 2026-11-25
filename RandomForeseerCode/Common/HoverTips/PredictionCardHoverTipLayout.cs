@@ -128,6 +128,33 @@ internal static class PredictionCardHoverTipLayout
     }
 
     /// <summary>
+    /// Follows the owner while keeping the relative positions chosen for the prediction cards and text.
+    /// </summary>
+    public static bool TryFollowOwner(NHoverTipSet tipSet)
+    {
+        var owner = tipSet._owner;
+        if (!tipSet._followOwner || !GodotObject.IsInstanceValid(owner) ||
+            NGame.Instance is not { } game ||
+            !PredictionCardHoverTipLayoutState.TryGetContext(tipSet._cardHoverTipContainer, out _))
+        {
+            return false;
+        }
+
+        var cardRect = tipSet._cardHoverTipContainer.GetGlobalRect();
+        var textContainer = tipSet._textHoverTipContainer;
+        var bounds = textContainer.GetChildCount() > 0 ? cardRect.Merge(textContainer.GetGlobalRect()) : cardRect;
+        var boundsOffset = bounds.Position - tipSet.GlobalPosition;
+        var followPosition = owner.GlobalPosition - tipSet._followOffset + tipSet._extraOffset;
+        tipSet.GlobalPosition = ClampToViewport(
+            followPosition + boundsOffset,
+            bounds.Size,
+            game.GetViewportRect().Size,
+            margin: 0f) - boundsOffset;
+
+        return true;
+    }
+
+    /// <summary>
     /// Chooses the smallest row count and largest useful scale that can fit the available viewport width.
     /// </summary>
     /// <remarks>
@@ -252,11 +279,15 @@ internal static class PredictionCardHoverTipLayout
     /// <summary>
     /// Clamps both axes to the viewport margin; oversized content is pinned to the leading margin.
     /// </summary>
-    private static Vector2 ClampToViewport(Vector2 position, Vector2 size, Vector2 viewportSize)
+    private static Vector2 ClampToViewport(
+        Vector2 position,
+        Vector2 size,
+        Vector2 viewportSize,
+        float margin = ViewportMargin)
     {
         return new Vector2(
-            Clamp(position.X, ViewportMargin, viewportSize.X - ViewportMargin - size.X),
-            Clamp(position.Y, ViewportMargin, viewportSize.Y - ViewportMargin - size.Y));
+            Clamp(position.X, margin, viewportSize.X - margin - size.X),
+            Clamp(position.Y, margin, viewportSize.Y - margin - size.Y));
     }
 
     /// <summary>
