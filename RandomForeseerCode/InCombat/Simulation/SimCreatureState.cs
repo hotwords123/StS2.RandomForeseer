@@ -28,28 +28,37 @@ internal sealed class SimCreatureState(CombatPredictionSimulator simulator, Crea
     public bool CanReceivePowers => simulator.State.Creatures.Contains(Creature) &&
                                     HookMirrors.ShouldAllowHitting(simulator, Creature);
 
-    public decimal DamageBlock(decimal amount, ValueProp props)
+    /// <summary>Mirrors <see cref="Creature.DamageBlockInternal"/>.</summary>
+    public decimal DamageBlock(decimal amount, ValueProp props, bool dryRun = false)
     {
         var blockedDamage = props.HasFlag(ValueProp.Unblockable)
             ? 0m
             : Math.Min(Block, amount);
+        if (!dryRun)
+        {
+            Block -= (int)blockedDamage;
+        }
 
-        Block -= (int)blockedDamage;
         return blockedDamage;
     }
 
-    public DamageResult LoseHp(decimal amount, ValueProp props)
+    /// <summary>Mirrors <see cref="Creature.LoseHpInternal"/>.</summary>
+    public HpLossResult LoseHp(decimal amount, bool dryRun = false)
     {
-        var wasTargetKilled = CurrentHp > 0 && amount >= CurrentHp;
         var previousHp = CurrentHp;
-        var damage = (int)Math.Min(amount, 999999999m);
-        CurrentHp = Math.Max(CurrentHp - damage, 0);
-
-        return new DamageResult(Creature, props)
+        var wasTargetKilled = previousHp > 0 && amount >= previousHp;
+        var damage = (int)Math.Clamp(amount, 0m, 999999999m);
+        var remainingHp = Math.Max(previousHp - damage, 0);
+        if (!dryRun)
         {
-            UnblockedDamage = previousHp - CurrentHp,
-            WasTargetKilled = wasTargetKilled,
-            OverkillDamage = wasTargetKilled ? Math.Max(damage - previousHp, 0) : 0
+            CurrentHp = remainingHp;
+        }
+
+        return new HpLossResult
+        {
+            hpLost = previousHp - remainingHp,
+            killed = wasTargetKilled,
+            overkillAmount = wasTargetKilled ? Math.Max(damage - previousHp, 0) : 0
         };
     }
 

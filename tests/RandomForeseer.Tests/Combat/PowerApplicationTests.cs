@@ -145,7 +145,7 @@ public sealed class PowerApplicationTests() : GameTestBase(observePowerCommands:
         if (killTarget)
         {
             combat.ArrangePower<VulnerablePower>(combat.Enemy, 3, true);
-            AfterAttack = simulator => simulator.State.GetCreature(combat.Enemy).LoseHp(100, ValueProp.Unblockable);
+            AfterAttack = simulator => simulator.State.GetCreature(combat.Enemy).LoseHp(100);
         }
         var sourceCard = ArrangePlay(combat, typeof(MoltenFist));
         combat.BeginPrediction();

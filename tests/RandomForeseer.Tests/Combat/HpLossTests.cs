@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.InCombat.Mirrors;
 using RandomForeseer.InCombat.Mirrors.Hooks.Damage;
+using RandomForeseer.InCombat.Simulation;
 using RandomForeseer.Tests.Infrastructure;
 
 namespace RandomForeseer.Tests.Combat;
@@ -29,6 +30,7 @@ public sealed class HpLossTests : GameTestBase
         combat.Proxy.Listeners = [beforeBlock
             ? combat.ArrangePower<WuppysLoyaltyPower>(pet, 1)
             : combat.ArrangePower<DieForYouPower>(pet, 1)];
+        combat.Player.Creature._block = 3;
         combat.BeginPrediction();
         Creature Target(Creature target, ValueProp props) => beforeBlock
             ? HookMirrors.ModifyPreBlockDamageTarget(combat.Simulator, target, 8, props, combat.Enemy) ?? target
@@ -36,11 +38,19 @@ public sealed class HpLossTests : GameTestBase
         Assert.Same(pet, Target(combat.Player.Creature, ValueProp.Move));
         Assert.Same(combat.Player.Creature, Target(combat.Player.Creature, ValueProp.Unpowered));
         Assert.Same(combat.OtherPlayer.Creature, Target(combat.OtherPlayer.Creature, ValueProp.Move));
-        combat.Simulator.State.GetCreature(pet).LoseHp(10, ValueProp.Unpowered);
+        combat.Simulator.State.GetCreature(pet).LoseHp(10);
         Assert.Same(combat.Player.Creature, Target(combat.Player.Creature, ValueProp.Move));
         Assert.False(HookMirrors.ShouldAllowHitting(combat.Simulator, pet));
         Assert.True(pet.IsAlive);
-        Assert.Empty(combat.Simulator.Damage([combat.Player.Creature], 8, ValueProp.Move, pet, null, null));
+        var playerState = combat.Simulator.State.GetCreature(combat.Player.Creature);
+        var hpBefore = playerState.CurrentHp;
+        var blockBefore = playerState.Block;
+
+        combat.Simulator.Damage([combat.Player.Creature], 8, ValueProp.Move, pet, null, null);
+
+        Assert.Equal(hpBefore, playerState.CurrentHp);
+        Assert.Equal(blockBefore, playerState.Block);
+        Assert.Empty(combat.Simulator.History.OfType<CombatPredictionDamageReceivedEntry>());
     }
 
     [Fact]
@@ -51,7 +61,7 @@ public sealed class HpLossTests : GameTestBase
         combat.BeginPrediction();
         Assert.True(HookMirrors.ShouldAllowHitting(combat.Simulator, combat.OtherPlayer.Creature));
         // Keep the enemy alive so combat-ending guards do not bypass listeners.
-        combat.Simulator.State.GetCreature(combat.OtherPlayer.Creature).LoseHp(100, ValueProp.Unpowered);
+        combat.Simulator.State.GetCreature(combat.OtherPlayer.Creature).LoseHp(100);
         Assert.False(HookMirrors.ShouldAllowHitting(combat.Simulator, combat.OtherPlayer.Creature));
         Assert.True(combat.OtherPlayer.Creature.IsAlive);
     }

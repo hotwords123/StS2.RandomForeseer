@@ -90,6 +90,9 @@ internal sealed partial class CombatPredictionSimulator
             attackCommand.Results.SelectMany(results => results).ToArray());
 
         HookMirrors.AfterAttack(this, attackCommand);
+
+        // TODO: When enemy attacks are simulated, defer an attacking enemy's removal in the death path.
+        // Recheck death and removal eligibility here, or at move completion if the monster is still acting.
     }
 
     /// <summary>

@@ -1,9 +1,11 @@
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using RandomForeseer.Common;
 using RandomForeseer.InCombat.Mirrors;
@@ -62,97 +64,97 @@ internal sealed partial class CombatPredictionSimulator
     {
         if (dealer is not null && State.GetCreature(dealer).IsDead || targets.Count == 0)
         {
-            // Vanilla returns empty DamageResult shells when the dealer is dead. The simulator
-            // only uses damage results to update prediction state, so no-op results are omitted.
-            return [];
+            return [.. targets.Select(target => new DamageResult(target, props))];
         }
 
-        var results = new List<DamageResult>();
-
-        foreach (var originalTarget in targets)
+        List<DamageResult> damageResults = [];
+        foreach (var target in targets)
         {
-            results.AddRange(DamageTarget(
-                originalTarget,
+            var targetState = State.GetCreature(target);
+            if (targetState.IsDead)
+            {
+                continue;
+            }
+
+            var modifiedAmount = HookMirrors.ModifyDamage(
+                this,
+                target,
+                dealer,
                 amount,
                 props,
-                dealer,
                 cardSource,
                 cardPlay,
-                modifyDamageHookType));
+                modifyDamageHookType);
+            // Hook.AfterModifyingDamageAmount is skipped here because all vanilla listeners are visual-only.
+
+            var targetResults = GetDamageResults(targetState, modifiedAmount, props, dealer, cardSource);
+            HookMirrors.BeforeDamageReceived(this, target, modifiedAmount, props, dealer, cardSource);
+            ApplyDamageResults(targetResults);
+
+            foreach (var result in targetResults.AllResults())
+            {
+                // Vanilla checks IsInProgress && !IsEnding before writing combat history.
+                // The damage preview reads prediction history, so record the hit even when it ends combat.
+                History.DamageReceived(result.Receiver, dealer, result, cardSource);
+            }
+
+            damageResults.AddRange(targetResults.AllResults());
         }
 
-        ProcessDamageResults(results, dealer, cardSource);
-        return results;
+        ProcessDamageResults(damageResults, dealer, cardSource);
+        return damageResults;
     }
 
-    // Mirrors the per-target body of CreatureCmd.Damage.
-    private IReadOnlyList<DamageResult> DamageTarget(
-        Creature originalTarget,
-        decimal amount,
+    /// <summary>
+    /// Mirrors the dry-run calculation in <see cref="CreatureCmd.GetDamageResults"/>.
+    /// </summary>
+    /// <remarks>
+    /// Currently, the vanilla implementation of this method leaves the <c>cardPlay</c> parameter unused, so it is
+    /// omitted here. If that changes in the future, this method should be updated.
+    /// </remarks>
+    private DamageResults GetDamageResults(
+        SimCreatureState targetState,
+        decimal damage,
         ValueProp props,
         Creature? dealer,
-        PredictedCard? cardSource,
-        CardPlay? cardPlay,
-        ModifyDamageHookType modifyDamageHookType)
+        PredictedCard? cardSource)
     {
-        var originalTargetState = State.GetCreature(originalTarget);
-        if (originalTargetState.IsDead)
-        {
-            return [];
-        }
+        var originalTarget = targetState.Creature;
 
-        var modifiedAmount = HookMirrors.ModifyDamage(
-            this,
-            originalTarget,
-            dealer, amount,
-            props,
-            cardSource,
-            cardPlay,
-            modifyDamageHookType);
-
-        HookMirrors.BeforeDamageReceived(
-            this,
-            originalTarget,
-            modifiedAmount,
-            props,
-            dealer,
-            cardSource);
-
-        var blockTarget = originalTarget.PetOwner?.Creature ?? originalTarget;
-        var preBlockTarget = HookMirrors.ModifyPreBlockDamageTarget(this, originalTarget, amount, props, dealer);
-        var damageRemaining = modifiedAmount;
-        List<DamageResult> damageResults = [];
+        var preBlockTarget = HookMirrors.ModifyPreBlockDamageTarget(this, originalTarget, damage, props, dealer);
+        DamageResult? preBlockResult = null;
+        List<AbstractModel> beforeWuppyModifiers = [];
         if (preBlockTarget != null)
         {
             var preBlockDamage = HookMirrors.ModifyHpLost(
                 this,
                 originalTarget,
-                damageRemaining,
+                damage,
                 props,
                 dealer,
                 cardSource,
                 HpLossHookPhase.BeforeWuppy,
-                out _);
-            var preBlockResult = State.GetCreature(preBlockTarget).LoseHp(preBlockDamage, props);
-            preBlockResult.IntendedHpLoss = (int)damageRemaining;
+                out beforeWuppyModifiers);
+            preBlockResult = PreviewHpDamage(State.GetCreature(preBlockTarget), preBlockDamage, props);
+            preBlockResult.IntendedHpLoss = (int)damage;
             preBlockResult.OriginalTarget = originalTarget;
-            damageResults.Add(preBlockResult);
-            damageRemaining = preBlockResult.OverkillDamage;
+            damage = preBlockResult.OverkillDamage;
         }
 
+        var blockTarget = originalTarget.PetOwner?.Creature ?? originalTarget;
         var blockTargetState = State.GetCreature(blockTarget);
-        var blockedDamage = blockTargetState.DamageBlock(damageRemaining, props);
-        damageRemaining = Math.Max(damageRemaining - blockedDamage, 0m);
+        var blockedDamage = blockTargetState.DamageBlock(damage, props, dryRun: true);
+        damage = Math.Max(damage - blockedDamage, 0m);
 
         var unblockedDamage = HookMirrors.ModifyHpLost(
             this,
             originalTarget,
-            damageRemaining,
+            damage,
             props,
             dealer,
             cardSource,
             HpLossHookPhase.BeforeOsty,
-            out _);
+            out var beforeOstyModifiers);
 
         var unblockedDamageTarget = HookMirrors.ModifyUnblockedDamageTarget(
             this,
@@ -170,60 +172,116 @@ internal sealed partial class CombatPredictionSimulator
             cardSource,
             HpLossHookPhase.AfterOsty,
             out var afterOstyModifiers);
-        HookMirrors.AfterModifyingHpLostAfterOsty(this, afterOstyModifiers);
 
-        var unblockedDamageTargetState = State.GetCreature(unblockedDamageTarget);
-        var unblockedDamageResult = unblockedDamageTargetState.LoseHp(unblockedDamage, props);
-        unblockedDamageResult.OriginalTarget = originalTarget;
-        unblockedDamageResult.IntendedHpLoss = (int)damageRemaining;
-        damageResults.Add(unblockedDamageResult);
+        var unblockedResult = PreviewHpDamage(State.GetCreature(unblockedDamageTarget), unblockedDamage, props);
+        unblockedResult.OriginalTarget = originalTarget;
+        unblockedResult.IntendedHpLoss = (int)damage;
 
-        var wasBlockBroken = originalTargetState.Block <= 0 && blockedDamage > 0m;
+        var wasBlockBroken = targetState.Block <= blockedDamage && blockedDamage > 0m;
         var wasFullyBlocked = !props.HasFlag(ValueProp.Unblockable) &&
-            (blockedDamage > 0m || originalTargetState.Block > 0) &&
-            (int)unblockedDamage == 0;
+                              (blockedDamage > 0m || targetState.Block > 0) &&
+                              (int)unblockedDamage == 0;
 
+        DamageResult originalResult;
+        DamageResult? blockRedirect = null;
+        DamageResult? unblockedRedirect = null;
+        List<AbstractModel> overflowModifiers = [];
         if (originalTarget == unblockedDamageTarget)
         {
-            unblockedDamageResult.BlockedDamage = (int)blockedDamage;
-            unblockedDamageResult.WasBlockBroken = wasBlockBroken;
-            unblockedDamageResult.WasFullyBlocked = wasFullyBlocked;
+            originalResult = unblockedResult;
+            if (originalTarget != blockTarget)
+            {
+                blockRedirect = new DamageResult(blockTarget, props)
+                {
+                    IntendedHpLoss = unblockedResult.OverkillDamage,
+                    BlockedDamage = (int)blockedDamage,
+                    WasBlockBroken = wasBlockBroken,
+                    WasFullyBlocked = wasFullyBlocked
+                };
+            }
         }
         else
         {
+            unblockedRedirect = unblockedResult;
             var originalTargetDamage = HookMirrors.ModifyHpLost(
                 this,
                 originalTarget,
-                unblockedDamageResult.OverkillDamage,
+                unblockedResult.OverkillDamage,
                 props,
                 dealer,
                 cardSource,
                 HpLossHookPhase.AfterOsty,
-                out var redirectedAfterOstyModifiers);
-            HookMirrors.AfterModifyingHpLostAfterOsty(this, redirectedAfterOstyModifiers);
+                out overflowModifiers);
 
-            var damageResult = originalTargetDamage > 0m
-                ? originalTargetState.LoseHp(originalTargetDamage, props)
+            originalResult = originalTargetDamage > 0m
+                ? PreviewHpDamage(targetState, originalTargetDamage, props)
                 : new DamageResult(originalTarget, props);
-            damageResult.IntendedHpLoss = unblockedDamageResult.OverkillDamage;
-            damageResult.BlockedDamage = (int)blockedDamage;
-            damageResult.WasBlockBroken = wasBlockBroken;
-            damageResult.WasFullyBlocked = wasFullyBlocked;
-            damageResults.Add(damageResult);
+            originalResult.IntendedHpLoss = unblockedResult.OverkillDamage;
         }
 
-        foreach (var damageResult in damageResults)
+        originalResult.BlockedDamage = (int)blockedDamage;
+        originalResult.WasBlockBroken = wasBlockBroken;
+        originalResult.WasFullyBlocked = wasFullyBlocked;
+
+        return new DamageResults
         {
-            // Mirrors CombatManager.Instance.History.DamageReceived in CreatureCmd.Damage,
-            // but writes to simulator shadow history instead of the live combat history.
-            History.DamageReceived(
-                damageResult.Receiver,
-                dealer,
-                damageResult,
-                cardSource);
+            original = originalResult,
+            preBlockRedirect = preBlockResult,
+            blockRedirect = blockRedirect,
+            unblockedRedirect = unblockedRedirect,
+            beforeWuppyHpLossModifiers = beforeWuppyModifiers,
+            beforeOstyHpLossModifiers = beforeOstyModifiers,
+            afterOstyHpLossModifiers = afterOstyModifiers,
+            afterOstyHpLossModifiers2 = overflowModifiers
+        };
+    }
+
+    private static DamageResult PreviewHpDamage(SimCreatureState target, decimal amount, ValueProp props)
+    {
+        var loss = target.LoseHp(amount, dryRun: true);
+        return new DamageResult(target.Creature, props)
+        {
+            UnblockedDamage = loss.hpLost,
+            WasTargetKilled = loss.killed,
+            OverkillDamage = loss.overkillAmount
+        };
+    }
+
+    /// <summary>
+    /// Mirrors <see cref="CreatureCmd.ApplyDamageResults"/>.
+    /// </summary>
+    private void ApplyDamageResults(DamageResults results)
+    {
+        if (results.preBlockRedirect is { } preBlockRedirect)
+        {
+            State.GetCreature(preBlockRedirect.Receiver).LoseHp(preBlockRedirect.UnblockedDamage);
         }
 
-        return damageResults;
+        if (results.blockRedirect is { } blockRedirect)
+        {
+            State.GetCreature(blockRedirect.Receiver).DamageBlock(blockRedirect.BlockedDamage, blockRedirect.Props);
+        }
+
+        var originalState = State.GetCreature(results.original.Receiver);
+        originalState.DamageBlock(results.original.BlockedDamage, results.original.Props);
+
+        // The BeforeOsty callbacks are visual-only in vanilla, so they are not mirrored here.
+
+        if (results.unblockedRedirect is { } unblockedRedirect)
+        {
+            State.GetCreature(unblockedRedirect.Receiver).LoseHp(unblockedRedirect.UnblockedDamage);
+        }
+
+        if (results.afterOstyHpLossModifiers.Count > 0)
+        {
+            HookMirrors.AfterModifyingHpLostAfterOsty(this, results.afterOstyHpLossModifiers);
+        }
+
+        originalState.LoseHp(results.original.UnblockedDamage);
+        if (results.afterOstyHpLossModifiers2.Count > 0)
+        {
+            HookMirrors.AfterModifyingHpLostAfterOsty(this, results.afterOstyHpLossModifiers2);
+        }
     }
 
     // Mirrors the post-target DamageResult processing in CreatureCmd.Damage.
@@ -232,31 +290,25 @@ internal sealed partial class CombatPredictionSimulator
         var killedCreatures = new List<Creature>();
         foreach (var damageResult in results)
         {
-            var originalTarget = damageResult.Receiver;
+            var receiver = damageResult.Receiver;
 
             if (damageResult.WasBlockBroken)
             {
-                HookMirrors.AfterBlockBroken(this, originalTarget, dealer);
+                HookMirrors.AfterBlockBroken(this, receiver, dealer);
             }
 
             if (damageResult.UnblockedDamage > 0)
             {
-                HookMirrors.AfterCurrentHpChanged(this, originalTarget, -damageResult.UnblockedDamage);
+                HookMirrors.AfterCurrentHpChanged(this, receiver, -damageResult.UnblockedDamage);
             }
 
-            HookMirrors.AfterDamageGiven(
-                this,
-                originalTarget,
-                damageResult,
-                damageResult.Props,
-                dealer,
-                cardSource);
+            HookMirrors.AfterDamageGiven(this, receiver, damageResult, damageResult.Props, dealer, cardSource);
 
-            if (!damageResult.WasTargetKilled || !State.GetCreature(originalTarget).IsDead)
+            if (!damageResult.WasTargetKilled || !State.GetCreature(receiver).IsDead)
             {
                 HookMirrors.AfterDamageReceived(
                     this,
-                    originalTarget,
+                    receiver,
                     damageResult,
                     damageResult.Props,
                     dealer,
@@ -264,7 +316,7 @@ internal sealed partial class CombatPredictionSimulator
             }
             else
             {
-                killedCreatures.Add(originalTarget);
+                killedCreatures.Add(receiver);
             }
         }
 
@@ -300,7 +352,7 @@ internal sealed partial class CombatPredictionSimulator
         var currentHp = creatureState.CurrentHp;
         if (currentHp > 0)
         {
-            creatureState.LoseHp(currentHp, ValueProp.Unblockable | ValueProp.Unpowered);
+            creatureState.LoseHp(currentHp);
             HookMirrors.AfterCurrentHpChanged(this, creature, -currentHp);
         }
 
