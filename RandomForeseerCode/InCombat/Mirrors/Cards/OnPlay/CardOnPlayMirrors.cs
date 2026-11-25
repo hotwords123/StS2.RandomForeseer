@@ -88,6 +88,7 @@ internal static class CardOnPlayMirrors
         registry.Register<HuddleUp>(CardDrawCardMirrors.HuddleUpOnPlay);
         registry.Register<Impatience>(CardDrawCardMirrors.ImpatienceOnPlay);
         registry.Register<KiHop>(CardDrawCardMirrors.KiHopOnPlay);
+        registry.Register<Optimism>(CardDrawCardMirrors.OptimismOnPlay);
         registry.Register<Pillage>(CardDrawCardMirrors.PillageOnPlay);
         registry.Register<Reboot>(CardDrawCardMirrors.RebootOnPlay);
         registry.Register<Restlessness>(CardDrawCardMirrors.RestlessnessOnPlay);
@@ -130,6 +131,7 @@ internal static class CardOnPlayMirrors
         registry.Register<Timber>(SpecialAttackCardMirrors.TimberOnPlay);
         registry.Register<WahBlast>(SpecialAttackCardMirrors.WahBlastOnPlay);
         registry.Register<WahHammer>(GeneralCardMirrors.GeneralAttackOnPlay);
+        registry.Register<WahSymphony>(SpecialAttackCardMirrors.WahSymphonyOnPlay);
 
         registry.Register<BallLightning>(OrbCardMirrors.BallLightningOnPlay);
         registry.Register<Chaos>(OrbCardMirrors.ChaosOnPlay);
@@ -171,6 +173,7 @@ internal static class CardOnPlayMirrors
         registry.Register<TheFool>(CardSelectionCardMirrors.TheFoolOnPlay);
         registry.Register<TheDevil>(CardSelectionCardMirrors.TheDevilOnPlay);
         registry.Register<TheWorld>(CardSelectionCardMirrors.TheWorldOnPlay);
+        registry.Register<TheHermit>(CardSelectionCardMirrors.TheHermitOnPlay);
         registry.Register<Thrash>(CardSelectionCardMirrors.ThrashOnPlay);
         registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);
         registry.Register<Uproar>(CardSelectionCardMirrors.UproarOnPlay);
@@ -191,6 +194,7 @@ internal static class CardOnPlayMirrors
         registry.Register<Stoke>(CardGenerationCardMirrors.StokeOnPlay);
         registry.Register<TheHierophant>(CardGenerationCardMirrors.TheHierophantOnPlay);
         registry.Register<TheLovers>(CardGenerationCardMirrors.TheLoversOnPlay);
+        registry.Register<TheSun>(CardGenerationCardMirrors.TheSunOnPlay);
         registry.Register<WhiteNoise>(CardGenerationCardMirrors.WhiteNoiseOnPlay);
 
         registry.Register<StrikeIronclad>(GeneralCardMirrors.GeneralAttackOnPlay);

@@ -1,4 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.CardPools;
 using MegaCrit.Sts2.Core.Models.Cards;
 using RandomForeseer.Common;
 using RandomForeseer.InCombat.Extensions;
@@ -33,7 +35,7 @@ internal static class CardGenerationCardMirrors
 
     public static void BlotOutTheSkyOnPlay(BlotOutTheSky card, CardOnPlayMirrorContext context)
     {
-        var cards = card.Owner.GetUnlockedCharacterCards()
+        var cards = card.Owner.GetUnlockedCards(ModelDb.CardPool<FoolCardPool>())
             .Where(candidate => candidate.Tags.Contains(CardTag.Shoot))
             .GetDistinctForCombat(card.Owner, 1, context.Rng.CombatCardGeneration)
             .Select(generatedCard => generatedCard.SetToFreeThisTurn())
@@ -208,11 +210,7 @@ internal static class CardGenerationCardMirrors
             .GetDistinctForCombat(card.Owner, card.DynamicVars.Cards.IntValue, context.Rng.CombatCardGeneration)
             .ToList();
 
-        foreach (var generatedCard in cards)
-        {
-            generatedCard.MutablePreview.EnergyCost.AddThisTurnOrUntilPlayed(-1);
-            context.Simulator.AddGeneratedCardsToCombat([generatedCard], PileType.Hand, card.Owner);
-        }
+        context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
     }
 
     public static void TheLoversOnPlay(TheLovers card, CardOnPlayMirrorContext context)
@@ -231,6 +229,13 @@ internal static class CardGenerationCardMirrors
             .ToList();
 
         context.Simulator.AddGeneratedCardsToCombat(cards, PileType.Hand, card.Owner);
+    }
+
+    public static void TheSunOnPlay(TheSun card, CardOnPlayMirrorContext context)
+    {
+        context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
+        context.Simulator.GainEnergy(card.Owner, card.DynamicVars.Energy.IntValue);
+        context.Simulator.AddToCombat<Soot>(card.Owner.Creature, PileType.Draw, 2, card.Owner, CardPilePosition.Random);
     }
 
     public static void WhiteNoiseOnPlay(WhiteNoise card, CardOnPlayMirrorContext context)

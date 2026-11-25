@@ -321,17 +321,42 @@ internal static class CardSelectionCardMirrors
                 .StableShuffle(context.Rng.CombatCardSelection)
                 .FirstOrDefault();
 
-            selectedCard ??= handCards
-                .ToList()
-                .StableShuffle(context.Rng.CombatCardSelection)
-                .FirstOrDefault();
-
             if (selectedCard is not null)
             {
                 context.Simulator.History.CardsSelected([selectedCard]);
                 context.Simulator.AutoPlay(selectedCard);
             }
         }
+    }
+
+    public static void TheHermitOnPlay(TheHermit card, CardOnPlayMirrorContext context)
+    {
+        var hand = context.OwnerState.Hand.Cards;
+        if (hand.Count > 1)
+        {
+            context.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);
+        }
+
+        var selected = hand.MinBy(static candidate => candidate.Preview.Rarity switch
+        {
+            CardRarity.Curse => -3,
+            CardRarity.Status => -2,
+            CardRarity.Quest => -1,
+            var rarity => (int)rarity
+        });
+        if (selected is not null)
+        {
+            if (selected.Preview.Type == CardType.Curse)
+            {
+                context.Simulator.Exhaust(selected);
+            }
+            else
+            {
+                context.Simulator.Discard(selected);
+            }
+        }
+
+        context.Simulator.Draw(card.Owner, card.DynamicVars.Cards.BaseValue);
     }
 
     public static void TheWorldOnPlay(TheWorld card, CardOnPlayMirrorContext context)

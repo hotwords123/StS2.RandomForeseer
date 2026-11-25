@@ -12,17 +12,25 @@ internal static class SpecialAttackCardMirrors
 {
     public static void TimberOnPlay(Timber card, CardOnPlayMirrorContext context)
     {
-        var attack = DamageCmd.Attack(card.DynamicVars.Damage.BaseValue)
-            .FromCard(card, context.CardPlay)
-            .Targeting(context.Target);
-        attack.Simulate(context.Simulator);
+        using var attackContext = context.Simulator.CreateAttackContext(context.CardPlay);
+        var results = context.Simulator.Damage(
+            [context.Target],
+            card.DynamicVars.Damage.BaseValue,
+            ValueProp.Move,
+            card.Owner.Creature,
+            context.Card,
+            context.CardPlay);
+        attackContext.AddHit(results);
 
-        if (attack.Results.SelectMany(results => results).Any(result => result.WasTargetKilled))
+        if (results.Any(result => result.WasTargetKilled))
         {
-            DamageCmd.Attack(card.DynamicVars["OnKillDamage"].BaseValue)
-                .FromCard(card, context.CardPlay)
-                .TargetingAllOpponents(context.CombatState)
-                .Simulate(context.Simulator);
+            attackContext.AddHit(context.Simulator.Damage(
+                context.State.HittableEnemies,
+                card.DynamicVars["OnKillDamage"].BaseValue,
+                ValueProp.Move,
+                card.Owner.Creature,
+                context.Card,
+                context.CardPlay));
         }
     }
 
@@ -31,6 +39,18 @@ internal static class SpecialAttackCardMirrors
         var hitsTwice = MelodyMirrors.PlayedThisTurn(context.Simulator, card.Owner, CardTag.Cho) ||
             MelodyMirrors.PlayedThisTurn(context.Simulator, card.Owner, CardTag.Ki);
         context.AttackAllOpponents(hitsTwice ? 2 : 1);
+    }
+
+    public static void WahSymphonyOnPlay(WahSymphony card, CardOnPlayMirrorContext context)
+    {
+        var melodyCards = context.OwnerState.AllCards.Count(candidate =>
+            candidate.Preview.Tags.Contains(CardTag.Cho) || candidate.Preview.Tags.Contains(CardTag.Ki));
+        var amount = card.DynamicVars.CalculationBase.BaseValue + card.DynamicVars.ExtraDamage.BaseValue * melodyCards;
+
+        DamageCmd.Attack(amount)
+            .FromCard(card, context.CardPlay)
+            .TargetingAllOpponents(context.CombatState)
+            .Simulate(context.Simulator);
     }
 
     public static void EchoingSlashOnPlay(EchoingSlash card, CardOnPlayMirrorContext context)

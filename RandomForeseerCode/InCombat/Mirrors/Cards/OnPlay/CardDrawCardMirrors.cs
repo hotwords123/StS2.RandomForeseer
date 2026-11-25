@@ -104,6 +104,23 @@ internal static class CardDrawCardMirrors
         context.Simulator.Draw(card.Owner, card.DynamicVars[MadScience.wisdomCardsKey].IntValue);
     }
 
+    public static void OptimismOnPlay(Optimism card, CardOnPlayMirrorContext context)
+    {
+        var cardsToExhaust = context.OwnerState.Hand.Cards
+            .Where(candidate => candidate.Preview is Sadness)
+            .ToArray();
+
+        foreach (var candidate in cardsToExhaust)
+        {
+            context.Simulator.Exhaust(candidate);
+        }
+
+        if (cardsToExhaust.Length > 0)
+        {
+            context.Simulator.Draw(card.Owner, cardsToExhaust.Length);
+        }
+    }
+
     public static void PillageOnPlay(Pillage card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle();
