@@ -28,6 +28,11 @@ Wuppy's pre-block damage result uses this same death dispatch. The original `Wup
 retains the dead pet in combat, and its loyalty power remains present. Shadow HP disables subsequent redirection
 and hittability; no additional pet removal or power-collection mutation is needed for this case.
 
+Vanilla defers creature removal, power cleanup and player hook deactivation when death occurs inside an attack,
+and defers a monster's creature and power cleanup until its move finishes. Predictions still use their existing
+immediate shadow creature-removal path. Modeling the new cleanup timing requires ownership of shadow power
+collections, removal callbacks and listener activation.
+
 ## BeforeDeath listeners
 
 | Model | 中文名 | Original effect | Current mirror status |
@@ -55,7 +60,7 @@ and hittability; no additional pet removal or power-collection mutation is neede
 | `WaterfallGiant` | 瀑布巨兽 | Encounter-specific death behavior. | Ignored in registry. |
 | `AdaptablePower` | 适者生存 | Revives/transitions Test Subject. | Deferred: requires coherent revive/transition, combat-ending and hittability state beyond source-backed membership. Retains unsupported risk. |
 | `ConstrictPower` | 紧缠 | Removes this power when applier dies. | Existing-listener amount is consumed on non-prevented applier death; its side-end damage adapter reads the same state. Full collection/removal lifecycle is not simulated. |
-| `DampenPower` | 抑制 | Removes/decrements delayed card downgrade state. | Deferred: removal restores card upgrades through AfterRemoved; needs full removal/card restoration flow. Retains unsupported risk. |
+| `DampenPower` | 抑制 | Saves and removes all upgrade levels when applied. On the last caster's death it removes itself and restores the saved levels in `AfterRemoved`. | Deferred. Restoration needs the shadow power-removal and card-upgrade lifecycle. The death listener records unsupported risk. |
 | `CrabRagePower` | 蟹之怒 | When another same-side creature dies, applies Strength, gains 99 block, then removes itself. | Partial: grants the configured BlockVar through simulator GainBlock and consumes a prediction-local amount to prevent repeated grants. Strength application and power removal/listener changes remain unsupported and record incomplete risk when triggered. |
 | `CoveredPower` | 掩护 | Removes covered/intercept state when applier dies. | Deferred: removal updates Intercept.coveredCreatures and may remove Intercept; consuming a single amount cannot represent this relation. Retains unsupported risk. |
 | `InfestedPower` | 寄生物 | Spawns four stunned `Wriggler` creatures on owner death. | Deferred: requires creature creation, slots and new target/listener membership beyond fixed source-backed members; retains unsupported risk. |

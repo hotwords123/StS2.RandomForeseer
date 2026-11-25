@@ -2,7 +2,7 @@
 
 ## Vanilla entry
 
-StS2 v0.113.0 runs each concrete `CardModel.OnPlay(PlayerChoiceContext, CardPlay)` from the card-play lifecycle. The lifecycle owns resource spending, play/result piles, wrapper hooks, enchantments, afflictions and history; the model-specific `OnPlay` body issues the card's commands.
+The game calls each concrete `CardModel.OnPlay(PlayerChoiceContext, CardPlay)` from the card-play lifecycle. The lifecycle owns resource spending, play/result piles, wrapper hooks, enchantments, afflictions and history. The model-specific `OnPlay` body issues the card's commands.
 
 Combat prediction never invokes the real virtual method. `CombatPredictionSimulator.ManualPlay` creates a shadow `CardPlay`, then `CardOnPlayMirrors` dispatches the exact or inferred mirror against the mutable predicted card without mutating the real card, piles, creatures or RNG.
 
@@ -111,8 +111,9 @@ Draw shapes outside the owner-only rule remain exact registrations:
 | Conditional draw | `Fetch`, `Ftl`, `Impatience`, `Restlessness` | Evaluates the card-specific completed-play history, Osty or shadow-hand predicate before drawing. Live entries are combined with `CombatPredictionCardPlayFinishedEntry` records written at vanilla's `CardPlayFinished` point. |
 | Draw-result follow-up | `EscapePlan`, `Pillage`, `Scrape` | Uses the actual shadow cards returned by draw to apply conditional block, repeated draw or discard. |
 | Live arrow condition | `KiHop`, `Wrest` | Ki Hop snapshots the target's current impaled condition before attacking, then conditionally draws. Wrest draws only when the target currently holds the owner's arrow, without dislodging it; omitted dislodge effects retain risk. |
-| Melody-derived count | `SteadyCadence` / 平稳韵律 | Attacks, then computes draw count from CalculationBase/CalculationExtra and the distinct Wah/Cho/Ki tags in current-turn live plus shadow finished plays. |
+| Melody-derived count | `SteadyCadence` / 平稳韵律 | Attacks, then computes draw count from CalculationBase/CalculationExtra and the distinct Wah/Cho/Ki tags in current-turn live plus shadow started plays. |
 | Discard then draw | `CalculatedGamble`, `WheelOfFortune` / 命运之轮 | Snapshots the current shadow hand before discard hooks and their nested effects. Wheel of Fortune uses its fixed draw count, including when the hand is empty. |
+| Exhaust then draw | `Optimism` / 乐观 | Snapshots and exhausts each `Sadness` in the shadow hand, then draws once for the original count. |
 
 These handlers take priority over inference, including when their original IL also happens to match an owner-draw
 recipe. `CombatPredictionSimulator.Draw` returns the drawn `PredictedCard` objects for these follow-up mirrors while
@@ -129,17 +130,19 @@ hook order. The following cards use those existing domains:
 
 | Cards / 中文名 | Exact coverage |
 | --- | --- |
-| `TheHierophant` / 教皇 | Distinct colorless cards from `CombatCardGeneration`; applies each card's temporary -1 energy cost immediately before adding that card to hand. |
+| `TheHierophant` / 教皇 | Generates distinct colorless cards with `CombatCardGeneration` and adds them to hand in one batch at their normal cost. |
 | `TheLovers` / 恋人 | Generates enough cards to fill the shadow hand from the other unlocked character pools, with the original own-pool fallback and upgrade handling. |
-| `TheFool` / 愚者 | Repeatedly shuffles the current playable hand with `CombatCardSelection`, falls back to all hand cards, then auto-plays the selected card through the existing lifecycle. |
+| `TheFool` / 愚者 | Repeatedly filters cards with the `Unplayable` keyword out of the current shadow hand, shuffles the candidates with `CombatCardSelection`, and auto-plays the first card when present. |
 | `TheWorld` / 世界 | Randomly returns discard cards to hand with `CombatCardSelection`, capped by the card value and current hand capacity. |
 | `KiChant` / 叽 唱诵 | Performs necessary shadow shuffling, preserves the original remaining draw-pile top order, and records the top 3/4 cards as selection candidates. Stops at unresolved choice; does not fabricate the chosen card or subsequent discards. |
-| `BlotOutTheSky` / 遮天蔽日 | Generates one distinct Shoot-tag card from the owner's unlocked character pool using CombatCardGeneration, makes it free this turn, then adds it through the existing generation pipeline. Does not grant or change arrow slots; the omitted non-native first-slot grant retains risk. |
+| `BlotOutTheSky` / 遮天蔽日 | Generates one distinct Shoot-tag card from the owner's unlocked Fool pool using `CombatCardGeneration`, makes it free this turn, then adds it through the existing generation pipeline. |
 | `ChoChorus` / 啾 副歌 | Gains block, snapshots Wah/Ki cards in the current shadow hand, then auto-plays them in order. Each child's mirror determines its own coverage. |
 | `TheDevil` / 恶魔 | Exhausts a hand snapshot, then batch-selects that many cards from draw-pile top before auto-playing them. The upgraded version upgrades each selected card before its movement into Play. |
 | `TheMagician` / 魔术师 | Calls simulator OrbAddSlots, which owns the combat-ending guard and ten-slot limit, then selects random orbs with cloned CombatOrbGeneration and channels them. Ending combat skips slot growth/channeling but does not skip the random selections. |
+| `TheSun` / 太阳 | Draws and gains energy before inserting two `Soot` cards into the shadow draw pile at positions selected by `Shuffle`. |
+| `TheHermit` / 隐者 | Draws after discarding the selected hand card or exhausting it if it is a Curse. An empty hand skips selection. With multiple candidates, records unresolved choice and assumes the first card of lowest rarity. Curse precedes Status and Quest, then the remaining `CardRarity` values follow enum order. The simulation proceeds to the draw. |
 
-`TheMoon` / 月亮, `TheSun` / 太阳, `Rummage` / 翻找 and `TheHermit` / 隐者 have no exact registrations. Fixed-card
+`TheMoon` / 月亮 and `Rummage` / 翻找 have no exact registrations. Fixed-card
 generation, energy and discard/exhaust choices are not covered by a recognized owner-draw recipe. These cards retain
 the general inference/unsupported boundary rather than claiming complete or choice-aware exact support.
 
@@ -216,14 +219,16 @@ ends combat.
 
 ## Special exact handlers
 
-`Timber` / 大树将倾 resolves its selected-target attack first and performs a separate all-enemy attack with
-OnKillDamage only when the first attack reports a kill. `WahBlast` / 哇 爆破 attacks all opponents once or twice
-according to whether Cho or Ki appears in live plus shadow finished-play history. `WahHammer` / 哇 战锤 shares the
+`Timber` / 大树将倾 groups its selected-target hit and its conditional follow-up in the same `SimAttackContext`.
+The follow-up hits all currently hittable opponents when the first hit reports a kill, sharing one pair of
+attack hooks with the first hit. `WahBlast` / 哇 爆破 attacks all opponents once or twice according to whether
+Cho or Ki appears in live plus shadow started-play history. `WahSymphony` / 哇 交响乐 counts Cho or Ki cards in
+the owner's shadow combat piles for its damage multiplier. `WahHammer` / 哇 战锤 shares the
 general attack handler but has an exact damage multiplier adapter that matches original/preview source identity
 and reads the target's current live ImpaledPower.
 
 These arrow-related handlers intentionally freeze arrow and impaled-power state at the real combat state. They do
-not shoot, dislodge, return or destroy arrows, update hit counters, or introduce arrow lifecycle callbacks. A chain
+not shoot, dislodge or return arrows, update hit counters, or introduce arrow lifecycle callbacks. A chain
 that would change those states in vanilla may therefore diverge; missing side-effect hooks retain existing risk.
 
 `EchoingSlash` and `Omnislice` are explicitly registered because their `OnPlay` bodies group multiple damage calls
@@ -241,9 +246,12 @@ semantics. The spread excludes the original selected target, matching vanilla ev
 - Direct attack and block calls may still be conditional. General inference does not reconstruct arbitrary control flow, so a structurally inferred candidate may execute in a state where vanilla would skip it. The draw check rejects only a narrow adjacent-branch shape; reviewed conditional draw cards use exact mirrors.
 - General attack, block and owner-draw parameter resolution is intentionally limited to standard dynamic-var, count and target templates. Calculated special values, dependent command results and nonstandard targeting require exact mirrors.
 - Direct `Cards.IntValue` recipes reuse `Cards.BaseValue` when the cached action executes. Vanilla card-count vars are integral, but a Mod card with a fractional value could differ because the simulator applies draw-count ceiling instead of first truncating to `IntValue`.
-- Inference does not imply the complete `OnPlay` was mirrored. Outside the narrow Weak/Vulnerable templates, power application, HP loss, energy, card movement/generation and other commands remain omitted unless an exact handler covers the card.
+- `WahChoKi` / 哇 啾 叽 uses the inferred attack, block and draw actions in order. `MyShinies` / 我的小钱钱 and `TheTower` / 高塔 use their original dynamic vars through the inferred attack path.
+- The inferred recipes cover attack, block, supported draws and selected Weak/Vulnerable applications. Fixed `Sadness` generation from `Jest` / 说笑, `SorrowfulStrike` / 哀伤打击 and `Vitriol` / 刻薄 is outside those recipes.
 - The power-application boundary mirrors hook order and prediction-owned listener effects but does not yet maintain a complete shadow power collection. It therefore supports existing Artifact/Vicious state while recording mirror risk for unregistered power lifecycle or action-hook overrides.
-- Arrow/ArrowSlot state and lifecycle are not advanced. The explicitly supported arrow conditions read current live state, while Melody queries combine live and shadow card-play history without separate mutable counters. The complete transformations used by `MourningBlow` / 悲痛一击 and `PunchOfJoy` / 喜悦之拳 remain outside exact coverage; a recognized attack does not imply their transformation lifecycle is supported.
+- Arrow conditions use the current live state. Melody queries combine live and shadow card-play history. The
+  transformations used by `Florescence` / 怒放, `Growth` / 生长, `MourningBlow` / 悲痛一击 and `PunchOfJoy` /
+  喜悦之拳 need shadow card replacement and listener updates before their resulting hand can be predicted.
 - A recognized attack or block whose runtime card lacks a supported damage/block var or target shape skips that general action and records incomplete risk; its Type-level classification remains cached.
 
 These limits are intentional. Expanding inference should add narrowly named, offline-verifiable templates rather than evolve into a general IL interpreter.

@@ -7,7 +7,19 @@
 - 新增“预测所有卡牌的出牌效果”开关，可在战斗中查看手牌以外卡牌的出牌预测。<br>
   Added an option to preview card-play effects for cards outside your hand during combat.
 
+- 新增调音随机升级手牌，以及乐观和隐者的抽牌预测。<br>
+  Added predictions for Tune's random hand upgrades and draws from Optimism and The Hermit.
+
 ### fix
+
+- 同步新版教皇、愚者、遮天蔽日和大树将倾的预测，并修正拉伸、坚定不移和大合唱的结算。<br>
+  Updated predictions for The Hierophant, The Fool, Blot Out the Sky, and Timber, and corrected Stretch, Unmovable, and Ensemble timing.
+
+- 同步 v0.114.0 的战斗预测结算时机，包括伤害转移和嵌套出牌时的旋律判定。<br>
+  Aligned combat predictions with v0.114.0 damage redirection and Melody timing during nested card plays.
+
+- 修复 v0.114.0 中跟随来源移动的预测提示可能出现文字与卡牌错位的问题。<br>
+  Fixed prediction text and cards shifting out of alignment when their tooltip follows a moving source in v0.114.0.
 
 - 修复 RolltheSpire2 先加载时，先古之民、其他事件选项和商店商品的预测提示可能不显示的问题。<br>
   Fixed missing predictions for event options (including Ancients) and shop items when RolltheSpire2 loads first.

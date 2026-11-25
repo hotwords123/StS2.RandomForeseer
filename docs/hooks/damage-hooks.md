@@ -99,10 +99,12 @@ target loop if a nested response kills the dealer. Wuppy and Osty redirection al
 
 ## Parity notes
 
-- Damage results retain `OriginalTarget` across existing post-block redirection and populate `IntendedHpLoss`
-  before HP-loss modifiers, including overkill forwarded to the original target. VFX-only `DamageTargetData`
-  fields are intentionally omitted from the simulator API.
-- Pre-block redirection remains incomplete and records unsupported risk; see `damage-modifier-hooks.md`.
+- Each target's `DamageResults` is calculated from shadow HP and block before `BeforeDamageReceived`. The hook
+  can trigger nested damage, such as Thorns. After it returns, the simulator applies the previously calculated
+  amounts to the current shadow state.
+- Damage history and post-hit hooks consume `DamageResults.AllResults()` in order: original target, pet owner
+  receiving block damage, pre-block redirect, then unblocked redirect. HP redirect results retain `OriginalTarget`
+  and the pre-modifier `IntendedHpLoss`, including overkill forwarded to the original target.
 - `CombatPredictionSimulator.Heal` mirrors `CreatureCmd.Heal`'s shadow HP change and positive-delta `AfterCurrentHpChanged` dispatch. It intentionally omits heal VFX/SFX, map-point healing history, waits, and player hook activation on revive.
 - Damage processing dispatches `AfterBlockBroken` before `AfterCurrentHpChanged` and
   `AfterDamageGiven`, matching `CreatureCmd.Damage`. Its listener details and unguarded iteration

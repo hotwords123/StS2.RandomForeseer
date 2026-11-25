@@ -9,31 +9,54 @@ Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Damage/AfterModifyingHpLostAfterOstyMirrors.cs`, and
 `InCombat/Simulation/CombatPredictionSimulator.Damage.cs`.
 
-This document covers the read-only damage modifier path used by `CombatPredictionSimulator.DamageTarget`. Post-result hooks such as `AfterDamageReceived` are documented in `damage-hooks.md`.
+This document covers the read-only damage modifier path used by `CombatPredictionSimulator.Damage`. Post-result hooks such as `AfterDamageReceived` are documented in `damage-hooks.md`.
 
 ## Vanilla order
 
-`CreatureCmd.Damage` runs the modifier path once per original target:
+In v0.114.0, `CreatureCmd.Damage` calculates and applies a result for each original target. It dispatches post-hit hooks after the target loop.
 
-1. `Hook.ModifyDamage(..., CardPlay? cardPlay, modifyDamageHookType, CardPreviewMode.None, out modifiers)`
-2. `Hook.AfterModifyingDamageAmount(..., modifiers)`
-3. `Hook.BeforeDamageReceived(...)`
-4. `Hook.ModifyPreBlockDamageTarget(..., originalTarget, originalAmount, props, dealer)`
-5. If a pre-block target is returned, `Hook.ModifyHpLost(..., HpLossHookPhase.BeforeWuppy, out modifiers)` and HP
-   loss on that target; only its overkill continues to block loss.
-6. Block loss on `originalTarget.PetOwner?.Creature ?? originalTarget`
-7. `Hook.ModifyHpLost(..., HpLossHookPhase.BeforeOsty, out modifiers)`
-8. `Hook.AfterModifyingHpLostBeforeOsty(..., modifiers)`
-9. `Hook.ModifyUnblockedDamageTarget(...)`
-10. `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for the redirected target
-11. `Hook.AfterModifyingHpLostAfterOsty(..., modifiers)`
-12. If damage was redirected, `Hook.ModifyHpLost(..., HpLossHookPhase.AfterOsty, out modifiers)` for original-target overkill damage
-13. `Hook.AfterModifyingHpLostAfterOsty(..., modifiers)`
+### Calculate the result
 
-The simulator mirrors the supported value-producing passes, including Wuppy's pre-block damage redirection, and
-dispatches `AfterModifyingHpLostAfterOsty` to the exact
-modifiers returned by the corresponding value pass. The other `AfterModifying*` hooks are currently omitted because
-their reviewed vanilla listeners are visual only.
+1. Run `Hook.ModifyDamage` for the original target, then `Hook.AfterModifyingDamageAmount` for the returned modifiers.
+2. `CreatureCmd.GetDamageResults` calls `Hook.ModifyPreBlockDamageTarget` with the **modified** damage. If the hit
+   redirects before block, run `Hook.ModifyHpLost` in the `BeforeWuppy` phase for the original target and calculate
+   the redirect recipient's HP loss. Only its overkill reaches block.
+3. Calculate block on `originalTarget.PetOwner?.Creature ?? originalTarget`. Run `ModifyHpLost` in the `BeforeOsty`
+   phase for the original target, then choose the HP recipient with `Hook.ModifyUnblockedDamageTarget`.
+4. Run `ModifyHpLost` in the `AfterOsty` phase for the HP recipient and calculate its HP loss. If it differs from
+   the original target, run `AfterOsty` again on the original target for the recipient's overkill.
+
+The HP and block calculations use `dryRun: true`. `DamageResults` holds the amounts, optional redirect results,
+and the modifier lists for the application callbacks.
+
+### Apply the result
+
+`Hook.BeforeDamageReceived` runs for the original target with the modified damage after calculation and before any
+HP or block loss from this hit. A nested hit triggered here can change current state. `CreatureCmd.ApplyDamageResults`
+then applies the previously calculated amounts to that state in this order.
+
+1. Apply HP loss to the pre-block redirect recipient, if present.
+2. Apply block loss to the block redirect recipient, if present, then to the original target.
+3. Call `Hook.AfterModifyingHpLostBeforeOsty` for the recorded `BeforeOsty` modifiers.
+4. Apply HP loss to the unblocked redirect recipient, if present, then call `Hook.AfterModifyingHpLostAfterOsty` for
+   the first `AfterOsty` pass.
+5. Apply HP loss to the original target, then call `Hook.AfterModifyingHpLostAfterOsty` for the overkill pass, if present.
+
+The simulator writes HP and block loss to prediction state. It dispatches `AfterModifyingHpLostAfterOsty` to the
+modifiers recorded for each pass. The reviewed vanilla listeners for `AfterModifyingDamageAmount` and
+`AfterModifyingHpLostBeforeOsty` only affect presentation, so the simulator skips those callbacks.
+
+### Record results and dispatch post-hit hooks
+
+After each target's result is applied, `CreatureCmd.Damage` uses `DamageResults.AllResults()` for history, in
+order of original target, block redirect, pre-block redirect, and unblocked redirect. Original combat history
+is written while combat is in progress and has yet to start ending.
+
+After resolving all original targets, `CreatureCmd.Damage` iterates the accumulated results in the same order.
+For each receiver it calls `AfterBlockBroken` if block broke, `AfterCurrentHpChanged` if HP was lost, and
+`AfterDamageGiven` when a combat state exists. It then calls `AfterDamageReceived` or queues the receiver for
+death processing if the result was lethal and the receiver is still dead. The queued deaths are processed
+after the result loop. See [Damage hooks](damage-hooks.md) for details of the prediction dispatch.
 
 ## Hook specs
 
@@ -75,7 +98,7 @@ consumers documented below.
 | `StrengthPower` | 力量 | Owner powered attacks gain flat damage; negative amounts reduce damage. | Implemented by original hook. |
 | `TaintedPower` | 污染 | Powered attacks against owner gain flat damage. | Implemented by original hook. |
 | `VigorPower` | 活力 | Owner's next powered attack gains flat damage, usually scoped by `BeforeAttack`/`AfterAttack`. | Implemented by a prediction-aware additive adapter using the selected attack and shadow amount shared with the attack hooks. |
-| `AimPower` | 瞄准 | Adds Aim to the selected powered arrow attack, including HeavyShot scaling. | Deferred with the coherent arrow domain: original fallback reads frozen live command/amount state; Aim/Quietus/Impaled and arrow-slot transitions are not partially advanced. |
+| `AimPower` | 瞄准 | Adds Aim to the selected powered arrow attack, including HeavyShot scaling. | Deferred with the arrow domain. Predictions still read live command/amount state for Aim, Impaled and arrow slots. |
 
 ### ModifyDamageMultiplicative listeners
 
@@ -105,7 +128,6 @@ consumers documented below.
 | `VitruvianMinion` | 维特鲁威仆从 | Owner Minion-tag card attacks are doubled. | Implemented by original hook. |
 | `VulnerablePower` | 易伤 | Powered attacks against owner are multiplied, with Paper Phrog, dealer or pet owner's Cruelty, and Debilitate adjustments. | Implemented by original hook. StS2 v0.109.0 made attacking pets inherit their owner's Cruelty adjustment. |
 | `WeakPower` | 虚弱 | Owner's powered attacks are reduced, with Paper Krane and Debilitate adjustments. | Implemented by original hook. |
-| `QuietusPower` | 寂灭 | Multiplies damage for the selected powered arrow attack. | Deferred with the coherent arrow domain: original fallback reads frozen live command/amount state; attack selection and consumption require arrow lifecycle support. |
 
 ### ModifyDamageMultiplicativeLate listeners
 
@@ -117,7 +139,6 @@ the normal read-only fallback policy.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `HardToKillPower` | 难以杀灭 | Damage against owner is capped by amount. | Implemented by original hook. |
 | `IntangiblePower` | 无实体 | Damage against owner is capped at 1 for block loss and previews. | Implemented by original hook. |
 
 ## ModifyHpLost listeners
@@ -133,6 +154,7 @@ enum names rather than their numeric bit values.
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
+| `HardToKillPower` | 难以杀灭 | Caps the owner's HP loss by amount before Osty redirection. | Uses the original read-only HP-loss hook. |
 | `HardenedShellPower` | 硬化外壳 | Caps owner's HP loss by remaining per-turn shell amount before Osty redirection. | Implemented by a prediction-aware late adapter using the per-turn damage counter shared with `AfterDamageReceived`. |
 
 ### ModifyHpLostAfterOsty listeners
@@ -154,19 +176,19 @@ enum names rather than their numeric bit values.
 ## ModifyPreBlockDamageTarget listeners
 
 The original hook directly enumerates combat listeners without an ending guard, chaining a nullable pre-block
-target from an initial null value. The facade accepts the original target, unmodified damage amount, props and
+target from an initial null value. The facade accepts the original target, modified damage amount, props and
 dealer, and returns the context's nullable pre-block target.
 
 `WuppysLoyaltyPower` / 瓦皮的忠诚 has an exact adapter: powered attacks against its owner's player creature
 redirect to Wuppy while its shadow HP is positive. A listener that does not redirect preserves the previous
 nullable target; unregistered overrides retain unsupported risk.
 
-The simulator applies the BeforeWuppy HP-loss phase to the original target, then deducts HP from the returned
-pre-block target. Only that result's overkill reaches the existing block target, BeforeOsty, Osty redirection and
-AfterOsty passes. Damage modifiers and BeforeDamageReceived still run once for the original target. The pet result
-preserves OriginalTarget and IntendedHpLoss, joins damage history before the later results, and enters the shared
-post-damage/death dispatch. For example, 20 damage against a player with 8-HP Wuppy and 5 Block consumes Wuppy's
-8 HP, then the player's 5 Block, leaving 7 damage for Osty or the player.
+The simulator calculates the pre-block target's HP loss using the BeforeWuppy phase for the original target. Only
+that result's overkill reaches the block, BeforeOsty, Osty redirect and AfterOsty passes. The prediction runs
+`BeforeDamageReceived` for the original target before applying the calculated results. For example, 20 damage
+against a player with 8-HP Wuppy and 5 Block consumes Wuppy's 8 HP, then the player's 5 Block, leaving 7 damage
+for Osty or the player. The pre-block result enters shadow history and post-damage/death dispatch after the
+original target's result.
 
 Wuppy's death retains its creature and loyalty power under the original removal predicates. Subsequent hits
 observe zero shadow HP and stop redirecting. Combat-start summoning, relic counter persistence and rest-site
@@ -198,15 +220,15 @@ prediction-state-aware mirror retains Mod listeners so Mod damage semantics rema
 
 ## AfterModifying listeners
 
-Current mirror status: `AfterModifyingHpLostAfterOsty` is dispatched only to the modifier list returned by the
-mirrored value hook. Reviewed vanilla flash-only listeners are ignored. `BufferPower` decrements the same shadow
-amount read by its late value-hook adapter.
+`AfterModifyingHpLostAfterOsty` dispatches to the modifiers captured during calculation. The first pass runs after
+applying redirected unblocked damage, when present, and before applying HP loss to the original target. A second
+pass for redirected overkill runs after applying the original target's HP loss. `BufferPower` decrements the
+shadow amount read by its late value hook. The BeforeOsty callbacks only flash in vanilla and are skipped.
 
 ### AfterModifyingDamageAmount listeners
 
 | Model | 中文名 | Original effect | Current impact |
 | --- | --- | --- | --- |
-| `HardToKillPower` | 难以杀灭 | Flash only. | Not dispatched; ignorable. |
 | `IntangiblePower` | 无实体 | Flash only. | Not dispatched; ignorable. |
 | `SlowPower` | 缓慢 | Flash only. | Not dispatched; ignorable. |
 
@@ -214,6 +236,7 @@ amount read by its late value-hook adapter.
 
 | Model | 中文名 | Original effect | Current impact |
 | --- | --- | --- | --- |
+| `HardToKillPower` | 难以杀灭 | Flash only. | Ignored. |
 | `HardenedShellPower` | 硬化外壳 | Flash only. | Not dispatched; ignorable. |
 
 ### AfterModifyingHpLostAfterOsty listeners

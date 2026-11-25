@@ -31,7 +31,7 @@ Mirror files:
 
 | Model | 中文名 | Original effect | Current mirror status |
 | --- | --- | --- | --- |
-| `StretchPower` | 拉伸 | Adds block throughout the selected owner CardPlay, including block from Adroit, then consumes its starting amount after that play. | Exact adapter checks powered block and ownership, marks a local bonus flag and shares the selected occurrence with before/after card hooks. Null-play previews read remaining amount only if vanilla's read-only GainsBlock helper accepts the preview card or its enchantment, matching v0.113.1; nested different plays receive no bonus. The original live gaveBonusBlock write is isolated. |
+| `StretchPower` | 拉伸 | Adds the starting Stretch amount to qualifying block throughout the selected owner CardPlay, including block from Adroit, then consumes that starting amount after the play. | Exact adapter checks powered block and ownership and shares the selected occurrence and starting amount with before/after card hooks. Null-play previews read the remaining amount when `GainsBlock` accepts the preview card or its enchantment. Nested different plays receive no bonus. The original live gaveBonusBlock write is isolated. |
 
 ## ModifyBlockMultiplicative listeners
 
@@ -39,7 +39,7 @@ Mirror files:
 | --- | --- | --- | --- |
 | `PaelsLegion` | 佩尔的士兵 | Doubles block while its cooldown allows, then commits the selected card occurrence. | Exact adapter shares shadow cooldown and the exact CardPlay with AfterModifyingBlockAmount/AfterCardPlayed; nested plays cannot borrow pending doubling. |
 | `Vambrace` | 臂甲 | Doubles block once per combat for the selected owner card. | Exact adapter shares shadow triggering-card identity and once-per-combat state with selected-modifier and after-play commits. |
-| `UnmovablePower` | 不动 | Doubles qualifying block until enough other CardPlay block-gain entries have occurred this turn. | Combines current-turn live BlockGained entries and CombatPredictionBlockGainedEntry records. Counts entries, not distinct cards; gains from the current CardPlay do not spend its own eligibility. |
+| `UnmovablePower` | 不动 | Doubles qualifying block up to the configured number of card-play occurrences this turn. | Counts distinct `CardPlay` instances across current-turn live and predicted block gains. Repeated gains in a single play share one count, and gains from the current play do not spend its own eligibility. |
 
 ## AfterBlockGained listeners
 

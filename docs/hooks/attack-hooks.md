@@ -35,6 +35,10 @@ Per-hit `CreatureCmd.Damage` modifier and result hooks are documented in `damage
 5. Records `CombatManager.Instance.History.CreatureAttacked(...)`.
 6. `Hook.AfterAttack(combatState, choiceContext ?? new BlockingPlayerChoiceContext(), command)`.
 
+The command sets `Creature.IsAttacking` before running these steps and restores the previous value in `finally`.
+If the attacker died during the attack, the command then cleans up creature membership, powers and player hook
+activation. A monster still performing a move completes cleanup after the move. See `death-hooks.md`.
+
 `AttackContext` is a separate vanilla path used by `EchoingSlash` and `Omnislice`:
 
 1. `AttackContext.CreateAsync(...)` creates an `AttackCommand(0).FromCard(cardPlay.Card, cardPlay).TargetingAllOpponents(combatState)` and calls `Hook.BeforeAttack`.
@@ -87,6 +91,8 @@ between `BeforeAttack` and the per-hit target loop.
 - Reviewed vanilla `_beforeDamage` and `_afterAttackerAnim` callbacks are command-local cosmetic effects only: VFX/SFX, waits, screen shake, radial blur, hit stop, and audio-only strength fields. The simulator does not execute them and does not mark risk solely because a vanilla attack command contains these callbacks.
 - `VigorPower` and `GigantificationPower` share their prediction-local attack selection with exact damage-modifier adapters and shadow amount consumption. The shadow decrement does not run the full vanilla power amount/removal lifecycle documented in `damage-modifier-hooks.md`.
 - `EchoingSlash` and `Omnislice` use `SimAttackContext`, which mirrors the vanilla `AttackContext` lifecycle while leaving their card-specific hit generation in `SpecialAttackCardMirrors`. Their grouped hits therefore participate in the shared `BeforeAttack`/`AfterAttack` listeners without going through `AttackCommand.Execute`.
+- The simulator still applies its existing immediate death handling if retaliation kills the attacker. Delaying
+  cleanup through `AfterAttack` requires shadow power collection and listener membership support.
 
 ## Remaining implementation sequence
 

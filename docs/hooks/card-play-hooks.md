@@ -1,7 +1,7 @@
 # Card play hooks
 
 Research baseline: StS2 v0.110.1 (`a421e19`).
-`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`); API contracts follow v0.113.1.
+`ShouldPlay` listeners rechecked against StS2 v0.111.0 (`7612a86`). API contracts follow v0.114.0.
 
 Mirror files: `InCombat/Mirrors/HookMirrors.cs`,
 `InCombat/Mirrors/Hooks/Card/BeforeCardPlayedMirrors.cs`,
@@ -109,7 +109,6 @@ The labels remain useful for architecture, while each row now records its implem
 | `ChainsOfBindingPower` | 魂缚锁链 | Marks that owner has played a non-dupe Bound card; `ShouldPlay` then prevents another Bound card this turn. | **Implemented cross-hook.** Auto-play gating reads the shadow flag. |
 | `DanseMacabrePower` | 死亡之舞 | If owner spends at least the configured energy, grants block before the card effect. | **Local feasible.** `CardPlay.Resources` and simulator `GainBlock` are sufficient. |
 | `FreeAttackPower` | 免费攻击 | Consumes one stack when owner plays an Attack from hand/play. | **Implemented cross-hook.** Shadow amount feeds the late energy-cost pass. |
-| `FreeCardPower` | 免费出牌 | Consumes one stack when owner plays any card from hand/play. | **Implemented cross-hook.** Uses predicted pile membership and shared shadow amount for late zero-energy cost. |
 | `FreePowerPower` | 免费能力 | Consumes one stack when owner plays a Power from hand/play. | **Implemented cross-hook.** Same targeted shadow-cost path as `FreeAttackPower`. |
 | `FreeSkillPower` | 免费技能 | Consumes one stack when owner plays a Skill from hand/play. | **Implemented cross-hook.** Same targeted shadow-cost path as `FreeAttackPower`. |
 | `GravityPower` | 引力 | Snapshots the power amount for each owner card so the matching after hook damages all hittable enemies. | **Local feasible.** Pair state plus simulator `Damage`. |
@@ -204,10 +203,11 @@ The labels remain useful for architecture, while each row now records its implem
 | `VoidFormPower` | 虚空形态 | Counts non-auto owner cards on the last play in a series; later cards stop being free at the power amount. | **Implemented cross-hook.** Shadow count feeds both energy- and star-cost helpers. |
 | `WitheringPresencePower` | 凋萎存在 | Counts target-player cards and adds a Wither to hand every six. | **Local feasible.** State-store counter plus fixed generated-card flow. |
 | `EncorePower` | 安可 | Removes a pending owner card and increments the finished-play counter. | **Implemented cross-hook.** Updates the copied pending list and finished counter used by ShouldPlay. Owner side-end deactivates the local limit. |
-| `EnsemblePower` | 大合唱 | Consumes one stack after another player's card finishes. | **Implemented cross-hook.** Shared shadow amount feeds the late energy-cost pass; live amount is unchanged. |
+| `EnsemblePower` | 大合唱 | Consumes one stack when another player's last `CardPlay` in a replay series finishes. | **Implemented cross-hook.** The shared shadow amount feeds the late energy-cost pass. |
 | `LullabyPower` | 摇篮曲 | Once per turn, grants block after all three melodies finish. | **Implemented.** Combines live/shadow finished history and shadow in-progress state; a local flag initialized from the live listener prevents repeat grants. |
 | `SongPathPower` | 歌之道 | Grants block after the first Cho play this turn. | **Implemented.** Uses first-started CardPlay identity, so nested plays started before the outer after hook do not steal its trigger. |
-| `StretchPower` | 拉伸 | Clears the selected CardPlay and consumes its starting amount only if it granted bonus block. | **Implemented cross-hook.** Shares the block additive occurrence/bonus state and shadow amount; does not call the original additive hook that writes live internal data. |
+| `StretchPower` | 拉伸 | Clears the selected `CardPlay` and consumes its starting amount if it granted bonus block. | **Implemented cross-hook.** The additive hook and consumption use the same starting amount and selected play. |
+| `TunePower` | 调音 | The first Ki play each turn randomly upgrades eligible cards in the owner's hand. | Uses the first started play's identity and selects from the shadow hand with cloned `CombatCardSelection`. Upgraded cards are shown as selection results. The listener must already be present in the source combat. |
 | `ViolentChordPower` | 暴力和弦 | Deals unpowered damage to all hittable enemies after the first Wah play this turn. | **Implemented.** Uses first-started CardPlay identity across live/shadow history and simulator Damage, preserving the outer trigger during nested plays. |
 
 ## AfterCardPlayed listeners: cards, enchantments, and bookkeeping
@@ -261,15 +261,14 @@ affects manual playability; it does not restrict nested auto-play.
 
 | Model | 中文名 | Original effect | Prediction status |
 | --- | --- | --- | --- |
-| `ChoLimbs` | 啾 四肢 | Reduces its own positive cost by 2 when Wah or Ki has finished this turn. | Exact adapter matches original/preview identity and reads combined live/shadow finished melody history. |
-| `Coda` | 终曲 | Reduces its own positive cost by 2 for each completed melody type. | Exact adapter matches original/preview identity and reads combined live/shadow finished history; unfinished plays do not count. |
+| `ChoLimbs` | 啾 四肢 | Reduces its own positive cost by 2 when a Wah or Ki play has started this turn. | The adapter matches original/preview identity and reads combined live/shadow started melody history. |
+| `Coda` | 终曲 | Reduces its own positive cost by 2 for each melody type whose play has started. | The adapter matches original/preview identity and reads combined live/shadow started melody history. |
 
 ## TryModifyEnergyCostInCombatLate listeners
 
 | Model | 中文名 | Original effect | Prediction status |
 | --- | --- | --- | --- |
 | `FreeAttackPower` | 免费攻击 | Makes the owner's next qualifying Attacks free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
-| `FreeCardPower` | 免费出牌 | Makes the owner's next qualifying cards free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
 | `FreePowerPower` | 免费能力 | Makes the owner's next qualifying Powers free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
 | `FreeSkillPower` | 免费技能 | Makes the owner's next qualifying Skills free. | Exact adapter reads shadow Hand/Play membership and remaining amount shared with BeforeCardPlayed. |
 | `EnsemblePower` | 大合唱 | Makes other players' Hand/Play cards free while stacks remain. | Exact adapter reads shadow pile and amount shared with AfterCardPlayed instead of original Preview.Pile. |
