@@ -5,6 +5,6 @@
   },
   "public-beta": {
     "git_branch": "main",
-    "game_version": "0.113.1"
+    "game_version": "0.114.0"
   }
 }
