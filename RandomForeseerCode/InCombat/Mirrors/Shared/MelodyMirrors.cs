@@ -22,10 +22,10 @@ internal static class MelodyMirrors
     /// <summary>Mirrors <see cref="MelodyCmd.PlayedThisTurn"/>.</summary>
     public static bool PlayedThisTurn(CombatPredictionSimulator simulator, Player player, CardTag tag)
     {
-        return CombatManager.Instance.History.CardPlaysFinished.Any(entry =>
+        return CombatManager.Instance.History.CardPlaysStarted.Any(entry =>
                    entry.HappenedThisTurn(simulator.State.CombatState) &&
                    entry.CardPlay.Player == player && entry.CardPlay.Card.Tags.Contains(tag)) ||
-               simulator.History.OfType<CombatPredictionCardPlayFinishedEntry>().Any(entry =>
+               simulator.History.OfType<CombatPredictionCardPlayStartedEntry>().Any(entry =>
                    entry.CardPlay.Player == player && entry.Card.Preview.Tags.Contains(tag));
     }
 

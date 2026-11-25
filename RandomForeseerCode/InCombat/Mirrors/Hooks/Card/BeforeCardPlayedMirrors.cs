@@ -42,7 +42,6 @@ internal static class BeforeCardPlayedMirrors
         registry.Register<DanseMacabrePower>(HandleDanseMacabrePower);
         registry.Register<EncorePower>(HandleEncorePower);
         registry.Register<FreeAttackPower>(HandleFreeAttackPower);
-        registry.Register<FreeCardPower>(HandleFreeCardPower);
         registry.Register<FreePowerPower>(HandleFreePowerPower);
         registry.Register<FreeSkillPower>(HandleFreeSkillPower);
         registry.Register<GravityPower>(HandleGravityPower);
@@ -149,15 +148,6 @@ internal static class BeforeCardPlayedMirrors
     private static void HandleFreePowerPower(FreePowerPower power, BeforeCardPlayedMirrorContext context)
     {
         ConsumeFreeCardPower(power, CardType.Power, context);
-    }
-
-    private static void HandleFreeCardPower(FreeCardPower power, BeforeCardPlayedMirrorContext context)
-    {
-        if (context.PreviewCard.Owner.Creature == power.Owner &&
-            context.Card.GetPile(context.State)?.Type is PileType.Hand or PileType.Play)
-        {
-            context.StateStore.GetPowerAmount(power).Decrement();
-        }
     }
 
     private static void HandleFreeSkillPower(FreeSkillPower power, BeforeCardPlayedMirrorContext context)
