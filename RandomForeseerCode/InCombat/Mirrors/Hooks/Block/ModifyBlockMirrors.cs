@@ -98,10 +98,9 @@ internal static class ModifyBlockMirrors
             return 0;
         }
 
-        var amount = context.StateStore.GetPowerAmount(power).Amount;
         if (context.CardPlay is null)
         {
-            return StretchPower.GainsBlock(source.Preview) ? amount : 0;
+            return StretchPower.GainsBlock(source.Preview) ? context.StateStore.GetPowerAmount(power).Amount : 0;
         }
 
         if (state.Play is null || state.Play.Player != source.Preview.Owner)
@@ -110,7 +109,7 @@ internal static class ModifyBlockMirrors
         }
 
         state.GaveBonus = true;
-        return amount;
+        return state.StartingAmount;
     }
 
     private static decimal HandleUnmovablePower(UnmovablePower power, ModifyBlockMirrorContext context)
@@ -121,12 +120,18 @@ internal static class ModifyBlockMirrors
             return 1;
         }
 
-        var count = CombatManager.Instance.History.Entries.OfType<BlockGainedEntry>().Count(entry =>
-            entry.HappenedThisTurn(context.CombatState) && entry.CardPlay is { } play &&
-            play.Player.Creature == power.Owner && entry.Props.IsCardOrMonsterMove() && play != context.CardPlay);
-        count += context.History.OfType<CombatPredictionBlockGainedEntry>().Count(entry =>
-            entry.CardPlay is { } play && play.Player.Creature == power.Owner &&
-            entry.Props.IsCardOrMonsterMove() && play != context.CardPlay);
+        var originalPlays = CombatManager.Instance.History.Entries
+            .OfType<BlockGainedEntry>()
+            .Where(entry => entry.HappenedThisTurn(context.CombatState) && entry.CardPlay is { } play &&
+                            play.Player.Creature == power.Owner && entry.Props.IsCardOrMonsterMove() &&
+                            play != context.CardPlay)
+            .Select(entry => entry.CardPlay);
+        var predictedPlays = context.History
+            .OfType<CombatPredictionBlockGainedEntry>()
+            .Where(entry => entry.CardPlay is { } play && play.Player.Creature == power.Owner &&
+                            entry.Props.IsCardOrMonsterMove() && play != context.CardPlay)
+            .Select(entry => entry.CardPlay);
+        var count = originalPlays.Concat(predictedPlays).Distinct().Count();
         return count < context.StateStore.GetPowerAmount(power).Amount ? 2 : 1;
     }
 

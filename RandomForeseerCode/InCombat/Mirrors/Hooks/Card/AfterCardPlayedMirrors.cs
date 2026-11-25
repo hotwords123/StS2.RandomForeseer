@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
+using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Achievements;
@@ -98,6 +99,7 @@ internal static class AfterCardPlayedMirrors
         registry.Register<StranglePower>(HandleStranglePower);
         registry.Register<SubroutinePower>(HandleSubroutinePower);
         registry.Register<TenderPower>(HandleTenderPower);
+        registry.Register<TunePower>(HandleTunePower);
         registry.Register<VitalSparkPower>(HandleVitalSparkPower);
         registry.Register<VoidFormPower>(HandleVoidFormPower);
         registry.Register<ViolentChordPower>(HandleViolentChordPower);
@@ -158,7 +160,7 @@ internal static class AfterCardPlayedMirrors
 
     private static void HandleEnsemblePower(EnsemblePower power, AfterCardPlayedMirrorContext context)
     {
-        if (context.PreviewCard.Owner.Creature != power.Owner)
+        if (context.CardPlay.Player.Creature != power.Owner && context.CardPlay.IsLastInSeries)
         {
             context.StateStore.GetPowerAmount(power).Decrement();
         }
@@ -198,6 +200,35 @@ internal static class AfterCardPlayedMirrors
             MelodyMirrors.IsFirstPlayThisTurn(context.Simulator, context.CardPlay, CardTag.Wah))
         {
             context.Simulator.Damage(context.State.HittableEnemies, power.Amount, ValueProp.Unpowered, power.Owner);
+        }
+    }
+
+    private static void HandleTunePower(TunePower power, AfterCardPlayedMirrorContext context)
+    {
+        var owner = context.PreviewCard.Owner;
+        var amount = context.StateStore.GetPowerAmount(power).Amount;
+        if (amount <= 0 || owner != power.Owner.Player ||
+            !context.PreviewCard.Tags.Contains(CardTag.Ki) ||
+            !MelodyMirrors.IsFirstPlayThisTurn(context.Simulator, context.CardPlay, CardTag.Ki))
+        {
+            return;
+        }
+
+        var selected = context.State.GetPlayerCombatState(owner).Hand.Cards
+            .Where(card => card.Preview.IsUpgradable)
+            .TakeRandom(amount, context.Rng.CombatCardSelection);
+        List<PredictedCard> upgraded = [];
+        foreach (var card in selected)
+        {
+            if (context.Simulator.Upgrade(card))
+            {
+                upgraded.Add(card);
+            }
+        }
+
+        if (upgraded.Count > 0)
+        {
+            context.History.CardsSelected(upgraded);
         }
     }
 
